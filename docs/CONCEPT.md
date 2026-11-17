@@ -23,7 +23,7 @@ Le joueur incarne un héros d'une des 9 classes de WoW Classic et s'attaque, seu
    Interrompre, sortir du feu, dissiper, gérer les phases, battre l'enrage : le joueur doit *lire* le combat comme un raideur lit un boss.
 
 3. **La nostalgie Classic, en restant simple**
-   Arbres de talents, harmonisations, objets légendaires, buffs mondiaux. On garde la saveur sans la complexité d'un MMO.
+   Arbres de talents, fragments d'harmonisation, objets légendaires, buffs mondiaux. On garde la saveur sans la complexité d'un MMO.
 
 4. **Facile à prendre en main, profond à maîtriser**
    Les systèmes annexes (l'équipement par exemple) restent volontairement légers. La profondeur vient des cartes et des synergies.
@@ -46,7 +46,7 @@ Choix de la classe
 - Chaque acte est une **carte à embranchements** (comme dans StS) : le joueur choisit son chemin.
 - **Après chaque combat**, le joueur choisit une carte parmi 3 (ou n'en prend aucune).
 - **Après chaque boss**, il gagne un **point de talent** (voir §6).
-- **La mort met fin à la run.** Le joueur conserve la méta-progression (voir §9).
+- **La mort met fin à la run.** Le joueur gagne quand même de l'expérience pour sa classe (voir §9).
 
 ### 3.2 Les nœuds de la carte
 
@@ -174,7 +174,7 @@ On commence par **WoW Classic**. Chaque raid est un acte, avec ses monstres de t
 ### Acte secret — Naxxramas
 *La nécropole flottante du Fléau.*
 
-- Débloqué sous conditions (à définir : par exemple, battre C'Thun sans perdre plus de X PV, ou avoir terminé une chaîne de quête de l'Aube d'argent).
+- Débloqué en récupérant les **3 fragments d'harmonisation** pendant la run (voir §9.1), comme l'acte 4 de StS avec ses 3 clés.
 - **Boss final** : **Kel'Thuzad**
 
 ### Embranchements possibles (plus tard)
@@ -241,18 +241,43 @@ Un nombre limité d'emplacements (3 au départ). Exemples : Flacon des Titans, �
 
 ---
 
-## 9. Méta-progression
+## 9. Progression (inspirée de Slay the Spire)
 
-Ce qui reste d'une run à l'autre :
+Le principe de StS est repris tel quel : **le joueur ne devient pas plus fort d'une run à l'autre**. Il débloque du **contenu** (nouvelles cartes, reliques, classes) et de la **difficulté**. Toute la puissance se gagne pendant la run.
 
-- **Harmonisations** : battre un raid débloque le suivant comme acte de départ possible, dans l'esprit des harmonisations de Classic.
-- **Réputations** (Aube d'argent, Seigneurs de l'eau d'Hydraxis, Tribu Zandalar…) : elles montent au fil des runs et **ajoutent de nouvelles cartes, reliques et objets** dans le pool.
-- **Classes** : on commence avec quelques classes, les autres se débloquent en jouant.
-- **Niveaux de difficulté** (équivalent de l'Ascension de StS) : des **modificateurs de raid** cumulables, par exemple :
-  - *Enrage plus rapide*
-  - *Trash renforcé*
-  - *Pas de feu de camp avant le boss*
-  - *Les boss commencent avec un buff*
+### 9.1 Pendant la run
+
+| Élément StS | Version WoW |
+|---|---|
+| **Bénédiction de Neow** en début de run | **Bénédiction à l'entrée du raid** : un PNJ (par exemple Lothos Rift-waker à l'entrée du Cœur du Magma) propose un choix parmi 4 bonus de départ, dont certains avec une contrepartie (« Perds 10 PV max, obtiens une relique rare »). |
+| Deck de départ basique | **Deck de départ de la classe** : 10 cartes (attaques basiques, défenses basiques et 1 ou 2 cartes signatures de la classe). |
+| Récompenses de cartes après combat | Inchangé : 1 carte parmi 3, influencée par les talents (§6). |
+| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte (Frappe héroïque → Frappe héroïque+). |
+| **Relique de boss** après chaque boss de fin d'acte | **Butin de boss** : choix parmi 3 reliques puissantes, souvent avec un inconvénient. |
+| Ordre fixe des actes | **Ordre fixe des raids** : Cœur du Magma → Repaire de l'Aile noire → Ahn'Qiraj. |
+| **Acte 4** débloqué par 3 clés | **Naxxramas** débloqué par **3 fragments d'harmonisation** récupérés pendant la run (voir ci-dessous). |
+
+**Les 3 fragments d'harmonisation pour Naxxramas** (équivalents des 3 clés de StS) :
+- 🔴 **Fragment de feu** : à la place du repos ou de l'amélioration, sur un feu de camp.
+- 🔵 **Fragment des dragons** : en battant un **boss secondaire renforcé** (signalé sur la carte).
+- 🟢 **Fragment ancien** : en renonçant à la récompense d'un coffre.
+
+Récupérer les 3 donne accès, après C'Thun, à un dernier acte court à Naxxramas contre **Kel'Thuzad**. C'est la vraie fin du jeu.
+
+### 9.2 Entre les runs
+
+- **Barre d'expérience par classe** : à la fin de chaque run, victoire ou défaite, le joueur gagne de l'expérience selon son score (étages atteints, boss tués, élites vaincus…). Chaque niveau débloque **un lot de nouvelles cartes ou de nouvelles reliques** pour cette classe.
+- **Déblocage des classes** : au départ, 3 classes sont disponibles. Les autres se débloquent en accumulant de l'expérience au total (comme les personnages de StS).
+- **Niveaux de difficulté** (l'équivalent de l'Ascension) : **20 niveaux par classe**, débloqués un par un en gagnant une run au niveau précédent. Chaque niveau ajoute un modificateur cumulable, par exemple :
+  - *Les ennemis ont plus de PV*
+  - *Les boss secondaires sont plus dangereux*
+  - *L'enrage arrive un tour plus tôt*
+  - *Le feu de camp soigne moins*
+  - *Le deck de départ contient une carte de malédiction*
+  - *Niveau 20 : deux boss d'affilée à la fin de l'acte 3*
+- **Compendium** : une encyclopédie qui recense les cartes, reliques, objets et monstres découverts, avec un petit texte de lore pour chaque entrée.
+
+> **Ce qu'on retire par rapport à la version précédente :** les harmonisations qui débloquaient un raid de départ et les réputations. L'ordre des raids reste fixe, comme dans StS. Les réputations pourront revenir plus tard sous forme d'événements pendant la run, sans progression permanente.
 
 ---
 
