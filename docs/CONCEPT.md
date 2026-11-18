@@ -775,5 +775,13 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 2. ~~Passer en univers original~~ ✅
 3. **Concevoir les classes** une par une : deck de départ, environ 50 cartes, 3 arbres de talents, sorts de barre, légendaire. On commence par les 3 classes du prototype.
    - [Guerrier](classes/GUERRIER.md) ✅ (version 0.1)
+   - [Mage](classes/MAGE.md) ✅ (version 0.1)
+   - [Démoniste](classes/DEMONISTE.md) ✅ (version 0.1)
+   - [Prêtre](classes/PRETRE.md) ✅ (version 0.1)
+   - [Voleur](classes/VOLEUR.md) ✅ (version 0.1)
+   - [Paladin](classes/PALADIN.md) ✅ (version 0.1)
+   - [Chasseur](classes/CHASSEUR.md) ✅ (version 0.1)
+   - [Chaman](classes/CHAMAN.md) ✅ (version 0.1)
+   - Druide : à faire
 4. **Concevoir l'acte 1 (les Profondeurs Ardentes)** en détail : trash, boss secondaires, Vulkhar, tables de loot, événements, chiffres.
 5. **Prototyper le combat** (sur papier ou en code) avec 1 classe et quelques ennemis.
