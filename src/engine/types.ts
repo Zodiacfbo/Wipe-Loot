@@ -1,5 +1,7 @@
 // Types partagés par le moteur de jeu. Tout l'état est sérialisable en JSON,
 // pour pouvoir être sauvegardé tel quel (navigateur aujourd'hui, Firebase plus tard).
+import type { Encounter } from './enemies';
+import type { ActMap } from './map';
 
 export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
 export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Statut';
@@ -93,20 +95,29 @@ export interface CombatState {
   rng: number;
 }
 
-export type Screen = 'combat' | 'reward' | 'campfire' | 'wipe' | 'victory' | 'gameover';
+export type Screen = 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'wipe' | 'victory' | 'gameover';
 
 export interface RunState {
-  version: 1;
+  version: 2;
   seed: number;
   rng: number;
   maxHp: number;
   hp: number;
   deck: CardInstance[];
   wipesLeft: number;
-  step: number;
   screen: Screen;
+  /** La carte de l'acte (voir map.ts). */
+  map: ActMap;
+  /** Le nœud où se trouve le joueur (null : avant l'étage 1). */
+  position: number | null;
+  /** Les nœuds déjà visités, dans l'ordre. */
+  path: number[];
+  /** La rencontre en cours ou la dernière jouée (pour retenter après un wipe). */
+  encounter: Encounter | null;
   combat: CombatState | null;
   entry: { hp: number; deck: CardInstance[] } | null;
   rewardChoices: string[];
+  rewardTitle: string;
+  eventId: string | null;
   nextUid: number;
 }

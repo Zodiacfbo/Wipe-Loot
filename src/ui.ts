@@ -11,15 +11,20 @@ import {
   previewIntentDamage,
   useSpell,
 } from './engine/combat';
-import { ENEMIES, ROUTE } from './engine/enemies';
+import { ENEMIES } from './engine/enemies';
+import { EVENTS } from './engine/events';
+import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
   MAX_WIPES,
   abandonRun,
   afterCombatAction,
   campfireRest,
   campfireUpgrade,
+  chooseNode,
   chooseReward,
+  currentNode,
   newRun,
+  resolveEvent,
   retryAfterWipe,
 } from './engine/run';
 import { localSave } from './engine/save';
@@ -76,7 +81,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     <img class="icone px" src="${A(`icone_${def.icon}.png`)}" alt="">
     <span class="cout ${reduced ? 'reduit' : ''}">${cost}</span>
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
-    <span class="titre ${card.upgraded ? 'ameliore' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
+    <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}</span>
     <span class="texte">${def.text(card.upgraded)}</span>
   </button>`;
@@ -112,7 +117,6 @@ async function toggleFullscreen(): Promise<void> {
 // ---------- Barre du haut ----------
 
 function topbar(run: RunState, hp: number): string {
-  const step = ROUTE[Math.min(run.step, ROUTE.length - 1)];
   const pips = Array.from({ length: MAX_WIPES }, (_, i) => `<i class="pip ${i < run.wipesLeft ? '' : 'vide'}"></i>`).join('');
   return `<div class="topbar">
     <div class="groupe">
@@ -120,7 +124,7 @@ function topbar(run: RunState, hp: number): string {
       <span class="stat pv">${ICON.coeur}<span>${hp} / ${run.maxHp}</span></span>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-      <span class="etape">Les Profondeurs Ardentes · ${Math.min(run.step + 1, ROUTE.length)}/${ROUTE.length} · ${step.name}</span>
+      <span class="etape">Les Profondeurs Ardentes · ${etageLabel(run)}</span>
       <span class="pips">Wipes ${pips} <span>${run.wipesLeft} restant${run.wipesLeft > 1 ? 's' : ''}</span></span>
     </div>
     <div class="groupe">
@@ -128,6 +132,84 @@ function topbar(run: RunState, hp: number): string {
       <button type="button" class="bouton" data-action="deck">Deck · ${run.deck.length}</button>
       <button type="button" class="bouton" data-action="menu">Menu</button>
     </div>
+  </div>`;
+}
+
+function etageLabel(run: RunState): string {
+  const node = currentNode(run);
+  if (!node) return 'Entrée';
+  const where = run.screen === 'combat' && run.encounter ? ` · ${run.encounter.name}` : '';
+  return `Étage ${node.floor + 1}/${FLOORS}${where}`;
+}
+
+// ---------- Carte de l'acte ----------
+
+const NODE_LABEL: Record<NodeType, string> = {
+  combat: 'Combat', elite: 'Boss secondaire', event: '?', campfire: 'Feu de camp', chest: 'Coffre', boss: 'Boss',
+};
+
+const NODE_ICON: Record<NodeType, string> = {
+  combat: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/></svg>',
+  elite: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a7 7 0 0 0-7 7c0 2.5 1.3 4 3 5v3h8v-3c1.7-1 3-2.5 3-5a7 7 0 0 0-7-7z"/><circle cx="9.5" cy="10.5" r="1.5"/><circle cx="14.5" cy="10.5" r="1.5"/><path d="M10 18v3M14 18v3"/></svg>',
+  event: '<span class="noeud-q">?</span>',
+  campfire: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/><path d="M5 21l14-3M19 21L5 18"/></svg>',
+  chest: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="11" rx="1"/><path d="M3 9a9 5 0 0 1 18 0M3 13h18M12 12v3"/></svg>',
+  boss: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5L3 8z"/></svg>',
+};
+
+function nodePos(n: MapNode): { x: number; y: number } {
+  const jitter = n.type === 'boss' ? 0 : ((n.id * 37) % 21) - 10;
+  return { x: 80 + n.floor * 124, y: 170 + n.lane * 118 + jitter };
+}
+
+function mapScreen(run: RunState): string {
+  const nodes = run.map.nodes;
+  const can = new Set(reachable(run.map, run.position).map((n) => n.id));
+  const visited = new Set(run.path);
+  const walked = new Set<string>();
+  for (let i = 1; i < run.path.length; i++) walked.add(`${run.path[i - 1]}-${run.path[i]}`);
+
+  const lines = nodes.flatMap((n) => n.next.map((m) => {
+    const a = nodePos(n);
+    const b = nodePos(nodes[m]);
+    const done = walked.has(`${n.id}-${m}`);
+    const next = run.position === n.id;
+    const cls = done ? 'fait' : next ? 'possible' : '';
+    return `<line class="${cls}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`;
+  })).join('');
+
+  const buttons = nodes.map((n) => {
+    const { x, y } = nodePos(n);
+    const state = can.has(n.id) ? 'accessible' : visited.has(n.id) ? 'visite' : run.position === n.id ? 'ici' : '';
+    const size = n.type === 'boss' ? 84 : 58;
+    const label = n.type === 'boss' ? 'Boss' : NODE_LABEL[n.type];
+    return `<button type="button" class="noeud ${n.type} ${state} ${run.position === n.id ? 'ici' : ''}" style="left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px"
+      ${can.has(n.id) ? `data-action="noeud" data-id="${n.id}"` : 'disabled'} aria-label="Étage ${n.floor + 1} : ${label}">${NODE_ICON[n.type]}</button>`;
+  }).join('');
+
+  const floorsLabels = Array.from({ length: FLOORS }, (_, f) => `<span class="etage-num" style="left:${80 + f * 124 - 30}px">${f + 1}</span>`).join('');
+
+  const legend = (['combat', 'elite', 'event', 'chest', 'campfire', 'boss'] as NodeType[])
+    .map((t) => `<span class="legende-item"><span class="noeud mini ${t}">${NODE_ICON[t]}</span>${NODE_LABEL[t] === '?' ? 'Inconnu' : NODE_LABEL[t]}</span>`).join('');
+
+  return `${topbar(run, run.hp)}
+    <div class="carte-acte">
+      <h2 class="carte-titre">${run.position === null ? 'Choisis ton point de départ' : 'Choisis ton chemin'}</h2>
+      ${floorsLabels}
+      <svg class="liens" width="1280" height="720" aria-hidden="true">${lines}</svg>
+      ${buttons}
+      <div class="legende">${legend}</div>
+    </div>`;
+}
+
+function eventScreen(run: RunState): string {
+  const ev = run.eventId ? EVENTS[run.eventId] : null;
+  if (!ev) return '';
+  const choices = ev.choices.map((ch, i) => `<button type="button" class="choix-evenement" data-action="choix" data-index="${i}"><b>${ch.label}</b><span>${ch.detail}</span></button>`).join('');
+  return `${topbar(run, run.hp)}<div class="ecran">
+    <h2>${ev.title}</h2>
+    <p class="texte-evenement">${ev.text}</p>
+    <div class="choix-liste">${choices}</div>
   </div>`;
 }
 
@@ -195,7 +277,7 @@ function combatScreen(run: RunState, c: CombatState): string {
 
   const enemies = c.enemies.filter((e) => !e.dead).map((e) => {
     const def = ENEMIES[e.defId];
-    const big = e.defId === 'seigneur' || e.defId === 'brannoc';
+    const big = e.defId === 'seigneur' || e.defId === 'brannoc' || e.defId === 'cendrine';
     const small = e.defId === 'etincelle';
     const size = big ? 192 : small ? 96 : 144;
     const pct = Math.max(0, (e.hp / e.maxHp) * 100);
@@ -275,14 +357,14 @@ function titleScreen(): string {
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">Nouvelle partie</button>
       ${fullscreenButton('gros-bouton secondaire')}
     </div>
-    <p>3 combats, un feu de camp, puis le Héraut Brannoc. Interromps ses Soins de flamme avec Coup de bouclier, ou tue-le avant l'enrage. La partie est sauvegardée automatiquement dans ce navigateur.</p>
+    <p>Traverse les 10 étages des Profondeurs Ardentes et choisis ton chemin : combats, boss secondaires, coffres, feux de camp et rencontres inattendues. La partie est sauvegardée automatiquement dans ce navigateur.</p>
   </div>`;
 }
 
 function rewardScreen(run: RunState): string {
   const cards = run.rewardChoices.map((id) => cardHtml({ uid: 0, id, upgraded: false }, { action: `data-action="recompense" data-id="${id}"` })).join('');
   return `${topbar(run, run.hp)}<div class="ecran">
-    <h2>Victoire !</h2>
+    <h2>${run.rewardTitle}</h2>
     <p>Choisis une carte à ajouter à ton deck.</p>
     <div class="choix-cartes">${cards}</div>
     <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">Passer</button>
@@ -305,7 +387,7 @@ function campfireScreen(run: RunState): string {
   const heal = Math.min(run.maxHp - run.hp, Math.floor(run.maxHp * 0.3));
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>Feu de camp</h2>
-    <p>Le Héraut Brannoc t'attend au bout de la galerie. Prends un instant avant le combat.</p>
+    <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
     <div class="actions">
       <button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>
       <button type="button" class="gros-bouton secondaire" data-action="feu-ameliorer">Améliorer une carte</button>
@@ -328,7 +410,7 @@ function endScreen(run: RunState, victory: boolean): string {
   return `<div class="ecran">
     <img class="px sprite-titre" src="${A(victory ? 'guerrier.png' : 'ennemi_brannoc.png')}" alt="">
     <h1>${victory ? 'Le Héraut est tombé !' : 'Fin de la run'}</h1>
-    <p>${victory ? `Bravo : tu as terminé le prototype avec ${run.hp} PV et ${MAX_WIPES - run.wipesLeft} wipe${MAX_WIPES - run.wipesLeft > 1 ? 's' : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
+    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${MAX_WIPES - run.wipesLeft} wipe${MAX_WIPES - run.wipesLeft > 1 ? 's' : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
     <div class="actions"><button type="button" class="gros-bouton" data-action="nouvelle">Nouvelle partie</button></div>
   </div>`;
 }
@@ -366,6 +448,8 @@ export function render(): void {
   }
   let html = '';
   switch (run.screen) {
+    case 'map': html = mapScreen(run); break;
+    case 'event': html = eventScreen(run); break;
     case 'combat': html = run.combat ? combatScreen(run, run.combat) : ''; break;
     case 'reward': html = rewardScreen(run); break;
     case 'campfire': html = campfireScreen(run); break;
@@ -495,6 +579,8 @@ function handleClick(ev: MouseEvent): void {
       commit();
       break;
     case 'recompense': chooseReward(run, el.dataset.id || null); commit(); break;
+    case 'noeud': chooseNode(run, Number(el.dataset.id)); commit(); break;
+    case 'choix': resolveEvent(run, Number(el.dataset.index)); commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
     case 'feu-retour': ui.campfireUpgrade = false; render(); break;

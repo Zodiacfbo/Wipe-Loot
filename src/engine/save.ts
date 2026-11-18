@@ -18,7 +18,7 @@ export const localSave: SaveBackend = {
       const raw = localStorage.getItem(KEY);
       if (!raw) return null;
       const run = JSON.parse(raw) as RunState;
-      return run.version === 1 ? run : null;
+      return run.version === 2 ? run : null;
     } catch {
       return null;
     }

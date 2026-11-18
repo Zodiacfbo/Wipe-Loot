@@ -12,7 +12,7 @@ Un deckbuilder roguelite dans la lignée de *Slay the Spire*, dans un univers de
 
 Le prototype jouable contient :
 - le **Guerrier** : rage, postures, barre de sorts (Charge), deck de départ et une vingtaine de cartes à gagner ;
-- une **mini-run dans l'acte 1** : 3 combats, un feu de camp, puis le Héraut Brannoc (boss secondaire avec enrage) ;
+- une **run dans l'acte 1** sur une **carte à embranchements** de 10 étages : combats, boss secondaires (Sœur Cendrine), « ? » (événements et embuscades), coffre, feux de camp, puis le Héraut Brannoc en boss provisoire ;
 - les **incantations interruptibles**, les **Zones de feu**, le **Saignement**, les **wipes** (3 nouveaux essais) ;
 - la **sauvegarde automatique** dans le navigateur, après chaque action.
 

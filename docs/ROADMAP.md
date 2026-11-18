@@ -37,13 +37,15 @@
 **Objectif :** une vraie run de l'acte 1, du début à Vulkhar, avec tous les systèmes d'une run. C'est la « tranche verticale » qui prouve que le jeu est amusant.
 
 ### 1.1 La run
-- [ ] Carte de l'acte à embranchements (10 étages, nœuds de combat, boss secondaire, feu de camp, vendeur, quête, coffre)
+- [x] Carte de l'acte à embranchements (10 étages, combats, boss secondaires, « ? », coffre, feux de camp, boss)
+- [ ] Ajouter le vendeur gobelin sur la carte (avec l'or)
+- [ ] Remplacer le boss provisoire (Brannoc) par Vulkhar
 - [ ] Bénédiction d'entrée de Brégan le Passeur
 - [ ] Écran de fin de run (score, statistiques)
 
 ### 1.2 Le combat
 - [ ] Tous les ennemis de trash de l'acte 1, et leurs packs
-- [ ] Les 9 boss secondaires de l'acte 1, avec leurs mécaniques
+- [ ] Les 9 boss secondaires de l'acte 1, avec leurs mécaniques (fait : Sœur Cendrine, Héraut Brannoc)
 - [ ] Vulkhar, Souverain des flammes (phases, plongée dans la lave, Marteau des flammes)
 - [ ] Cartes-statut de l'acte : Bombe vivante, Paniqué, Fardeau, Cendres
 - [ ] Infobulles des mots-clés, des buffs et des débuffs (appui long sur téléphone, survol sur PC)
@@ -65,8 +67,8 @@
 - [ ] La facture de réparation après un wipe, et les objets brisés
 
 ### 1.5 Les nœuds « ? »
-- [ ] Les événements narratifs de l'acte 1
-- [ ] Les combats cachés (embuscade, gobelin mimique, patrouille)
+- [ ] Les événements narratifs de l'acte 1 (premiers événements simples en place : la source chaude, le raideur tombé)
+- [ ] Les combats cachés (fait : embuscade ; reste : gobelin mimique, patrouille)
 - [ ] La quête des Gardiens des Sources (affaiblit Vulkhar)
 
 ### 1.6 Équilibrage

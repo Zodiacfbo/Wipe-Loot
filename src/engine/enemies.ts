@@ -46,6 +46,14 @@ export const ENEMIES: Record<string, EnemyDef> = {
       { kind: 'block', amount: 8 },
     ],
   },
+  cendrine: {
+    id: 'cendrine', name: 'Sœur Cendrine', hpMin: 75, hpMax: 75, elite: true,
+    cycle: [
+      { kind: 'attack', dmg: 5, addZone: 2 },
+      { kind: 'attack', dmg: 8 },
+      { kind: 'attack', dmg: 20, cast: 'Embrasement' },
+    ],
+  },
   brannoc: {
     id: 'brannoc', name: 'Héraut Brannoc', hpMin: 70, hpMax: 70, elite: true,
     cycle: [
@@ -69,18 +77,28 @@ export interface Encounter {
   enrageTurn?: number;
 }
 
-export interface Campfire {
-  kind: 'campfire';
-  name: string;
-}
-
-export type RouteStep = Encounter | Campfire;
-
-/** La mini-run du prototype : 3 combats, un feu de camp, puis un boss secondaire. */
-export const ROUTE: RouteStep[] = [
+/** Packs faciles (étages 1 à 4). */
+export const EASY_ENCOUNTERS: Encounter[] = [
   { kind: 'combat', name: 'Les molosses de braise', enemies: ['molosse', 'molosse'] },
-  { kind: 'combat', name: 'L\'embuscade cendreuse', enemies: ['eclaireur', 'etincelle', 'eclaireur', 'etincelle'] },
-  { kind: 'combat', name: 'Le Seigneur des cendres', enemies: ['molosse', 'seigneur'] },
-  { kind: 'campfire', name: 'Feu de camp' },
-  { kind: 'combat', name: 'Le Héraut Brannoc', enemies: ['lieutenant', 'brannoc', 'lieutenant'], enrageTurn: 10 },
+  { kind: 'combat', name: 'Les éclaireurs cendreux', enemies: ['eclaireur', 'eclaireur', 'eclaireur'] },
+  { kind: 'combat', name: 'Les étincelles vivantes', enemies: ['etincelle', 'etincelle', 'etincelle', 'etincelle'] },
+  { kind: 'combat', name: 'L\'éclaireur et ses étincelles', enemies: ['eclaireur', 'etincelle', 'etincelle'] },
 ];
+
+/** Packs difficiles (étages 6 à 8). */
+export const HARD_ENCOUNTERS: Encounter[] = [
+  { kind: 'combat', name: 'Le Seigneur des cendres', enemies: ['molosse', 'seigneur', 'molosse'] },
+  { kind: 'combat', name: 'Le Seigneur et les étincelles', enemies: ['etincelle', 'seigneur', 'etincelle', 'etincelle'] },
+  { kind: 'combat', name: 'La patrouille ardente', enemies: ['lieutenant', 'eclaireur', 'lieutenant'] },
+  { kind: 'combat', name: 'La meute', enemies: ['molosse', 'molosse', 'molosse'] },
+];
+
+/** Boss secondaires. */
+export const ELITE_ENCOUNTERS: Encounter[] = [
+  { kind: 'combat', name: 'Sœur Cendrine', enemies: ['cendrine'], enrageTurn: 10 },
+];
+
+/** Boss de fin d'acte (provisoire : Vulkhar n'est pas encore codé). */
+export const BOSS_ENCOUNTER: Encounter = {
+  kind: 'combat', name: 'Le Héraut Brannoc', enemies: ['lieutenant', 'brannoc', 'lieutenant'], enrageTurn: 12,
+};

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { changePosture, createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
-import { afterCombatAction, chooseReward, newRun, retryAfterWipe } from '../src/engine/run';
+import { reachable } from '../src/engine/map';
+import { afterCombatAction, chooseNode, chooseReward, newRun, retryAfterWipe } from '../src/engine/run';
 import type { CardInstance, CombatState } from '../src/engine/types';
 
 function deckOf(ids: string[]): CardInstance[] {
@@ -115,16 +116,45 @@ describe('statuts et effets', () => {
   });
 });
 
-describe('run', () => {
+describe('run et carte', () => {
   it('est déterministe pour une même graine', () => {
     const a = newRun(1234);
     const b = newRun(1234);
-    expect(a.combat?.hand.map((c) => c.id)).toEqual(b.combat?.hand.map((c) => c.id));
-    expect(a.combat?.enemies.map((e) => e.hp)).toEqual(b.combat?.enemies.map((e) => e.hp));
+    expect(a.map).toEqual(b.map);
   });
 
-  it('une victoire mène aux récompenses, puis au combat suivant', () => {
+  it('la carte a 10 étages, un coffre au 5e, un feu de camp au 9e et un seul boss', () => {
+    for (let seed = 1; seed < 40; seed++) {
+      const run = newRun(seed);
+      const nodes = run.map.nodes;
+      expect(nodes.filter((n) => n.type === 'boss').length).toBe(1);
+      expect(nodes.filter((n) => n.floor === 4).every((n) => n.type === 'chest')).toBe(true);
+      expect(nodes.filter((n) => n.floor === 8).every((n) => n.type === 'campfire')).toBe(true);
+      expect(nodes.filter((n) => n.floor === 0).every((n) => n.type === 'combat')).toBe(true);
+      expect(nodes.filter((n) => n.floor < 5).some((n) => n.type === 'elite')).toBe(false);
+      // chaque nœud mène quelque part, sauf le boss
+      for (const n of nodes) if (n.type !== 'boss') expect(n.next.length).toBeGreaterThan(0);
+      // le boss est atteignable depuis chaque départ
+      for (const start of reachable(run.map, null)) {
+        let frontier = [start.id];
+        for (let f = 0; f < 9; f++) frontier = [...new Set(frontier.flatMap((id) => nodes[id].next))];
+        expect(frontier).toContain(nodes.find((n) => n.type === 'boss')!.id);
+      }
+    }
+  });
+
+  it('on ne peut aller que sur un nœud accessible', () => {
     const run = newRun(7);
+    const far = run.map.nodes.find((n) => n.floor === 3)!;
+    expect(chooseNode(run, far.id)).toBe(false);
+    const start = reachable(run.map, null)[0];
+    expect(chooseNode(run, start.id)).toBe(true);
+    expect(run.screen).toBe('combat');
+  });
+
+  it('une victoire mène aux récompenses, puis à la carte', () => {
+    const run = newRun(7);
+    chooseNode(run, reachable(run.map, null)[0].id);
     for (const e of run.combat!.enemies) e.dead = true;
     run.combat!.phase = 'victory';
     afterCombatAction(run);
@@ -133,12 +163,14 @@ describe('run', () => {
     const size = run.deck.length;
     chooseReward(run, run.rewardChoices[0]);
     expect(run.deck.length).toBe(size + 1);
-    expect(run.step).toBe(1);
-    expect(run.screen).toBe('combat');
+    expect(run.screen).toBe('map');
+    expect(reachable(run.map, run.position).every((n) => n.floor === 1)).toBe(true);
   });
 
-  it('un wipe permet de retenter le combat avec au moins 50 % des PV', () => {
+  it('un wipe permet de retenter le même combat avec au moins 50 % des PV', () => {
     const run = newRun(7);
+    chooseNode(run, reachable(run.map, null)[0].id);
+    const name = run.encounter!.name;
     run.combat!.player.hp = 0;
     run.combat!.phase = 'defeat';
     afterCombatAction(run);
@@ -146,6 +178,7 @@ describe('run', () => {
     retryAfterWipe(run);
     expect(run.wipesLeft).toBe(2);
     expect(run.screen).toBe('combat');
+    expect(run.encounter!.name).toBe(name);
     expect(run.combat!.player.hp).toBe(80);
   });
 });

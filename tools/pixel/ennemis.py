@@ -111,9 +111,28 @@ def brannoc():
     return s.render()
 
 
+def cendrine():
+    s = Sprite(64, 64)
+    s.ellipse(8, 2, 22, 16, '#F59A2E', glow=True)  # flamme de l'encensoir
+    s.ellipse(11, 5, 19, 13, '#FFE27A', glow=True)
+    s.line([(15, 14), (18, 34)], '#5A3822', width=1)  # chaîne
+    s.ellipse(12, 30, 22, 40, '#7A5A2A')  # encensoir
+    s.poly([(22, 26), (42, 26), (52, 62), (12, 62)], '#3A2A30')  # robe de cendre
+    s.poly([(27, 28), (37, 28), (42, 62), (22, 62)], '#5A4A52')
+    s.line([(32, 30), (32, 60)], '#F59A2E', glow=True)
+    s.ellipse(20, 22, 32, 32, '#4A3A44')  # épaules
+    s.ellipse(32, 22, 44, 32, '#4A3A44')
+    s.ellipse(24, 6, 40, 26, '#4A3A44')  # capuche
+    s.ellipse(27, 11, 37, 24, '#C8A27A')  # visage
+    s.rect(29, 16, 31, 17, '#FF8A2A', glow=True)
+    s.rect(34, 16, 36, 17, '#FF8A2A', glow=True)
+    s.dots([(46, 10), (50, 20), (44, 4), (54, 30), (6, 46), (56, 44)], '#9A8A80', glow=True)  # cendres
+    s.ellipse(16, 30, 24, 38, '#C8A27A')  # main
+    return s.render()
+
 if __name__ == '__main__':
     os.makedirs(DEST, exist_ok=True)
     for name, fn in (('molosse', molosse), ('eclaireur', eclaireur), ('etincelle', etincelle),
-                     ('seigneur', seigneur), ('lieutenant', lieutenant), ('brannoc', brannoc)):
+                     ('seigneur', seigneur), ('lieutenant', lieutenant), ('brannoc', brannoc), ('cendrine', cendrine)):
         fn().save(os.path.join(DEST, f'ennemi_{name}.png'))
     print('ok')

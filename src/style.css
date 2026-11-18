@@ -219,3 +219,48 @@ img.px { image-rendering: pixelated; }
   text-shadow: 2px 2px 0 #1a0f08, -1px -1px 0 #1a0f08;
 }
 .fx-projectile { position: absolute; z-index: 39; border-radius: 50%; pointer-events: none; }
+
+/* ---------- Carte de l'acte ---------- */
+.carte-acte { position: absolute; inset: 52px 0 0 0; }
+.carte-acte > * { position: absolute; }
+.carte-titre { left: 0; right: 0; top: 14px; margin: 0; text-align: center; font-family: Cinzel, serif; font-size: 26px; font-weight: 700; }
+.etage-num { top: 62px; width: 60px; text-align: center; font-size: 12px; font-weight: 700; color: var(--texte-2); }
+.liens { left: 0; top: -52px; pointer-events: none; }
+.liens line { stroke: #4a372a; stroke-width: 3; stroke-dasharray: 6 7; }
+.liens line.possible { stroke: var(--or); stroke-dasharray: none; opacity: 0.8; }
+.liens line.fait { stroke: var(--accent); stroke-width: 4; stroke-dasharray: none; }
+.noeud {
+  border-radius: 50%; border: 3px solid #5a4433; background: var(--panneau-sombre); color: #9c8b79; padding: 0; margin-top: -52px;
+  display: flex; align-items: center; justify-content: center; transition: transform 0.12s ease;
+}
+.noeud.elite { color: #e88a7a; }
+.noeud.boss { color: var(--or); border-width: 4px; }
+.noeud.campfire { color: #f59a2e; }
+.noeud.chest { color: var(--or-clair); }
+.noeud.event { color: #b8a8e0; }
+.noeud:disabled { opacity: 0.55; cursor: default; }
+.noeud.visite { opacity: 1; background: #3a2a1c; border-color: var(--accent); }
+.noeud.ici { opacity: 1; background: var(--accent); border-color: var(--accent-clair); color: #1a0f08; box-shadow: 0 0 0 6px rgba(232, 116, 42, 0.25); }
+.noeud.accessible { opacity: 1; border-color: var(--or); background: #2e2416; animation: pulse 1.4s ease-in-out infinite; }
+.noeud.accessible:hover { transform: scale(1.15); }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(230, 195, 106, 0.55); } 50% { box-shadow: 0 0 0 10px rgba(230, 195, 106, 0); } }
+@media (prefers-reduced-motion: reduce) { .noeud.accessible { animation: none; } }
+.noeud-q { font-size: 26px; font-weight: 800; line-height: 1; }
+.legende { left: 0; right: 0; bottom: 18px; display: flex; justify-content: center; gap: 24px; font-size: 13px; color: var(--texte-2); }
+.legende-item { display: flex; align-items: center; gap: 7px; }
+.noeud.mini { width: 30px; height: 30px; margin: 0; border-width: 2px; opacity: 1; }
+.noeud.mini svg { width: 16px; height: 16px; }
+.noeud.mini .noeud-q { font-size: 16px; }
+
+/* ---------- Événements ---------- */
+.texte-evenement { font-size: 17px; color: var(--texte) !important; }
+.choix-liste { display: flex; flex-direction: column; gap: 12px; width: 560px; }
+.choix-evenement {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 14px 18px; border-radius: 12px;
+  border: 2px solid #5a4433; background: var(--panneau); text-align: left;
+}
+.choix-evenement:hover { border-color: var(--or); }
+.choix-evenement b { font-size: 17px; }
+.choix-evenement span { font-size: 14px; color: var(--texte-2); }
+
+.carte .titre.long { font-size: 10px; letter-spacing: -0.01em; }
