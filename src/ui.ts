@@ -898,7 +898,16 @@ function talentScreen(): string {
         const taken = picks[tier] === choice;
         const can = taken || (tier < picks.length) || (tier === picks.length && left > 0);
         const kind = d.spell ? 'Sort de barre' : d.card ? 'Carte épique' : 'Passif';
-        return `<button type="button" class="talent ${taken ? 'pris' : ''} ${d.card ? 'epique' : ''}" ${can ? `data-action="talent" data-tree="${tree.id}" data-tier="${tier}" data-choice="${choice}"` : 'disabled'}>
+        const action = can ? `data-action="talent" data-tree="${tree.id}" data-tier="${tier}" data-choice="${choice}"` : 'disabled';
+        if (d.card) {
+          // La carte épique : son illustration, son coût et ce qu'elle fait (normale et améliorée).
+          const c = CARDS[d.card];
+          const cost = `${c.cost} énergie${c.rageCost ? ` + ${c.rageCost === 'all' ? 'toute ta' : c.rageCost} rage` : ''}`;
+          return `<button type="button" class="talent epique ${taken ? 'pris' : ''}" ${action}>
+            <img class="px illu-talent" src="${A(`carte_${d.card}.png`)}" alt="">
+            <div><b>${d.name}</b><em>Carte épique · ${c.type} · ${cost}</em><span>${c.text(false)}</span><span class="ameliore">Améliorée : ${c.text(true)}</span><span class="note-talent">Un exemplaire dans ton deck de départ.</span></div></button>`;
+        }
+        return `<button type="button" class="talent ${taken ? 'pris' : ''}" ${action}>
           <b>${d.name}</b><em>${kind}</em><span>${d.text}</span></button>`;
       }).join('<span class="ou">ou</span>');
       return `<div class="palier ${open ? '' : 'ferme'}"><span class="num-palier">${tier + 1}</span><div class="choix-palier">${buttons}</div></div>`;

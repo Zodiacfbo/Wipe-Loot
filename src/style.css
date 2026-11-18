@@ -458,7 +458,7 @@ img.px { image-rendering: pixelated; }
 .arbre h3 span { color: var(--or); font-size: 14px; }
 .arbre > p { margin: 0 0 2px; font-size: 11px; color: var(--texte-2); text-align: left; }
 .palier { display: flex; gap: 6px; align-items: stretch; }
-.palier.ferme { opacity: 0.45; }
+.palier.ferme { opacity: 0.7; }
 .num-palier { flex: none; width: 18px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--or); font-size: 13px; }
 .choix-palier { flex: 1; display: flex; gap: 3px; align-items: stretch; }
 .ou { align-self: center; font-size: 10px; color: var(--texte-2); }
@@ -471,3 +471,8 @@ img.px { image-rendering: pixelated; }
 .talent.epique { border-color: #a66be0; }
 .talent.epique.pris { background: #2e2240; border-color: #c8a0ff; }
 .talent:disabled { cursor: not-allowed; }
+.talent.epique { flex-direction: row; align-items: center; gap: 10px; }
+.talent.epique > div { display: flex; flex-direction: column; gap: 1px; }
+.illu-talent { flex: none; width: 48px; height: 48px; border-radius: 6px; background: #1e1712; border: 1px solid #a66be0; }
+.talent .ameliore { color: #8fd49a; }
+.talent .note-talent { color: var(--texte-2); font-style: italic; }
