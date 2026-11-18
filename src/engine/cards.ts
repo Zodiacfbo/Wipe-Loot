@@ -2,6 +2,7 @@
 // Référence : docs/classes/GUERRIER.md
 import {
   addStatusToHand,
+  fx,
   applySaignement,
   drawCards,
   gainBlock,
@@ -127,6 +128,7 @@ export const CARDS: Record<string, CardDef> = {
       if (!ctx.target) return;
       if (ctx.target.intent.cast && !ctx.target.interrupted) {
         ctx.target.interrupted = true;
+        fx(ctx.c, { kind: 'interrupt', who: ctx.target.uid });
         log(ctx.c, `${ctx.target.name} est interrompu !`);
       }
       playerAttack(ctx.c, ctx.target, ctx.up ? 8 : 4);
@@ -150,6 +152,7 @@ export const CARDS: Record<string, CardDef> = {
     text: (up) => `Gagne ${up ? 3 : 2} Puissance.`,
     play: (ctx) => {
       ctx.c.player.puissance += ctx.up ? 3 : 2;
+      fx(ctx.c, { kind: 'buff', who: 'player', label: `Puissance +${ctx.up ? 3 : 2}` });
     },
   },
   ignorer_la_douleur: {

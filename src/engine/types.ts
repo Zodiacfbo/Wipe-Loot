@@ -63,6 +63,19 @@ export interface SpellState {
 
 export type CombatPhase = 'player' | 'victory' | 'defeat';
 
+/** Qui est concerné par un événement : le joueur, ou un ennemi (par son uid). */
+export type FxTarget = 'player' | number;
+
+/** Événements produits par le moteur pour que l'interface puisse les animer. */
+export type FxEvent =
+  | { kind: 'hit'; from: FxTarget; to: FxTarget; amount: number; blocked: number; ranged: boolean }
+  | { kind: 'tick'; who: FxTarget; amount: number; label: string }
+  | { kind: 'block'; who: FxTarget; amount: number }
+  | { kind: 'buff'; who: FxTarget; label: string }
+  | { kind: 'heal'; from: FxTarget; to: FxTarget; amount: number }
+  | { kind: 'interrupt'; who: number }
+  | { kind: 'death'; who: number };
+
 export interface CombatState {
   turn: number;
   phase: CombatPhase;
@@ -75,6 +88,7 @@ export interface CombatState {
   spells: SpellState[];
   enrageTurn: number | null;
   log: string[];
+  fx?: FxEvent[];
   nextUid: number;
   rng: number;
 }

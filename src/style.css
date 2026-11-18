@@ -212,3 +212,10 @@ img.px { image-rendering: pixelated; }
 .sous-titre { color: var(--or); font-family: Cinzel, serif; font-size: 18px; }
 .sprite-titre { width: 192px; height: 192px; }
 .overlay { position: absolute; inset: 0; background: rgba(12, 8, 6, 0.94); z-index: 50; }
+
+/* ---------- Animations ---------- */
+.fx-texte {
+  position: absolute; z-index: 40; pointer-events: none; white-space: nowrap; font-weight: 800;
+  text-shadow: 2px 2px 0 #1a0f08, -1px -1px 0 #1a0f08;
+}
+.fx-projectile { position: absolute; z-index: 39; border-radius: 50%; pointer-events: none; }

@@ -4,6 +4,7 @@ import {
   damageEnemy,
   damagePlayer,
   drawCards,
+  fx,
   gainRage,
   livingEnemies,
   log,
@@ -186,6 +187,7 @@ export function endTurn(c: CombatState): void {
   const zones = c.hand.filter((card) => card.id === 'zone_de_feu');
   for (let i = 0; i < zones.length; i++) {
     log(c, 'Tu restes dans le feu : 6 dégâts.');
+    fx(c, { kind: 'tick', who: 'player', amount: 6, label: 'Feu' });
     damagePlayer(c, 6, false);
   }
   c.exhaust.push(...zones);
@@ -216,6 +218,8 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
       const times = intent.times ?? 1;
       for (let i = 0; i < times && c.phase === 'player'; i++) {
         const dmg = enemyDamage(c, e, intent.dmg);
+        const blockBefore = c.player.block;
+        fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(blockBefore, dmg), ranged: !!intent.cast });
         const lost = damagePlayer(c, dmg, true);
         log(c, `${e.name}${intent.cast ? ` lance ${intent.cast}` : ' attaque'} : ${dmg} dégâts (${lost} PV perdus).`);
       }
@@ -229,13 +233,17 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
       let amount = intent.amount;
       if (e.buffs.ralenti > 0) amount = Math.floor(amount * 0.75);
       e.block += amount;
+      fx(c, { kind: 'block', who: e.uid, amount });
       log(c, `${e.name} se protège (+${amount} blocage).`);
       break;
     }
     case 'buff': {
       const others = livingEnemies(c).filter((o) => o !== e);
       const targets = intent.target === 'allies' && others.length > 0 ? others : [e];
-      for (const t of targets) t.buffs.puissance += intent.puissance;
+      for (const t of targets) {
+        t.buffs.puissance += intent.puissance;
+        fx(c, { kind: 'buff', who: t.uid, label: `Puissance +${intent.puissance}` });
+      }
       log(c, `${e.name} galvanise ${targets.length > 1 || targets[0] !== e ? 'ses alliés' : 'ses forces'} (+${intent.puissance} Puissance).`);
       break;
     }
@@ -245,6 +253,7 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
       const target = pool.reduce((a, b) => (a.hp / a.maxHp <= b.hp / b.maxHp ? a : b));
       const healed = Math.min(intent.amount, target.maxHp - target.hp);
       target.hp += healed;
+      fx(c, { kind: 'heal', from: e.uid, to: target.uid, amount: healed });
       log(c, `${e.name} lance ${intent.cast ?? 'un soin'} : ${target.name} récupère ${healed} PV.`);
       break;
     }
@@ -259,6 +268,7 @@ function enemyTurn(c: CombatState): void {
     // Saignement
     if (e.buffs.saignementTours > 0 && e.buffs.saignement > 0) {
       log(c, `${e.name} saigne : ${e.buffs.saignement} dégâts.`);
+      fx(c, { kind: 'tick', who: e.uid, amount: e.buffs.saignement, label: 'Saignement' });
       damageEnemy(c, e, e.buffs.saignement, true);
       e.buffs.saignementTours -= 1;
       if (e.buffs.saignementTours === 0) e.buffs.saignement = 0;

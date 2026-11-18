@@ -23,6 +23,7 @@ import {
   retryAfterWipe,
 } from './engine/run';
 import { localSave } from './engine/save';
+import { initFx, playFx } from './fx';
 import type { CardInstance, CombatState, EnemyState, Posture, RunState } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
@@ -38,6 +39,7 @@ interface UiState {
 
 const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false };
 let stage: HTMLElement;
+let busy = false; // une animation est en cours : on ignore les clics
 
 // ---------- Icônes ----------
 
@@ -200,7 +202,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     const tag = targeting ? 'button' : 'div';
     return `<${tag} ${targeting ? 'type="button"' : ''} class="ennemi ${targeting ? 'ciblable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}, ${e.hp} PV">
       ${intentHtml(c, e)}
-      <img class="px" src="${A(`ennemi_${e.defId}.png`)}" alt="" style="width:${size}px;height:${size}px">
+      <img class="px" data-fx="${e.uid}" src="${A(`ennemi_${e.defId}.png`)}" alt="" style="width:${size}px;height:${size}px">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${e.hp} / ${e.maxHp}</span></div>
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${enemyChips(e)}</div>
@@ -238,7 +240,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     ${enrage}
     <div class="heros">
       <div class="buffs">${p.puissance > 0 ? `<span class="chip">Puissance ${p.puissance}</span>` : ''}</div>
-      <img class="px" src="${A('guerrier.png')}" alt="Le Guerrier" style="width:192px;height:192px">
+      <img class="px" data-fx="player" src="${A('guerrier.png')}" alt="Le Guerrier" style="width:192px;height:192px">
       <div class="jauges">
         <div class="ligne">
           <div class="bouclier-badge" title="Blocage"><svg width="32" height="32" viewBox="0 0 24 24" fill="#1d2633" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span>${p.block}</span></div>
@@ -374,13 +376,28 @@ export function render(): void {
   stage.innerHTML = html + overlayHtml(run);
 }
 
-function commit(): void {
+async function commit(): Promise<void> {
   const run = ui.run;
+  const events = run?.combat?.fx?.splice(0) ?? [];
+  if (events.length > 0) {
+    busy = true;
+    try {
+      await playFx(events);
+    } finally {
+      busy = false;
+    }
+  }
   if (run) {
     afterCombatAction(run);
     localSave.save(run);
   }
   render();
+}
+
+/** Cache tout de suite la carte jouée, pendant que l'animation se joue. */
+function hideCard(index: number): void {
+  const el = stage.querySelector<HTMLElement>(`.main [data-index="${index}"]`);
+  if (el) el.style.visibility = 'hidden';
 }
 
 function startNewRun(): void {
@@ -407,9 +424,10 @@ function onCard(index: number): void {
     render();
     return;
   }
+  hideCard(index);
   playCard(c, index);
   ui.selection = null;
-  commit();
+  void commit();
 }
 
 function onSpell(index: number): void {
@@ -436,13 +454,18 @@ function onTarget(uid: number): void {
   const c = ui.run?.combat;
   const sel = ui.selection;
   if (!c || !sel) return;
-  if (sel.kind === 'card') playCard(c, sel.index, uid);
-  else useSpell(c, sel.index, uid);
+  if (sel.kind === 'card') {
+    hideCard(sel.index);
+    playCard(c, sel.index, uid);
+  } else {
+    useSpell(c, sel.index, uid);
+  }
   ui.selection = null;
   commit();
 }
 
 function handleClick(ev: MouseEvent): void {
+  if (busy) return;
   const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-action]');
   if (!el || (el as HTMLButtonElement).disabled) return;
   const run = ui.run;
@@ -500,6 +523,7 @@ const PRELOAD = [
 export function mount(root: HTMLElement): void {
   for (const file of PRELOAD) new Image().src = A(file);
   stage = root;
+  initFx(root);
   stage.addEventListener('click', handleClick);
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', () => {

@@ -1,11 +1,16 @@
 // Actions élémentaires du combat : dégâts, blocage, rage, débuffs, pioche.
 // Les cartes et les ennemis s'appuient sur ces fonctions.
 import { shuffle } from './rng';
-import type { CombatState, EnemyState } from './types';
+import type { CombatState, EnemyState, FxEvent } from './types';
 
 export function log(c: CombatState, msg: string): void {
   c.log.push(msg);
   if (c.log.length > 40) c.log.splice(0, c.log.length - 40);
+}
+
+/** Enregistre un événement à animer par l'interface. */
+export function fx(c: CombatState, ev: FxEvent): void {
+  (c.fx ??= []).push(ev);
 }
 
 export function livingEnemies(c: CombatState): EnemyState[] {
@@ -22,6 +27,7 @@ export function gainBlock(c: CombatState, amount: number): void {
   let total = amount;
   if (p.posture === 'defensive') total += 3;
   p.block += Math.max(0, total);
+  if (total > 0) fx(c, { kind: 'block', who: 'player', amount: total });
 }
 
 export interface AttackOptions {
@@ -43,7 +49,11 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
 export function playerAttack(c: CombatState, target: EnemyState, base: number, opts: AttackOptions = {}): number {
   if (target.dead) return 0;
   const dmg = attackDamage(c, target, base, opts);
+  const blockBefore = target.block;
+  fx(c, { kind: 'hit', from: 'player', to: target.uid, amount: dmg, blocked: 0, ranged: false });
+  const ev = c.fx![c.fx!.length - 1] as { blocked: number };
   damageEnemy(c, target, dmg, opts.ignoreBlock ?? false);
+  ev.blocked = opts.ignoreBlock ? 0 : Math.min(blockBefore, dmg);
   return dmg;
 }
 
@@ -64,9 +74,11 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
   target.hp = 0;
   target.dead = true;
   target.block = 0;
+  fx(c, { kind: 'death', who: target.uid });
   log(c, `${target.name} est vaincu.`);
   if (target.defId === 'etincelle') {
     log(c, `L'Étincelle vivante explose !`);
+    fx(c, { kind: 'tick', who: 'player', amount: 4, label: 'Explosion' });
     damagePlayer(c, 4, false);
   }
   if (livingEnemies(c).length === 0 && c.phase === 'player') c.phase = 'victory';
