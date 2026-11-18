@@ -71,7 +71,9 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 interface UiState {
   run: RunState | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | null;
+  /** Objet du coffre choisi dans le hall pour la prochaine expédition (index). */
+  heirloom: number | null;
   pileKind: 'draw' | 'discard' | 'exhaust';
   /** Potion ouverte (emplacement du joueur), ou potion du vendeur regardée. */
   potionSlot: number | null;
@@ -79,8 +81,6 @@ interface UiState {
   campfireUpgrade: boolean;
   shopMode: 'remove' | 'upgrade' | null;
   shopItem: number | null;
-  /** Écran du coffre avant une nouvelle run. */
-  chestPick: boolean;
   /** Brégan : choix de la carte à retirer (Allègement). */
   blessingRemove: boolean;
   /** Écran des talents (avant une run). */
@@ -93,7 +93,7 @@ interface UiState {
   depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false, upgradeUid: null, pileKind: 'draw' };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false, upgradeUid: null, pileKind: 'draw', heirloom: null };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -728,23 +728,90 @@ function combatScreen(run: RunState, c: CombatState): string {
 
 // ---------- Autres écrans ----------
 
+/** Le hall de la guilde : l'écran principal du jeu. */
 function titleScreen(): string {
+  const profile = loadProfile();
+  if (!profile.startClass) return firstLaunchScreen();
   const saved = localSave.load();
   // Une victoire dont le passage au coffre n'est pas fait peut encore être reprise.
   const canContinue = saved && saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
+  const lvl = classLevel(profile, 'guerrier');
+  const pct = lvl.needed ? Math.round((lvl.into / lvl.needed) * 100) : 100;
+  const alloc = myAlloc();
+  const trees = TREES.map((t) => `<span class="${alloc[t.id].length === 5 ? 'complet' : ''}">${t.name} <b>${alloc[t.id].length}</b></span>`).join('');
+  const unlocks = unlocksAvailable(profile);
+  const chest = profile.guildChest;
+  if (ui.heirloom !== null && !chest[ui.heirloom]) ui.heirloom = null;
+  const tiles = Array.from({ length: CHEST_SIZE }, (_, i) => {
+    const id = chest[i];
+    if (!id) return '<div class="tuile-coffre vide"></div>';
+    const it = ITEMS[id];
+    return `<button type="button" class="tuile-coffre ${it.rarity} ${ui.heirloom === i ? 'emporte' : ''}" data-action="heritage" data-index="${i}" title="${it.name} : ${it.text}">
+      <span class="objet-icone">${SLOT_ICON[it.slot]}</span><b>${it.name}</b>${ui.heirloom === i ? '<em>Emporté</em>' : ''}</button>`;
+  }).join('');
+  const chosen = ui.heirloom !== null ? ITEMS[chest[ui.heirloom]] : null;
+  const run = canContinue && saved ? `<div class="run-en-cours">
+      <span class="butin-titre">Expédition en cours</span>
+      <p>${saved.position === null ? 'Entrée des Profondeurs' : `Étage ${saved.map.nodes[saved.position].floor + 1}/${FLOORS}`} · ${ICON.coeur} ${saved.hp}/${saved.maxHp} · ${ICON.piece} ${saved.gold} · ${saved.wipesLeft} wipe${saved.wipesLeft > 1 ? 's' : ''} restant${saved.wipesLeft > 1 ? 's' : ''}</p>
+      <button type="button" class="gros-bouton" data-action="continuer">Continuer</button>
+    </div>` : '';
+  const stats = profile.stats;
+  return `<div class="hall">
+    <header class="hall-tete"><span class="titre-jeu petit">Wipe &amp; Loot</span><span class="hall-nom">Hall de la guilde</span>
+      <div class="hall-options">${fullscreenButton('bouton')}</div></header>
+    <section class="hall-heros">
+      <img class="px" src="${A('guerrier.png')}" alt="Le Guerrier" style="width:160px;height:160px">
+      <h3>Guerrier · niveau ${lvl.level}</h3>
+      <div class="barre-xp"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
+      <div class="hall-arbres">${trees}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="talents">Talents · ${pointsUsed(alloc)}/${lvl.level} points</button>
+      <button type="button" class="bouton" data-action="classes">Classes${unlocks > 0 ? ` · ${unlocks} à débloquer` : ''}</button>
+    </section>
+    <section class="hall-expedition">
+      <span class="butin-titre">Acte 1</span>
+      <h2>Les Profondeurs Ardentes</h2>
+      <p>10 étages de lave et de cendres, 9 boss secondaires possibles, et Vulkhar, le Souverain des flammes, au bout du chemin.</p>
+      ${run}
+      <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">${canContinue ? 'Nouvelle expédition' : 'Partir en expédition'}</button>
+      <p class="emporte-texte">${chosen ? `Tu emportes : <b>${chosen.name}</b> (perdu si l'expédition échoue).` : chest.length ? 'Tu peux emporter un objet du coffre : touche-le.' : ''}</p>
+    </section>
+    <section class="hall-coffre">
+      <span class="butin-titre">Coffre de la guilde · ${chest.length}/${CHEST_SIZE}</span>
+      <div class="grille-coffre">${tiles}</div>
+      <p>${chest.length ? 'Touche un objet pour l\'emporter lors de la prochaine expédition (un seul). Il revient au coffre si tu gagnes, il est perdu sinon.' : 'Après une expédition gagnée, tu pourras y mettre un objet à l\'abri.'}</p>
+      <button type="button" class="bouton" data-action="voir-coffre">Voir le détail du coffre</button>
+      <div class="hall-stats">
+        <span>Expéditions <b>${stats.runs}</b></span><span>Victoires <b>${stats.wins}</b></span><span>Objets découverts <b>${profile.discoveredItems.length}</b></span>
+      </div>
+    </section>
+  </div>`;
+}
+
+/** Tout premier lancement : le titre du jeu, puis le choix de la classe. */
+function firstLaunchScreen(): string {
   return `<div class="ecran">
     <img class="px sprite-titre" src="${A('guerrier.png')}" alt="">
     <div class="titre-jeu">Wipe &amp; Loot</div>
-    <div class="sous-titre">Prototype · Le Guerrier dans les Profondeurs Ardentes</div>
-    ${classBadge()}
+    <div class="sous-titre">Un deckbuilder roguelite dans les raids d'Eldrava</div>
     <div class="actions">
-      ${canContinue ? `<button type="button" class="gros-bouton" data-action="continuer">Continuer</button>` : ''}
-      <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">Nouvelle partie</button>
+      <button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>
       ${fullscreenButton('gros-bouton secondaire')}
     </div>
-    <button type="button" class="bouton bouton-coffre" data-action="voir-coffre">Coffre de la guilde · ${loadProfile().guildChest.length}/${CHEST_SIZE}</button>
-    <p>Traverse les 10 étages des Profondeurs Ardentes et choisis ton chemin : combats, boss secondaires, coffres, feux de camp et rencontres inattendues. La partie est sauvegardée automatiquement dans ce navigateur.</p>
+    <p>Choisis ta classe, entre dans les Profondeurs Ardentes, et choisis ton chemin : combats, boss secondaires, coffres, feux de camp et rencontres inattendues. Tu peux wiper : on paie la réparation et on retente. La partie est sauvegardée automatiquement dans ce navigateur.</p>
   </div>`;
+}
+
+/** Confirmer l'abandon de l'expédition en cours. */
+function confirmAbandonHtml(): string {
+  const saved = localSave.load();
+  return `<div class="overlay"><div class="ecran" style="gap:16px">
+    <h2>Abandonner l'expédition en cours ?</h2>
+    <p>Elle sera perdue${saved?.heirloom ? `, ainsi que l'objet emporté du coffre (${ITEMS[saved.heirloom].name})` : ''}. Tu ne gagneras pas d'expérience pour elle.</p>
+    <div class="actions">
+      <button type="button" class="gros-bouton" data-action="nouvelle-confirmee">Oui, partir en nouvelle expédition</button>
+      <button type="button" class="gros-bouton secondaire" data-action="fermer">Non</button>
+    </div>
+  </div></div>`;
 }
 
 function potionReward(run: RunState, id: string): string {
@@ -855,22 +922,6 @@ function wipeScreen(run: RunState): string {
 
 function chestGrid(ids: string[], action: (i: number) => string): string {
   return `<div class="grille-equipement">${ids.map((id, i) => `<button type="button" class="article-coffre" ${action(i)}>${itemHtml(id)}</button>`).join('')}</div>`;
-}
-
-function chestPickScreen(): string {
-  const chest = loadProfile().guildChest;
-  const saved = localSave.load();
-  const inProgress = saved && saved.screen !== 'victory' && saved.screen !== 'gameover';
-  return `<div class="ecran" style="gap:16px">
-    <h2>Le coffre de la guilde</h2>
-    <p>Tu peux emporter <b>un</b> objet du coffre. Il sera équipé dès le départ. Si tu gagnes la run, il revient au coffre ; si tu échoues, <b>il est perdu</b>.</p>
-    ${inProgress ? `<p class="mention-brise">Attention : commencer une nouvelle partie abandonne la run en cours${saved?.heirloom ? `, et l'objet que tu avais emporté (${ITEMS[saved.heirloom].name}) sera perdu` : ''}.</p>` : ''}
-    ${chestGrid(chest, (i) => `data-action="emporter" data-index="${i}"`)}
-    <div class="actions">
-      <button type="button" class="gros-bouton secondaire" data-action="sans-heritage">Partir sans objet</button>
-      <button type="button" class="gros-bouton secondaire" data-action="titre">Retour</button>
-    </div>
-  </div>`;
 }
 
 /** Le passage au coffre de la guilde, sur l'écran de victoire. */
@@ -996,22 +1047,6 @@ function talentScreen(): string {
   </div>`;
 }
 
-/** Le niveau du Guerrier, sur l'écran titre. */
-function classBadge(): string {
-  const profile = loadProfile();
-  if (!profile.startClass) return '';
-  const lvl = classLevel(profile, 'guerrier');
-  const pct = lvl.needed ? Math.round((lvl.into / lvl.needed) * 100) : 100;
-  return `<div class="badge-classe">
-    <b>Guerrier · niveau ${lvl.level}</b>
-    <div class="barre-xp petite"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
-    <div class="actions">
-      <button type="button" class="bouton" data-action="talents">Talents · ${pointsUsed(myAlloc())}/${lvl.level} points</button>
-      <button type="button" class="bouton" data-action="classes">Classes${unlocksAvailable(profile) > 0 ? ` · ${unlocksAvailable(profile)} à débloquer` : ''}</button>
-    </div>
-  </div>`;
-}
-
 function endScreen(run: RunState, victory: boolean): string {
   if (victory && !run.chestDone) {
     return `<div class="ecran" style="gap:14px">
@@ -1024,11 +1059,12 @@ function endScreen(run: RunState, victory: boolean): string {
     <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${MAX_WIPES - run.wipesLeft} wipe${MAX_WIPES - run.wipesLeft > 1 ? 's' : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
     ${run.summary ? summaryHtml(run.summary) : ''}
     ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
-    <div class="actions"><button type="button" class="gros-bouton" data-action="nouvelle">Nouvelle partie</button></div>
+    <div class="actions"><button type="button" class="gros-bouton" data-action="titre">Retour au hall de la guilde</button></div>
   </div>`;
 }
 
 function overlayHtml(run: RunState | null): string {
+  if (ui.overlay === 'abandon') return confirmAbandonHtml();
   if (ui.overlay === 'coffre') {
     const chest = loadProfile().guildChest;
     return `<div class="overlay"><div class="ecran" style="gap:16px">
@@ -1112,8 +1148,7 @@ function overlayHtml(run: RunState | null): string {
       <p>La partie est sauvegardée après chaque action : tu peux fermer le navigateur et revenir plus tard.</p>
       <div class="actions">
         <button type="button" class="gros-bouton" data-action="fermer">Reprendre</button>
-        <button type="button" class="gros-bouton secondaire" data-action="titre">Écran titre</button>
-        <button type="button" class="gros-bouton secondaire" data-action="nouvelle">Recommencer une run</button>
+        <button type="button" class="gros-bouton secondaire" data-action="titre">Retour au hall de la guilde</button>
       </div>
     </div></div>`;
   }
@@ -1125,7 +1160,7 @@ function overlayHtml(run: RunState | null): string {
 export function render(): void {
   const run = ui.run;
   if (!run) {
-    stage.innerHTML = ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : ui.chestPick ? chestPickScreen() : titleScreen() + overlayHtml(null);
+    stage.innerHTML = ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null);
     return;
   }
   let html = '';
@@ -1177,8 +1212,19 @@ function hideCard(index: number): void {
   if (el) el.style.visibility = 'hidden';
 }
 
+/** Lance une expédition depuis le hall, avec l'objet du coffre choisi. */
+function launchFromHall(): void {
+  let heirloom: string | null = null;
+  if (ui.heirloom !== null) {
+    const profile = loadProfile();
+    heirloom = takeHeirloom(profile, ui.heirloom);
+    saveProfile(profile); // retiré du coffre tout de suite : recharger la page ne le duplique pas
+    ui.heirloom = null;
+  }
+  startNewRun(heirloom);
+}
+
 function startNewRun(heirloom: string | null = null): void {
-  ui.chestPick = false;
   ui.depositSlot = null;
   ui.run = newRun(undefined, heirloom, talentIds(myAlloc()));
   offerBlessing(ui.run);
@@ -1254,18 +1300,23 @@ function handleClick(ev: MouseEvent): void {
   const run = ui.run;
   const action = el.dataset.action;
   switch (action) {
-    case 'nouvelle':
+    case 'nouvelle': {
       if (!loadProfile().startClass) { ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return; }
-      if (loadProfile().guildChest.length > 0) { ui.chestPick = true; ui.run = null; ui.overlay = null; render(); } else startNewRun();
-      return;
-    case 'emporter': {
-      const profile = loadProfile();
-      const id = takeHeirloom(profile, Number(el.dataset.index));
-      saveProfile(profile); // retiré du coffre tout de suite : recharger la page ne le duplique pas
-      startNewRun(id);
+      const saved = localSave.load();
+      const inProgress = saved && saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
+      // Depuis une run (menu) ou avec une run en cours : on revient au hall, ou on confirme l'abandon.
+      if (ui.run && inProgress) { ui.run = null; ui.overlay = null; render(); return; }
+      if (inProgress) { ui.run = null; ui.overlay = 'abandon'; render(); return; }
+      launchFromHall();
       return;
     }
-    case 'sans-heritage': startNewRun(); return;
+    case 'nouvelle-confirmee': ui.overlay = null; launchFromHall(); return;
+    case 'heritage': {
+      const i = Number(el.dataset.index);
+      ui.heirloom = ui.heirloom === i ? null : i;
+      render();
+      return;
+    }
     case 'voir-coffre': ui.overlay = 'coffre'; render(); return;
     case 'continuer':
       ui.run = localSave.load();
@@ -1273,7 +1324,7 @@ function handleClick(ev: MouseEvent): void {
       // Une victoire ou un wipe sauvegardé pendant l'animation : commit() termine le combat et fait le bilan.
       void commit();
       return;
-    case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; ui.talentScreen = false; ui.classScreen = false; render(); return;
+    case 'titre': ui.run = null; ui.overlay = null; ui.talentScreen = false; ui.classScreen = false; render(); return;
     case 'classes': ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return;
     case 'classe-depart': {
       const profile = loadProfile();

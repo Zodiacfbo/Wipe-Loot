@@ -101,7 +101,7 @@
 - [ ] Les déblocages de cartes et d'objets par niveau
 - [ ] Les niveaux de difficulté (1 à 20)
 - [ ] Les archives de la guilde (compendium : cartes, objets, monstres découverts)
-- [ ] Le hall de la guilde comme écran principal
+- [x] Le hall de la guilde comme écran principal : héros (niveau, talents, classes), expédition (continuer ou partir), coffre de la guilde (choisir l'objet à emporter), statistiques
 
 ---
 
