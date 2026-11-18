@@ -366,3 +366,16 @@ img.px { image-rendering: pixelated; }
 .vendu-potion { justify-content: center; color: #8e7c6a; font-weight: 800; border-style: dashed; }
 .butins { display: flex; gap: 24px; align-items: flex-start; justify-content: center; }
 .butins .choix-objet { max-width: 330px; }
+
+/* ---------- Réparation ---------- */
+.mention-brise { color: #ff7a5a; font-weight: 800; }
+.objet.brise { border-color: #b8462e; background: repeating-linear-gradient(135deg, var(--panneau) 0 12px, #2e1d16 12px 24px); }
+.objet.brise .objet-icone { color: #b8462e; }
+.facture { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 24px; border-radius: 12px; border: 2px solid #5a4433; background: var(--panneau); max-width: 560px; }
+.facture-titre { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--or); text-transform: uppercase; }
+.facture b { display: flex; align-items: center; gap: 6px; font-size: 24px; color: var(--or-clair); }
+.facture span:last-child { font-size: 14px; color: var(--texte-2); line-height: 1.4; }
+.service.reparation { border-color: #b8462e; }
+.topbar .bouton, .topbar .stat, .nom-classe { white-space: nowrap; }
+.topbar > div:nth-child(2) { min-width: 0; flex: 1; padding: 0 12px; }
+.topbar .etape { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

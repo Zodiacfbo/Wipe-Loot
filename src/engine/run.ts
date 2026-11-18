@@ -3,14 +3,16 @@ import { CARDS, REWARD_POOL, STARTER_DECK } from './cards';
 import { createCombat } from './combat';
 import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, type Encounter } from './enemies';
 import { AMBUSH, EVENTS } from './events';
-import { COMMON_POOL, ITEMS, LOOT_TABLES, emptyEquipment, gearEffects, slotsFor, type SlotKey } from './items';
+import { COMMON_POOL, ITEMS, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
 import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
+/** La facture de réparation du 1er, 2e et 3e wipe. */
+export const REPAIR_BILLS = [50, 100, 150];
 /** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
 export const POTION_DROP_CHANCE = 0.4;
 export const SERVICE_BASE_PRICE = 75;
@@ -20,8 +22,8 @@ export function newRun(seed: number = Date.now() % 2147483647): RunState {
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 5, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
-    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null,
+    version: 6, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, broken: [],
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
@@ -87,7 +89,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, gearEffects(run.equipment));
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, gearEffects(run.equipment, run.broken));
   run.screen = 'combat';
 }
 
@@ -111,7 +113,7 @@ export function afterCombatAction(run: RunState): void {
   run.rng = c.rng;
   run.nextUid = c.nextUid;
   if (c.phase === 'victory') {
-    run.hp = Math.min(run.maxHp, c.player.hp + (gearEffects(run.equipment).healAfterCombat ?? 0));
+    run.hp = Math.min(run.maxHp, c.player.hp + (gearEffects(run.equipment, run.broken).healAfterCombat ?? 0));
     if (currentNode(run)?.type === 'boss') {
       run.screen = 'victory';
       run.combat = null;
@@ -264,7 +266,10 @@ function rollItem(run: RunState): string {
 /** Équipe un objet dans un emplacement, en remplaçant l'ancien. Ajuste les PV max. */
 function putOn(run: RunState, itemId: string, slot: SlotKey): void {
   const old = run.equipment[slot];
-  if (old) {
+  if (run.broken.includes(slot)) {
+    // L'ancien objet était brisé : son bonus de PV max était déjà retiré.
+    run.broken = run.broken.filter((k) => k !== slot);
+  } else if (old) {
     const lost = ITEMS[old].fx.maxHp ?? 0;
     run.maxHp -= lost;
     run.hp = Math.min(run.hp, run.maxHp);
@@ -287,6 +292,20 @@ export function equipPending(run: RunState, slot: SlotKey): boolean {
 /** Laisse l'objet trouvé. */
 export function leavePending(run: RunState): void {
   run.pendingItem = null;
+}
+
+/** Répare un objet brisé chez le vendeur. */
+export function repairItem(run: RunState, slot: SlotKey): boolean {
+  const id = run.equipment[slot];
+  if (run.screen !== 'shop' || !id || !run.broken.includes(slot)) return false;
+  const price = REPAIR_PRICE[ITEMS[id].rarity];
+  if (run.gold < price) return false;
+  run.gold -= price;
+  run.broken = run.broken.filter((k) => k !== slot);
+  const gained = ITEMS[id].fx.maxHp ?? 0;
+  run.maxHp += gained;
+  run.hp += gained;
+  return true;
 }
 
 // --- Potions ---
@@ -368,14 +387,45 @@ export function resolveEvent(run: RunState, choice: number): void {
 
 // --- Wipe ---
 
+/** La facture du prochain wipe à payer. */
+export function repairBill(run: RunState): number {
+  return REPAIR_BILLS[Math.min(MAX_WIPES - run.wipesLeft, REPAIR_BILLS.length - 1)];
+}
+
+/** Les objets portés qui peuvent encore être brisés. */
+export function breakableSlots(run: RunState): SlotKey[] {
+  return SLOT_KEYS.filter((k) => run.equipment[k] && !run.broken.includes(k));
+}
+
+function breakItem(run: RunState, slot: SlotKey): void {
+  run.broken.push(slot);
+  const lost = ITEMS[run.equipment[slot]!].fx.maxHp ?? 0;
+  run.maxHp -= lost;
+  run.hp = Math.min(run.hp, run.maxHp);
+}
+
 export function retryAfterWipe(run: RunState): void {
   if (run.screen !== 'wipe' || !run.entry || !run.encounter || run.wipesLeft <= 0) return;
+  // La facture de réparation : on paie, ou un objet au hasard est brisé.
+  const bill = repairBill(run);
+  let brokenNow: string | null = null;
+  if (run.gold >= bill) {
+    run.gold -= bill;
+  } else {
+    const slots = breakableSlots(run);
+    if (slots.length > 0) {
+      const slot = pick(run, slots);
+      breakItem(run, slot);
+      brokenNow = ITEMS[run.equipment[slot]!].name;
+    }
+  }
   run.wipesLeft -= 1;
-  run.hp = Math.max(run.entry.hp, Math.ceil(run.maxHp * 0.5));
+  run.hp = Math.min(run.maxHp, Math.max(run.entry.hp, Math.ceil(run.maxHp * 0.5)));
   run.deck = run.entry.deck.map((c) => ({ ...c }));
   // Les potions bues pendant l'essai raté sont perdues… mais on retrouve celles qu'on avait en entrant.
   if (run.entry.potions) run.potions = [...run.entry.potions];
   startEncounter(run, run.encounter);
+  if (brokenNow) run.combat!.fx = [{ kind: 'banner', text: `Objet brisé : ${brokenNow}` }];
 }
 
 export function abandonRun(run: RunState): void {

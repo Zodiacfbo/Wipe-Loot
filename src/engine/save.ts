@@ -31,7 +31,11 @@ export function migrate(raw: unknown): RunState | null {
     if (run.entry) (run.entry as Record<string, unknown>).potions = [null, null, null];
     run.version = 5;
   }
-  return run.version === 5 ? (run as unknown as RunState) : null;
+  if (run.version === 5) {
+    run.broken = [];
+    run.version = 6;
+  }
+  return run.version === 6 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

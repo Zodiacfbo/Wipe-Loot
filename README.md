@@ -16,7 +16,7 @@ Le prototype jouable contient :
 - l'**or** et le **vendeur gobelin** (cartes, objets, potions, retrait, amélioration) ;
 - les **potions** (3 emplacements), à boire sans dépenser d'énergie ;
 - l'**équipement** (6 emplacements) et les **tables de loot** des boss secondaires, cachées en « ??? » tant qu'un objet n'a jamais été obtenu ;
-- les **incantations interruptibles**, les **Zones de feu**, le **Saignement**, les **wipes** (3 nouveaux essais) ;
+- les **incantations interruptibles**, les **Zones de feu**, le **Saignement**, les **wipes** (3 nouveaux essais, avec une facture de réparation : sans assez d'or, un objet est brisé) ;
 - la **sauvegarde automatique** dans le navigateur, après chaque action.
 
 ### Jouer en local

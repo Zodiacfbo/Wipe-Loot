@@ -1,7 +1,7 @@
 // Types partagés par le moteur de jeu. Tout l'état est sérialisable en JSON,
 // pour pouvoir être sauvegardé tel quel (navigateur aujourd'hui, Firebase plus tard).
 import type { Encounter } from './enemies';
-import type { Equipment, ItemEffects } from './items';
+import type { Equipment, ItemEffects, SlotKey } from './items';
 import type { ActMap } from './map';
 
 export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
@@ -138,7 +138,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 5;
+  version: 6;
   seed: number;
   rng: number;
   maxHp: number;
@@ -155,6 +155,8 @@ export interface RunState {
   equipment: Equipment;
   /** Objet trouvé, en attente de décision (équiper ou laisser). */
   pendingItem: string | null;
+  /** Emplacements dont l'objet est brisé (effet désactivé jusqu'à la réparation). */
+  broken: SlotKey[];
   /** Les 3 emplacements de potion (null : vide). */
   potions: (string | null)[];
   /** Potion trouvée après un combat, en attente de décision. */

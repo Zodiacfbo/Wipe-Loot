@@ -69,8 +69,9 @@
 - [ ] Les potions dans les événements (Potions de route de Brégan, laboratoire…)
 - [x] Le vendeur gobelin : 5 cartes dont une en promo, retrait et amélioration d'une carte (prix croissant)
 - [x] Le vendeur gobelin : 2 objets d'équipement et 3 potions à vendre
-- [ ] Le vendeur gobelin : ajouter les cartes de profession et la réparation
-- [ ] La facture de réparation après un wipe, et les objets brisés
+- [x] Le vendeur gobelin : réparation des objets brisés (50 / 75 / 100 or selon la rareté)
+- [ ] Le vendeur gobelin : ajouter les cartes de profession
+- [x] La facture de réparation après un wipe (50, 100, 150 or), et les objets brisés
 
 ### 1.5 Les nœuds « ? »
 - [ ] Les événements narratifs de l'acte 1 (premiers événements simples en place : la source chaude, le raideur tombé)

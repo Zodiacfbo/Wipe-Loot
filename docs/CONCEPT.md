@@ -311,7 +311,7 @@ Dans un raid, quand tout le monde meurt, on paie les réparations et on retente.
 - Quand les PV du héros tombent à 0, quel que soit le combat, c'est un **wipe**.
 - Le joueur peut **retenter le combat depuis le début**. Il repart avec le deck, l'équipement et les potions qu'il avait en entrant dans le combat. Les potions utilisées pendant l'essai raté sont perdues.
 - Ses PV sont remis à leur niveau d'entrée dans le combat, avec un **minimum de 50 % des PV max**.
-- **La facture de réparation :** chaque wipe coûte de l'**or** (par exemple 50, puis 100, puis 150). Si le joueur ne peut pas payer, un objet d'équipement au hasard est **brisé** : son effet est désactivé jusqu'à ce qu'il soit réparé chez le vendeur gobelin.
+- **La facture de réparation :** chaque wipe coûte de l'**or** : 50, puis 100, puis 150. Si le joueur ne peut pas payer, il ne paie rien, mais un objet d'équipement au hasard est **brisé** : son effet est désactivé (y compris ses PV max) jusqu'à ce qu'il soit réparé chez le vendeur gobelin (50 or pour un objet commun, 75 pour un rare, 100 pour un épique). Sans objet à briser, le gobelin fait crédit. Remplacer un objet brisé le fait disparaître.
 - **3 wipes autorisés par run.** Un 4ᵉ wipe met fin à la run.
 - Le nouvel essai utilise une **nouvelle graine aléatoire** : la pioche et les actions des ennemis ne seront pas identiques.
 - Chaque wipe **réduit le score** de fin de run (voir §15.3).

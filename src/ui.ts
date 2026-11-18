@@ -39,10 +39,13 @@ import {
   discardPotion,
   drinkPotion,
   takePotion,
+  breakableSlots,
+  repairBill,
+  repairItem,
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { loadProfile, localSave, saveProfile } from './engine/save';
-import { ITEMS, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
+import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx } from './fx';
 import type { CardInstance, CombatState, EnemyState, Posture, RunState } from './engine/types';
@@ -145,19 +148,19 @@ const SLOT_ICON: Record<Slot, string> = {
   bijou: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16"/></svg>',
 };
 
-function itemHtml(id: string | null, slotLabel = '', extra = ''): string {
+function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false): string {
   if (!id) {
     return `<div class="objet vide"><span class="objet-icone">${SLOT_ICON[(slotLabel.toLowerCase() as Slot)] ?? ''}</span><div><b>${slotLabel}</b><span>Emplacement vide</span></div></div>`;
   }
   const it = ITEMS[id];
-  return `<div class="objet ${it.rarity}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[(it.slot === 'bague' ? 'bague1' : it.slot === 'bijou' ? 'bijou1' : it.slot) as SlotKey]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : 'épique'}</em><span>${it.text}</span></div>${extra}</div>`;
+  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : 'épique'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span></div>${extra}</div>`;
 }
 
 /** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
 function equipChoices(run: RunState, id: string, action: string, leave: string): string {
   const buttons = slotsFor(id).map((k) => {
     const current = run.equipment[k];
-    const label = current ? `Remplacer : ${ITEMS[current].name}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
+    const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
     return `<button type="button" class="bouton-objet" ${action} data-slot="${k}">${label}</button>`;
   }).join('');
   return `<div class="choix-objet">${buttons}${leave}</div>`;
@@ -202,7 +205,7 @@ function topbar(run: RunState, hp: number): string {
     </div>
     <div class="groupe">
       ${fullscreenButton('bouton')}
-      <button type="button" class="bouton" data-action="equipement">Équipement · ${SLOT_KEYS.filter((k) => run.equipment[k]).length}/6</button>
+      <button type="button" class="bouton" data-action="equipement">Équipement · ${SLOT_KEYS.filter((k) => run.equipment[k]).length}/6${run.broken.length > 0 ? ` <span class="mention-brise">· ${run.broken.length} brisé${run.broken.length > 1 ? 's' : ''}</span>` : ''}</button>
       <button type="button" class="bouton" data-action="deck">Deck · ${run.deck.length}</button>
       <button type="button" class="bouton" data-action="menu">Menu</button>
     </div>
@@ -381,6 +384,12 @@ function shopScreen(run: RunState): string {
         <div class="services">
           ${service('remove', 'Retirer une carte', shop.removeUsed, run.removals)}
           ${service('upgrade', 'Améliorer une carte', shop.upgradeUsed, run.upgradesBought)}
+          ${run.broken.map((k) => {
+            const id = run.equipment[k]!;
+            const price = REPAIR_PRICE[ITEMS[id].rarity];
+            const ok = run.gold >= price;
+            return `<button type="button" class="service reparation" ${ok ? `data-action="reparer" data-slot="${k}"` : 'disabled'}><b>Réparer : ${ITEMS[id].name}</b><span>${ICON.piece} ${price} or</span></button>`;
+          }).join('')}
           <button type="button" class="gros-bouton secondaire" data-action="partir">Partir</button>
         </div>
       </div>
@@ -591,11 +600,19 @@ function campfireScreen(run: RunState): string {
 }
 
 function wipeScreen(run: RunState): string {
+  const bill = repairBill(run);
+  const canPay = run.gold >= bill;
+  const breakable = breakableSlots(run).length > 0;
   return `${topbar(run, 0)}<div class="ecran">
     <h1>Wipe !</h1>
-    <p>Tu peux retenter le combat depuis le début, avec au moins la moitié de tes PV. Il te reste ${run.wipesLeft} wipe${run.wipesLeft > 1 ? 's' : ''}. (Dans le jeu complet, il faudra aussi payer la réparation.)</p>
+    <p>Tu peux retenter le combat depuis le début, avec au moins la moitié de tes PV et les potions que tu avais en entrant. Il te reste ${run.wipesLeft} wipe${run.wipesLeft > 1 ? 's' : ''}.</p>
+    <div class="facture">
+      <span class="facture-titre">Facture de réparation</span>
+      <b>${ICON.piece} ${bill} or</b>
+      <span>${canPay ? `Tu as ${run.gold} or.` : breakable ? `Tu n'as que ${run.gold} or : <strong class="mention-brise">un de tes objets, au hasard, sera brisé</strong>. Son effet sera désactivé jusqu'à ce que le vendeur gobelin le répare.` : `Tu n'as que ${run.gold} or, mais aucun objet à briser : le gobelin te fait crédit, pour cette fois.`}</span>
+    </div>
     <div class="actions">
-      <button type="button" class="gros-bouton" data-action="retenter">Retenter le combat</button>
+      <button type="button" class="gros-bouton" data-action="retenter">${canPay ? `Payer ${bill} or et retenter` : breakable ? 'Retenter (un objet sera brisé)' : 'Retenter le combat'}</button>
       <button type="button" class="gros-bouton secondaire" data-action="abandonner">Abandonner la run</button>
     </div>
   </div>`;
@@ -635,7 +652,7 @@ function overlayHtml(run: RunState): string {
     </div></div>`;
   }
   if (ui.overlay === 'equipement') {
-    const slots = SLOT_KEYS.map((k) => itemHtml(run.equipment[k], SLOT_LABEL[k])).join('');
+    const slots = SLOT_KEYS.map((k) => itemHtml(run.equipment[k], SLOT_LABEL[k], '', run.broken.includes(k))).join('');
     return `<div class="overlay"><div class="ecran" style="gap:16px">
       <h2>Équipement</h2>
       <div class="grille-equipement">${slots}</div>
@@ -846,11 +863,12 @@ function handleClick(ev: MouseEvent): void {
     case 'objet-boutique': ui.shopItem = Number(el.dataset.index); render(); break;
     case 'annuler-objet': ui.shopItem = null; render(); break;
     case 'acheter-objet': buyItem(run, Number(el.dataset.index), el.dataset.slot as SlotKey); ui.shopItem = null; commit(); break;
+    case 'reparer': repairItem(run, el.dataset.slot as SlotKey); commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
     case 'feu-retour': ui.campfireUpgrade = false; render(); break;
     case 'ameliorer': campfireUpgrade(run, Number(el.dataset.uid)); ui.campfireUpgrade = false; commit(); break;
-    case 'retenter': retryAfterWipe(run); commit(); break;
+    case 'retenter': retryAfterWipe(run); render(); commit(); break; // on affiche le combat avant la bannière « Objet brisé »
     case 'abandonner': abandonRun(run); commit(); break;
   }
 }

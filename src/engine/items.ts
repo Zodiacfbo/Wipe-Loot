@@ -86,16 +86,19 @@ export const LOOT_TABLES: Record<string, string[]> = {
 
 export type Equipment = Record<SlotKey, string | null>;
 
+/** Prix de la réparation d'un objet brisé chez le vendeur gobelin. */
+export const REPAIR_PRICE: Record<ItemRarity, number> = { commun: 50, rare: 75, epique: 100 };
+
 export function emptyEquipment(): Equipment {
   return { arme: null, amulette: null, bague1: null, bague2: null, bijou1: null, bijou2: null };
 }
 
-/** Additionne les effets de tout l'équipement porté. */
-export function gearEffects(equipment: Equipment): ItemEffects {
+/** Additionne les effets de tout l'équipement porté (sauf les objets brisés). */
+export function gearEffects(equipment: Equipment, broken: SlotKey[] = []): ItemEffects {
   const total: ItemEffects = {};
   for (const key of SLOT_KEYS) {
     const id = equipment[key];
-    if (!id) continue;
+    if (!id || broken.includes(key)) continue;
     for (const [k, v] of Object.entries(ITEMS[id].fx) as [keyof ItemEffects, number][]) {
       total[k] = (total[k] ?? 0) + v;
     }
