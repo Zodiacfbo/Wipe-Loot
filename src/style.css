@@ -68,7 +68,7 @@ img.px { image-rendering: pixelated; }
 .sol { position: absolute; left: 0; right: 0; bottom: 0; height: 280px; background: var(--fond-bas); border-top: 1px solid #33261c; }
 
 .topbar {
-  position: absolute; left: 0; top: 0; right: 0; height: 52px; background: #0f0b08; border-bottom: 1px solid #3a2a1f;
+  position: absolute; left: 0; top: 0; right: 0; height: 52px; z-index: 20; background: #0f0b08; border-bottom: 1px solid #3a2a1f;
   display: flex; align-items: center; justify-content: space-between; padding: 0 18px; gap: 12px;
 }
 .topbar .groupe { display: flex; align-items: center; gap: 16px; }
@@ -476,3 +476,26 @@ img.px { image-rendering: pixelated; }
 .illu-talent { flex: none; width: 48px; height: 48px; border-radius: 6px; background: #1e1712; border: 1px solid #a66be0; }
 .talent .ameliore { color: #8fd49a; }
 .talent .note-talent { color: var(--texte-2); font-style: italic; }
+
+/* ---------- Choix de la classe ---------- */
+.ecran-classes { justify-content: flex-start; padding: 16px 24px; gap: 8px; }
+.ecran-classes > p { margin: 0; font-size: 13px; max-width: 900px; }
+.grille-classes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; }
+.fiche-classe { display: flex; flex-direction: column; gap: 4px; padding: 9px 12px; border-radius: 12px; border: 2px solid #5a4433; background: var(--panneau); color: var(--texte); text-align: left; }
+.fiche-classe:hover:not(:disabled) { border-color: var(--couleur); box-shadow: 0 0 12px color-mix(in srgb, var(--couleur) 40%, transparent); }
+.fiche-classe.debloquee { border-color: var(--couleur); }
+.fiche-classe.bientot { opacity: 0.7; }
+.fiche-classe:disabled { cursor: default; }
+.tete-classe { display: flex; align-items: center; gap: 10px; }
+.tete-classe > div { display: flex; flex-direction: column; flex: 1; }
+.tete-classe b { font-size: 16px; font-weight: 800; }
+.embleme { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Cinzel, serif; font-weight: 700; font-size: 18px; color: #1a0f08; background: var(--couleur); flex: none; }
+.etoiles { color: var(--or); font-size: 12px; letter-spacing: 1px; }
+.etoiles i { font-style: normal; color: #4a3a2a; }
+.statut-classe { font-style: normal; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texte-2); }
+.fiche-classe.debloquee .statut-classe { color: #8fd49a; }
+.fiche-classe q { font-size: 11px; font-style: italic; color: var(--or-clair); line-height: 1.25; }
+.fiche-classe dl { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; margin: 0; font-size: 11px; }
+.fiche-classe dt { color: var(--texte-2); font-weight: 700; }
+.fiche-classe dd { margin: 0; }
+.fiche-classe p { margin: 0; font-size: 11px; line-height: 1.25; color: var(--texte-2); }

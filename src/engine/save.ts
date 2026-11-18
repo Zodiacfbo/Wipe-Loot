@@ -130,7 +130,10 @@ export const localSave: SaveBackend = {
 const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
 
 export interface Profile extends ProgressProfile {
-  version: 4;
+  version: 5;
+  /** La classe choisie au premier lancement, et les classes débloquées. */
+  startClass: string | null;
+  unlockedClasses: string[];
   /** La répartition des points de talent, par classe. */
   talents: Record<string, TalentAlloc>;
   /** Objets déjà obtenus au moins une fois : ils sont visibles dans les tables de loot. */
@@ -157,12 +160,19 @@ export function loadProfile(): Profile {
         p.talents = {};
         p.version = 4;
       }
-      if (p.version === 4 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
+      if (p.version === 4) {
+        // Un joueur qui a déjà joué le Guerrier l'a de fait choisi comme classe de départ.
+        const played = !!(p.classes as Record<string, unknown>).guerrier;
+        p.startClass = played ? 'guerrier' : null;
+        p.unlockedClasses = played ? ['guerrier'] : [];
+        p.version = 5;
+      }
+      if (p.version === 5 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
     }
   } catch {
     // profil illisible : on repart d'un profil vide
   }
-  return { version: 4, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {} };
+  return { version: 5, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [] };
 }
 
 export function saveProfile(profile: Profile): void {

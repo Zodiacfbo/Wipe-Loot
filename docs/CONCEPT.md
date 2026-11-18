@@ -686,7 +686,7 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
   - **1 point de talent permanent** (voir §9) ;
   - **un lot de nouvelles cartes ou de nouveaux objets** pour cette classe.
 - **Après le niveau 10**, l'expérience continue de débloquer du contenu cosmétique et des entrées dans les archives, mais plus de points de talent.
-- **Déblocage des classes** : au **tout premier lancement**, le joueur **choisit sa classe de départ** parmi les 9, chacune avec une fiche de présentation (rôle, ressource, style de jeu, difficulté). Les 8 autres sont ensuite à débloquer : à chaque palier d'expérience totale, le joueur **choisit lui-même** la prochaine classe débloquée.
+- **Déblocage des classes** : au **tout premier lancement**, le joueur **choisit sa classe de départ** parmi les 9, chacune avec une fiche de présentation (rôle, ressource, style de jeu, difficulté). Les 8 autres sont ensuite à débloquer : à chaque palier d'expérience totale (toutes classes confondues : 300, 700, 1 200, 1 800, 2 500, 3 300, 4 200 et 5 200), le joueur **choisit lui-même** la prochaine classe débloquée. La 2e classe arrive donc après 2 ou 3 runs, et les 9 sont débloquées après environ 35 runs.
 - **Le rattrapage** : une nouvelle classe ne doit pas donner l'impression de tout recommencer. Tant qu'une classe est en dessous du **meilleur niveau atteint** par une autre classe, elle gagne **le double d'expérience**. Le bonus s'arrête tout seul quand elle a rattrapé. Il ne touche que l'expérience : les talents restent à gagner, et la difficulté se débloque toujours classe par classe.
 - **Niveaux de difficulté** (l'équivalent de l'Ascension de StS) : un défi optionnel pour les joueurs qui ont déjà gagné.
   - Au départ, on joue en **difficulté 0** (normale).

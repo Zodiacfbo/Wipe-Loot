@@ -93,8 +93,8 @@
 
 - [x] Le profil du joueur (sauvegardé à part de la run) : objets découverts, coffre de la guilde, expérience des classes, statistiques
 - [x] L'expérience et le niveau de classe (1 à 10) : bilan de fin de run (score ligne par ligne), 1 440 exp. pour le niveau 10, niveau affiché sur l'écran titre
-- [ ] Premier lancement : choix libre de la classe de départ parmi les 9, avec une fiche de présentation
-- [ ] Déblocage des autres classes par paliers d'expérience, au choix du joueur
+- [x] Premier lancement : choix libre de la classe de départ parmi les 9, avec une fiche de présentation (seul le Guerrier est jouable pour l'instant)
+- [x] Déblocage des autres classes par paliers d'expérience totale (300, 700, 1 200, 1 800, 2 500, 3 300, 4 200, 5 200), au choix du joueur — prêt, il servira avec la 2e classe
 - [x] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint (prêt, il servira avec la 2e classe)
 - [x] Les talents permanents du Guerrier : écran des 3 arbres (27 talents), choix avant la run, respec gratuit, récompenses orientées vers les arbres investis
 - [ ] Les déblocages de cartes et d'objets par niveau

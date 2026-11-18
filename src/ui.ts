@@ -54,6 +54,7 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { TREES, clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
+import { CLASSES, chooseStartClass, nextUnlockAt, totalXp, unlocksAvailable } from './engine/classes';
 import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
@@ -82,11 +83,13 @@ interface UiState {
   blessingRemove: boolean;
   /** Écran des talents (avant une run). */
   talentScreen: boolean;
+  /** Écran des classes : choix de la classe de départ, ou consultation. */
+  classScreen: boolean;
   /** Objet choisi pour le dépôt, quand le coffre est plein (on choisit ensuite quoi remplacer). */
   depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false, talentScreen: false };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -877,6 +880,34 @@ function summaryHtml(sum: RunSummary): string {
   </div>`;
 }
 
+/** L'écran des classes : au premier lancement, on choisit sa classe de départ ; ensuite, on les consulte. */
+function classScreen(): string {
+  const profile = loadProfile();
+  const first = !profile.startClass;
+  const cards = CLASSES.map((c) => {
+    const unlocked = profile.unlockedClasses.includes(c.id);
+    const stars = '★'.repeat(c.difficulty) + '<i>' + '★'.repeat(3 - c.difficulty) + '</i>';
+    const status = !c.playable ? 'En préparation' : unlocked ? 'Débloquée' : first ? 'Disponible' : 'À débloquer';
+    const action = first && c.playable ? `data-action="classe-depart" data-id="${c.id}"` : 'disabled';
+    return `<button type="button" class="fiche-classe ${c.playable ? '' : 'bientot'} ${unlocked ? 'debloquee' : ''}" ${action} style="--couleur:${c.color}">
+      <div class="tete-classe"><span class="embleme">${c.name[0]}</span><div><b>${c.name}</b><span class="etoiles">${stars}</span></div><em class="statut-classe">${status}</em></div>
+      <q>${c.quote}</q>
+      <dl><dt>Rôle</dt><dd>${c.role}</dd><dt>Ressource</dt><dd>${c.resource}</dd><dt>PV</dt><dd>${c.hp}</dd></dl>
+      <p>${c.fantasy}</p>
+    </button>`;
+  }).join('');
+  const next = nextUnlockAt(profile);
+  const intro = first
+    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, seul le Guerrier est jouable : les autres classes sont en préparation.'
+    : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> dès que d'autres classes seront prêtes.` : ''}`;
+  return `<div class="ecran ecran-classes">
+    <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
+    <p>${intro}</p>
+    <div class="grille-classes">${cards}</div>
+    <button type="button" class="gros-bouton secondaire" data-action="titre">Retour</button>
+  </div>`;
+}
+
 /** La répartition de talents du Guerrier, ramenée aux points disponibles. */
 function myAlloc(): TalentAlloc {
   const profile = loadProfile();
@@ -930,12 +961,17 @@ function talentScreen(): string {
 
 /** Le niveau du Guerrier, sur l'écran titre. */
 function classBadge(): string {
-  const lvl = classLevel(loadProfile(), 'guerrier');
+  const profile = loadProfile();
+  if (!profile.startClass) return '';
+  const lvl = classLevel(profile, 'guerrier');
   const pct = lvl.needed ? Math.round((lvl.into / lvl.needed) * 100) : 100;
   return `<div class="badge-classe">
     <b>Guerrier · niveau ${lvl.level}</b>
     <div class="barre-xp petite"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
-    <button type="button" class="bouton" data-action="talents">Talents · ${pointsUsed(myAlloc())}/${lvl.level} points</button>
+    <div class="actions">
+      <button type="button" class="bouton" data-action="talents">Talents · ${pointsUsed(myAlloc())}/${lvl.level} points</button>
+      <button type="button" class="bouton" data-action="classes">Classes${unlocksAvailable(profile) > 0 ? ` · ${unlocksAvailable(profile)} à débloquer` : ''}</button>
+    </div>
   </div>`;
 }
 
@@ -1039,7 +1075,7 @@ function overlayHtml(run: RunState | null): string {
 export function render(): void {
   const run = ui.run;
   if (!run) {
-    stage.innerHTML = ui.talentScreen ? talentScreen() : ui.chestPick ? chestPickScreen() : titleScreen() + overlayHtml(null);
+    stage.innerHTML = ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : ui.chestPick ? chestPickScreen() : titleScreen() + overlayHtml(null);
     return;
   }
   let html = '';
@@ -1169,6 +1205,7 @@ function handleClick(ev: MouseEvent): void {
   const action = el.dataset.action;
   switch (action) {
     case 'nouvelle':
+      if (!loadProfile().startClass) { ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return; }
       if (loadProfile().guildChest.length > 0) { ui.chestPick = true; ui.run = null; ui.overlay = null; render(); } else startNewRun();
       return;
     case 'emporter': {
@@ -1186,7 +1223,15 @@ function handleClick(ev: MouseEvent): void {
       // Une victoire ou un wipe sauvegardé pendant l'animation : commit() termine le combat et fait le bilan.
       void commit();
       return;
-    case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; ui.talentScreen = false; render(); return;
+    case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; ui.talentScreen = false; ui.classScreen = false; render(); return;
+    case 'classes': ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return;
+    case 'classe-depart': {
+      const profile = loadProfile();
+      if (chooseStartClass(profile, el.dataset.id!)) saveProfile(profile);
+      ui.classScreen = false;
+      startNewRun();
+      return;
+    }
     case 'talents': ui.run = null; ui.overlay = null; ui.talentScreen = true; render(); return;
     case 'talent': {
       const profile = loadProfile();
