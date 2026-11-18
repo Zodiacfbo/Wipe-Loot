@@ -133,7 +133,7 @@ Ces cartes apparaissent quel que soit l'arbre de talents investi.
 | **Frappe du colosse** | 2 | Attaque | R | Inflige 10 dégâts. La cible **perd tout son blocage** et reçoit Armure fracassée (2 tours). | 14 dégâts |
 | **Tempête d'acier** | 3 | Attaque | R | Inflige 4 dégâts à tous les ennemis, 4 fois. | 5 dégâts × 4 |
 | **Maître d'armes** | 2 | Pouvoir | R | Tes Attaques qui coûtent de la rage infligent +4 dégâts. | Coûte 1 |
-| **Frappe mortelle** | 2 + 3 rage | Attaque | É | Inflige 18 dégâts. La cible **ne peut plus être soignée** ce combat et reçoit Armure fracassée (1 tour). | 24 dégâts |
+| **Frappe mortelle** | 1 + 4 rage | Attaque | É | Inflige 18 dégâts. La cible **ne peut plus être soignée** ce combat et reçoit Armure fracassée (1 tour). | 24 dégâts |
 
 ### 5.3 Arbre Fureur (14 cartes) : attaques en rafale et rage illimitée
 
@@ -152,7 +152,7 @@ Ces cartes apparaissent quel que soit l'arbre de talents investi.
 | **Furie croissante** | 1 | Pouvoir | R | Chaque fois que ta rage atteint son maximum, gagne 1 Puissance. | Inné |
 | **Fureur suicidaire** | 1 | Compétence | R | Pendant 3 tours, tes Attaques infligent 50 % de dégâts en plus, et tu subis 25 % de dégâts en plus. **Épuisé.** | 4 tours |
 | **Furie inextinguible** | 2 | Pouvoir | R | Ta rage maximale passe à 15. Gagne 1 rage au début de chaque tour. | Gagne 2 rage par tour |
-| **Sanguinaire** | 1 + 2 rage | Attaque | É | Inflige 12 dégâts. Te soigne de 4 PV. | 16 dégâts, soin 6 |
+| **Sanguinaire** | 1 + 3 rage | Attaque | É | Inflige 12 dégâts. Te soigne de 3 PV. | 16 dégâts, soin 5 |
 
 ### 5.4 Arbre Protection (15 cartes) : blocage et contre-attaque
 
@@ -172,7 +172,7 @@ Ces cartes apparaissent quel que soit l'arbre de talents investi.
 | **Riposte au bouclier** | 1 | Pouvoir | R | Chaque fois qu'une attaque ennemie est entièrement bloquée, inflige 5 dégâts à l'attaquant. | 8 dégâts |
 | **Garde de fer** | 2 | Pouvoir | R | Au début de ton tour, tu conserves la moitié de ton blocage au lieu de tout perdre. | Coûte 1 |
 | **Bastion** | 2 | Pouvoir | R | Chaque fois que tu joues une carte qui donne du blocage, inflige 3 dégâts à tous les ennemis. | 5 dégâts |
-| **Heurt de bouclier** | 1 + 2 rage | Attaque | É | Inflige des dégâts **égaux à ton blocage actuel**. | + 6 dégâts |
+| **Heurt de bouclier** | 1 + 2 rage | Attaque | É | Inflige des dégâts **égaux à ton blocage actuel + 4**. | Blocage + 10 |
 
 ---
 
@@ -186,9 +186,9 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 | **Coup de pommeau** | 0 | 4 tours | **Interruption.** Inflige 2 dégâts. | Talent Armes, palier 3 |
 | **Rage du berserker** | 0 | 3 tours | Gagne 5 rage. Immunité à la Peur et aux cartes rendues injouables jusqu'à ton prochain tour. | Talent Fureur, palier 3 |
 | **Témérité** | 1 | 5 tours | Ce tour-ci, tes Attaques infligent 50 % de dégâts en plus. Tu subis 25 % de dégâts en plus jusqu'à ton prochain tour. | Talent Fureur, palier 4 |
-| **Rempart** | 0 | 5 tours | Jusqu'à ton prochain tour, les dégâts que tu subis sont **réduits de moitié**. | Talent Protection, palier 3 |
+| **Rempart** | 1 | 5 tours | Jusqu'à ton prochain tour, les dégâts que tu subis sont **réduits de moitié**. | Talent Protection, palier 3 |
 | **Cri de défi** | 1 | 4 tours | L'intention de **tous les ennemis** devient une Attaque. Les Incantations en cours sont annulées. | Talent Protection, palier 3 |
-| **Dernier rempart** | 0 | 1 fois par combat | Soigne 25 % de tes PV max. | Talent Protection, palier 4 |
+| **Dernier rempart** | 0 | 1 fois par combat | Soigne 20 % de tes PV max. | Talent Protection, palier 4 |
 
 **Les sorts de barre qu'on peut trouver dans les tables de loot** : *Cri de commandement* (1 énergie, recharge 4 : tous les ennemis Démoralisés 2 tours et +1 Robustesse), *Vague de choc* (1 énergie, recharge 3 : 6 dégâts à tous et Ralenti 1).
 
@@ -211,19 +211,19 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Lame aiguisée** : Frappe et Frappe héroïque infligent +2 dégâts. | **Maîtrise tactique** : changer de posture conserve jusqu'à 6 rage (au lieu de 3). |
-| **2** | **Plaies profondes** : tes Saignements durent 1 tour de plus. | **Entaille** : tes Attaques qui coûtent 2 énergie ou plus appliquent Saignement 2. |
+| **1** | **Lame aiguisée** : Frappe et Frappe héroïque infligent +3 dégâts. | **Maîtrise tactique** : changer de posture conserve jusqu'à 6 rage (au lieu de 3). |
+| **2** | **Plaies profondes** : tes Saignements durent 1 tour de plus. | **Entaille** : tes Attaques qui coûtent 2 énergie ou plus appliquent Saignement 3. |
 | **3** | **Coup de pommeau** : ajoute ce sort à ta barre. | **Impact** : Exécution passe au bonus de dégâts à 40 % de PV de la cible au lieu de 30 %. |
-| **4** | **Implacable** : quand tu tues un ennemi, gagne 2 rage et pioche 1 carte. | **Arme lourde** : tes Attaques qui coûtent 2 énergie ou plus infligent +4 dégâts. |
+| **4** | **Implacable** : quand tu tues un ennemi, gagne 3 rage et pioche 1 carte. | **Arme lourde** : tes Attaques qui coûtent 2 énergie ou plus infligent +6 dégâts. |
 | **5** | **Frappe mortelle** (carte épique) | — |
 
 ### 7.2 Arbre Fureur
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Cruauté** : commence chaque combat avec 1 Puissance. | **Colère intérieure** : gagne 1 rage au début de chaque tour. |
+| **1** | **Cruauté** : commence chaque combat avec 1 Puissance. | **Colère intérieure** : gagne 2 rage au début de chaque tour. |
 | **2** | **Voix de stentor** : tes cartes de Cri donnent 1 rage de plus, et leurs débuffs durent 1 tour de plus. | **Main gauche** : tes Attaques qui coûtent 0 énergie infligent +2 dégâts. |
-| **3** | **Rage du berserker** : ajoute ce sort à ta barre. | **Fureur sans fin** : ta rage maximale passe à 15. |
+| **3** | **Rage du berserker** : ajoute ce sort à ta barre. | **Fureur sans fin** : ta rage maximale passe à 15, et tu commences chaque combat avec 3 rage. |
 | **4** | **Témérité** : ajoute ce sort à ta barre. | **Frénésie** : quand tu joues ta 3ᵉ Attaque d'un tour, gagne 1 énergie (1 fois par tour). |
 | **5** | **Sanguinaire** (carte épique) | — |
 
@@ -231,8 +231,8 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Bouclier lourd** : tes cartes de blocage donnent +2 blocage. | **Robuste** : +8 PV max. |
-| **2** | **Garde haute** : commence chaque combat avec 10 blocage. | **Présence menaçante** : au début de chaque combat, tous les ennemis sont Démoralisés (1 tour). |
+| **1** | **Bouclier lourd** : tes cartes de blocage donnent +1 blocage. | **Robuste** : +8 PV max. |
+| **2** | **Garde haute** : commence chaque combat avec 5 blocage. | **Présence menaçante** : au début de chaque combat, tous les ennemis sont Démoralisés (1 tour). |
 | **3** | **Rempart** : ajoute ce sort à ta barre. | **Cri de défi** : ajoute ce sort à ta barre. |
 | **4** | **Dernier rempart** : ajoute ce sort à ta barre. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
 | **5** | **Heurt de bouclier** (carte épique) | — |

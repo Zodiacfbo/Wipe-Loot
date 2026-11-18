@@ -1,6 +1,6 @@
 // Actions élémentaires du combat : dégâts, blocage, rage, débuffs, pioche.
 // Les cartes et les ennemis s'appuient sur ces fonctions.
-import { ENEMIES, intentAt } from './enemies';
+import { ENEMIES, TUNING, intentAt } from './enemies';
 import { random, shuffle } from './rng';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
@@ -186,7 +186,7 @@ export function emerge(c: CombatState, v: EnemyState): void {
     r.hp = 0;
     fx(c, { kind: 'death', who: r.uid });
   }
-  const healed = Math.min(v.maxHp - v.hp, living.length * 15);
+  const healed = Math.min(v.maxHp - v.hp, living.length * TUNING.rejetonHeal);
   v.hp += healed;
   v.submerged = 0;
   v.phase = 2;
@@ -235,7 +235,7 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
     }
   }
   if (target.defId === 'etincelle' || target.defId === 'eclat') {
-    const boom = target.defId === 'eclat' ? 5 : 4;
+    const boom = 4;
     log(c, `${target.name} explose !`);
     fx(c, { kind: 'tick', who: 'player', amount: boom, label: 'Explosion' });
     damagePlayer(c, boom, false);

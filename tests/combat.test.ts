@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { changePosture, createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
-import type { Encounter } from '../src/engine/enemies';
+import { TUNING, type Encounter } from '../src/engine/enemies';
 import { reachable } from '../src/engine/map';
 import {
   afterCombatAction, buyCard, buyRemoval, buyUpgrade, chooseNode, chooseReward, newRun, retryAfterWipe, servicePrice,
@@ -82,7 +82,7 @@ describe('incantations', () => {
   it('sans interruption, la Boule de lave frappe', () => {
     const c = combat(['seigneur'], ['parade', 'parade', 'parade', 'parade', 'parade']);
     endTurn(c);
-    expect(c.player.hp).toBe(80 - 18);
+    expect(c.player.hp).toBe(80 - 15);
   });
 });
 
@@ -273,9 +273,10 @@ describe('Vulkhar, Souverain des flammes', () => {
   it('à 50 % de PV, il plonge dans la lave et 6 Rejetons apparaissent', () => {
     const c = vulkhar(['frappe', 'frappe', 'frappe', 'frappe', 'frappe']);
     const v = c.enemies[0];
-    v.hp = 152;
+    const half = Math.ceil(v.maxHp / 2);
+    v.hp = half + 2;
     playCard(c, handIndex(c, 'frappe'));
-    expect(v.hp).toBe(150);
+    expect(v.hp).toBe(half);
     expect(v.submerged).toBe(2);
     expect(c.enemies.filter((e) => e.defId === 'rejeton').length).toBe(6);
     // il ne peut plus être ciblé
@@ -290,10 +291,11 @@ describe('Vulkhar, Souverain des flammes', () => {
     expect(c.enemies.filter((e) => e.defId === 'rejeton').every((r) => r.hp === 8)).toBe(true);
   });
 
-  it('en refaisant surface, il absorbe les Rejetons en vie (+15 PV chacun) et passe en phase 2', () => {
+  it('en refaisant surface, il absorbe les Rejetons en vie (+10 PV chacun) et passe en phase 2', () => {
     const c = vulkhar(['frappe', 'frappe', 'frappe', 'frappe', 'frappe']);
     const v = c.enemies[0];
-    v.hp = 152;
+    const half = Math.ceil(v.maxHp / 2);
+    v.hp = half + 2;
     playCard(c, handIndex(c, 'frappe'));
     const rejetons = c.enemies.filter((e) => e.defId === 'rejeton');
     rejetons.slice(0, 4).forEach((r) => { r.dead = true; });
@@ -302,7 +304,7 @@ describe('Vulkhar, Souverain des flammes', () => {
     endTurn(c);
     expect(v.submerged).toBe(0);
     expect(v.phase).toBe(2);
-    expect(v.hp).toBe(150 + 2 * 15);
+    expect(v.hp).toBe(half + 2 * TUNING.rejetonHeal);
     expect(c.enemies.filter((e) => e.defId === 'rejeton' && !e.dead).length).toBe(0);
   });
 

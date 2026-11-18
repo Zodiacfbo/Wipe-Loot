@@ -377,7 +377,7 @@ export const CARDS: Record<string, CardDef> = {
     play: (ctx) => powerCard(ctx, 'maitre_armes', 4, 'Maître d\'armes'),
   },
   frappe_mortelle: {
-    id: 'frappe_mortelle', name: 'Frappe mortelle', type: 'Attaque', rarity: 'epique', cost: 2, rageCost: 3,
+    id: 'frappe_mortelle', name: 'Frappe mortelle', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 4,
     needsTarget: true, icon: 'epee',
     text: (up) => `${up ? 24 : 18} dégâts. Ne peut plus être soigné. Armure fracassée 1.`,
     play: (ctx) => {
@@ -481,13 +481,13 @@ export const CARDS: Record<string, CardDef> = {
     },
   },
   sanguinaire: {
-    id: 'sanguinaire', name: 'Sanguinaire', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 2, needsTarget: true,
+    id: 'sanguinaire', name: 'Sanguinaire', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 3, needsTarget: true,
     icon: 'epee',
-    text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 6 : 4} PV.`,
+    text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 5 : 3} PV.`,
     play: (ctx) => {
       hit(ctx, ctx.up ? 16 : 12, { rageCard: true });
       const p = ctx.c.player;
-      p.hp = Math.min(p.maxHp, p.hp + (ctx.up ? 6 : 4));
+      p.hp = Math.min(p.maxHp, p.hp + (ctx.up ? 5 : 3));
     },
   },
 
@@ -589,8 +589,8 @@ export const CARDS: Record<string, CardDef> = {
   heurt_de_bouclier: {
     id: 'heurt_de_bouclier', name: 'Heurt de bouclier', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 2,
     needsTarget: true, icon: 'bouclier',
-    text: (up) => `Dégâts égaux à ton blocage${up ? ' + 6' : ''}.`,
-    play: (ctx) => hit(ctx, ctx.c.player.block + (ctx.up ? 6 : 0), { rageCard: true }),
+    text: (up) => `Dégâts égaux à ton blocage + ${up ? 10 : 4}.`,
+    play: (ctx) => hit(ctx, ctx.c.player.block + (ctx.up ? 10 : 4), { rageCard: true }),
   },
 
   // --- Carte-statut ---

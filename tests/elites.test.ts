@@ -106,17 +106,17 @@ describe('Croc-de-lave', () => {
 });
 
 describe('Gorlok le Fragmenté', () => {
-  it('gagne 4 blocage par Éclat en vie ; un Éclat explose (5) et Gorlok en rappelle un', () => {
+  it('gagne 3 blocage par Éclat en vie ; un Éclat explose (4) et Gorlok en rappelle un', () => {
     const c = fight(['eclat', 'eclat', 'gorlok', 'eclat', 'eclat'], FRAPPES);
     c.player.block = 999;
     endTurn(c);
-    expect(byId(c, 'gorlok').block).toBe(16);
+    expect(byId(c, 'gorlok').block).toBe(12);
     const shard = byId(c, 'eclat');
     shard.hp = 1;
     c.player.block = 0;
     const hp = c.player.hp;
     playCard(c, 0, shard.uid);
-    expect(c.player.hp).toBe(hp - 5);
+    expect(c.player.hp).toBe(hp - 4);
     c.player.block = 999;
     endTurn(c); // Rappel des éclats
     expect(c.enemies.filter((e) => e.defId === 'eclat' && !e.dead)).toHaveLength(4);
@@ -171,7 +171,7 @@ describe('Zhaal et Krâgg', () => {
     c.player.block = 999;
     endTurn(c);
     expect(dog.dead).toBe(false);
-    expect(dog.hp).toBe(15);
+    expect(dog.hp).toBe(Math.ceil(dog.maxHp / 2));
     const kragg = byId(c, 'kragg');
     kragg.hp = 1;
     kragg.block = 0;

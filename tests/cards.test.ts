@@ -58,7 +58,7 @@ describe('les 52 cartes du Guerrier', () => {
     play(c, 'frappe_du_colosse', l.uid);
     expect(l.hp).toBe(20);
     expect(l.buffs.armureFracassee).toBe(2);
-    c.player.rage = 3;
+    c.player.rage = 4;
     play(c, 'frappe_mortelle', l.uid);
     expect(l.dead || l.noHeal).toBe(true);
   });
@@ -164,7 +164,7 @@ describe('les 52 cartes du Guerrier', () => {
     c.player.rage = 2;
     const e = c.enemies[0];
     play(c, 'heurt_de_bouclier');
-    expect(e.hp).toBe(40 - 17 - 3);
+    expect(e.hp).toBe(e.maxHp - (17 + 4) - 3); // blocage + 4, +3 de la posture de Combat
   });
 });
 

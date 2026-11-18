@@ -52,7 +52,7 @@ describe('les talents dans la run', () => {
     expect(run.spells).toEqual(['charge', 'rage_berserker', 'temerite', 'rempart', 'dernier_rempart']);
     expect(barCapacity(run)).toBe(5);
     expect(run.deck.some((c) => c.id === 'heurt_de_bouclier')).toBe(true);
-    expect(runGear(run).startBlock).toBe(10);
+    expect(runGear(run).startBlock).toBe(5);
   });
 
   it('les sorts de talent ne tombent plus sur les boss ; les épiques seulement si débloquées', () => {

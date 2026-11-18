@@ -76,7 +76,7 @@ describe('la barre de sorts du Guerrier', () => {
   it('Dernier rempart : une seule fois par combat', () => {
     const c = fight(['lieutenant'], ['dernier_rempart']);
     useSpell(c, 0);
-    expect(c.player.hp).toBe(80);
+    expect(c.player.hp).toBe(60 + 16); // 20 % de 80
     c.player.hp = 30;
     for (let i = 0; i < 6; i++) { c.player.block = 999; endTurn(c); }
     expect(useSpell(c, 0)).toBe(false);

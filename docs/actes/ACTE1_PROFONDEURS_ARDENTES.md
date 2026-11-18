@@ -84,9 +84,9 @@
 | **Éclaireur cendreux** | 👤 | 14 à 16 | Embuscade (9, au premier tour uniquement) → Coup de dague (5) en boucle | Le premier tour fait mal : il faut bloquer tôt. |
 | **Étincelle vivante** | 🔥 | 8 | Crépitement (3) en boucle | **À sa mort, elle explose : 4 dégâts au joueur.** Toujours en groupe de 3 ou 4. |
 | **Forgeron spectral** | 💀 | 26 | Coup de marteau (8) → Forger l'armure (un allié gagne 8 blocage) | Rend les autres ennemis plus résistants : à tuer en premier. |
-| **Gardien de lave** | 🔥 | 32 | Au début de son tour : +6 blocage. Coup de bouclier (7) en boucle. | S'il lui reste du blocage, il renvoie 3 dégâts à chaque Attaque reçue. |
-| **Prêtre de la flamme** | 👤 | 22 | Soins de flamme (soigne un allié de 12) → Trait de feu (5) → **Incantation : Bénédiction ardente** (tous les alliés +2 Puissance) | L'incantation est **interruptible**. |
-| **Seigneur des cendres** | 🔥 | 40 | **Incantation : Boule de lave** (18) → Coup ardent (7) → Attise (un allié +3 Puissance) | Le gros danger des étages 6 à 8 : il faut interrompre ou se protéger. |
+| **Gardien de lave** | 🔥 | 32 | Au début de son tour : +4 blocage. Coup de bouclier (5) en boucle. | S'il lui reste du blocage, il renvoie 3 dégâts à chaque Attaque reçue. |
+| **Prêtre de la flamme** | 👤 | 22 | Soins de flamme (soigne un allié de 10) → Trait de feu (4) → **Incantation : Bénédiction ardente** (tous les alliés +1 Puissance) | L'incantation est **interruptible**. |
+| **Seigneur des cendres** | 🔥 | 36 | **Incantation : Boule de lave** (15) → Coup ardent (7) → Attise (un allié +2 Puissance) | Le gros danger des étages 6 à 8 : il faut interrompre ou se protéger. |
 | **Géant de lave** | 🔥 | 55 | Se redresse (+10 blocage) → Écrasement (16) → Piétinement (8 + Ralenti 1 tour sur le joueur) | Lent et lisible, mais il frappe très fort. |
 
 ### 3.1 Les packs
@@ -214,8 +214,8 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 
 | Ennemi | Intention |
 |---|---|
-| **Gorlok** | Au début de son tour, gagne **4 blocage par Éclat encore en vie**. Cycle : Poing de roche (10) → Rappel des éclats (si un Éclat est mort, il en recrée un, 1 fois par tour) → Poing de roche (12). |
-| **Éclats** | Projection (3) chacun. **À sa mort, un Éclat explose : 5 dégâts au joueur.** |
+| **Gorlok** | Au début de son tour, gagne **3 blocage par Éclat encore en vie**. Cycle : Poing de roche (10) → Rappel des éclats (si un Éclat est mort, il en recrée un, 1 fois par tour) → Poing de roche (12). |
+| **Éclats** | Projection (3) chacun. **À sa mort, un Éclat explose : 4 dégâts au joueur.** |
 
 - **Réponses :** contrôler les Éclats (Métamorphose, Assommer) au lieu de les tuer, ou les tuer un par un en gardant du blocage ; ou ignorer les Éclats et percer le blocage de Gorlok (Fulgurance, Tir perçant, Trait du chaos).
 
@@ -308,13 +308,13 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 
 > *Un géant de roche qui se nourrit de la montagne elle-même. Ses deux molosses ne le quittent jamais.*
 
-- **Tag :** Élémentaire · **PV :** 110, accompagné de **2 Molosses enragés** (30 PV chacun)
+- **Tag :** Élémentaire · **PV :** 95, accompagné de **2 Molosses enragés** (24 PV chacun)
 - **Question posée :** sais-tu gérer un boss qui grandit à chaque tour ?
 
 | Ennemi | Intention |
 |---|---|
-| **Krâgg** | Passif : **Magma en fusion**, il gagne **1 Puissance au début de chacun de ses tours**. Cycle : Écrasement (14) → Écrasement (14) → Dévorer la roche (se soigne de 10). |
-| **Molosses** | Morsure (6) en boucle. Tant que Krâgg est en vie, un Molosse tué **se relève** 2 tours plus tard avec la moitié de ses PV. Quand Krâgg meurt, les Molosses s'enfuient. |
+| **Krâgg** | Passif : **Magma en fusion**, il gagne **1 Puissance au début de chacun de ses tours**. Cycle : Écrasement (10) → Écrasement (10) → Dévorer la roche (se soigne de 10). |
+| **Molosses** | Morsure (5) en boucle. Tant que Krâgg est en vie, un Molosse tué **se relève** 2 tours plus tard avec la moitié de ses PV. Quand Krâgg meurt, les Molosses s'enfuient. |
 
 - **Réponses :** se concentrer sur Krâgg, vite, avant que sa Puissance ne devienne écrasante. Les Molosses ne valent la peine d'être tués que pour souffler.
 
@@ -338,7 +338,7 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 
 | Ennemi | Intention |
 |---|---|
-| **Saldris** | Il alterne deux boucliers, annoncés **un tour à l'avance** : **Bouclier anti-sorts** (il renvoie 50 % des dégâts de tes Sorts) ou **Bouclier anti-coups** (il renvoie 50 % des dégâts de tes Attaques). Il donne aussi 8 blocage à un garde chaque tour. Coup de bâton (8). |
+| **Saldris** | Il alterne deux boucliers, annoncés **un tour à l'avance** : **Bouclier anti-sorts** (il renvoie 50 % des dégâts de tes Sorts) ou **Bouclier anti-coups** (il renvoie 50 % des dégâts de tes Attaques). Il donne aussi 6 blocage à un garde chaque tour. Coup de bâton (6). |
 | **Gardes** | Leurs cycles habituels (voir §3). |
 
 - **Particularité :** **Saldris se rend** quand ses 4 gardes sont morts **ou** quand il passe sous 10 % de PV. Le combat est alors gagné.
@@ -358,7 +358,7 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 
 > *« Insectes ! Vous osez troubler mon sommeil ? Vous brûlerez, comme brûle la montagne ! »*
 
-- **Tag :** Élémentaire · **PV :** 300
+- **Tag :** Élémentaire · **PV :** 225
 - **Enrage :** **Berserk au tour 14**.
 - **Question posée :** tout ce que l'acte t'a appris : sortir du feu, gérer les adds, encaisser un gros coup annoncé, faire assez de dégâts avant l'enrage.
 
@@ -366,7 +366,7 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 
 | Tour | Intention |
 |---|---|
-| Cycle | Poing de lave (14) → **Pluie de lave** (2 Zones de feu dans ta main + 6 dégâts) → **Incantation : Marteau des flammes** (**non interruptible**) |
+| Cycle | Poing de lave (12) → **Pluie de lave** (2 Zones de feu dans ta main + 6 dégâts) → **Incantation : Marteau des flammes** (**non interruptible**) |
 | **Marteau des flammes** | Tu subis 10 dégâts et tu es **assommé** : tu pioches **2 cartes de moins** à ton prochain tour. |
 
 Le Marteau des flammes ne peut pas être interrompu. Le joueur doit **se préparer à jouer un tour réduit** (3 cartes au lieu de 5), par exemple en gardant de la rage ou un sort de barre pour ce tour-là.
@@ -377,7 +377,7 @@ Le Marteau des flammes ne peut pas être interrompu. Le joueur doit **se prépar
 
 - Vulkhar **disparaît pendant 2 tours** : il ne peut pas être ciblé ni blessé.
 - **6 Rejetons de flamme** apparaissent (12 PV chacun, ils attaquent pour 4).
-- **Quand Vulkhar revient**, il **absorbe** les Rejetons encore en vie : il se soigne de **15 PV par Rejeton absorbé**.
+- **Quand Vulkhar revient**, il **absorbe** les Rejetons encore en vie : il se soigne de **10 PV par Rejeton absorbé**.
 
 C'est le moment des effets de zone : Explosion des arcanes, Tourbillon, Flèches multiples, Chaîne d'éclairs, Pluie de feu…
 
@@ -385,7 +385,7 @@ C'est le moment des effets de zone : Explosion des arcanes, Tourbillon, Flèches
 
 | Tour | Intention |
 |---|---|
-| Cycle | Poing de lave (18) → **Éruption** (8 dégâts, +4 à chaque nouvelle Éruption du combat) → **Incantation : Marteau des flammes** (**non interruptible**) |
+| Cycle | Poing de lave (15) → **Éruption** (8 dégâts, +3 à chaque nouvelle Éruption du combat) → **Incantation : Marteau des flammes** (**non interruptible**) |
 | Passif | Au début de chacun de ses tours, ajoute 1 Zone de feu dans ta main. |
 
 Le Marteau des flammes revient **tous les 3 tours**, et l'Éruption devient de plus en plus forte. C'est une course contre l'enrage.
@@ -511,4 +511,4 @@ Pour guider l'équilibrage, un joueur « moyen » en fin d'acte 1 a environ :
   - Gorlok doit rester faisable pour les classes sans contrôle : 5 dégâts par Éclat, c'est 20 dégâts si on tue tout.
   - La Couronne de cendres et la Flamme captive doivent rester des choix tentants malgré leur inconvénient.
 - **Tags Mort-vivant :** seuls les Forgerons spectraux en ont dans cet acte. C'est suffisant pour l'acte 1, mais il faudra en placer davantage dans les actes 2 et 3 pour le Paladin.
-- **Les PV de Vulkhar (300)** sont un premier jet, proche d'un boss d'acte 1 de *Slay the Spire*. Avec la barre de sorts, le joueur fait peut-être plus de dégâts : à ajuster aux premiers tests.
+- **Les PV de Vulkhar (225 après l'équilibrage, contre 300 au premier jet)** : voir [l'équilibrage](../EQUILIBRAGE.md). Les chiffres de cette fiche ont été ajustés avec le bot de test.

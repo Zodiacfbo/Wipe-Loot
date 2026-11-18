@@ -162,7 +162,7 @@ describe('la quête des Gardiens des Sources', () => {
     enter(run, 'boss');
     expect(run.encounter!.weakened).toBe(true);
     const v = run.combat!.enemies[0];
-    expect(v.hp).toBe(255);
+    expect(v.hp).toBe(Math.floor(v.maxHp * 0.85));
   });
 
   it('Vulkhar affaibli lève son premier Marteau des flammes un tour plus tard', () => {

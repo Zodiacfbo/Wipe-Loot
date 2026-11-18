@@ -18,7 +18,7 @@ import {
 } from './actions';
 import { CARDS, energyCost, type PlayContext } from './cards';
 import { SPELLS } from './spells';
-import { ENEMIES, intentAt, type Encounter } from './enemies';
+import { ENEMIES, TUNING, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
 import type { CardInstance, CombatState, EnemyState, Intent, PlayerCurse, Posture } from './types';
@@ -536,15 +536,16 @@ function enemyTurnInner(c: CombatState): void {
     e.untargetable = false;
     // Passifs de début de tour
     if (e.defId === 'gardien') {
-      e.block += 6;
-      fx(c, { kind: 'block', who: e.uid, amount: 6 });
+      e.block += TUNING.gardienBlock;
+      fx(c, { kind: 'block', who: e.uid, amount: TUNING.gardienBlock });
     }
     if (e.defId === 'gorlok') {
       const shards = livingEnemies(c).filter((o) => o.defId === 'eclat').length;
       if (shards > 0) {
-        e.block += 4 * shards;
-        fx(c, { kind: 'block', who: e.uid, amount: 4 * shards });
-        log(c, `Ses ${shards} éclat${shards > 1 ? 's' : ''} protègent Gorlok (+${4 * shards} blocage).`);
+        const b = TUNING.gorlokBlockPerShard * shards;
+        e.block += b;
+        fx(c, { kind: 'block', who: e.uid, amount: b });
+        log(c, `Ses ${shards} éclat${shards > 1 ? 's' : ''} protègent Gorlok (+${b} blocage).`);
       }
     }
     if (e.defId === 'kragg') {
@@ -601,7 +602,7 @@ function enemyTurnInner(c: CombatState): void {
     if (e.delayHammer && e.intent.cast === 'Marteau des flammes') {
       e.delayHammer = false;
       e.step -= 1;
-      e.intent = { kind: 'attack', dmg: 14 };
+      e.intent = { kind: 'attack', dmg: 12 };
       log(c, 'Affaibli par l\'eau, Vulkhar met plus de temps à lever son marteau.');
     }
   }
@@ -611,9 +612,9 @@ function enemyTurnInner(c: CombatState): void {
     const guards = livingEnemies(c).filter((e) => e.defId === 'pretre' || e.defId === 'gardien');
     if (guards.length > 0) {
       const g = guards[Math.floor(random(c) * guards.length)];
-      g.block += 8;
-      fx(c, { kind: 'block', who: g.uid, amount: 8 });
-      log(c, `Saldris protège ${g.name} (+8 blocage).`);
+      g.block += TUNING.saldrisGuardBlock;
+      fx(c, { kind: 'block', who: g.uid, amount: TUNING.saldrisGuardBlock });
+      log(c, `Saldris protège ${g.name} (+${TUNING.saldrisGuardBlock} blocage).`);
     }
     saldris.shield = saldris.shield === 'coups' ? 'sorts' : 'coups';
   }

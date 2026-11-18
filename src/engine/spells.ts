@@ -71,7 +71,7 @@ export const SPELLS: Record<string, SpellDef> = {
     },
   },
   rempart: {
-    id: 'rempart', name: 'Rempart', cost: 0, cooldown: 5, needsTarget: false, icon: 'bouclier',
+    id: 'rempart', name: 'Rempart', cost: 1, cooldown: 5, needsTarget: false, icon: 'bouclier',
     text: 'Jusqu\'à ton prochain tour, les dégâts que tu subis sont réduits de moitié.',
     cast: (c) => {
       c.player.rempart = true;
@@ -94,10 +94,10 @@ export const SPELLS: Record<string, SpellDef> = {
   },
   dernier_rempart: {
     id: 'dernier_rempart', name: 'Dernier rempart', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'coeur',
-    text: 'Soigne 25 % de tes PV max. Une fois par combat.',
+    text: 'Soigne 20 % de tes PV max. Une fois par combat.',
     cast: (c) => {
       const p = c.player;
-      const healed = Math.min(p.maxHp - p.hp, Math.floor(p.maxHp * 0.25));
+      const healed = Math.min(p.maxHp - p.hp, Math.floor(p.maxHp * 0.2));
       p.hp += healed;
       fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
       log(c, `Dernier rempart : tu récupères ${healed} PV.`);

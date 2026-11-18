@@ -19,6 +19,14 @@ export interface EnemyDef {
   passive?: string;
 }
 
+/** Les réglages d'équilibrage des mécaniques spéciales (voir tools/balance/). */
+export const TUNING = {
+  rejetonHeal: 10, // PV rendus à Vulkhar par Rejeton encore en vie
+  gardienBlock: 4, // blocage du Gardien de lave à chaque tour
+  saldrisGuardBlock: 6, // blocage donné par Saldris à un garde
+  gorlokBlockPerShard: 3, // blocage de Gorlok par Éclat en vie
+};
+
 export const ENEMIES: Record<string, EnemyDef> = {
   molosse: {
     id: 'molosse', name: 'Molosse de braise', hpMin: 18, hpMax: 22,
@@ -39,11 +47,11 @@ export const ENEMIES: Record<string, EnemyDef> = {
     cycle: [{ kind: 'attack', dmg: 3 }],
   },
   seigneur: {
-    id: 'seigneur', name: 'Seigneur des cendres', hpMin: 40, hpMax: 40,
+    id: 'seigneur', name: 'Seigneur des cendres', hpMin: 36, hpMax: 36,
     cycle: [
-      { kind: 'attack', dmg: 18, cast: 'Boule de lave' },
+      { kind: 'attack', dmg: 15, cast: 'Boule de lave' },
       { kind: 'attack', dmg: 7 },
-      { kind: 'buff', puissance: 3, target: 'allies' },
+      { kind: 'buff', puissance: 2, target: 'allies' },
     ],
   },
   lieutenant: {
@@ -71,15 +79,15 @@ export const ENEMIES: Record<string, EnemyDef> = {
   gardien: {
     // Au début de son tour : +6 blocage. Tant qu'il a du blocage, il renvoie 3 dégâts à chaque Attaque reçue.
     id: 'gardien', name: 'Gardien de lave', hpMin: 32, hpMax: 32,
-    passive: '+6 blocage à chaque tour. Tant qu\'il a du blocage, renvoie 3 dégâts par Attaque reçue.',
-    cycle: [{ kind: 'attack', dmg: 7 }],
+    passive: '+4 blocage à chaque tour. Tant qu\'il a du blocage, renvoie 3 dégâts par Attaque reçue.',
+    cycle: [{ kind: 'attack', dmg: 5 }],
   },
   pretre: {
     id: 'pretre', name: 'Prêtre de la flamme', hpMin: 22, hpMax: 22,
     cycle: [
-      { kind: 'heal', amount: 12 },
-      { kind: 'attack', dmg: 5 },
-      { kind: 'buff', puissance: 2, target: 'allies', cast: 'Bénédiction ardente' },
+      { kind: 'heal', amount: 10 },
+      { kind: 'attack', dmg: 4 },
+      { kind: 'buff', puissance: 1, target: 'allies', cast: 'Bénédiction ardente' },
     ],
   },
   morvax: {
@@ -116,7 +124,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   gorlok: {
     // Au début de son tour : +4 blocage par Éclat encore en vie.
     id: 'gorlok', name: 'Gorlok le Fragmenté', hpMin: 70, hpMax: 70, elite: true,
-    passive: '+4 blocage par Éclat en vie, au début de son tour.',
+    passive: '+3 blocage par Éclat en vie, au début de son tour.',
     cycle: [
       { kind: 'attack', dmg: 10 },
       { kind: 'summon', id: 'eclat', max: 4, label: 'Rappel des éclats' },
@@ -126,7 +134,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   eclat: {
     // À sa mort, il explose : 5 dégâts au joueur.
     id: 'eclat', name: 'Éclat de Gorlok', hpMin: 10, hpMax: 10,
-    passive: 'Explose à sa mort : 5 dégâts sur toi.',
+    passive: 'Explose à sa mort : 4 dégâts sur toi.',
     cycle: [{ kind: 'attack', dmg: 3 }],
   },
   vossk: {
@@ -152,25 +160,25 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   kragg: {
     // Passif : gagne 1 Puissance au début de chacun de ses tours.
-    id: 'kragg', name: 'Krâgg le Mange-roche', hpMin: 110, hpMax: 110, elite: true,
+    id: 'kragg', name: 'Krâgg le Mange-roche', hpMin: 95, hpMax: 95, elite: true,
     passive: 'Gagne 1 Puissance au début de chacun de ses tours. Ses Molosses s\'enfuient s\'il meurt.',
     cycle: [
-      { kind: 'attack', dmg: 14 },
-      { kind: 'attack', dmg: 14 },
+      { kind: 'attack', dmg: 10 },
+      { kind: 'attack', dmg: 10 },
       { kind: 'heal', amount: 10, self: true },
     ],
   },
   molosse_enrage: {
     // Tant que Krâgg est en vie, se relève 2 tours après sa mort avec la moitié de ses PV.
-    id: 'molosse_enrage', name: 'Molosse enragé', hpMin: 30, hpMax: 30,
+    id: 'molosse_enrage', name: 'Molosse enragé', hpMin: 24, hpMax: 24,
     passive: 'Se relève 2 tours après sa mort, tant que Krâgg est en vie.',
-    cycle: [{ kind: 'attack', dmg: 6 }],
+    cycle: [{ kind: 'attack', dmg: 5 }],
   },
   saldris: {
     // Alterne Bouclier anti-coups / anti-sorts, donne 8 blocage à un garde chaque tour, se rend sans ses gardes.
     id: 'saldris', name: 'Grand Intendant Saldris', hpMin: 60, hpMax: 60, elite: true,
     passive: 'Bouclier qui renvoie 50 % des dégâts. Se rend quand ses 4 gardes sont tombés, ou sous 10 % de PV.',
-    cycle: [{ kind: 'attack', dmg: 8 }],
+    cycle: [{ kind: 'attack', dmg: 6 }],
   },
   mimique: {
     id: 'mimique', name: 'Gobelin mimique', hpMin: 45, hpMax: 45,
@@ -185,16 +193,16 @@ export const ENEMIES: Record<string, EnemyDef> = {
     cycle: [{ kind: 'attack', dmg: 4 }],
   },
   vulkhar: {
-    id: 'vulkhar', name: 'Vulkhar', hpMin: 300, hpMax: 300, boss: true,
+    id: 'vulkhar', name: 'Vulkhar', hpMin: 225, hpMax: 225, boss: true,
     passive: 'À 50 % de PV, plonge dans la lave et appelle des Rejetons.',
     cycle: [
-      { kind: 'attack', dmg: 14 },
+      { kind: 'attack', dmg: 12 },
       { kind: 'attack', dmg: 6, addZone: 2 },
       { kind: 'attack', dmg: 10, cast: 'Marteau des flammes', uninterruptible: true, drawPenalty: 2 },
     ],
     cycle2: [
-      { kind: 'attack', dmg: 18 },
-      { kind: 'attack', dmg: 8, grow: 4 },
+      { kind: 'attack', dmg: 15 },
+      { kind: 'attack', dmg: 8, grow: 3 },
       { kind: 'attack', dmg: 10, cast: 'Marteau des flammes', uninterruptible: true, drawPenalty: 2 },
     ],
   },

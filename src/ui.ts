@@ -11,7 +11,7 @@ import {
   previewIntentDamage,
   useSpell,
 } from './engine/combat';
-import { ENEMIES, intentAt, isInterruptible } from './engine/enemies';
+import { ENEMIES, TUNING, intentAt, isInterruptible } from './engine/enemies';
 import { BLESSINGS, EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
@@ -695,7 +695,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     : targeting
     ? `<div class="consigne">Choisis une cible</div>`
     : underLava
-      ? `<div class="consigne lave">${underLava.name} est sous la lave : il refait surface dans ${underLava.submerged} tour${underLava.submerged! > 1 ? 's' : ''}. Chaque Rejeton encore en vie le soignera de 15 PV !</div>`
+      ? `<div class="consigne lave">${underLava.name} est sous la lave : il refait surface dans ${underLava.submerged} tour${underLava.submerged! > 1 ? 's' : ''}. Chaque Rejeton encore en vie le soignera de ${TUNING.rejetonHeal} PV !</div>`
       : reviving.length > 0
         ? `<div class="consigne lave">${reviving.length} Molosse${reviving.length > 1 ? 's' : ''} enragé${reviving.length > 1 ? 's' : ''} se relèvera${reviving.length > 1 ? 'nt' : ''} dans ${Math.min(...reviving.map((e) => e.reviveIn!))} tour${Math.min(...reviving.map((e) => e.reviveIn!)) > 1 ? 's' : ''}, tant que Krâgg est en vie.</div>`
         : '';

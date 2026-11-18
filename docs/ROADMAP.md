@@ -46,7 +46,7 @@
 ### 1.2 Le combat
 - [ ] Tous les ennemis de trash de l'acte 1, et leurs packs
 - [x] Les 9 boss secondaires de l'acte 1, avec leurs mécaniques et leurs sprites (Morvax, Croc-de-lave, Cendrine, Gorlok, Vossk, Zhaal, Brannoc, Krâgg, Saldris)
-- [ ] Équilibrer les boss secondaires (Krâgg et Saldris semblent très durs avec un deck de départ)
+- [x] Équilibrer les boss secondaires (voir [l'équilibrage](EQUILIBRAGE.md))
 - [x] Vulkhar, Souverain des flammes (phases, plongée dans la lave, Rejetons de flamme, Marteau des flammes, Éruption)
 - [ ] La quête des Gardiens des Sources qui affaiblit Vulkhar
 - [ ] Cartes-statut de l'acte : Bombe vivante, Paniqué, Fardeau, Cendres
@@ -85,7 +85,8 @@
 - [x] ~~Les cartes de profession~~ : retirées du concept (pas de cartes neutres) ; la Potion de purification couvre la Dissipation
 
 ### 1.6 Équilibrage
-- [ ] Tester des runs complètes et ajuster les PV, les dégâts et les récompenses
+- [x] Un bot qui joue des runs complètes (`npm run balance`), et une première passe sur les ennemis et les talents : voir [l'équilibrage](EQUILIBRAGE.md)
+- [ ] Refaire une passe avec les retours de vrais joueurs (postures, Krâgg, Saldris, écart niveau 1 → 5)
 - [ ] Noter les retours de partie dans ce document (section « Idées et retours »)
 
 ---
