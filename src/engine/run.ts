@@ -10,7 +10,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
 export const REPAIR_BILLS = [50, 100, 150];
 /** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
@@ -18,17 +18,19 @@ export const POTION_DROP_CHANCE = 0.4;
 export const SERVICE_BASE_PRICE = 75;
 export const SERVICE_PRICE_STEP = 25;
 
-export function newRun(seed: number = Date.now() % 2147483647): RunState {
+/** `heirloom` : l'objet emporté du coffre de la guilde, équipé dès le départ. */
+export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null): RunState {
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 6, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
-    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, broken: [],
+    version: 7, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
   };
   run.map = generateMap(run);
+  if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
   return run;
 }
 

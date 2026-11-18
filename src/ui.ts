@@ -44,6 +44,7 @@ import {
   repairItem,
 } from './engine/run';
 import { POTIONS } from './engine/potions';
+import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
@@ -57,16 +58,20 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 interface UiState {
   run: RunState | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | null;
   /** Potion ouverte (emplacement du joueur), ou potion du vendeur regardée. */
   potionSlot: number | null;
   shopPotion: number | null;
   campfireUpgrade: boolean;
   shopMode: 'remove' | 'upgrade' | null;
   shopItem: number | null;
+  /** Écran du coffre avant une nouvelle run. */
+  chestPick: boolean;
+  /** Objet choisi pour le dépôt, quand le coffre est plein (on choisit ensuite quoi remplacer). */
+  depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -537,7 +542,8 @@ function combatScreen(run: RunState, c: CombatState): string {
 
 function titleScreen(): string {
   const saved = localSave.load();
-  const canContinue = saved && saved.screen !== 'victory' && saved.screen !== 'gameover';
+  // Une victoire dont le passage au coffre n'est pas fait peut encore être reprise.
+  const canContinue = saved && saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
   return `<div class="ecran">
     <img class="px sprite-titre" src="${A('guerrier.png')}" alt="">
     <div class="titre-jeu">Wipe &amp; Loot</div>
@@ -547,6 +553,7 @@ function titleScreen(): string {
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">Nouvelle partie</button>
       ${fullscreenButton('gros-bouton secondaire')}
     </div>
+    <button type="button" class="bouton bouton-coffre" data-action="voir-coffre">Coffre de la guilde · ${loadProfile().guildChest.length}/${CHEST_SIZE}</button>
     <p>Traverse les 10 étages des Profondeurs Ardentes et choisis ton chemin : combats, boss secondaires, coffres, feux de camp et rencontres inattendues. La partie est sauvegardée automatiquement dans ce navigateur.</p>
   </div>`;
 }
@@ -618,16 +625,80 @@ function wipeScreen(run: RunState): string {
   </div>`;
 }
 
+function chestGrid(ids: string[], action: (i: number) => string): string {
+  return `<div class="grille-equipement">${ids.map((id, i) => `<button type="button" class="article-coffre" ${action(i)}>${itemHtml(id)}</button>`).join('')}</div>`;
+}
+
+function chestPickScreen(): string {
+  const chest = loadProfile().guildChest;
+  const saved = localSave.load();
+  const inProgress = saved && saved.screen !== 'victory' && saved.screen !== 'gameover';
+  return `<div class="ecran" style="gap:16px">
+    <h2>Le coffre de la guilde</h2>
+    <p>Tu peux emporter <b>un</b> objet du coffre. Il sera équipé dès le départ. Si tu gagnes la run, il revient au coffre ; si tu échoues, <b>il est perdu</b>.</p>
+    ${inProgress ? `<p class="mention-brise">Attention : commencer une nouvelle partie abandonne la run en cours${saved?.heirloom ? `, et l'objet que tu avais emporté (${ITEMS[saved.heirloom].name}) sera perdu` : ''}.</p>` : ''}
+    ${chestGrid(chest, (i) => `data-action="emporter" data-index="${i}"`)}
+    <div class="actions">
+      <button type="button" class="gros-bouton secondaire" data-action="sans-heritage">Partir sans objet</button>
+      <button type="button" class="gros-bouton secondaire" data-action="titre">Retour</button>
+    </div>
+  </div>`;
+}
+
+/** Le passage au coffre de la guilde, sur l'écran de victoire. */
+function chestPanel(run: RunState): string {
+  const profile = loadProfile();
+  const back = heirloomSlot(run) ? ITEMS[run.heirloom!].name : null;
+  if (run.chestDone) {
+    const lines = [
+      back ? `${back} est revenu au coffre.` : '',
+      run.chestDeposit ? `Tu as déposé ${ITEMS[run.chestDeposit].name} dans le coffre.` : 'Tu n\'as rien déposé.',
+    ].filter(Boolean).join(' ');
+    return `<div class="coffre-fin"><span class="butin-titre">Coffre de la guilde · ${profile.guildChest.length}/${CHEST_SIZE}</span><p>${lines}</p></div>`;
+  }
+  if (ui.depositSlot) {
+    const id = run.equipment[ui.depositSlot]!;
+    return `<div class="coffre-fin"><span class="butin-titre">Le coffre est plein</span>
+      <p>Quel objet du coffre ${ITEMS[id].name} doit-il remplacer ? L'objet remplacé est perdu.</p>
+      ${chestGrid(profile.guildChest, (i) => `data-action="remplacer-coffre" data-index="${i}"`)}
+      <button type="button" class="bouton-objet secondaire" data-action="annuler-depot">Retour</button>
+    </div>`;
+  }
+  const slots = depositableSlots(run);
+  return `<div class="coffre-fin"><span class="butin-titre">Coffre de la guilde · ${profile.guildChest.length}/${CHEST_SIZE}</span>
+    <p>${back ? `${back} reviendra au coffre. ` : ''}${slots.length > 0 ? 'Choisis un objet à mettre à l\'abri pour tes prochaines runs.' : 'Tu n\'as aucun objet à déposer.'}</p>
+    ${slots.length > 0 ? `<div class="grille-equipement">${slots.map((k) => `<button type="button" class="article-coffre" data-action="deposer" data-slot="${k}">${itemHtml(run.equipment[k])}</button>`).join('')}</div>` : ''}
+    <button type="button" class="bouton-objet secondaire" data-action="deposer">${slots.length > 0 ? 'Ne rien déposer' : 'Continuer'}</button>
+  </div>`;
+}
+
 function endScreen(run: RunState, victory: boolean): string {
+  if (victory && !run.chestDone) {
+    return `<div class="ecran" style="gap:14px">
+      <h1>Vulkhar est vaincu !</h1>
+      ${chestPanel(run)}
+    </div>`;
+  }
   return `<div class="ecran">
     <img class="px sprite-titre" src="${A(victory ? 'guerrier.png' : 'ennemi_vulkhar.png')}" alt="">
     <h1>${victory ? 'Vulkhar est vaincu !' : 'Fin de la run'}</h1>
     <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${MAX_WIPES - run.wipesLeft} wipe${MAX_WIPES - run.wipesLeft > 1 ? 's' : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
+    ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
     <div class="actions"><button type="button" class="gros-bouton" data-action="nouvelle">Nouvelle partie</button></div>
   </div>`;
 }
 
-function overlayHtml(run: RunState): string {
+function overlayHtml(run: RunState | null): string {
+  if (ui.overlay === 'coffre') {
+    const chest = loadProfile().guildChest;
+    return `<div class="overlay"><div class="ecran" style="gap:16px">
+      <h2>Le coffre de la guilde · ${chest.length}/${CHEST_SIZE}</h2>
+      <p>Après une run gagnée, tu y déposes un objet. Au début d'une run, tu peux en emporter un.</p>
+      ${chest.length > 0 ? `<div class="grille-equipement">${chest.map((id) => itemHtml(id)).join('')}</div>` : '<p><i>Le coffre est vide pour l\'instant.</i></p>'}
+      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+    </div></div>`;
+  }
+  if (!run) return '';
   if (ui.overlay === 'deck') {
     const cards = run.deck.map((card) => cardHtml(card, { action: 'disabled' })).join('');
     return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:40px;gap:14px">
@@ -698,7 +769,7 @@ function overlayHtml(run: RunState): string {
 export function render(): void {
   const run = ui.run;
   if (!run) {
-    stage.innerHTML = titleScreen();
+    stage.innerHTML = ui.chestPick ? chestPickScreen() : titleScreen() + overlayHtml(null);
     return;
   }
   let html = '';
@@ -741,8 +812,10 @@ function hideCard(index: number): void {
   if (el) el.style.visibility = 'hidden';
 }
 
-function startNewRun(): void {
-  ui.run = newRun();
+function startNewRun(heirloom: string | null = null): void {
+  ui.chestPick = false;
+  ui.depositSlot = null;
+  ui.run = newRun(undefined, heirloom);
   ui.selection = null;
   ui.overlay = null;
   ui.campfireUpgrade = false;
@@ -812,9 +885,20 @@ function handleClick(ev: MouseEvent): void {
   const run = ui.run;
   const action = el.dataset.action;
   switch (action) {
-    case 'nouvelle': startNewRun(); return;
+    case 'nouvelle':
+      if (loadProfile().guildChest.length > 0) { ui.chestPick = true; ui.run = null; ui.overlay = null; render(); } else startNewRun();
+      return;
+    case 'emporter': {
+      const profile = loadProfile();
+      const id = takeHeirloom(profile, Number(el.dataset.index));
+      saveProfile(profile); // retiré du coffre tout de suite : recharger la page ne le duplique pas
+      startNewRun(id);
+      return;
+    }
+    case 'sans-heritage': startNewRun(); return;
+    case 'voir-coffre': ui.overlay = 'coffre'; render(); return;
     case 'continuer': ui.run = localSave.load(); ui.overlay = null; render(); return;
-    case 'titre': ui.run = null; ui.overlay = null; render(); return;
+    case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; render(); return;
     case 'deck': ui.overlay = 'deck'; render(); return;
     case 'menu': ui.overlay = 'menu'; render(); return;
     case 'fermer': ui.overlay = null; render(); return;
@@ -863,6 +947,22 @@ function handleClick(ev: MouseEvent): void {
     case 'objet-boutique': ui.shopItem = Number(el.dataset.index); render(); break;
     case 'annuler-objet': ui.shopItem = null; render(); break;
     case 'acheter-objet': buyItem(run, Number(el.dataset.index), el.dataset.slot as SlotKey); ui.shopItem = null; commit(); break;
+    case 'deposer': {
+      const slot = (el.dataset.slot as SlotKey | undefined) ?? null;
+      const profile = loadProfile();
+      if (slot && chestRoomAfterReturn(profile, run) <= 0) { ui.depositSlot = slot; render(); break; }
+      if (settleChest(profile, run, slot)) saveProfile(profile);
+      commit();
+      break;
+    }
+    case 'remplacer-coffre': {
+      const profile = loadProfile();
+      if (settleChest(profile, run, ui.depositSlot, Number(el.dataset.index))) saveProfile(profile);
+      ui.depositSlot = null;
+      commit();
+      break;
+    }
+    case 'annuler-depot': ui.depositSlot = null; render(); break;
     case 'reparer': repairItem(run, el.dataset.slot as SlotKey); commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;

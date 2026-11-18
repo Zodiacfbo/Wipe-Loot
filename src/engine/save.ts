@@ -35,7 +35,13 @@ export function migrate(raw: unknown): RunState | null {
     run.broken = [];
     run.version = 6;
   }
-  return run.version === 6 ? (run as unknown as RunState) : null;
+  if (run.version === 6) {
+    run.heirloom = null;
+    run.chestDone = false;
+    run.chestDeposit = null;
+    run.version = 7;
+  }
+  return run.version === 7 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {
@@ -76,22 +82,28 @@ export const localSave: SaveBackend = {
 const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
 
 export interface Profile {
-  version: 1;
+  version: 2;
   /** Objets déjà obtenus au moins une fois : ils sont visibles dans les tables de loot. */
   discoveredItems: string[];
+  /** Le coffre de la guilde (6 objets au plus). */
+  guildChest: string[];
 }
 
 export function loadProfile(): Profile {
   try {
     const raw = localStorage.getItem(PROFILE_KEY);
     if (raw) {
-      const p = JSON.parse(raw) as Profile;
-      if (p.version === 1 && Array.isArray(p.discoveredItems)) return p;
+      const p = JSON.parse(raw) as Record<string, unknown>;
+      if (p.version === 1 && Array.isArray(p.discoveredItems)) {
+        p.guildChest = [];
+        p.version = 2;
+      }
+      if (p.version === 2 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
     }
   } catch {
     // profil illisible : on repart d'un profil vide
   }
-  return { version: 1, discoveredItems: [] };
+  return { version: 2, discoveredItems: [], guildChest: [] };
 }
 
 export function saveProfile(profile: Profile): void {

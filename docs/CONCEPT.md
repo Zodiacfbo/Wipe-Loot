@@ -525,6 +525,7 @@ Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.
 **Règles d'obtention :**
 - chaque légendaire s'obtient via une **petite chaîne de quête de 2 ou 3 étapes**, réparties sur les événements « ? » et les boss de la run ;
 - **un seul légendaire par run** ;
+- **une fois forgé, le légendaire est gardé pour toujours** : il rejoint le râtelier de la guilde (à côté du coffre, §12.8). Au début d'une run avec cette classe, on peut l'emporter **à la place** de l'objet du coffre. Il n'est jamais perdu, même si la run échoue. La quête reste à faire une fois par classe ; ensuite, elle peut servir à débloquer une version améliorée *(piste à creuser)* ;
 - *Exemple (Voleur, Sillon d'orage)* : récupérer le Fermoir gauche de l'orage sur **Gorlok le Fragmenté**, le Fermoir droit sur le **Baron Vossk**, puis trouver l'événement **Ventor, Prince des tempêtes**, qui forge l'arme.
 
 ### 12.4 Pas de reliques : tout passe par l'équipement
@@ -578,6 +579,20 @@ Chaque **boss secondaire** et chaque **boss de fin d'acte** a sa propre **table 
 - Ainsi, au début, le joueur découvre le loot. Plus tard, il connaît les tables et peut **viser un objet précis** : « Je passe par Croc-de-lave pour essayer d'avoir son bijou, qui va avec mon build Feu ».
 
 **Ce que ça change :** le choix du chemin sur la carte n'est plus seulement une question de risque. Il devient aussi une question de **build**. Cela donne une raison d'affronter des boss secondaires, et une raison de rejouer pour compléter les tables.
+
+
+### 12.8 Le coffre de la guilde (ce qui reste après la run)
+
+Dans Slay the Spire, rien de ce qu'on trouve ne survit à la run. Ici, **un peu de loot reste**, sans casser le côté roguelite :
+
+- **6 places**, partagées par toutes les classes.
+- **Après une run gagnée**, on **dépose 1 objet** de son équipement dans le coffre. Si le coffre est plein, on choisit l'objet qu'il remplace (l'ancien est perdu).
+- **Au début d'une run**, on peut **emporter 1 objet** du coffre. Il est équipé dès le départ.
+- **L'objet emporté est en jeu :** si la run est gagnée (et qu'il est toujours équipé), il revient au coffre, en plus de l'objet déposé. Si la run échoue, ou s'il a été remplacé pendant la run, **il est perdu**.
+- Un objet brisé déposé au coffre est réparé par la guilde.
+- Le **légendaire de classe**, lui, n'est jamais perdu une fois forgé (voir §12.3).
+
+**Ce que ça change :** on farme un boss pour son objet, on le met à l'abri, puis on décide de le risquer ou non. C'est la boucle « wipe & loot ».
 
 ---
 
@@ -658,7 +673,8 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
   - **1 point de talent permanent** (voir §9) ;
   - **un lot de nouvelles cartes ou de nouveaux objets** pour cette classe.
 - **Après le niveau 10**, l'expérience continue de débloquer du contenu cosmétique et des entrées dans les archives, mais plus de points de talent.
-- **Déblocage des classes** : au départ, 1 classe est disponible. Les autres se débloquent en accumulant de l'expérience au total (comme les personnages de StS).
+- **Déblocage des classes** : au **tout premier lancement**, le joueur **choisit sa classe de départ** parmi les 9, chacune avec une fiche de présentation (rôle, ressource, style de jeu, difficulté). Les 8 autres sont ensuite à débloquer : à chaque palier d'expérience totale, le joueur **choisit lui-même** la prochaine classe débloquée.
+- **Le rattrapage** : une nouvelle classe ne doit pas donner l'impression de tout recommencer. Tant qu'une classe est en dessous du **meilleur niveau atteint** par une autre classe, elle gagne **le double d'expérience**. Le bonus s'arrête tout seul quand elle a rattrapé. Il ne touche que l'expérience : les talents restent à gagner, et la difficulté se débloque toujours classe par classe.
 - **Niveaux de difficulté** (l'équivalent de l'Ascension de StS) : un défi optionnel pour les joueurs qui ont déjà gagné.
   - Au départ, on joue en **difficulté 0** (normale).
   - **Gagner une run** (battre le boss de l'acte 3) avec une classe débloque la **difficulté 1** pour cette classe. Gagner en difficulté 1 débloque la 2, et ainsi de suite jusqu'à **20**.
@@ -726,7 +742,8 @@ Le score détermine l'expérience gagnée. Il servira aussi de base au futur **m
 | **Niveau de classe (1 à 10)** | Chaque run, même perdue, rapporte de l'expérience selon le score. |
 | **Points de talent** | 1 par niveau de classe, 10 au maximum. On les répartit dans le hall de la guilde, avec un respec gratuit entre deux runs. |
 | **Nouvelles cartes et nouveaux objets** | Chaque niveau de classe ajoute un lot de nouvelles cartes ou de nouveaux objets aux récompenses possibles. |
-| **Nouvelles classes** | On commence avec le Guerrier. L'expérience totale débloque les 8 autres. |
+| **Nouvelles classes** | Au premier lancement, on choisit sa classe de départ parmi les 9 (avec une description). Ensuite, chaque palier d'expérience totale débloque une nouvelle classe, **au choix du joueur**. |
+| **Coffre de la guilde** | 6 places. On y dépose 1 objet après une run gagnée, on en emporte 1 au départ (perdu si la run échoue). Le légendaire forgé est gardé pour toujours. |
 | **Niveaux de difficulté** | Gagner une run débloque la difficulté suivante pour cette classe, jusqu'à 20. C'est un défi optionnel. |
 | **Tables de loot** | Un objet obtenu une fois reste visible pour toujours dans la table de son boss. |
 | **Archives de la guilde** | L'encyclopédie des cartes, objets et monstres découverts. |
@@ -795,7 +812,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | Sauvegarde | Contenu |
 |---|---|
 | **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, barre de sorts, équipement, potions, talents choisis pour cette run, wipes restants, étapes de quête légendaire, éclats de clé. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, temps de recharge, ennemis, buffs et débuffs). |
-| **Le profil du joueur** | Expérience et niveaux de chaque classe, **talents de chaque classe**, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, archives de la guilde, statistiques, options. |
+| **Le profil du joueur** | Coffre de la guilde et légendaires forgés, expérience et niveaux de chaque classe, **talents de chaque classe**, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, archives de la guilde, statistiques, options. |
 
 **Les règles :**
 - **Sauvegarde automatique** après chaque action : chaque carte jouée, chaque choix, chaque nœud. Il n'y a pas de bouton à penser.
@@ -852,7 +869,9 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | **Wipe** | 3 wipes autorisés par run : on paie la réparation et on retente le combat |
 | **Tables de loot** | Chaque boss a sa table. Un objet reste caché (« ??? ») tant qu'il n'a pas été obtenu une fois. |
 | **Équipement** | 6 emplacements (Arme, Amulette, 2 Bagues, 2 Bijoux), une seule règle de remplacement |
-| **Légendaires** | Un par classe, obtenu par une petite quête, un seul par run |
+| **Légendaires** | Un par classe, obtenu par une petite quête, un seul par run, **gardé pour toujours une fois forgé** |
+| **Coffre de la guilde** | 1 objet déposé après une victoire, 1 objet emporté au départ et perdu en cas d'échec (§12.8) |
+| **Classe de départ** | Choisie librement au premier lancement parmi les 9 ; les autres se débloquent, au choix du joueur |
 | **Progression** | Déblocages de contenu et 20 niveaux de difficulté comme dans StS, **plus** des talents permanents jusqu'au niveau 10 de chaque classe |
 | **Plateformes** | Navigateur, sur PC et smartphone, **en mode paysage** |
 | **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat). Locale après chaque action, en ligne (Firestore) à chaque nœud |
@@ -867,7 +886,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | # | Question | Pistes |
 |---|---|---|
 | 1 | **Classes du premier prototype** | Proposition : **Guerrier** (rage), **Mage** (écoles), **Démoniste** (familier + DoTs), pour 3 styles de jeu très différents. |
-| 2 | **Ordre de déblocage des classes** | Le Guerrier est disponible dès le départ. Dans quel ordre débloquer les 8 autres ? |
+| 2 | ~~Ordre de déblocage des classes~~ | **Décidé** : classe de départ au choix, puis déblocages au choix du joueur (§15). Reste à fixer les paliers d'expérience. |
 | 3 | **Technologie** | Pour un jeu statique sur GitHub Pages avec Firebase : TypeScript avec un moteur 2D web (Phaser ou PixiJS), ou une interface web classique (HTML/CSS avec un framework comme React ou Svelte), puisque le jeu est surtout fait de cartes et de menus. À décider au moment du prototype. |
 | 4 | **Noms de l'univers** | Les noms actuels (Eldrava, Vulkhar, Vhaeryx, Irem, Sarvok…) sont une première proposition. On pourra les ajuster. |
 

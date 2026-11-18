@@ -248,7 +248,7 @@ describe('or et vendeur gobelin', () => {
     const old = { ...newRun(5), version: 2 } as Record<string, unknown>;
     delete old.gold;
     const run = migrate(old)!;
-    expect(run.version).toBe(6);
+    expect(run.version).toBe(7);
     expect(run.gold).toBe(99);
   });
 });

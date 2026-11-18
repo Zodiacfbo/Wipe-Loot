@@ -138,7 +138,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 6;
+  version: 7;
   seed: number;
   rng: number;
   maxHp: number;
@@ -157,6 +157,12 @@ export interface RunState {
   pendingItem: string | null;
   /** Emplacements dont l'objet est brisé (effet désactivé jusqu'à la réparation). */
   broken: SlotKey[];
+  /** Objet emporté du coffre de la guilde au début de la run (perdu si la run échoue). */
+  heirloom: string | null;
+  /** Le passage au coffre de la guilde après la victoire est fait. */
+  chestDone: boolean;
+  /** L'objet déposé au coffre (pour l'écran de fin). */
+  chestDeposit: string | null;
   /** Les 3 emplacements de potion (null : vide). */
   potions: (string | null)[];
   /** Potion trouvée après un combat, en attente de décision. */

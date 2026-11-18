@@ -117,7 +117,7 @@ describe('équiper et remplacer', () => {
     delete old.equipment;
     delete old.pendingItem;
     const run = migrate(old)!;
-    expect(run.version).toBe(6);
+    expect(run.version).toBe(7);
     expect(run.equipment.arme).toBeNull();
     expect(run.pendingItem).toBeNull();
   });

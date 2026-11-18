@@ -66,6 +66,7 @@
 - [ ] Les tables de loot des 7 autres boss secondaires de l'acte 1, et les sorts de barre dans les tables
 - [ ] Le butin de boss : 1 objet épique parmi 3
 - [x] Les potions : 3 emplacements, 8 potions, 40 % de chance après un combat gagné, retrouvées après un wipe
+- [x] Le coffre de la guilde : 6 places, 1 objet déposé après une victoire, 1 objet emporté au départ (perdu si la run échoue)
 - [ ] Les potions dans les événements (Potions de route de Brégan, laboratoire…)
 - [x] Le vendeur gobelin : 5 cartes dont une en promo, retrait et amélioration d'une carte (prix croissant)
 - [x] Le vendeur gobelin : 2 objets d'équipement et 3 potions à vendre
@@ -88,6 +89,9 @@
 
 - [ ] Le profil du joueur (sauvegardé à part de la run)
 - [ ] L'expérience et le niveau de classe (1 à 10)
+- [ ] Premier lancement : choix libre de la classe de départ parmi les 9, avec une fiche de présentation
+- [ ] Déblocage des autres classes par paliers d'expérience, au choix du joueur
+- [ ] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint
 - [ ] Les talents permanents : écran des 3 arbres, choix avant la run, respec gratuit
 - [ ] Les déblocages de cartes et d'objets par niveau
 - [ ] Les niveaux de difficulté (1 à 20)
@@ -117,6 +121,7 @@
 Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de barre, ses talents, son légendaire et sa quête, et son sprite.
 
 ### 3.3 Les légendaires
+- [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter à la place de l'objet du coffre
 - [ ] Les 7 légendaires restants et leurs quêtes (Bâton du Veilleur, Sillon d'orage, Équinoxe, l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres)
 
 ---
@@ -176,7 +181,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 
 Reprises du [concept](CONCEPT.md#19-questions-ouvertes) :
 - [ ] Classes du premier prototype jouable en plus du Guerrier
-- [ ] Ordre de déblocage des classes
+- [x] Ordre de déblocage des classes → classe de départ au choix, puis déblocages au choix du joueur (reste à fixer les paliers)
 - [ ] Noms de l'univers à ajuster (Eldrava, Vulkhar, Vhaeryx, Irem, Sarvok…)
 
 ---

@@ -379,3 +379,13 @@ img.px { image-rendering: pixelated; }
 .topbar .bouton, .topbar .stat, .nom-classe { white-space: nowrap; }
 .topbar > div:nth-child(2) { min-width: 0; flex: 1; padding: 0 12px; }
 .topbar .etape { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Coffre de la guilde ---------- */
+.bouton-coffre { position: static; }
+.article-coffre { padding: 0; border: none; background: none; text-align: left; }
+.article-coffre:hover .objet { border-color: var(--or); }
+.coffre-fin { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 22px; border-radius: 12px; border: 2px solid #5a4433; background: rgba(0, 0, 0, 0.25); max-width: 760px; }
+.coffre-fin p { margin: 0; }
+.article-coffre { display: flex; }
+.article-coffre .objet { flex: 1; width: auto; }
+.ecran p.mention-brise { color: #ff7a5a; }
