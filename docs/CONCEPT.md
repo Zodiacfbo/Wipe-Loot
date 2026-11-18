@@ -888,4 +888,5 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
    - [Druide](classes/DRUIDE.md) ✅ (version 0.1)
    - Règles communes : [fonctionnement des classes](classes/README.md)
 4. **Concevoir l'acte 1 (les Profondeurs Ardentes)** en détail : trash, boss secondaires, Vulkhar, tables de loot, événements, chiffres.
+   - [Acte 1 : les Profondeurs Ardentes](actes/ACTE1_PROFONDEURS_ARDENTES.md) ✅ (version 0.1)
 5. **Prototyper le combat** (sur papier ou en code) avec 1 classe et quelques ennemis.
