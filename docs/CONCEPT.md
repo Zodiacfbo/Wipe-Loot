@@ -544,6 +544,19 @@ Pour simplifier, le jeu **n'a pas de reliques** comme dans StS. Tous les effets 
 - **3 emplacements** au départ.
 - Elles se trouvent après les combats (une chance), dans les événements et chez le vendeur.
 - Exemples : Flacon du colosse, Élixir du félin, Pierre de vie, Potion de protection contre le feu, Potion de soins majeure, Potion de rage…
+- **Règles :** une potion se boit pendant son tour, **sans dépenser d'énergie**, autant qu'on veut. Les potions de soins se boivent aussi hors combat. On peut jeter une potion pour faire de la place.
+- **Dans le prototype :**
+
+| Potion | Rareté | Effet |
+|---|---|---|
+| Potion de soins | Commune | Soigne 20 PV (aussi hors combat). |
+| Potion de soins majeure | Rare | Soigne 35 PV (aussi hors combat). |
+| Flacon du colosse | Commune | Gagne 14 blocage. |
+| Élixir du félin | Commune | Pioche 3 cartes. |
+| Potion de rage | Commune | Gagne 2 Puissance pour ce combat. |
+| Potion explosive | Commune | 10 dégâts à tous les ennemis. |
+| Potion de protection contre le feu | Commune | Les Zones de feu ne t'infligent plus de dégâts pendant ce combat. |
+| Potion d'énergie | Rare | Gagne 2 énergie. |
 
 ### 12.6 L'or
 L'or se gagne après chaque combat (plus sur les boss secondaires) et dans certains événements. Il se dépense chez le vendeur gobelin et sert à payer les **factures de réparation** après un wipe (voir §6.7).

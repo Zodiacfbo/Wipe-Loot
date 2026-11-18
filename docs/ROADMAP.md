@@ -65,10 +65,11 @@
 - [x] Les coffres donnent un objet (70 % commun, 30 % rare)
 - [ ] Les tables de loot des 7 autres boss secondaires de l'acte 1, et les sorts de barre dans les tables
 - [ ] Le butin de boss : 1 objet épique parmi 3
-- [ ] Les potions (3 emplacements)
+- [x] Les potions : 3 emplacements, 8 potions, 40 % de chance après un combat gagné, retrouvées après un wipe
+- [ ] Les potions dans les événements (Potions de route de Brégan, laboratoire…)
 - [x] Le vendeur gobelin : 5 cartes dont une en promo, retrait et amélioration d'une carte (prix croissant)
-- [x] Le vendeur gobelin : 2 objets d'équipement à vendre
-- [ ] Le vendeur gobelin : ajouter les potions, les cartes de profession et la réparation
+- [x] Le vendeur gobelin : 2 objets d'équipement et 3 potions à vendre
+- [ ] Le vendeur gobelin : ajouter les cartes de profession et la réparation
 - [ ] La facture de réparation après un wipe, et les objets brisés
 
 ### 1.5 Les nœuds « ? »

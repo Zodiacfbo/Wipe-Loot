@@ -213,7 +213,7 @@ export function endTurn(c: CombatState): void {
 
   // Les Zones de feu encore en main brûlent le joueur.
   const zones = c.hand.filter((card) => card.id === 'zone_de_feu');
-  const zoneDmg = Math.round(6 * (1 - Math.min(100, c.gear?.zoneReduce ?? 0) / 100));
+  const zoneDmg = c.fireProof ? 0 : Math.round(6 * (1 - Math.min(100, c.gear?.zoneReduce ?? 0) / 100));
   for (let i = 0; i < zones.length; i++) {
     log(c, `Tu restes dans le feu : ${zoneDmg} dégâts.`);
     if (zoneDmg > 0) {

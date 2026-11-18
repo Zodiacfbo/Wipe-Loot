@@ -5,11 +5,14 @@ import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, typ
 import { AMBUSH, EVENTS } from './events';
 import { COMMON_POOL, ITEMS, LOOT_TABLES, emptyEquipment, gearEffects, slotsFor, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
+import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
 import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
+/** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
+export const POTION_DROP_CHANCE = 0.4;
 export const SERVICE_BASE_PRICE = 75;
 export const SERVICE_PRICE_STEP = 25;
 
@@ -17,8 +20,9 @@ export function newRun(seed: number = Date.now() % 2147483647): RunState {
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 4, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
-    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, screen: 'map',
+    version: 5, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null,
+    potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
   };
@@ -82,7 +86,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
-  run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })) };
+  run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
   run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, gearEffects(run.equipment));
   run.screen = 'combat';
 }
@@ -92,6 +96,7 @@ function backToMap(run: RunState): void {
   run.shop = null;
   run.rewardGold = 0;
   run.pendingItem = null;
+  run.pendingPotion = null;
   run.rewardChoices = [];
   run.eventId = null;
   run.screen = 'map';
@@ -118,6 +123,7 @@ export function afterCombatAction(run: RunState): void {
       run.rewardGold = gold;
       const table = run.encounter?.loot ? LOOT_TABLES[run.encounter.loot] : null;
       if (table) run.pendingItem = table[Math.floor(random(run) * table.length)];
+      if (random(run) < POTION_DROP_CHANCE) run.pendingPotion = rollPotion(run);
     }
   } else if (c.phase === 'defeat') {
     run.screen = run.wipesLeft > 0 ? 'wipe' : 'gameover';
@@ -188,7 +194,14 @@ function openShop(run: RunState): void {
     const rare = ITEMS[id].rarity === 'rare';
     items.push({ id, price: rare ? 190 + Math.floor(random(run) * 41) : 120 + Math.floor(random(run) * 31), sold: false });
   }
-  run.shop = { cards, items, removeUsed: false, upgradeUsed: false };
+  const potions: ShopCard[] = [];
+  while (potions.length < 3) {
+    const id = rollPotion(run);
+    if (potions.some((p) => p.id === id)) continue;
+    const rare = POTIONS[id].rarity === 'rare';
+    potions.push({ id, price: rare ? 80 + Math.floor(random(run) * 21) : 50 + Math.floor(random(run) * 16), sold: false });
+  }
+  run.shop = { cards, items, potions, removeUsed: false, upgradeUsed: false };
   run.screen = 'shop';
 }
 
@@ -276,6 +289,66 @@ export function leavePending(run: RunState): void {
   run.pendingItem = null;
 }
 
+// --- Potions ---
+
+/** Une potion au hasard (75 % communes, 25 % rares). */
+function rollPotion(run: RunState): string {
+  const rarity = random(run) < 0.75 ? 'commun' : 'rare';
+  const pool = POTION_IDS.filter((id) => POTIONS[id].rarity === rarity);
+  return pool[Math.floor(random(run) * pool.length)];
+}
+
+function freePotionSlot(run: RunState): number {
+  return run.potions.indexOf(null);
+}
+
+/** Peut-on boire cette potion maintenant ? En combat pendant son tour, ou hors combat pour un soin. */
+export function canDrink(run: RunState, slot: number): boolean {
+  const id = run.potions[slot];
+  if (!id) return false;
+  if (run.screen === 'combat') return run.combat?.phase === 'player';
+  return !!POTIONS[id].heal && run.screen !== 'gameover' && run.screen !== 'victory' && run.hp < run.maxHp;
+}
+
+export function drinkPotion(run: RunState, slot: number): boolean {
+  if (!canDrink(run, slot)) return false;
+  const id = run.potions[slot]!;
+  run.potions[slot] = null;
+  if (run.screen === 'combat' && run.combat) {
+    drinkInCombat(run.combat, id);
+  } else {
+    run.hp = Math.min(run.maxHp, run.hp + (POTIONS[id].heal ?? 0));
+  }
+  return true;
+}
+
+export function discardPotion(run: RunState, slot: number): void {
+  if (run.screen === 'combat' && run.combat?.phase !== 'player') return;
+  run.potions[slot] = null;
+}
+
+/** Prend la potion trouvée : dans un emplacement libre, ou à la place de celle de `slot`. */
+export function takePotion(run: RunState, slot?: number): boolean {
+  const id = run.pendingPotion;
+  if (!id) return false;
+  const target = slot ?? freePotionSlot(run);
+  if (target < 0 || target >= run.potions.length) return false;
+  run.potions[target] = id;
+  run.pendingPotion = null;
+  return true;
+}
+
+export function buyPotion(run: RunState, index: number): boolean {
+  const item = run.shop?.potions[index];
+  if (run.screen !== 'shop' || !item || item.sold || run.gold < item.price) return false;
+  const slot = freePotionSlot(run);
+  if (slot < 0) return false;
+  run.gold -= item.price;
+  item.sold = true;
+  run.potions[slot] = item.id;
+  return true;
+}
+
 // --- Événements ---
 
 export function resolveEvent(run: RunState, choice: number): void {
@@ -300,6 +373,8 @@ export function retryAfterWipe(run: RunState): void {
   run.wipesLeft -= 1;
   run.hp = Math.max(run.entry.hp, Math.ceil(run.maxHp * 0.5));
   run.deck = run.entry.deck.map((c) => ({ ...c }));
+  // Les potions bues pendant l'essai raté sont perdues… mais on retrouve celles qu'on avait en entrant.
+  if (run.entry.potions) run.potions = [...run.entry.potions];
   startEncounter(run, run.encounter);
 }
 

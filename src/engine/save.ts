@@ -24,7 +24,14 @@ export function migrate(raw: unknown): RunState | null {
     if (run.shop) (run.shop as Record<string, unknown>).items = [];
     run.version = 4;
   }
-  return run.version === 4 ? (run as unknown as RunState) : null;
+  if (run.version === 4) {
+    run.potions = [null, null, null];
+    run.pendingPotion = null;
+    if (run.shop) (run.shop as Record<string, unknown>).potions = [];
+    if (run.entry) (run.entry as Record<string, unknown>).potions = [null, null, null];
+    run.version = 5;
+  }
+  return run.version === 5 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

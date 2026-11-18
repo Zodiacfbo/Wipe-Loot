@@ -34,7 +34,13 @@ import {
   resolveEvent,
   retryAfterWipe,
   servicePrice,
+  buyPotion,
+  canDrink,
+  discardPotion,
+  drinkPotion,
+  takePotion,
 } from './engine/run';
+import { POTIONS } from './engine/potions';
 import { loadProfile, localSave, saveProfile } from './engine/save';
 import { ITEMS, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
@@ -48,13 +54,16 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 interface UiState {
   run: RunState | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | null;
+  /** Potion ouverte (emplacement du joueur), ou potion du vendeur regardée. */
+  potionSlot: number | null;
+  shopPotion: number | null;
   campfireUpgrade: boolean;
   shopMode: 'remove' | 'upgrade' | null;
   shopItem: number | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -154,6 +163,18 @@ function equipChoices(run: RunState, id: string, action: string, leave: string):
   return `<div class="choix-objet">${buttons}${leave}</div>`;
 }
 
+/** Une fiole, teintée de la couleur de la potion. */
+function potionIcon(id: string | null, size = 22): string {
+  if (!id) return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2" aria-hidden="true"><path d="M9 3h6M10 3v5l-5 9a3 3 0 0 0 2.6 4h8.8A3 3 0 0 0 19 17l-5-9V3"/></svg>`;
+  const color = POTIONS[id].color;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 13h9.6l2.2 4a3 3 0 0 1-2.6 4H7.6A3 3 0 0 1 5 17z" fill="${color}"/><path d="M9 3h6M10 3v5l-5 9a3 3 0 0 0 2.6 4h8.8A3 3 0 0 0 19 17l-5-9V3" fill="none" stroke="#f0e6d8" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="16" r="1" fill="#fff" opacity=".7"/></svg>`;
+}
+
+function potionHtml(id: string, extra = ''): string {
+  const p = POTIONS[id];
+  return `<div class="objet potion-fiche ${p.rarity}"><span class="objet-icone">${potionIcon(id, 30)}</span><div><b>${p.name}</b><em>Potion · ${p.rarity}</em><span>${p.text}</span></div>${extra}</div>`;
+}
+
 function rememberItems(run: RunState): void {
   const profile = loadProfile();
   const ids = [run.pendingItem, ...SLOT_KEYS.map((k) => run.equipment[k])].filter((x): x is string => !!x);
@@ -173,6 +194,7 @@ function topbar(run: RunState, hp: number): string {
       <span class="nom-classe">Guerrier</span>
       <span class="stat pv">${ICON.coeur}<span>${hp} / ${run.maxHp}</span></span>
       <span class="stat or">${ICON.piece}<span>${run.gold}</span></span>
+      <span class="potions">${run.potions.map((id, i) => `<button type="button" class="potion-slot ${id ? '' : 'vide'}" ${id ? `data-action="potion" data-slot="${i}" aria-label="${POTIONS[id].name}" title="${POTIONS[id].name}"` : 'disabled aria-label="Emplacement de potion vide"'}>${potionIcon(id)}</button>`).join('')}</span>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="etape">Les Profondeurs Ardentes · ${etageLabel(run)}</span>
@@ -306,6 +328,22 @@ function shopScreen(run: RunState): string {
     </button>`;
   };
 
+  if (ui.shopPotion !== null && shop.potions[ui.shopPotion] && !shop.potions[ui.shopPotion].sold) {
+    const item = shop.potions[ui.shopPotion];
+    const free = run.potions.includes(null);
+    const ok = free && run.gold >= item.price;
+    const why = !free ? 'Tes 3 emplacements de potion sont pleins : jette ou bois une potion d\'abord.' : run.gold < item.price ? 'Pas assez d\'or.' : '';
+    return `${topbar(run, run.hp)}<div class="ecran">
+      <h2>Acheter pour ${item.price} or ?</h2>
+      ${potionHtml(item.id)}
+      ${why ? `<p>${why}</p>` : ''}
+      <div class="choix-objet">
+        <button type="button" class="bouton-objet" ${ok ? `data-action="acheter-potion" data-index="${ui.shopPotion}"` : 'disabled'}>Acheter</button>
+        <button type="button" class="bouton-objet secondaire" data-action="annuler-potion">Retour</button>
+      </div>
+    </div>`;
+  }
+
   if (ui.shopItem !== null && shop.items[ui.shopItem] && !shop.items[ui.shopItem].sold) {
     const item = shop.items[ui.shopItem];
     return `${topbar(run, run.hp)}<div class="ecran">
@@ -315,6 +353,13 @@ function shopScreen(run: RunState): string {
       ${equipChoices(run, item.id, `data-action="acheter-objet" data-index="${ui.shopItem}"`, '<button type="button" class="bouton-objet secondaire" data-action="annuler-objet">Annuler</button>')}
     </div>`;
   }
+
+  const shopPotions = shop.potions.map((item, i) => {
+    if (item.sold) return `<div class="article-potion vendu-potion">Vendu</div>`;
+    const ok = run.gold >= item.price;
+    return `<button type="button" class="article-potion" data-action="potion-boutique" data-index="${i}" aria-label="${POTIONS[item.id].name}">
+      ${potionIcon(item.id, 44)}<span class="nom-potion">${POTIONS[item.id].name}</span><span class="prix ${ok ? '' : 'trop-cher'}">${ICON.piece}${item.price}</span></button>`;
+  }).join('');
 
   const shopItems = shop.items.map((item, i) => {
     if (item.sold) return `<div class="objet vendu-objet">Vendu</div>`;
@@ -332,7 +377,7 @@ function shopScreen(run: RunState): string {
       <div class="etal">
         <h2 class="titre-boutique">Le vendeur gobelin</h2>
         <div class="articles">${items}</div>
-        <div class="objets-boutique">${shopItems}</div>
+        <div class="objets-boutique">${shopItems}<div class="potions-boutique">${shopPotions}</div></div>
         <div class="services">
           ${service('remove', 'Retirer une carte', shop.removeUsed, run.removals)}
           ${service('upgrade', 'Améliorer une carte', shop.upgradeUsed, run.upgradesBought)}
@@ -497,13 +542,24 @@ function titleScreen(): string {
   </div>`;
 }
 
+function potionReward(run: RunState, id: string): string {
+  const free = run.potions.includes(null);
+  const buttons = free
+    ? '<button type="button" class="bouton-objet" data-action="prendre-potion">Prendre</button>'
+    : run.potions.map((p, i) => `<button type="button" class="bouton-objet" data-action="prendre-potion" data-slot="${i}">Remplacer : ${POTIONS[p!].name}</button>`).join('');
+  return `<div class="butin butin-potion"><span class="butin-titre">Potion</span>${potionHtml(id)}<div class="choix-objet">${buttons}<button type="button" class="bouton-objet secondaire" data-action="laisser-potion">Laisser</button></div></div>`;
+}
+
 function rewardScreen(run: RunState): string {
   const cards = run.rewardChoices.map((id) => cardHtml({ uid: 0, id, upgraded: false }, { action: `data-action="recompense" data-id="${id}"` })).join('');
-  const crowded = run.pendingItem && run.rewardChoices.length > 0;
+  const crowded = (run.pendingItem || run.pendingPotion) && run.rewardChoices.length > 0;
   return `${topbar(run, run.hp)}<div class="ecran ${crowded ? 'serre' : ''}">
     <h2>${run.rewardTitle}</h2>
     ${run.rewardGold > 0 ? `<div class="gain-or">${ICON.piece}<span>+${run.rewardGold} or</span></div>` : ''}
-    ${run.pendingItem ? `<div class="butin"><span class="butin-titre">Butin</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
+    ${run.pendingItem || run.pendingPotion ? `<div class="butins">
+      ${run.pendingItem ? `<div class="butin"><span class="butin-titre">Butin</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
+      ${run.pendingPotion ? potionReward(run, run.pendingPotion) : ''}
+    </div>` : ''}
     ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton deck.</p>' : ''}
     ${run.rewardChoices.length > 0 ? `<div class="choix-cartes ${run.pendingItem ? 'compact' : ''}">${cards}</div>` : ''}
     <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">${run.rewardChoices.length > 0 ? 'Passer' : 'Continuer'}</button>
@@ -561,6 +617,21 @@ function overlayHtml(run: RunState): string {
       <h2>Ton deck (${run.deck.length} cartes)</h2>
       <div class="liste-deck">${cards}</div>
       <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+    </div></div>`;
+  }
+  if (ui.overlay === 'potion' && ui.potionSlot !== null && run.potions[ui.potionSlot]) {
+    const slot = ui.potionSlot;
+    const id = run.potions[slot]!;
+    const drinkable = canDrink(run, slot);
+    const why = drinkable ? '' : run.screen === 'combat' ? '' : POTIONS[id].heal ? 'Tu as déjà tous tes PV.' : 'Cette potion se boit en combat.';
+    return `<div class="overlay" data-action="fermer"><div class="ecran" style="gap:16px">
+      ${potionHtml(id)}
+      ${why ? `<p>${why}</p>` : ''}
+      <div class="choix-objet">
+        <button type="button" class="bouton-objet" ${drinkable ? `data-action="boire" data-slot="${slot}"` : 'disabled'}>Boire</button>
+        <button type="button" class="bouton-objet secondaire" data-action="jeter" data-slot="${slot}">Jeter</button>
+        <button type="button" class="bouton-objet secondaire" data-action="fermer">Fermer</button>
+      </div>
     </div></div>`;
   }
   if (ui.overlay === 'equipement') {
@@ -732,6 +803,7 @@ function handleClick(ev: MouseEvent): void {
     case 'fermer': ui.overlay = null; render(); return;
     case 'equipement': ui.overlay = 'equipement'; render(); return;
     case 'loot': ui.overlay = 'loot'; render(); return;
+    case 'potion': ui.overlay = 'potion'; ui.potionSlot = Number(el.dataset.slot); render(); return;
     case 'plein-ecran': void toggleFullscreen(); return;
   }
   if (!run) return;
@@ -761,9 +833,16 @@ function handleClick(ev: MouseEvent): void {
       commit();
       break;
     case 'boutique-retour': ui.shopMode = null; render(); break;
-    case 'partir': ui.shopMode = null; ui.shopItem = null; leaveShop(run); commit(); break;
+    case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; leaveShop(run); commit(); break;
     case 'equiper': equipPending(run, el.dataset.slot as SlotKey); commit(); break;
     case 'laisser': leavePending(run); commit(); break;
+    case 'boire': drinkPotion(run, Number(el.dataset.slot)); ui.overlay = null; ui.selection = null; commit(); break;
+    case 'jeter': discardPotion(run, Number(el.dataset.slot)); ui.overlay = null; commit(); break;
+    case 'prendre-potion': takePotion(run, el.dataset.slot === undefined ? undefined : Number(el.dataset.slot)); commit(); break;
+    case 'laisser-potion': run.pendingPotion = null; commit(); break;
+    case 'potion-boutique': ui.shopPotion = Number(el.dataset.index); render(); break;
+    case 'annuler-potion': ui.shopPotion = null; render(); break;
+    case 'acheter-potion': buyPotion(run, Number(el.dataset.index)); ui.shopPotion = null; commit(); break;
     case 'objet-boutique': ui.shopItem = Number(el.dataset.index); render(); break;
     case 'annuler-objet': ui.shopItem = null; render(); break;
     case 'acheter-objet': buyItem(run, Number(el.dataset.index), el.dataset.slot as SlotKey); ui.shopItem = null; commit(); break;

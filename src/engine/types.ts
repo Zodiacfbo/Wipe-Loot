@@ -114,6 +114,8 @@ export interface CombatState {
   /** Effets de l'équipement porté, calculés au début du combat. */
   gear?: ItemEffects;
   firstAttackDone?: boolean;
+  /** Potion de protection contre le feu : les Zones de feu ne font plus de dégâts. */
+  fireProof?: boolean;
   bleedDoneThisTurn?: boolean;
   nextUid: number;
   rng: number;
@@ -130,12 +132,13 @@ export interface ShopCard {
 export interface ShopState {
   cards: ShopCard[];
   items: ShopCard[];
+  potions: ShopCard[];
   removeUsed: boolean;
   upgradeUsed: boolean;
 }
 
 export interface RunState {
-  version: 4;
+  version: 5;
   seed: number;
   rng: number;
   maxHp: number;
@@ -152,6 +155,10 @@ export interface RunState {
   equipment: Equipment;
   /** Objet trouvé, en attente de décision (équiper ou laisser). */
   pendingItem: string | null;
+  /** Les 3 emplacements de potion (null : vide). */
+  potions: (string | null)[];
+  /** Potion trouvée après un combat, en attente de décision. */
+  pendingPotion: string | null;
   screen: Screen;
   /** La carte de l'acte (voir map.ts). */
   map: ActMap;
@@ -162,7 +169,7 @@ export interface RunState {
   /** La rencontre en cours ou la dernière jouée (pour retenter après un wipe). */
   encounter: Encounter | null;
   combat: CombatState | null;
-  entry: { hp: number; deck: CardInstance[] } | null;
+  entry: { hp: number; deck: CardInstance[]; potions: (string | null)[] } | null;
   rewardChoices: string[];
   rewardTitle: string;
   eventId: string | null;

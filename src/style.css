@@ -351,3 +351,18 @@ img.px { image-rendering: pixelated; }
 .article-objet:hover:not(:disabled) .objet { border-color: var(--or); }
 .article-objet:disabled { opacity: 0.6; }
 .vendu-objet { width: 300px; height: 80px; justify-content: center; align-items: center; font-weight: 800; color: #8e7c6a; border-style: dashed; }
+
+/* ---------- Potions ---------- */
+.potions { display: flex; gap: 4px; margin-left: 4px; }
+.potion-slot { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #5a4433; background: #1e1712; display: flex; align-items: center; justify-content: center; padding: 0; color: #6e5c4b; }
+.potion-slot:not(.vide):hover { border-color: var(--or); background: #2c2218; }
+.potion-slot.vide { opacity: 0.7; }
+.butin-potion { margin-top: 2px; }
+.potions-boutique { display: flex; gap: 8px; }
+.article-potion { width: 96px; height: 128px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 8px 4px; border-radius: 10px; border: 2px solid #5a4433; background: var(--panneau); color: var(--texte); }
+.article-potion:hover { border-color: var(--or); }
+.nom-potion { font-size: 11px; font-weight: 700; line-height: 1.2; height: 40px; display: flex; align-items: center; text-align: center; }
+.article-potion .prix { font-size: 14px; }
+.vendu-potion { justify-content: center; color: #8e7c6a; font-weight: 800; border-style: dashed; }
+.butins { display: flex; gap: 24px; align-items: flex-start; justify-content: center; }
+.butins .choix-objet { max-width: 330px; }
