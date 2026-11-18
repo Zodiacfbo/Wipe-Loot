@@ -1,0 +1,64 @@
+# Construit et publie le jeu sur GitHub Pages.
+# - la branche main (version officielle) est publiée à la racine du site ;
+# - la branche dev (version de test) est publiée dans le sous-dossier /dev/.
+name: Déploiement GitHub Pages
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+      - name: Récupérer dev (si la branche existe)
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: dev
+          path: dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Construire main
+        if: hashFiles('main/package.json') != ''
+        working-directory: main
+        run: npm ci && npm test && npm run build
+      - name: Construire dev
+        if: hashFiles('dev/package.json') != ''
+        working-directory: dev
+        run: npm ci && npm test && npm run build
+      - name: Assembler le site
+        run: |
+          mkdir -p site
+          if [ -d main/dist ]; then cp -r main/dist/. site/; fi
+          if [ -d dev/dist ]; then mkdir -p site/dev && cp -r dev/dist/. site/dev/; fi
+          if [ ! -f site/index.html ]; then echo '<!doctype html><meta charset="utf-8"><title>Wipe &amp; Loot</title><p>La version officielle arrive bientôt. <a href="dev/">Version de test</a></p>' > site/index.html; fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

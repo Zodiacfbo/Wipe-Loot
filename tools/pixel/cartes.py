@@ -98,6 +98,22 @@ def frappe_mortelle():
     return s.render()
 
 
+def cri():
+    s = Sprite(32, 32)
+    s.poly([(16, 1), (19, 10), (29, 7), (22, 15), (31, 21), (20, 20), (16, 30), (12, 20), (1, 21), (10, 15), (3, 7), (13, 10)], '#E8402A', glow=True)
+    s.poly([(16, 7), (18, 13), (24, 12), (19, 16), (23, 21), (16, 18), (9, 21), (13, 16), (8, 12), (14, 13)], '#FFB04A', glow=True)
+    s.ellipse(13, 12, 19, 18, '#FFE27A', glow=True)
+    return s.render()
+
+
+def flamme():
+    s = Sprite(32, 32)
+    s.poly([(16, 2), (22, 12), (26, 20), (22, 29), (10, 29), (6, 20), (10, 12)], '#E8562A', glow=True)
+    s.poly([(16, 10), (20, 17), (21, 24), (16, 28), (11, 24), (12, 17)], '#F59A2E', glow=True)
+    s.poly([(16, 17), (18, 22), (16, 27), (14, 22)], '#FFE27A', glow=True)
+    return s.render()
+
+
 def big(img, scale):
     return img.resize((img.width * scale, img.height * scale), Image.NEAREST)
 
