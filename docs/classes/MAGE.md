@@ -178,7 +178,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 
 ## 7. Les talents
 
-Mêmes règles que pour toutes les classes : paliers 1 à 4 avec **1 choix parmi 2**, palier 5 = **carte épique**.
+Mêmes règles que pour toutes les classes (voir [le fonctionnement des classes](README.md)) : talents permanents choisis avant la run, paliers 1 à 4 avec **1 choix parmi 2**, palier 5 = **carte épique** ajoutée au deck de départ.
 
 ### 7.1 Arbre Arcane
 

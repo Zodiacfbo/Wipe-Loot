@@ -190,10 +190,11 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 ## 7. Les talents
 
 **Rappel des règles (voir le concept, §9) :**
-- 1 point de talent après chaque boss, soit **6 à 9 points** sur une run complète.
+- Les talents sont **permanents** et se choisissent **avant la run**, dans le hall de la guilde. Le respec est gratuit entre deux runs.
+- **1 point par niveau de classe**, jusqu'à **10 points** au niveau 10.
 - 3 arbres de 5 paliers. Il faut avoir **1 point dans le palier précédent** d'un arbre pour accéder au suivant.
 - Aux paliers 1 à 4, le joueur **choisit 1 talent parmi 2**.
-- Le palier 5 débloque la **carte épique** de l'arbre : un exemplaire est ajouté au deck, et la carte peut ensuite apparaître dans les récompenses.
+- Le palier 5 débloque la **carte épique** de l'arbre : un exemplaire est ajouté au deck de départ de chaque run, et la carte peut aussi apparaître dans les récompenses.
 
 ### 7.1 Arbre Armes
 

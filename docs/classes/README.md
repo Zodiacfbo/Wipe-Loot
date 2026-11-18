@@ -40,23 +40,24 @@ Toutes les classes sont construites sur le **même modèle** :
 
 ## 2. Comment on choisit sa spécialisation
 
-**On ne la choisit pas au départ.** On choisit seulement une **classe**. La spécialisation se construit **pendant la run**, au fil des points de talent.
+**Comme dans un MMO : avant d'entrer dans le raid.** Les talents sont **permanents**. Ils se répartissent dans le **hall de la guilde**, avant de lancer une run, et restent fixés pendant toute la run.
 
 ```
-Début de run          Après le 1er boss       Après le 3e boss        Fin de run
-─────────────         ─────────────────       ────────────────        ──────────
-Guerrier              1 point en Armes        3 points en Armes       Un Guerrier
-(aucune spé)    ─►    (les récompenses   ─►   (Coup de pommeau   ─►   Armes, avec
-                       penchent vers           dans la barre)          Frappe mortelle
-                       Armes)                                          et 1-2 points
-                                                                       ailleurs
+Hors run (hall de la guilde)                    Pendant la run
+────────────────────────────                    ──────────────
+Guerrier niveau 7  →  7 points de talent        Deck de départ + Frappe mortelle
+5 en Armes, 2 en Fureur                    ─►   Coup de pommeau dans la barre
+(respec gratuit entre deux runs)                Les cartes proposées penchent vers Armes
 ```
 
-1. **Après chaque boss** (boss secondaire ou boss de fin d'acte), le joueur gagne **1 point de talent**. Sur une run complète, cela fait environ **6 à 9 points**.
-2. Il place ce point dans **l'un des 3 arbres** de sa classe.
-3. **Plus il investit dans un arbre, plus les cartes proposées après les combats viennent de cet arbre.** C'est ce qui fait naître la spécialisation : un Guerrier qui met ses points en Protection verra surtout des cartes de blocage.
-4. Le **tronc commun** reste proposé quels que soient les talents.
-5. On peut **mélanger** les arbres pour un build hybride, mais on n'aura alors pas les cartes épiques de chaque arbre.
+1. Chaque classe a un **niveau de 1 à 10**, qui monte avec l'expérience gagnée à la fin de chaque run, victoire ou défaite.
+2. **Chaque niveau donne 1 point de talent.** Au niveau 10, la classe a **10 points**, le maximum. Il faut environ **10 à 15 runs** pour y arriver.
+3. Avant la run, le joueur répartit ses points dans **les 3 arbres** de sa classe. Le **respec est gratuit** entre deux runs.
+4. **Plus il a de points dans un arbre, plus les cartes proposées après les combats viennent de cet arbre**, dès le premier combat.
+5. Le **tronc commun** reste proposé quels que soient les talents.
+6. On peut **mélanger** les arbres pour un build hybride. Avec 10 points pour 15 paliers, on ne peut pas tout prendre : il faut choisir.
+
+**Pendant la run**, les boss ne donnent pas de point de talent. Ils donnent un objet de leur table de loot et une **amélioration de carte gratuite**.
 
 ---
 
@@ -79,9 +80,10 @@ Chaque classe a **3 arbres**, et chaque arbre a **5 paliers**.
 ```
 
 **Les règles :**
-- **Paliers 1 à 4 :** le joueur choisit **1 talent parmi 2**. L'autre talent du palier est perdu pour cette run.
+- **Paliers 1 à 4 :** chaque point permet de choisir **1 talent parmi 2**. On peut changer ce choix gratuitement entre deux runs.
 - **Il faut avoir 1 point dans le palier précédent** pour accéder au suivant. On monte l'arbre dans l'ordre.
-- **Palier 5 :** pas de choix. Il débloque la **carte épique** de l'arbre : un exemplaire est ajouté au deck, et la carte peut ensuite apparaître dans les récompenses.
+- **Palier 5 :** pas de choix. Il débloque la **carte épique** de l'arbre : un exemplaire est ajouté au **deck de départ** de chaque run, et la carte peut aussi apparaître dans les récompenses.
+- Les **sorts de barre** donnés par les talents sont dans la barre dès le début de la run.
 - **Le contenu des paliers suit une logique commune :**
 
 | Palier | Ce qu'on y trouve en général |
@@ -92,15 +94,15 @@ Chaque classe a **3 arbres**, et chaque arbre a **5 paliers**.
 | **4** | Un bonus fort, ou un **4ᵉ emplacement** de barre de sorts. |
 | **5** | **La carte épique** de la spécialisation. |
 
-**Exemple de répartition sur une run de 8 points :**
+**Exemples de répartition pour un Guerrier de niveau 10 (10 points) :**
 
-| Arbre | Points | Résultat |
-|---|---|---|
-| Armes | 5 | Les 5 paliers, Frappe mortelle débloquée |
-| Fureur | 2 | Paliers 1 et 2 |
-| Protection | 1 | Palier 1 |
+| Build | Armes | Fureur | Protection | Résultat |
+|---|---|---|---|---|
+| **Spécialiste** | 5 | 5 | 0 | Frappe mortelle **et** Sanguinaire dans le deck de départ |
+| **Tank qui tape** | 0 | 5 | 5 | Sanguinaire et Heurt de bouclier |
+| **Hybride large** | 4 | 3 | 3 | Pas de carte épique, mais beaucoup de bonus et plusieurs sorts de barre |
 
-Avec 6 à 9 points, on peut **compléter un arbre** et en entamer un ou deux autres, ou **monter deux arbres jusqu'au palier 3 ou 4** pour un vrai hybride.
+**Au début (niveau 1 à 4)**, avec peu de points, le joueur n'a pas encore de carte épique. C'est la phase d'apprentissage de la classe.
 
 ---
 

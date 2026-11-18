@@ -31,7 +31,7 @@
 
 ## 1. Pitch
 
-**Wipe & Loot** est un **deckbuilder roguelike** dans la lignée de *Slay the Spire*, dans un univers de **fantasy héroïque original** inspiré des grands MMO.
+**Wipe & Loot** est un **deckbuilder roguelite** dans la lignée de *Slay the Spire*, dans un univers de **fantasy héroïque original** inspiré des grands MMO.
 
 Le joueur incarne **seul** un champion de l'une des 9 classes du jeu. Il s'attaque aux **raids** les plus redoutés du monde d'**Eldrava** : les Profondeurs Ardentes, l'Aire de Vhaeryx, la cité ensevelie d'Irem… Chaque boss a des **mécaniques de raid** traduites en règles de cartes. On meurt (« wipe »), on recommence, on débloque, on progresse.
 
@@ -41,6 +41,7 @@ Le joueur incarne **seul** un champion de l'une des 9 classes du jeu. Il s'attaq
 1. **Une barre de sorts à temps de recharge**, en plus du deck : les gros sorts de classe sont toujours disponibles, mais il faut les planifier (§6.6).
 2. **Le droit de wiper** : une défaite n'est pas forcément la fin de la run. On paie la réparation et on retente le combat, avec un nombre d'essais limité (§6.7).
 3. **Des tables de loot** sur les boss, qui se révèlent au fil des parties et guident le choix du chemin (§12.7).
+4. **Des talents permanents** : on monte sa classe en niveau et on choisit sa spécialisation avant d'entrer dans le raid, comme dans un MMO (§9).
 
 **Plateformes :** navigateur sur PC et smartphone.
 
@@ -117,7 +118,8 @@ Choix de la classe ─► Bénédiction d'entrée
 - **Durée visée :** environ **45 minutes à 1 heure** pour une run complète.
 - Chaque acte est une **carte à embranchements** : le joueur choisit son chemin d'étage en étage.
 - **Après chaque combat**, le joueur choisit une carte parmi 3 (ou n'en prend aucune).
-- **Après chaque boss**, il gagne un **point de talent** (voir §9).
+- **Après chaque boss**, il récupère un objet de sa **table de loot** et peut **améliorer gratuitement une carte** ou un sort de barre (voir §12.1).
+- **Les talents sont choisis avant la run** et ne changent pas pendant celle-ci (voir §9).
 - **Un wipe n'est pas forcément la fin** : le joueur peut retenter un combat perdu, dans la limite de 3 wipes par run (voir §6.7).
 - **Quand la run s'arrête**, le joueur gagne quand même de l'expérience pour sa classe (voir §15).
 
@@ -394,17 +396,34 @@ Le jeu proposera **9 classes**, chacune avec une **mécanique principale** qui l
 
 ## 9. Spécialisations et talents
 
-Le joueur ne choisit **pas sa spécialisation au départ**. Il choisit une **classe**, et sa spé se construit **au fil de la run**, grâce à des arbres de talents.
+**Les talents sont permanents et se choisissent avant la run**, comme dans un MMO : on monte sa classe en niveau, on gagne des points de talent, et on choisit sa spécialisation avant d'entrer dans le raid.
 
+### 9.1 Les points de talent
+- Chaque classe a un **niveau de classe, de 1 à 10**, qui monte avec l'expérience gagnée à la fin de chaque run (voir §15.2).
+- **Chaque niveau donne 1 point de talent**. Une classe de niveau 1 a 1 point, une classe de niveau 10 en a **10, le maximum**.
+- On atteint le niveau 10 en environ **10 à 15 runs** avec cette classe.
+- **10 points pour 15 paliers** : on ne peut pas tout prendre. Une fois au maximum, on peut par exemple compléter un arbre (5 points) et en monter un deuxième jusqu'au palier 5, ou répartir ses points sur les trois arbres.
+
+### 9.2 Les arbres
 - Chaque classe possède **3 arbres de talents** (Guerrier : Armes / Fureur / Protection ; Mage : Arcane / Feu / Givre ; etc.).
-- Le joueur gagne **un point de talent après chaque boss** (secondaire ou de fin d'acte). Sur une run complète, cela représente environ **6 à 9 points**.
-- Chaque arbre compte **5 paliers**. Il faut avoir investi dans un palier pour accéder au suivant.
-- Plus le joueur investit dans un arbre, plus les **récompenses de cartes** proposées après les combats penchent vers cet arbre.
-- Le **dernier palier** de chaque arbre débloque les **cartes épiques** de la spécialisation (Frappe mortelle, Sanguinaire, Heurt de bouclier, Pyrolance, Forme d'Ombre…), qui apparaissent alors dans les récompenses.
-- Certains paliers donnent un **sort de barre** (voir §6.6) au lieu d'un bonus passif. Par exemple, le palier 3 de l'arbre Givre donne Carapace de glace.
+- Chaque arbre compte **5 paliers**. Il faut avoir un point dans un palier pour accéder au suivant.
+- **Paliers 1 à 4 :** chaque point permet de choisir **1 talent parmi 2**.
+- **Palier 5 :** la **carte épique** de la spécialisation (Frappe mortelle, Sanguinaire, Heurt de bouclier, Pyrolance, Forme d'Ombre…). Elle est **ajoutée au deck de départ** de chaque run, et peut aussi apparaître dans les récompenses.
+- Certains paliers donnent un **sort de barre** (voir §6.6) au lieu d'un bonus passif. Par exemple, le palier 3 de l'arbre Givre donne Carapace de glace. Ces sorts sont dans la barre **dès le début de la run**.
+
+### 9.3 Choisir sa spécialisation
+- Les talents se répartissent dans le **hall de la guilde**, avant de lancer une run.
+- **Le respec est gratuit entre deux runs** : on peut jouer Mage Feu un jour et Mage Givre le lendemain.
+- **Pendant la run, les talents sont fixés.**
+- Plus le joueur a de points dans un arbre, plus les **récompenses de cartes** proposées après les combats penchent vers cet arbre. La spécialisation oriente le deck **dès le premier combat**.
 - Les **builds hybrides** sont possibles et encouragés.
 
-> **Exemple :** un Guerrier qui met ses 3 premiers points en Protection verra plus de cartes de blocage et de Heurt de bouclier, mais il peut ensuite basculer vers Fureur pour un build « tank qui tape ».
+> **Exemple :** un Guerrier de niveau 7 met 5 points en Protection et 2 en Fureur. Il commence chaque run avec Heurt de bouclier dans son deck, Rempart dans sa barre, et voit surtout des cartes de blocage après les combats. C'est un « tank qui tape ».
+
+### 9.4 Ce que ça change pour l'équilibrage
+- Le jeu devient un **roguelite** : le joueur devient **plus fort d'une run à l'autre** tant que sa classe n'est pas au niveau 10.
+- Les **premières runs** d'une classe sont plus difficiles, avec peu de talents. Elles servent aussi à apprendre la classe.
+- Une fois au niveau 10, ce sont les **niveaux de difficulté** (§15.2) qui prennent le relais comme défi.
 
 ---
 
@@ -497,6 +516,8 @@ Chaque raid est un acte, avec ses monstres de trash, un pool de boss secondaires
 
 ### 12.1 Les cartes
 Après chaque combat, le joueur choisit une carte parmi 3, ou n'en prend aucune. Les cartes proposées dépendent de la classe et des talents investis (voir §9). Après un boss secondaire, les chances d'obtenir une carte rare sont plus élevées.
+
+**Après chaque boss** (secondaire ou de fin d'acte), le joueur peut aussi **améliorer gratuitement une carte ou un sort de barre** de son choix.
 
 ### 12.2 L'équipement (volontairement simple)
 
@@ -619,9 +640,9 @@ Le prix d'une des cartes est réduit de moitié (« promo du jour »).
 
 ---
 
-## 15. Progression (inspirée de Slay the Spire)
+## 15. Progression (inspirée de Slay the Spire, avec des talents permanents)
 
-Le principe de StS est repris : **le joueur ne devient pas plus fort d'une run à l'autre**. Il débloque du **contenu** (nouvelles cartes, reliques, classes) et de la **difficulté**. Toute la puissance se gagne pendant la run.
+La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque du **contenu** (nouvelles cartes, reliques, classes) et de la **difficulté**, comme dans StS. **En plus**, chaque classe gagne des **niveaux** qui donnent des **points de talent permanents** (voir §9) : le joueur devient plus fort au fil des runs, jusqu'au niveau 10.
 
 ### 15.1 Pendant la run
 
@@ -630,7 +651,7 @@ Le principe de StS est repris : **le joueur ne devient pas plus fort d'une run �
 | **Bénédiction** en début de run | **Bénédiction d'entrée** : **Brégan le Passeur**, qui guide les expéditions jusqu'aux Profondeurs Ardentes, propose un choix parmi 4 bonus de départ, dont certains avec une contrepartie (« Perds 10 PV max, obtiens une relique rare »). |
 | Deck de départ basique | **Deck de départ de la classe** : 10 cartes (voir §7.5). |
 | Récompenses de cartes après combat | Inchangé : 1 carte parmi 3, influencée par les talents (§9). |
-| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte ou un sort de barre. |
+| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte ou un sort de barre. **En plus**, chaque boss vaincu donne une amélioration gratuite. |
 | **Relique de boss** après chaque boss de fin d'acte | **Butin de boss** : choix parmi 3 reliques puissantes, souvent avec un inconvénient. |
 | Ordre fixe des actes | **Ordre fixe des raids** : Profondeurs Ardentes → Aire de Vhaeryx → Irem. |
 | **Acte 4** débloqué par 3 clés | **La Nécropole céleste**, débloquée par **3 éclats de clé** récupérés pendant la run (voir ci-dessous). |
@@ -642,7 +663,10 @@ Le principe de StS est repris : **le joueur ne devient pas plus fort d'une run �
 
 ### 15.2 Entre les runs
 
-- **Barre d'expérience par classe** : à la fin de chaque run, victoire ou défaite, le joueur gagne de l'expérience selon son **score** (voir §15.3). Chaque niveau débloque **un lot de nouvelles cartes ou de nouvelles reliques** pour cette classe.
+- **Niveau de classe (1 à 10)** : à la fin de chaque run, victoire ou défaite, le joueur gagne de l'expérience selon son **score** (voir §15.3). Chaque niveau donne :
+  - **1 point de talent permanent** (voir §9) ;
+  - **un lot de nouvelles cartes ou de nouvelles reliques** pour cette classe.
+- **Après le niveau 10**, l'expérience continue de débloquer du contenu cosmétique et des entrées dans les archives, mais plus de points de talent.
 - **Déblocage des classes** : au départ, 1 classe est disponible. Les autres se débloquent en accumulant de l'expérience au total (comme les personnages de StS).
 - **Niveaux de difficulté** (l'équivalent de l'Ascension) : **20 niveaux par classe**, débloqués un par un en gagnant une run au niveau précédent. Chaque niveau ajoute un modificateur cumulable, par exemple :
   - *Les ennemis ont plus de PV*
@@ -686,13 +710,13 @@ Le score détermine l'expérience gagnée. Il servira aussi de base au futur **m
 
 ### 16.3 Écrans principaux
 
-1. **Hall de la guilde** (menu principal) : nouvelle partie, continuer, archives, options.
-2. **Choix de la classe** et du niveau de difficulté.
+1. **Hall de la guilde** (menu principal) : nouvelle partie, continuer, talents, archives, options.
+2. **Choix de la classe**, de ses **talents** (respec gratuit) et du niveau de difficulté.
 3. **Carte de l'acte** : les étages, les chemins et les tables de loot des boss.
 4. **Combat**.
 5. **Récompenses** : choix de carte, or, objet.
-6. **Fiche du héros** : deck, barre de sorts, équipement (6 emplacements), reliques, talents.
-7. **Arbre de talents**.
+6. **Fiche du héros** : deck, barre de sorts, équipement (6 emplacements), reliques, talents (consultables, non modifiables pendant la run).
+7. **Arbre de talents** : dans le hall de la guilde, avant la run.
 8. **Feu de camp**, **vendeur**, **événement**.
 9. **Wipe** : réessayer (avec le coût de réparation affiché) ou renoncer.
 10. **Fin de run** : score et expérience.
@@ -705,8 +729,8 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 
 | Sauvegarde | Contenu |
 |---|---|
-| **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, barre de sorts, équipement, reliques, potions, talents, wipes restants, étapes de quête légendaire, éclats de clé. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, temps de recharge, ennemis, buffs et débuffs). |
-| **Le profil du joueur** | Expérience et niveaux de chaque classe, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, archives de la guilde, statistiques, options. |
+| **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, barre de sorts, équipement, reliques, potions, talents choisis pour cette run, wipes restants, étapes de quête légendaire, éclats de clé. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, temps de recharge, ennemis, buffs et débuffs). |
+| **Le profil du joueur** | Expérience et niveaux de chaque classe, **talents de chaque classe**, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, archives de la guilde, statistiques, options. |
 
 **Les règles :**
 - **Sauvegarde automatique** après chaque action : chaque carte jouée, chaque choix, chaque nœud. Il n'y a pas de bouton à penser.
@@ -739,18 +763,19 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | Sujet | Décision |
 |---|---|
 | **Titre** | **Wipe & Loot** |
-| **Genre** | Deckbuilder roguelike à la *Slay the Spire* |
+| **Genre** | Deckbuilder roguelite à la *Slay the Spire* |
 | **Univers** | **Original** (le monde d'Eldrava), inspiré des MMO de fantasy, sans noms ni éléments repris d'une œuvre existante |
 | **Mode de jeu** | **Solo pur** : un seul héros. Les familiers, compagnons et totems sont les seules entités alliées. |
 | **Énergie** | **3 par tour, commune à toutes les classes**, plus une **ressource de classe** propre à chacune |
 | **Structure** | **3 actes de 10 étages**, plus un acte bonus (la Nécropole céleste) |
-| **Spécialisation** | Construite pendant la run via 3 arbres de talents |
+| **Spécialisation** | **Talents permanents** choisis avant la run : 3 arbres de 5 paliers, 1 point par niveau de classe, 10 points maximum, respec gratuit entre les runs |
+| **Récompense de boss** | Un objet de la table de loot + une amélioration de carte gratuite |
 | **Barre de sorts** | 3 à 4 emplacements de gros sorts à temps de recharge, en plus du deck |
 | **Wipe** | 3 wipes autorisés par run : on paie la réparation et on retente le combat |
 | **Tables de loot** | Chaque boss a sa table. Un objet reste caché (« ??? ») tant qu'il n'a pas été obtenu une fois. |
 | **Équipement** | 6 emplacements (Arme, Amulette, 2 Bagues, 2 Bijoux), une seule règle de remplacement |
 | **Légendaires** | Un par classe, obtenu par une petite quête, un seul par run |
-| **Progression** | Calquée sur StS : déblocages de contenu et 20 niveaux de difficulté, pas de puissance permanente |
+| **Progression** | Déblocages de contenu et 20 niveaux de difficulté comme dans StS, **plus** des talents permanents jusqu'au niveau 10 de chaque classe |
 | **Plateformes** | Navigateur, sur PC et smartphone |
 | **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat), stockée dans le navigateur au départ |
 | **Modes futurs** | Mode rapide et mode infini |
