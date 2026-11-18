@@ -5,7 +5,9 @@ import type { FxEvent, FxTarget } from './engine/types';
 
 let stage: HTMLElement;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const ms = (n: number) => (reduceMotion ? 1 : n);
+// Vitesse globale des animations : 1 = rapide, plus grand = plus lent.
+const SPEED = 1.6;
+const ms = (n: number) => (reduceMotion ? 1 : Math.round(n * SPEED));
 const wait = (n: number) => new Promise<void>((resolve) => setTimeout(resolve, ms(n)));
 
 export function initFx(root: HTMLElement): void {
@@ -40,10 +42,11 @@ function floatText(t: FxTarget, text: string, color: string, delay = 0, size = 2
   const anim = d.animate(
     [
       { transform: 'translate(-50%, 0) scale(0.7)', opacity: 0 },
-      { transform: 'translate(-50%, -16px) scale(1.15)', opacity: 1, offset: 0.2 },
-      { transform: 'translate(-50%, -60px) scale(1)', opacity: 0 },
+      { transform: 'translate(-50%, -16px) scale(1.15)', opacity: 1, offset: 0.12 },
+      { transform: 'translate(-50%, -24px) scale(1)', opacity: 1, offset: 0.7 },
+      { transform: 'translate(-50%, -56px) scale(1)', opacity: 0 },
     ],
-    { duration: ms(950), delay: ms(delay), easing: 'ease-out' },
+    { duration: ms(1100), delay: ms(delay), easing: 'ease-out' },
   );
   anim.finished.then(() => d.remove()).catch(() => d.remove());
 }
