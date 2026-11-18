@@ -426,3 +426,23 @@ img.px { image-rendering: pixelated; }
 .gros-bouton.legendaire { background: #ff9a2a; border-color: #ffd08a; }
 .chip.rune { background: #10283a; border-color: #4cc3e0; color: #a8e8ff; }
 .choix-evenement.verrouille:hover { border-color: #5a4433; background: var(--panneau); transform: none; }
+
+/* ---------- Bilan de fin de run et niveau de classe ---------- */
+.bilan { display: flex; gap: 24px; align-items: stretch; padding: 14px 18px; border-radius: 12px; border: 1px solid #5a4433; background: var(--panneau); }
+.bilan-score { display: flex; flex-direction: column; gap: 4px; min-width: 300px; }
+.ligne-score { display: flex; justify-content: space-between; gap: 18px; font-size: 14px; color: var(--texte); }
+.ligne-score b { font-weight: 800; color: #8fd49a; }
+.ligne-score b.negatif { color: #ff8a7a; }
+.ligne-score.total { margin-top: 4px; padding-top: 6px; border-top: 1px solid #5a4433; font-size: 16px; }
+.ligne-score.total b { color: var(--or-clair); }
+.bilan-xp { display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 240px; padding-left: 22px; border-left: 1px solid #5a4433; text-align: left; }
+.gain-xp { font-size: 18px; color: #8fb8e8; }
+.gain-xp em { font-style: normal; font-size: 12px; color: var(--or); }
+.niveau { font-size: 15px; font-weight: 800; }
+.barre-xp { position: relative; height: 16px; border-radius: 8px; background: #1e1712; border: 1px solid #5a4433; overflow: hidden; }
+.barre-xp div { height: 100%; background: linear-gradient(90deg, #3e6a9e, #8fb8e8); }
+.barre-xp span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+.barre-xp.petite { width: 220px; height: 14px; }
+.niveau-gagne { margin: 0; font-weight: 800; color: var(--or-clair) !important; }
+.badge-classe { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: var(--texte-2); }
+.badge-classe b { font-size: 15px; color: var(--texte); }

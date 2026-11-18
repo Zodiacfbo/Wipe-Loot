@@ -53,6 +53,7 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { BAR_SLOTS } from './engine/spells';
+import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
@@ -710,6 +711,7 @@ function titleScreen(): string {
     <img class="px sprite-titre" src="${A('guerrier.png')}" alt="">
     <div class="titre-jeu">Wipe &amp; Loot</div>
     <div class="sous-titre">Prototype · Le Guerrier dans les Profondeurs Ardentes</div>
+    ${classBadge()}
     <div class="actions">
       ${canContinue ? `<button type="button" class="gros-bouton" data-action="continuer">Continuer</button>` : ''}
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">Nouvelle partie</button>
@@ -852,6 +854,34 @@ function chestPanel(run: RunState): string {
   </div>`;
 }
 
+/** Le bilan de la run : le score ligne par ligne, puis l'expérience et le niveau de classe. */
+function summaryHtml(sum: RunSummary): string {
+  const rows = sum.lines.map((l) => `<div class="ligne-score"><span>${l.label}</span><b class="${l.points < 0 ? 'negatif' : ''}">${l.points > 0 ? '+' : ''}${l.points}</b></div>`).join('');
+  const up = sum.levelAfter > sum.levelBefore;
+  const pct = sum.needed ? Math.round((sum.into / sum.needed) * 100) : 100;
+  return `<div class="bilan">
+    <div class="bilan-score">${rows}<div class="ligne-score total"><span>Score</span><b>${sum.score}</b></div></div>
+    <div class="bilan-xp">
+      <span class="butin-titre">Guerrier</span>
+      <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×2 : rattrapage)</em>' : ''}</b>
+      <div class="niveau">Niveau ${sum.levelAfter}${sum.levelAfter === MAX_LEVEL ? ' (maximum)' : ''}</div>
+      <div class="barre-xp"><div style="width:${pct}%"></div><span>${sum.needed ? `${sum.into} / ${sum.needed}` : 'Niveau maximum'}</span></div>
+      ${up ? `<p class="niveau-gagne">Niveau supérieur ! +${sum.levelAfter - sum.levelBefore} point${sum.levelAfter - sum.levelBefore > 1 ? 's' : ''} de talent</p>` : ''}
+    </div>
+  </div>`;
+}
+
+/** Le niveau du Guerrier, sur l'écran titre. */
+function classBadge(): string {
+  const lvl = classLevel(loadProfile(), 'guerrier');
+  const pct = lvl.needed ? Math.round((lvl.into / lvl.needed) * 100) : 100;
+  return `<div class="badge-classe">
+    <b>Guerrier · niveau ${lvl.level}</b>
+    <div class="barre-xp petite"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
+    <span>${lvl.level} point${lvl.level > 1 ? 's' : ''} de talent (les talents arrivent bientôt)</span>
+  </div>`;
+}
+
 function endScreen(run: RunState, victory: boolean): string {
   if (victory && !run.chestDone) {
     return `<div class="ecran" style="gap:14px">
@@ -859,10 +889,10 @@ function endScreen(run: RunState, victory: boolean): string {
       ${chestPanel(run)}
     </div>`;
   }
-  return `<div class="ecran">
-    <img class="px sprite-titre" src="${A(victory ? 'guerrier.png' : 'ennemi_vulkhar.png')}" alt="">
+  return `<div class="ecran" style="gap:14px">
     <h1>${victory ? 'Vulkhar est vaincu !' : 'Fin de la run'}</h1>
     <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${MAX_WIPES - run.wipesLeft} wipe${MAX_WIPES - run.wipesLeft > 1 ? 's' : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
+    ${run.summary ? summaryHtml(run.summary) : ''}
     ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
     <div class="actions"><button type="button" class="gros-bouton" data-action="nouvelle">Nouvelle partie</button></div>
   </div>`;
@@ -986,6 +1016,12 @@ async function commit(): Promise<void> {
   }
   if (run) {
     afterCombatAction(run);
+    // Fin de run : score, expérience et niveau de classe (une seule fois).
+    if ((run.screen === 'victory' || run.screen === 'gameover') && !run.summary) {
+      const profile = loadProfile();
+      run.summary = awardRun(profile, run);
+      saveProfile(profile);
+    }
     localSave.save(run);
     rememberItems(run);
   }
@@ -1090,8 +1126,8 @@ function handleClick(ev: MouseEvent): void {
     case 'continuer':
       ui.run = localSave.load();
       ui.overlay = null;
-      if (ui.run) afterCombatAction(ui.run); // une victoire ou un wipe sauvegardé pendant l'animation
-      render();
+      // Une victoire ou un wipe sauvegardé pendant l'animation : commit() termine le combat et fait le bilan.
+      void commit();
       return;
     case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; render(); return;
     case 'deck': ui.overlay = 'deck'; render(); return;

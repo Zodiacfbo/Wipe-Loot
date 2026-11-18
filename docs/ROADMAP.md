@@ -91,11 +91,11 @@
 
 ## Phase 2 — La progression entre les runs
 
-- [ ] Le profil du joueur (sauvegardé à part de la run)
-- [ ] L'expérience et le niveau de classe (1 à 10)
+- [x] Le profil du joueur (sauvegardé à part de la run) : objets découverts, coffre de la guilde, expérience des classes, statistiques
+- [x] L'expérience et le niveau de classe (1 à 10) : bilan de fin de run (score ligne par ligne), 1 440 exp. pour le niveau 10, niveau affiché sur l'écran titre
 - [ ] Premier lancement : choix libre de la classe de départ parmi les 9, avec une fiche de présentation
 - [ ] Déblocage des autres classes par paliers d'expérience, au choix du joueur
-- [ ] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint
+- [x] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint (prêt, il servira avec la 2e classe)
 - [ ] Les talents permanents : écran des 3 arbres, choix avant la run, respec gratuit
 - [ ] Les déblocages de cartes et d'objets par niveau
 - [ ] Les niveaux de difficulté (1 à 20)

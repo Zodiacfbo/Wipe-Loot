@@ -1,5 +1,6 @@
 // Sauvegarde de la run. Pour l'instant dans le navigateur (localStorage) ;
 // Firebase pourra remplacer ou compléter ce module plus tard sans toucher au reste.
+import type { ProgressProfile } from './progression';
 import type { RunState } from './types';
 
 // La clé dépend du chemin du site : la version officielle (/) et la version de test (/dev/)
@@ -78,7 +79,12 @@ export function migrate(raw: unknown): RunState | null {
     if (combat) for (const pile of ['draw', 'hand', 'discard', 'exhaust']) combat[pile] = keep(combat[pile]);
     run.version = 12;
   }
-  return run.version === 12 ? (run as unknown as RunState) : null;
+  if (run.version === 12) {
+    run.stats = { combats: 0, elites: 0 };
+    run.summary = null;
+    run.version = 13;
+  }
+  return run.version === 13 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {
@@ -118,8 +124,8 @@ export const localSave: SaveBackend = {
 
 const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
 
-export interface Profile {
-  version: 2;
+export interface Profile extends ProgressProfile {
+  version: 3;
   /** Objets déjà obtenus au moins une fois : ils sont visibles dans les tables de loot. */
   discoveredItems: string[];
   /** Le coffre de la guilde (6 objets au plus). */
@@ -135,12 +141,17 @@ export function loadProfile(): Profile {
         p.guildChest = [];
         p.version = 2;
       }
-      if (p.version === 2 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
+      if (p.version === 2) {
+        p.classes = {};
+        p.stats = { runs: 0, wins: 0 };
+        p.version = 3;
+      }
+      if (p.version === 3 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
     }
   } catch {
     // profil illisible : on repart d'un profil vide
   }
-  return { version: 2, discoveredItems: [], guildChest: [] };
+  return { version: 3, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 } };
 }
 
 export function saveProfile(profile: Profile): void {

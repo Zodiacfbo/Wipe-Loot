@@ -3,6 +3,7 @@
 import type { Encounter } from './enemies';
 import type { Equipment, ItemEffects, SlotKey } from './items';
 import type { ActMap } from './map';
+import type { RunSummary } from './progression';
 
 export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
 export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Sort' | 'Statut';
@@ -216,7 +217,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 12;
+  version: 13;
   seed: number;
   rng: number;
   maxHp: number;
@@ -253,6 +254,10 @@ export interface RunState {
   detour: boolean;
   /** L'acte en cours (1 dans le prototype). */
   act: number;
+  /** Combats et boss secondaires gagnés (pour le score). */
+  stats: { combats: number; elites: number };
+  /** Le bilan de fin de run, calculé une seule fois (score, expérience, niveau). */
+  summary: RunSummary | null;
   /** Emplacements dont l'objet est brisé (effet désactivé jusqu'à la réparation). */
   broken: SlotKey[];
   /** Objet emporté du coffre de la guilde au début de la run (perdu si la run échoue). */

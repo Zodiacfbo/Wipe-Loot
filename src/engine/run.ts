@@ -11,7 +11,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 12;
+export const SAVE_VERSION = 13;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -26,13 +26,13 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 12, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    version: 13, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
-    weaponUpgrade: null, detour: false, act: 1,
+    weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null,
   };
   run.map = generateMap(run);
   if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
@@ -158,6 +158,8 @@ export function afterCombatAction(run: RunState): void {
   }
   if (c.phase === 'victory') {
     run.hp = Math.min(run.maxHp, c.player.hp + (runGear(run).healAfterCombat ?? 0));
+    if (currentNode(run)?.type === 'elite') run.stats.elites += 1;
+    else run.stats.combats += 1;
     if (currentNode(run)?.type === 'boss') {
       run.screen = 'victory';
       run.combat = null;

@@ -715,6 +715,20 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 
 Le score détermine l'expérience gagnée. Il servira aussi de base au futur **mode infini**.
 
+**Le barème (prototype, acte 1) :**
+
+| Ligne | Points |
+|---|---|
+| Étage atteint | +10 par étage |
+| Combat gagné | +5 par combat |
+| Boss secondaire vaincu | +25 chacun |
+| Vulkhar vaincu | +100 |
+| Quête des Gardiens des Sources terminée | +20 |
+| Aucun wipe (victoire seulement) | +30 |
+| Wipe | −15 chacun |
+
+Le score minimum est de 10. **Expérience = score** (doublée pendant le rattrapage). Il faut **1 440 points d'expérience** pour passer du niveau 1 au niveau 10 (80, puis 100, 120… jusqu'à 240 par niveau) : environ 10 à 15 runs, une défaite moyenne rapportant 60 à 100 points et une victoire autour de 300.
+
 
 ### 15.4 Récapitulatif des progressions
 
