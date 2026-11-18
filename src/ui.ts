@@ -80,6 +80,33 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
   </button>`;
 }
 
+// ---------- Plein écran ----------
+
+function canFullscreen(): boolean {
+  const standalone = window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
+  return !standalone && !!document.fullscreenEnabled;
+}
+
+function fullscreenButton(cls: string): string {
+  if (!canFullscreen()) return '';
+  const on = !!document.fullscreenElement;
+  return `<button type="button" class="${cls}" data-action="plein-ecran">${on ? 'Quitter le plein écran' : 'Plein écran'}</button>`;
+}
+
+async function toggleFullscreen(): Promise<void> {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+      const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+      await orientation.lock?.('landscape').catch(() => {});
+    }
+  } catch {
+    // Le navigateur refuse le plein écran (iPhone, navigateur intégré à une autre appli…).
+  }
+}
+
 // ---------- Barre du haut ----------
 
 function topbar(run: RunState, hp: number): string {
@@ -95,6 +122,7 @@ function topbar(run: RunState, hp: number): string {
       <span class="pips">Wipes ${pips} <span>${run.wipesLeft} restant${run.wipesLeft > 1 ? 's' : ''}</span></span>
     </div>
     <div class="groupe">
+      ${fullscreenButton('bouton')}
       <button type="button" class="bouton" data-action="deck">Deck · ${run.deck.length}</button>
       <button type="button" class="bouton" data-action="menu">Menu</button>
     </div>
@@ -243,6 +271,7 @@ function titleScreen(): string {
     <div class="actions">
       ${canContinue ? `<button type="button" class="gros-bouton" data-action="continuer">Continuer</button>` : ''}
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">Nouvelle partie</button>
+      ${fullscreenButton('gros-bouton secondaire')}
     </div>
     <p>3 combats, un feu de camp, puis le Héraut Brannoc. Interromps ses Soins de flamme avec Coup de bouclier, ou tue-le avant l'enrage. La partie est sauvegardée automatiquement dans ce navigateur.</p>
   </div>`;
@@ -425,6 +454,7 @@ function handleClick(ev: MouseEvent): void {
     case 'deck': ui.overlay = 'deck'; render(); return;
     case 'menu': ui.overlay = 'menu'; render(); return;
     case 'fermer': ui.overlay = null; render(); return;
+    case 'plein-ecran': void toggleFullscreen(); return;
   }
   if (!run) return;
   switch (action) {
@@ -472,6 +502,10 @@ export function mount(root: HTMLElement): void {
   stage = root;
   stage.addEventListener('click', handleClick);
   window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', () => {
+    fit();
+    render();
+  });
   window.visualViewport?.addEventListener('resize', fit);
   window.addEventListener('orientationchange', () => setTimeout(fit, 200));
   window.addEventListener('keydown', (ev) => {
