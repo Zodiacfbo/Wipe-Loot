@@ -1,5 +1,6 @@
 // La carte d'un acte : 10 étages, des chemins qui se croisent, un boss au bout.
 // Référence : docs/actes/ACTE1_PROFONDEURS_ARDENTES.md (§2)
+import { ELITE_ENCOUNTERS } from './enemies';
 import { random } from './rng';
 import type { HasRng } from './rng';
 
@@ -11,6 +12,8 @@ export interface MapNode {
   lane: number; // 0 à 3 (position verticale à l'écran)
   type: NodeType;
   next: number[]; // ids des nœuds de l'étage suivant
+  /** Boss secondaire de ce nœud (index dans ELITE_ENCOUNTERS), choisi dès la création de la carte. */
+  elite?: number;
 }
 
 export interface ActMap {
@@ -101,6 +104,8 @@ export function generateMap(s: HasRng): ActMap {
       n.type = 'combat';
     }
   }
+  for (const n of nodes) if (n.type === 'elite') n.elite = Math.floor(random(s) * ELITE_ENCOUNTERS.length);
+
   // Au moins un vendeur par run : si le hasard n'en a pas mis, un « ? » ou un combat en devient un.
   if (!nodes.some((n) => n.type === 'shop')) {
     const candidates = nodes.filter((n) => n.floor >= 1 && n.floor <= 7 && n.floor !== 4 && (n.type === 'event' || n.type === 'combat'));

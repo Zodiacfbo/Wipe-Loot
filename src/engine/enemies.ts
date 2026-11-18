@@ -101,6 +101,8 @@ export interface Encounter {
   name: string;
   enemies: string[];
   enrageTurn?: number;
+  /** Table de loot (boss secondaires). */
+  loot?: string;
 }
 
 /** Packs faciles (étages 1 à 4). */
@@ -121,8 +123,8 @@ export const HARD_ENCOUNTERS: Encounter[] = [
 
 /** Boss secondaires. */
 export const ELITE_ENCOUNTERS: Encounter[] = [
-  { kind: 'combat', name: 'Sœur Cendrine', enemies: ['cendrine'], enrageTurn: 10 },
-  { kind: 'combat', name: 'Le Héraut Brannoc', enemies: ['lieutenant', 'brannoc', 'lieutenant'], enrageTurn: 10 },
+  { kind: 'combat', name: 'Sœur Cendrine', enemies: ['cendrine'], enrageTurn: 10, loot: 'cendrine' },
+  { kind: 'combat', name: 'Le Héraut Brannoc', enemies: ['lieutenant', 'brannoc', 'lieutenant'], enrageTurn: 10, loot: 'brannoc' },
 ];
 
 /** Boss de fin d'acte. */

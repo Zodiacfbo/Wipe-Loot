@@ -25,7 +25,7 @@ export function gainRage(c: CombatState, amount: number): void {
 
 export function gainBlock(c: CombatState, amount: number): void {
   const p = c.player;
-  let total = amount;
+  let total = amount + (p.robustesse ?? 0);
   if (p.posture === 'defensive') total += 3;
   p.block += Math.max(0, total);
   if (total > 0) fx(c, { kind: 'block', who: 'player', amount: total });
@@ -39,7 +39,10 @@ export interface AttackOptions {
 /** Calcule les dégâts d'une Attaque du joueur avant le blocage de la cible. */
 export function attackDamage(c: CombatState, target: EnemyState, base: number, opts: AttackOptions = {}): number {
   const p = c.player;
-  let dmg = base + p.puissance;
+  const g = c.gear ?? {};
+  let dmg = base + p.puissance + (g.attackBonus ?? 0);
+  if (!c.firstAttackDone) dmg += g.firstAttackBonus ?? 0;
+  if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
   if (p.posture === 'defensive') dmg *= 0.8;
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
@@ -121,6 +124,14 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
   target.block = 0;
   fx(c, { kind: 'death', who: target.uid });
   log(c, `${target.name} est vaincu.`);
+  const onKill = c.gear?.onKillAoe ?? 0;
+  if (onKill > 0) {
+    for (const other of livingEnemies(c)) {
+      if (other.submerged) continue;
+      fx(c, { kind: 'tick', who: other.uid, amount: onKill, label: 'Explosion' });
+      damageEnemy(c, other, onKill, false);
+    }
+  }
   if (target.defId === 'etincelle') {
     log(c, `L'Étincelle vivante explose !`);
     fx(c, { kind: 'tick', who: 'player', amount: 4, label: 'Explosion' });

@@ -3,12 +3,13 @@ import { CARDS, REWARD_POOL, STARTER_DECK } from './cards';
 import { createCombat } from './combat';
 import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, type Encounter } from './enemies';
 import { AMBUSH, EVENTS } from './events';
+import { COMMON_POOL, ITEMS, LOOT_TABLES, emptyEquipment, gearEffects, slotsFor, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
 import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 export const SERVICE_BASE_PRICE = 75;
 export const SERVICE_PRICE_STEP = 25;
 
@@ -16,8 +17,8 @@ export function newRun(seed: number = Date.now() % 2147483647): RunState {
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 3, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
-    removals: 0, upgradesBought: 0, shop: null, screen: 'map',
+    version: 4, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
   };
@@ -46,7 +47,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
       startEncounter(run, pick(run, node.floor <= 3 ? EASY_ENCOUNTERS : HARD_ENCOUNTERS));
       break;
     case 'elite':
-      startEncounter(run, pick(run, ELITE_ENCOUNTERS));
+      startEncounter(run, ELITE_ENCOUNTERS[node.elite ?? Math.floor(random(run) * ELITE_ENCOUNTERS.length)]);
       break;
     case 'boss':
       startEncounter(run, BOSS_ENCOUNTER);
@@ -58,7 +59,11 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
       openShop(run);
       break;
     case 'chest':
-      offerCards(run, 'Coffre', 'peu_commune');
+      run.rewardChoices = [];
+      run.rewardTitle = 'Coffre';
+      run.rewardGold = 0;
+      run.pendingItem = rollItem(run);
+      run.screen = 'reward';
       break;
     case 'event': {
       const roll = random(run);
@@ -78,7 +83,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })) };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid);
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, gearEffects(run.equipment));
   run.screen = 'combat';
 }
 
@@ -86,6 +91,7 @@ function backToMap(run: RunState): void {
   run.combat = null;
   run.shop = null;
   run.rewardGold = 0;
+  run.pendingItem = null;
   run.rewardChoices = [];
   run.eventId = null;
   run.screen = 'map';
@@ -100,7 +106,7 @@ export function afterCombatAction(run: RunState): void {
   run.rng = c.rng;
   run.nextUid = c.nextUid;
   if (c.phase === 'victory') {
-    run.hp = c.player.hp;
+    run.hp = Math.min(run.maxHp, c.player.hp + (gearEffects(run.equipment).healAfterCombat ?? 0));
     if (currentNode(run)?.type === 'boss') {
       run.screen = 'victory';
       run.combat = null;
@@ -110,6 +116,8 @@ export function afterCombatAction(run: RunState): void {
       run.gold += gold;
       offerCards(run, 'Victoire !', elite ? 'peu_commune' : 'commune');
       run.rewardGold = gold;
+      const table = run.encounter?.loot ? LOOT_TABLES[run.encounter.loot] : null;
+      if (table) run.pendingItem = table[Math.floor(random(run) * table.length)];
     }
   } else if (c.phase === 'defeat') {
     run.screen = run.wipesLeft > 0 ? 'wipe' : 'gameover';
@@ -173,7 +181,14 @@ function openShop(run: RunState): void {
   // La promo du jour : une carte à moitié prix.
   const promo = Math.floor(random(run) * cards.length);
   cards[promo].price = Math.floor(cards[promo].price / 2);
-  run.shop = { cards, removeUsed: false, upgradeUsed: false };
+  const items: ShopCard[] = [];
+  while (items.length < 2) {
+    const id = rollItem(run);
+    if (items.some((i) => i.id === id)) continue;
+    const rare = ITEMS[id].rarity === 'rare';
+    items.push({ id, price: rare ? 190 + Math.floor(random(run) * 41) : 120 + Math.floor(random(run) * 31), sold: false });
+  }
+  run.shop = { cards, items, removeUsed: false, upgradeUsed: false };
   run.screen = 'shop';
 }
 
@@ -212,6 +227,53 @@ export function buyUpgrade(run: RunState, uid: number): boolean {
 
 export function leaveShop(run: RunState): void {
   if (run.screen === 'shop') backToMap(run);
+}
+
+export function buyItem(run: RunState, index: number, slot: SlotKey): boolean {
+  const item = run.shop?.items[index];
+  if (run.screen !== 'shop' || !item || item.sold || run.gold < item.price) return false;
+  if (!slotsFor(item.id).includes(slot)) return false;
+  run.gold -= item.price;
+  item.sold = true;
+  putOn(run, item.id, slot);
+  return true;
+}
+
+// --- Équipement ---
+
+/** Un objet au hasard parmi ceux des coffres et du vendeur (70 % communs, 30 % rares). */
+function rollItem(run: RunState): string {
+  const rarity = random(run) < 0.7 ? 'commun' : 'rare';
+  const pool = COMMON_POOL.filter((id) => ITEMS[id].rarity === rarity);
+  return pool[Math.floor(random(run) * pool.length)];
+}
+
+/** Équipe un objet dans un emplacement, en remplaçant l'ancien. Ajuste les PV max. */
+function putOn(run: RunState, itemId: string, slot: SlotKey): void {
+  const old = run.equipment[slot];
+  if (old) {
+    const lost = ITEMS[old].fx.maxHp ?? 0;
+    run.maxHp -= lost;
+    run.hp = Math.min(run.hp, run.maxHp);
+  }
+  run.equipment[slot] = itemId;
+  const gained = ITEMS[itemId].fx.maxHp ?? 0;
+  run.maxHp += gained;
+  run.hp += gained;
+}
+
+/** Équipe l'objet trouvé (coffre ou butin de boss). */
+export function equipPending(run: RunState, slot: SlotKey): boolean {
+  const id = run.pendingItem;
+  if (!id || !slotsFor(id).includes(slot)) return false;
+  putOn(run, id, slot);
+  run.pendingItem = null;
+  return true;
+}
+
+/** Laisse l'objet trouvé. */
+export function leavePending(run: RunState): void {
+  run.pendingItem = null;
 }
 
 // --- Événements ---

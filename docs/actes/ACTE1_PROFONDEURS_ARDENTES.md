@@ -198,9 +198,9 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 | Table de loot | Emplacement | Effet |
 |---|---|---|
 | **Amulette des cendres** | Amulette | Les Zones de feu t'infligent 50 % de dégâts en moins. |
-| **Bâton de Cendrine** | Arme | Tes Sorts infligent +3 dégâts. |
+| **Fléau de Cendrine** | Arme | Tes Attaques infligent +2 dégâts. |
 | **Encensoir ardent** | Bijou | Quand tu joues une Zone de feu (« Bouger »), gagne 4 blocage. |
-| **Bague de la prêtresse** | Bague | Tes soins rendent +2 PV. |
+| **Bague de la prêtresse** | Bague | Soigne 5 PV à la fin de chaque combat gagné. |
 | *Sort de barre de ta classe* | Barre | — |
 
 ---

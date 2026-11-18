@@ -60,12 +60,15 @@
 
 ### 1.4 Le loot et l'économie
 - [x] L'or (99 au départ, gains après chaque combat, plus sur les boss secondaires)
-- [ ] L'équipement : 6 emplacements, règle de remplacement, fiche du héros
-- [ ] Les tables de loot des boss, avec les silhouettes « ??? » jusqu'au premier drop
+- [x] L'équipement : 6 emplacements, règle de remplacement, fenêtre « Équipement » (16 objets dans le prototype)
+- [x] Les tables de loot des boss secondaires (Cendrine, Brannoc), avec les « ??? » jusqu'au premier drop (mémorisé entre les runs)
+- [x] Les coffres donnent un objet (70 % commun, 30 % rare)
+- [ ] Les tables de loot des 7 autres boss secondaires de l'acte 1, et les sorts de barre dans les tables
 - [ ] Le butin de boss : 1 objet épique parmi 3
 - [ ] Les potions (3 emplacements)
 - [x] Le vendeur gobelin : 5 cartes dont une en promo, retrait et amélioration d'une carte (prix croissant)
-- [ ] Le vendeur gobelin : ajouter l'équipement, les potions, les cartes de profession et la réparation
+- [x] Le vendeur gobelin : 2 objets d'équipement à vendre
+- [ ] Le vendeur gobelin : ajouter les potions, les cartes de profession et la réparation
 - [ ] La facture de réparation après un wipe, et les objets brisés
 
 ### 1.5 Les nœuds « ? »

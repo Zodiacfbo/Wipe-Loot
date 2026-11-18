@@ -1,6 +1,7 @@
 // Types partagés par le moteur de jeu. Tout l'état est sérialisable en JSON,
 // pour pouvoir être sauvegardé tel quel (navigateur aujourd'hui, Firebase plus tard).
 import type { Encounter } from './enemies';
+import type { Equipment, ItemEffects } from './items';
 import type { ActMap } from './map';
 
 export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
@@ -72,6 +73,8 @@ export interface PlayerState {
   blockedFullAttack: boolean;
   /** Cartes en moins à piocher au prochain tour (Marteau des flammes). */
   drawPenalty: number;
+  /** +1 blocage par point sur chaque carte qui donne du blocage. */
+  robustesse: number;
 }
 
 export interface SpellState {
@@ -108,6 +111,10 @@ export interface CombatState {
   enrageTurn: number | null;
   log: string[];
   fx?: FxEvent[];
+  /** Effets de l'équipement porté, calculés au début du combat. */
+  gear?: ItemEffects;
+  firstAttackDone?: boolean;
+  bleedDoneThisTurn?: boolean;
   nextUid: number;
   rng: number;
 }
@@ -122,12 +129,13 @@ export interface ShopCard {
 
 export interface ShopState {
   cards: ShopCard[];
+  items: ShopCard[];
   removeUsed: boolean;
   upgradeUsed: boolean;
 }
 
 export interface RunState {
-  version: 3;
+  version: 4;
   seed: number;
   rng: number;
   maxHp: number;
@@ -141,6 +149,9 @@ export interface RunState {
   removals: number;
   upgradesBought: number;
   shop: ShopState | null;
+  equipment: Equipment;
+  /** Objet trouvé, en attente de décision (équiper ou laisser). */
+  pendingItem: string | null;
   screen: Screen;
   /** La carte de l'acte (voir map.ts). */
   map: ActMap;

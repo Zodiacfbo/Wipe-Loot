@@ -1,11 +1,13 @@
 // Le déroulement d'un combat : tours, cartes, sorts de barre, postures, tour des ennemis.
 import {
   addStatusToHand,
+  applySaignement,
   damageEnemy,
   damagePlayer,
   drawCards,
   emerge,
   fx,
+  gainBlock,
   gainRage,
   livingEnemies,
   log,
@@ -14,6 +16,7 @@ import {
 import { CARDS, energyCost, type PlayContext } from './cards';
 import { ENEMIES, intentAt, type Encounter } from './enemies';
 import { randInt, shuffle } from './rng';
+import type { ItemEffects } from './items';
 import type { CardInstance, CombatState, EnemyState, Intent, Posture } from './types';
 
 // --- Sorts de barre ---
@@ -48,13 +51,14 @@ export function createCombat(
   maxHp: number,
   rng: number,
   nextUid: number,
+  gear: ItemEffects = {},
 ): CombatState {
   const c: CombatState = {
     turn: 0,
     phase: 'player',
     player: {
       hp, maxHp, block: 0, energy: 3, maxEnergy: 3, rage: 0, maxRage: 10, posture: 'combat',
-      postureChanged: false, puissance: 0, ignorerDouleur: false, blockedFullAttack: false, drawPenalty: 0,
+      postureChanged: false, puissance: 0, ignorerDouleur: false, blockedFullAttack: false, drawPenalty: 0, robustesse: 0,
     },
     enemies: [],
     draw: [],
@@ -63,6 +67,9 @@ export function createCombat(
     exhaust: [],
     spells: [{ id: 'charge', cooldown: 0 }],
     enrageTurn: encounter.enrageTurn ?? null,
+    gear,
+    firstAttackDone: false,
+    bleedDoneThisTurn: false,
     log: [],
     nextUid,
     rng,
@@ -79,6 +86,16 @@ export function createCombat(
   });
   log(c, `Combat : ${encounter.name}.`);
   startPlayerTurn(c);
+  // Effets de l'équipement au début du combat.
+  const p = c.player;
+  p.puissance += gear.startPuissance ?? 0;
+  p.robustesse += gear.startRobustesse ?? 0;
+  p.block += gear.startBlock ?? 0;
+  p.energy += gear.firstTurnEnergy ?? 0;
+  if (gear.startAoe) {
+    for (const e of livingEnemies(c)) damageEnemy(c, e, gear.startAoe, false);
+  }
+  c.fx = [];
   return c;
 }
 
@@ -89,6 +106,7 @@ export function startPlayerTurn(c: CombatState): void {
   p.energy = p.maxEnergy;
   p.postureChanged = false;
   p.ignorerDouleur = false;
+  c.bleedDoneThisTurn = false;
   if (c.turn > 1) {
     for (const s of c.spells) s.cooldown = Math.max(0, s.cooldown - 1);
   }
@@ -141,7 +159,15 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
 
   if (def.type === 'Attaque' && ctx.dealt) {
     gainRage(c, p.posture === 'berserker' ? 2 : 1);
+    const g = c.gear ?? {};
+    if (g.bleedFirstAttack && !c.bleedDoneThisTurn && target && !target.dead && !target.submerged) {
+      applySaignement(target, g.bleedFirstAttack);
+      c.bleedDoneThisTurn = true;
+    }
+    if (g.healOnAttack) p.hp = Math.min(p.maxHp, p.hp + g.healOnAttack);
   }
+  if (def.type === 'Attaque') c.firstAttackDone = true;
+  if (card.id === 'zone_de_feu' && c.gear?.zoneBlock) gainBlock(c, c.gear.zoneBlock);
   if (def.type === 'Pouvoir' || def.exhaust) {
     c.exhaust.push(card);
   } else {
@@ -187,10 +213,13 @@ export function endTurn(c: CombatState): void {
 
   // Les Zones de feu encore en main brûlent le joueur.
   const zones = c.hand.filter((card) => card.id === 'zone_de_feu');
+  const zoneDmg = Math.round(6 * (1 - Math.min(100, c.gear?.zoneReduce ?? 0) / 100));
   for (let i = 0; i < zones.length; i++) {
-    log(c, 'Tu restes dans le feu : 6 dégâts.');
-    fx(c, { kind: 'tick', who: 'player', amount: 6, label: 'Feu' });
-    damagePlayer(c, 6, false);
+    log(c, `Tu restes dans le feu : ${zoneDmg} dégâts.`);
+    if (zoneDmg > 0) {
+      fx(c, { kind: 'tick', who: 'player', amount: zoneDmg, label: 'Feu' });
+      damagePlayer(c, zoneDmg, false);
+    }
   }
   c.exhaust.push(...zones);
   c.discard.push(...c.hand.filter((card) => card.id !== 'zone_de_feu'));

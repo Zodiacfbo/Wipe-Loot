@@ -19,6 +19,7 @@ import {
   abandonRun,
   afterCombatAction,
   buyCard,
+  buyItem,
   buyRemoval,
   buyUpgrade,
   campfireRest,
@@ -26,13 +27,17 @@ import {
   chooseNode,
   chooseReward,
   currentNode,
+  equipPending,
+  leavePending,
   leaveShop,
   newRun,
   resolveEvent,
   retryAfterWipe,
   servicePrice,
 } from './engine/run';
-import { localSave } from './engine/save';
+import { loadProfile, localSave, saveProfile } from './engine/save';
+import { ITEMS, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
+import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx } from './fx';
 import type { CardInstance, CombatState, EnemyState, Posture, RunState } from './engine/types';
 
@@ -43,12 +48,13 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 interface UiState {
   run: RunState | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | null;
   campfireUpgrade: boolean;
   shopMode: 'remove' | 'upgrade' | null;
+  shopItem: number | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -121,6 +127,43 @@ async function toggleFullscreen(): Promise<void> {
   }
 }
 
+// ---------- Objets ----------
+
+const SLOT_ICON: Record<Slot, string> = {
+  arme: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/></svg>',
+  amulette: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3c0 5 2.5 8 6 9 3.5-1 6-4 6-9"/><circle cx="12" cy="16" r="4"/></svg>',
+  bague: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="15" r="6"/><path d="M9 6l3-3 3 3-3 3z"/></svg>',
+  bijou: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16"/></svg>',
+};
+
+function itemHtml(id: string | null, slotLabel = '', extra = ''): string {
+  if (!id) {
+    return `<div class="objet vide"><span class="objet-icone">${SLOT_ICON[(slotLabel.toLowerCase() as Slot)] ?? ''}</span><div><b>${slotLabel}</b><span>Emplacement vide</span></div></div>`;
+  }
+  const it = ITEMS[id];
+  return `<div class="objet ${it.rarity}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[(it.slot === 'bague' ? 'bague1' : it.slot === 'bijou' ? 'bijou1' : it.slot) as SlotKey]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : 'épique'}</em><span>${it.text}</span></div>${extra}</div>`;
+}
+
+/** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
+function equipChoices(run: RunState, id: string, action: string, leave: string): string {
+  const buttons = slotsFor(id).map((k) => {
+    const current = run.equipment[k];
+    const label = current ? `Remplacer : ${ITEMS[current].name}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
+    return `<button type="button" class="bouton-objet" ${action} data-slot="${k}">${label}</button>`;
+  }).join('');
+  return `<div class="choix-objet">${buttons}${leave}</div>`;
+}
+
+function rememberItems(run: RunState): void {
+  const profile = loadProfile();
+  const ids = [run.pendingItem, ...SLOT_KEYS.map((k) => run.equipment[k])].filter((x): x is string => !!x);
+  const fresh = ids.filter((id) => !profile.discoveredItems.includes(id));
+  if (fresh.length > 0) {
+    profile.discoveredItems.push(...fresh);
+    saveProfile(profile);
+  }
+}
+
 // ---------- Barre du haut ----------
 
 function topbar(run: RunState, hp: number): string {
@@ -137,6 +180,7 @@ function topbar(run: RunState, hp: number): string {
     </div>
     <div class="groupe">
       ${fullscreenButton('bouton')}
+      <button type="button" class="bouton" data-action="equipement">Équipement · ${SLOT_KEYS.filter((k) => run.equipment[k]).length}/6</button>
       <button type="button" class="bouton" data-action="deck">Deck · ${run.deck.length}</button>
       <button type="button" class="bouton" data-action="menu">Menu</button>
     </div>
@@ -208,6 +252,7 @@ function mapScreen(run: RunState): string {
       <svg class="liens" width="1280" height="720" aria-hidden="true">${lines}</svg>
       ${buttons}
       <div class="legende">${legend}</div>
+      ${run.map.nodes.some((n) => n.type === 'elite') ? '<button type="button" class="bouton bouton-loot" data-action="loot">Tables de loot</button>' : ''}
     </div>`;
 }
 
@@ -261,6 +306,23 @@ function shopScreen(run: RunState): string {
     </button>`;
   };
 
+  if (ui.shopItem !== null && shop.items[ui.shopItem] && !shop.items[ui.shopItem].sold) {
+    const item = shop.items[ui.shopItem];
+    return `${topbar(run, run.hp)}<div class="ecran">
+      <h2>Acheter pour ${item.price} or ?</h2>
+      ${itemHtml(item.id)}
+      <p>Choisis l'emplacement. Un objet remplacé est perdu.</p>
+      ${equipChoices(run, item.id, `data-action="acheter-objet" data-index="${ui.shopItem}"`, '<button type="button" class="bouton-objet secondaire" data-action="annuler-objet">Annuler</button>')}
+    </div>`;
+  }
+
+  const shopItems = shop.items.map((item, i) => {
+    if (item.sold) return `<div class="objet vendu-objet">Vendu</div>`;
+    const ok = run.gold >= item.price;
+    return `<button type="button" class="article-objet ${ok ? '' : 'trop-cher'}" ${ok ? `data-action="objet-boutique" data-index="${i}"` : 'disabled'}>
+      ${itemHtml(item.id)}<span class="prix ${ok ? '' : 'trop-cher'}">${ICON.piece}${item.price}</span></button>`;
+  }).join('');
+
   return `${topbar(run, run.hp)}
     <div class="boutique">
       <div class="vendeur">
@@ -270,6 +332,7 @@ function shopScreen(run: RunState): string {
       <div class="etal">
         <h2 class="titre-boutique">Le vendeur gobelin</h2>
         <div class="articles">${items}</div>
+        <div class="objets-boutique">${shopItems}</div>
         <div class="services">
           ${service('remove', 'Retirer une carte', shop.removeUsed, run.removals)}
           ${service('upgrade', 'Améliorer une carte', shop.upgradeUsed, run.upgradesBought)}
@@ -436,12 +499,14 @@ function titleScreen(): string {
 
 function rewardScreen(run: RunState): string {
   const cards = run.rewardChoices.map((id) => cardHtml({ uid: 0, id, upgraded: false }, { action: `data-action="recompense" data-id="${id}"` })).join('');
-  return `${topbar(run, run.hp)}<div class="ecran">
+  const crowded = run.pendingItem && run.rewardChoices.length > 0;
+  return `${topbar(run, run.hp)}<div class="ecran ${crowded ? 'serre' : ''}">
     <h2>${run.rewardTitle}</h2>
     ${run.rewardGold > 0 ? `<div class="gain-or">${ICON.piece}<span>+${run.rewardGold} or</span></div>` : ''}
-    <p>Choisis une carte à ajouter à ton deck.</p>
-    <div class="choix-cartes">${cards}</div>
-    <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">Passer</button>
+    ${run.pendingItem ? `<div class="butin"><span class="butin-titre">Butin</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
+    ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton deck.</p>' : ''}
+    ${run.rewardChoices.length > 0 ? `<div class="choix-cartes ${run.pendingItem ? 'compact' : ''}">${cards}</div>` : ''}
+    <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">${run.rewardChoices.length > 0 ? 'Passer' : 'Continuer'}</button>
   </div>`;
 }
 
@@ -498,6 +563,34 @@ function overlayHtml(run: RunState): string {
       <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
     </div></div>`;
   }
+  if (ui.overlay === 'equipement') {
+    const slots = SLOT_KEYS.map((k) => itemHtml(run.equipment[k], SLOT_LABEL[k])).join('');
+    return `<div class="overlay"><div class="ecran" style="gap:16px">
+      <h2>Équipement</h2>
+      <div class="grille-equipement">${slots}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+    </div></div>`;
+  }
+  if (ui.overlay === 'loot') {
+    const profile = loadProfile();
+    const elites = run.map.nodes.filter((n) => n.type === 'elite' && n.elite !== undefined);
+    const seen = new Set<number>();
+    const blocks = elites.filter((n) => !seen.has(n.elite!) && seen.add(n.elite!)).map((n) => {
+      const enc = ELITE_ENCOUNTERS[n.elite!];
+      const floors = elites.filter((m) => m.elite === n.elite).map((m) => m.floor + 1).join(', ');
+      const table = enc.loot ? LOOT_TABLES[enc.loot] : [];
+      const list = table.map((id) => profile.discoveredItems.includes(id)
+        ? itemHtml(id)
+        : `<div class="objet inconnu"><span class="objet-icone">${SLOT_ICON[ITEMS[id].slot]}</span><div><b>???</b><span>${SLOT_LABEL[slotsFor(id)[0]]} · pas encore découvert</span></div></div>`).join('');
+      return `<section class="table-loot"><h3>${enc.name} <span>· étage${floors.includes(',') ? 's' : ''} ${floors}</span></h3><div class="liste-objets">${list}</div></section>`;
+    }).join('');
+    return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:36px;gap:14px">
+      <h2>Tables de loot</h2>
+      <p>Les boss secondaires de cette carte, et ce qu'ils peuvent faire tomber. Un objet reste caché tant que tu ne l'as jamais obtenu.</p>
+      <div class="tables-loot">${blocks}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+    </div></div>`;
+  }
   if (ui.overlay === 'menu') {
     return `<div class="overlay"><div class="ecran">
       <h2>Menu</h2>
@@ -549,6 +642,7 @@ async function commit(): Promise<void> {
   if (run) {
     afterCombatAction(run);
     localSave.save(run);
+    rememberItems(run);
   }
   render();
 }
@@ -636,6 +730,8 @@ function handleClick(ev: MouseEvent): void {
     case 'deck': ui.overlay = 'deck'; render(); return;
     case 'menu': ui.overlay = 'menu'; render(); return;
     case 'fermer': ui.overlay = null; render(); return;
+    case 'equipement': ui.overlay = 'equipement'; render(); return;
+    case 'loot': ui.overlay = 'loot'; render(); return;
     case 'plein-ecran': void toggleFullscreen(); return;
   }
   if (!run) return;
@@ -665,7 +761,12 @@ function handleClick(ev: MouseEvent): void {
       commit();
       break;
     case 'boutique-retour': ui.shopMode = null; render(); break;
-    case 'partir': ui.shopMode = null; leaveShop(run); commit(); break;
+    case 'partir': ui.shopMode = null; ui.shopItem = null; leaveShop(run); commit(); break;
+    case 'equiper': equipPending(run, el.dataset.slot as SlotKey); commit(); break;
+    case 'laisser': leavePending(run); commit(); break;
+    case 'objet-boutique': ui.shopItem = Number(el.dataset.index); render(); break;
+    case 'annuler-objet': ui.shopItem = null; render(); break;
+    case 'acheter-objet': buyItem(run, Number(el.dataset.index), el.dataset.slot as SlotKey); ui.shopItem = null; commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
     case 'feu-retour': ui.campfireUpgrade = false; render(); break;

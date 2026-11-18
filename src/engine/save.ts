@@ -18,7 +18,13 @@ export function migrate(raw: unknown): RunState | null {
     run.shop = null;
     run.version = 3;
   }
-  return run.version === 3 ? (run as unknown as RunState) : null;
+  if (run.version === 3) {
+    run.equipment = { arme: null, amulette: null, bague1: null, bague2: null, bijou1: null, bijou2: null };
+    run.pendingItem = null;
+    if (run.shop) (run.shop as Record<string, unknown>).items = [];
+    run.version = 4;
+  }
+  return run.version === 4 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {
@@ -53,3 +59,34 @@ export const localSave: SaveBackend = {
     }
   },
 };
+
+// --- Profil du joueur (gardé d'une run à l'autre) ---
+
+const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
+
+export interface Profile {
+  version: 1;
+  /** Objets déjà obtenus au moins une fois : ils sont visibles dans les tables de loot. */
+  discoveredItems: string[];
+}
+
+export function loadProfile(): Profile {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw) as Profile;
+      if (p.version === 1 && Array.isArray(p.discoveredItems)) return p;
+    }
+  } catch {
+    // profil illisible : on repart d'un profil vide
+  }
+  return { version: 1, discoveredItems: [] };
+}
+
+export function saveProfile(profile: Profile): void {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // stockage indisponible
+  }
+}

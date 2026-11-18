@@ -130,6 +130,7 @@ export const CARDS: Record<string, CardDef> = {
       if (isInterruptible(ctx.target.intent) && !ctx.target.interrupted) {
         ctx.target.interrupted = true;
         fx(ctx.c, { kind: 'interrupt', who: ctx.target.uid });
+        if (ctx.c.gear?.interruptDraw) drawCards(ctx.c, ctx.c.gear.interruptDraw);
         log(ctx.c, `${ctx.target.name} est interrompu !`);
       }
       playerAttack(ctx.c, ctx.target, ctx.up ? 8 : 4);
