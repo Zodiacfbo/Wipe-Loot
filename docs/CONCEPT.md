@@ -777,7 +777,7 @@ Après le niveau 10  Plus de nouveaux points. Le défi vient des niveaux de diff
 
 | Contrainte | Conséquence |
 |---|---|
-| **Smartphone en mode portrait** | L'écran de combat doit tenir en **portrait** : ennemis en haut, héros au milieu, **barre de sorts** juste au-dessus de la main, main de cartes en bas. Sur PC, la même disposition s'élargit. |
+| **Smartphone en mode paysage** | Le jeu se joue **en paysage**, sur téléphone comme sur PC, comme *Slay the Spire* : héros à gauche, ennemis à droite, **barre de sorts** au-dessus de la main, main de cartes en bas. PC et téléphone partagent la même disposition (format 16:9), adaptée aux écrans plus larges ou plus étroits. En portrait, le jeu affiche simplement « Tourne ton téléphone ». |
 | **Tactile** | Toucher une carte pour la sélectionner, puis toucher la cible. Sur PC, on peut aussi glisser-déposer. |
 | **Pas de survol sur mobile** | Les infobulles (description d'un mot-clé, d'un buff…) s'ouvrent par **appui long** sur mobile et par **survol** sur PC. |
 | **Lisibilité** | Textes de cartes courts, chiffres en gros, icônes claires. Une carte doit se comprendre en un coup d'œil sur un petit écran. |
@@ -854,7 +854,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | **Équipement** | 6 emplacements (Arme, Amulette, 2 Bagues, 2 Bijoux), une seule règle de remplacement |
 | **Légendaires** | Un par classe, obtenu par une petite quête, un seul par run |
 | **Progression** | Déblocages de contenu et 20 niveaux de difficulté comme dans StS, **plus** des talents permanents jusqu'au niveau 10 de chaque classe |
-| **Plateformes** | Navigateur, sur PC et smartphone |
+| **Plateformes** | Navigateur, sur PC et smartphone, **en mode paysage** |
 | **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat), stockée dans le navigateur au départ |
 | **Modes futurs** | Mode rapide et mode infini |
 

@@ -403,7 +403,7 @@ Un joueur « moyen » en fin d'acte 3 a environ :
 | Classe | Combats favorables | Combats difficiles |
 |---|---|---|
 | **Guerrier** | Sartaq (Fulgurance, gros tour au Cristal), la Triade (effets de zone) | Nebet (aucune dissipation contre la Folie) |
-| **Mage** | **Le Limon** (Gel), Méhkar (effets de zone), Nebet (Délivrance… mais c'est une Malédiction : pas utile ici) | Asheth (immunisé aux Sorts), Sartaq (Gardiens à Résistance aux Sorts) |
+| **Mage** | **Le Limon** (Gel), Méhkar (effets de zone) | Asheth (immunisé aux Sorts), Nebet (sa Délivrance ne retire que les Malédictions, pas la Folie) |
 | **Démoniste** | Gharul (DoT sous terre), la Triade (DoT sur trois cibles) | Neshet si son deck n'a que des Sorts |
 | **Prêtre** | **Nebet** et Yzhar (Dissipation de la magie contre la Folie), la Triade (dissipation des Toxines) | Les Rois-Jumeaux (peu d'Attaques) |
 | **Voleur** | Asheth et Gharul (gros dégâts, poisons qui comptent comme Attaques) | Neshet (immunisé aux Attaques), le Limon (peu de débuffs) |
