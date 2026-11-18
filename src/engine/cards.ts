@@ -35,6 +35,8 @@ export interface CardDef {
   exhaustUp?: boolean;
   ethereal?: boolean;
   unplayableText?: string;
+  /** Carte injouable (Fardeau). */
+  unplayable?: boolean;
   icon: 'epee' | 'bouclier' | 'pouvoir' | 'feu';
   text: (up: boolean) => string;
   play: (ctx: PlayContext) => void;
@@ -184,7 +186,7 @@ export const CARDS: Record<string, CardDef> = {
     text: (up) => `Inflige ${up ? 5 : 3} dégâts. Saignement ${up ? 3 : 2}.`,
     play: (ctx) => {
       hit(ctx, ctx.up ? 5 : 3);
-      if (ctx.target && !ctx.target.dead) applySaignement(ctx.target, ctx.up ? 3 : 2);
+      if (ctx.target && !ctx.target.dead) applySaignement(ctx.target, ctx.up ? 3 : 2, ctx.c);
     },
   },
   pourfendre: {
@@ -192,7 +194,7 @@ export const CARDS: Record<string, CardDef> = {
     icon: 'epee',
     text: (up) => `Saignement ${up ? 7 : 5} (3 tours).`,
     play: (ctx) => {
-      if (ctx.target) applySaignement(ctx.target, ctx.up ? 7 : 5);
+      if (ctx.target) applySaignement(ctx.target, ctx.up ? 7 : 5, ctx.c);
     },
   },
   fulgurance: {
@@ -270,13 +272,31 @@ export const CARDS: Record<string, CardDef> = {
     text: () => `Bouger. Sinon : 6 dégâts en fin de tour.`,
     play: () => {},
   },
+  bombe_vivante: {
+    id: 'bombe_vivante', name: 'Bombe vivante', type: 'Statut', rarity: 'statut', cost: 1, needsTarget: false,
+    ethereal: true, exhaust: true, icon: 'feu',
+    text: () => `S'éloigner. Sinon : 15 dégâts en fin de tour (et 5 à chaque ennemi).`,
+    play: () => {},
+  },
+  fardeau: {
+    id: 'fardeau', name: 'Fardeau', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
+    unplayable: true, icon: 'pouvoir',
+    text: () => `Malédiction. Injouable. Disparaît à la fin du combat.`,
+    play: () => {},
+  },
 };
 
 /** Coût en énergie d'une carte, en tenant compte de l'amélioration et des réductions. */
 export function energyCost(c: CombatState, id: string, up: boolean): number {
   const def = CARDS[id];
   if (id === 'vengeance' && c.player.blockedFullAttack) return 0;
-  return up && def.costUp !== undefined ? def.costUp : def.cost;
+  // Bague du tisseur : la première carte du combat est gratuite.
+  if (c.gear?.firstCardFree && !c.firstCardDone && !def.unplayable) return 0;
+  let cost = up && def.costUp !== undefined ? def.costUp : def.cost;
+  const d = c.player.debuffs;
+  if (d && d.impie > 0 && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie
+  if (d && d.arcane > 0 && def.type === 'Sort') cost += 1; // Malédiction arcanique
+  return cost;
 }
 
 /** Les cartes qui peuvent apparaître en récompense, avec leur rareté. */

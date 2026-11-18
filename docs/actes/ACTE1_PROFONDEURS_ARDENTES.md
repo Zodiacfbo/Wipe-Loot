@@ -176,7 +176,7 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 | **Collier de crocs** | Amulette | +6 PV max. Tu es immunisé à la Peur et aux cartes Paniquées. |
 | **Croc de lave** | Bijou | Ta première Attaque de chaque tour applique Saignement 2. |
 | **Hache du molosse** | Arme | Tes Attaques infligent +2 dégâts, et +4 contre une cible sous 50 % de PV. |
-| **Anneau du chasseur de lave** | Bague | Gagne 1 Puissance au début de chaque combat. |
+| **Anneau du chasseur de lave** | Bague | Commence chaque combat avec 1 Puissance et 2 rage (ou 2 de ta ressource de classe). |
 | *Sort de barre de ta classe* | Barre | — |
 
 ---
@@ -240,7 +240,7 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 | Tour | Intention |
 |---|---|
 | Cycle | **Bombe vivante** (ajoute une Bombe vivante à ta main) → Coup de lave (11) → **Embrasement de mana** (tu as 1 énergie de moins à ton prochain tour) → Coup de lave (11) |
-| Tous les 4 tours | **Incantation : Inferno** : 4 dégâts, 4 fois (interruptible). |
+| Fin du cycle (tous les 5 tours) | **Incantation : Inferno** : 4 dégâts, 4 fois (interruptible). |
 
 - **Réponses :** garder 1 énergie pour la Bombe vivante, interrompre l'Inferno, ou accepter la Bombe quand on a beaucoup de blocage (elle blesse aussi les ennemis).
 
@@ -248,8 +248,8 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 |---|---|---|
 | **Cœur de la bombe** | Bijou | Quand tu perds 10 PV ou plus en une fois, inflige 8 dégâts à tous les ennemis. |
 | **Bague de mana brûlant** | Bague | Gagne 1 énergie de plus au premier tour de chaque combat. |
-| **Sceptre du Baron** | Arme | Tes Sorts infligent +2 dégâts. Tes applications de DoT et de Brûlure sont augmentées de 1. |
-| **Amulette de l'inferno** | Amulette | Les DoT ennemis t'infligent 2 dégâts de moins par tour. |
+| **Sceptre du Baron** | Arme | Tes Sorts infligent +2 dégâts. Tes Saignements (et plus tard tes DoT et Brûlures) sont augmentés de 1. |
+| **Amulette de l'inferno** | Amulette | Les dégâts qui ne viennent pas d'une attaque (feu, explosions, poisons, DoT) sont réduits de 2. |
 | *Sort de barre de ta classe* | Barre | — |
 | *Objet de quête (Voleur)* | — | **Fermoir droit de l'orage** (quête de Sillon d'orage) |
 
@@ -299,7 +299,7 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 | **Étendard du héraut** | Bijou | Au début de chaque combat, gagne 1 Puissance et 1 Robustesse. |
 | **Marteau de Brannoc** | Arme | Tes Attaques infligent +2 dégâts et te soignent de 1 PV. |
 | **Bague de commandement** | Bague | Chaque fois que tu interromps une Incantation, pioche 1 carte. |
-| **Amulette du héraut** | Amulette | Soigne 5 PV à la fin de chaque combat gagné. |
+| **Amulette du héraut** | Amulette | +5 PV max. Soigne 5 PV à la fin de chaque combat gagné. |
 | *Sort de barre de ta classe* | Barre | — |
 
 ---

@@ -5,7 +5,7 @@ import type { Equipment, ItemEffects, SlotKey } from './items';
 import type { ActMap } from './map';
 
 export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
-export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Statut';
+export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Sort' | 'Statut';
 export type Posture = 'combat' | 'berserker' | 'defensive';
 
 export interface CardInstance {
@@ -35,7 +35,33 @@ export type Intent =
     }
   | { kind: 'block'; amount: number; cast?: string }
   | { kind: 'buff'; puissance: number; target: 'allies' | 'self'; cast?: string }
-  | { kind: 'heal'; amount: number; cast?: string };
+  | { kind: 'heal'; amount: number; cast?: string; self?: boolean }
+  /** Une malédiction ou un effet sur le joueur, sans dégâts. */
+  | { kind: 'curse'; label: string; cast?: string } & PlayerCurse
+  /** Rappelle un add (jusqu'à `max` en vie). */
+  | { kind: 'summon'; id: string; max: number; label: string; cast?: string }
+  /** L'ennemi ne peut plus être ciblé jusqu'à son prochain tour. */
+  | { kind: 'blink'; cast?: string };
+
+/** Ce qu'une malédiction ennemie fait au joueur. */
+export interface PlayerCurse {
+  demoralise?: number; // tours : tes Attaques infligent 25 % de dégâts en moins
+  impie?: number; // tours : ta première carte de chaque tour coûte 1 de plus
+  arcane?: number; // tours : tes Sorts coûtent 1 de plus
+  manaBurn?: number; // énergie en moins au prochain tour
+  panic?: number; // cartes Paniquées au prochain tour
+  fardeau?: number; // Fardeaux ajoutés à la pioche
+  bomb?: number; // Bombes vivantes ajoutées à la main
+}
+
+/** Les malédictions actives sur le joueur. */
+export interface PlayerDebuffs {
+  demoralise: number;
+  impie: number;
+  arcane: number;
+  manaBurn: number;
+  panic: number;
+}
 
 export interface EnemyState {
   uid: number;
@@ -56,6 +82,14 @@ export interface EnemyState {
   submerged?: number;
   /** Compteur d'utilisations (attaques qui grandissent). */
   counter?: number;
+  /** Clignement : ne peut pas être ciblé jusqu'à son prochain tour. */
+  untargetable?: boolean;
+  /** Molosse de Krâgg : se relève dans ce nombre de tours. */
+  reviveIn?: number;
+  /** Saldris : bouclier actif (renvoie 50 % des dégâts de ce type). */
+  shield?: 'coups' | 'sorts';
+  /** Saldris s'est rendu, ou un Molosse s'est enfui : il n'est plus là. */
+  gone?: boolean;
 }
 
 export interface PlayerState {
@@ -75,6 +109,8 @@ export interface PlayerState {
   drawPenalty: number;
   /** +1 blocage par point sur chaque carte qui donne du blocage. */
   robustesse: number;
+  /** Malédictions des ennemis (Morvax, Croc-de-lave, Vossk, Zhaal). */
+  debuffs?: PlayerDebuffs;
 }
 
 export interface SpellState {
@@ -116,6 +152,19 @@ export interface CombatState {
   firstAttackDone?: boolean;
   /** Potion de protection contre le feu : les Zones de feu ne font plus de dégâts. */
   fireProof?: boolean;
+  /** Cartes Paniquées (uid) : injouables ce tour-ci. */
+  panicked?: number[];
+  /** Cartes jouées ce tour-ci, et Sorts joués ce tour-ci (Contresort de Zhaal). */
+  cardsThisTurn?: number;
+  spellsThisTurn?: number;
+  /** Une carte a déjà été jouée pendant ce combat (Bague du tisseur). */
+  firstCardDone?: boolean;
+  /** L'Orbe de distorsion a déjà servi pendant ce combat. */
+  orbUsed?: boolean;
+  /** La carte en train d'être jouée (pour les bonus qui dépendent de son coût ou de son type). */
+  playing?: { cost: number; type: CardType };
+  /** Puissance déjà gagnée avec la Pierre de magma. */
+  magmaGained?: number;
   bleedDoneThisTurn?: boolean;
   nextUid: number;
   rng: number;
@@ -138,7 +187,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 7;
+  version: 8;
   seed: number;
   rng: number;
   maxHp: number;
@@ -155,6 +204,8 @@ export interface RunState {
   equipment: Equipment;
   /** Objet trouvé, en attente de décision (équiper ou laisser). */
   pendingItem: string | null;
+  /** Deuxième objet proposé par un coffre (Trousseau de l'intendant) : on en garde un seul. */
+  pendingAlt: string | null;
   /** Emplacements dont l'objet est brisé (effet désactivé jusqu'à la réparation). */
   broken: SlotKey[];
   /** Objet emporté du coffre de la guilde au début de la run (perdu si la run échoue). */

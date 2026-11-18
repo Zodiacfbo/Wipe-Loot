@@ -20,17 +20,39 @@ export interface ItemEffects {
   attackBonus?: number; // +X dégâts aux Attaques
   lowHpBonus?: number; // +X dégâts aux Attaques contre une cible sous 50 % de PV
   firstAttackBonus?: number; // +X dégâts à la première Attaque de chaque combat
+  heavyAttackBonus?: number; // +X dégâts aux Attaques qui coûtent 2 énergie ou plus
+  spellBonus?: number; // +X dégâts aux Sorts
   bleedFirstAttack?: number; // la première Attaque de chaque tour applique Saignement X
+  bleedBonus?: number; // tes Saignements sont augmentés de X
   healOnAttack?: number; // chaque Attaque qui touche soigne X PV
+  healOnKill?: number; // soigne X PV quand un ennemi meurt
   onKillAoe?: number; // quand un ennemi meurt, X dégâts à tous les autres
   startAoe?: number; // au début du combat, X dégâts à tous les ennemis
   startBlock?: number; // commence chaque combat avec X blocage
   startPuissance?: number; // commence chaque combat avec X Puissance
   startRobustesse?: number; // commence chaque combat avec X Robustesse
+  startRage?: number; // commence chaque combat avec X rage
+  startDemoralise?: number; // au début du combat, tous les ennemis sont Démoralisés X tours
+  startFardeau?: number; // au début du combat, X Fardeaux dans ta pioche
   firstTurnEnergy?: number; // +X énergie au premier tour de chaque combat
+  firstTurnDraw?: number; // pioche X cartes de plus au premier tour de chaque combat
+  firstCardFree?: number; // la première carte jouée de chaque combat coûte 0
+  blockBonus?: number; // tes cartes de blocage donnent +X blocage
+  blockReflect?: number; // quand tu bloques entièrement une attaque, renvoie X dégâts
+  bigHitAoe?: number; // quand tu perds 10 PV ou plus en une fois, X dégâts à tous les ennemis
+  nonAttackReduce?: number; // les dégâts qui ne viennent pas d'une attaque sont réduits de X
+  magmaPuissance?: number; // tous les 2 tours, +1 Puissance (X au maximum par combat)
   zoneReduce?: number; // les Zones de feu infligent X % de dégâts en moins
   zoneBlock?: number; // jouer une Zone de feu (« Bouger ») donne X blocage
   interruptDraw?: number; // interrompre une incantation pioche X cartes
+  castCancel?: number; // une fois par combat, la première incantation ennemie est annulée
+  debuffReduce?: number; // les malédictions que tu subis durent X tour(s) de moins
+  purify?: number; // au début de ton tour, dissipe une malédiction
+  panicImmune?: number; // immunisé aux cartes Paniquées
+  seeTwoIntents?: number; // tu vois les deux prochaines intentions des ennemis
+  allyBonus?: number; // tes alliés (familier, totems…) infligent +X dégâts
+  chestChoice?: number; // les coffres proposent 2 objets au choix
+  potionSlots?: number; // +X emplacements de potion
   maxHp?: number; // +X PV max
   healAfterCombat?: number; // soigne X PV à la fin de chaque combat gagné
 }
@@ -44,44 +66,95 @@ export interface ItemDef {
   fx: ItemEffects;
 }
 
-export const ITEMS: Record<string, ItemDef> = {
+const item = (id: string, name: string, slot: Slot, rarity: ItemRarity, text: string, fx: ItemEffects): ItemDef =>
+  ({ id, name, slot, rarity, text, fx });
+
+export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
   // --- Objets que l'on trouve partout (coffres, vendeur) ---
-  epee_longue: { id: 'epee_longue', name: 'Épée longue', slot: 'arme', rarity: 'commun', text: 'Tes Attaques infligent +1 dégât.', fx: { attackBonus: 1 } },
-  hache_de_guerre: { id: 'hache_de_guerre', name: 'Hache de guerre', slot: 'arme', rarity: 'rare', text: 'Tes Attaques infligent +2 dégâts, et +4 contre une cible sous 50 % de PV.', fx: { attackBonus: 2, lowHpBonus: 2 } },
-  amulette_vigueur: { id: 'amulette_vigueur', name: 'Amulette de vigueur', slot: 'amulette', rarity: 'commun', text: '+8 PV max.', fx: { maxHp: 8 } },
-  amulette_rempart: { id: 'amulette_rempart', name: 'Amulette du rempart', slot: 'amulette', rarity: 'commun', text: 'Commence chaque combat avec 6 blocage.', fx: { startBlock: 6 } },
-  anneau_force: { id: 'anneau_force', name: 'Anneau de force', slot: 'bague', rarity: 'rare', text: 'Commence chaque combat avec 1 Puissance.', fx: { startPuissance: 1 } },
-  anneau_pierre: { id: 'anneau_pierre', name: 'Anneau de pierre', slot: 'bague', rarity: 'commun', text: 'Commence chaque combat avec 1 Robustesse.', fx: { startRobustesse: 1 } },
-  anneau_soldat: { id: 'anneau_soldat', name: 'Anneau du soldat', slot: 'bague', rarity: 'commun', text: '+4 PV max.', fx: { maxHp: 4 } },
-  bague_mana_brulant: { id: 'bague_mana_brulant', name: 'Bague de mana brûlant', slot: 'bague', rarity: 'rare', text: '+1 énergie au premier tour de chaque combat.', fx: { firstTurnEnergy: 1 } },
-  croc_de_lave: { id: 'croc_de_lave', name: 'Croc de lave', slot: 'bijou', rarity: 'commun', text: 'Ta première Attaque de chaque tour applique Saignement 2.', fx: { bleedFirstAttack: 2 } },
-  eclat_gorlok: { id: 'eclat_gorlok', name: 'Éclat de Gorlok', slot: 'bijou', rarity: 'rare', text: 'Quand un ennemi meurt, il explose : 5 dégâts à tous les autres ennemis.', fx: { onKillAoe: 5 } },
-  masse_basalte: { id: 'masse_basalte', name: 'Masse de basalte', slot: 'arme', rarity: 'commun', text: 'Tes Attaques infligent +1 dégât. Ta première Attaque de chaque combat inflige +10 dégâts.', fx: { attackBonus: 1, firstAttackBonus: 10 } },
-  pierre_braise: { id: 'pierre_braise', name: 'Pierre de braise', slot: 'bijou', rarity: 'commun', text: 'Soigne 4 PV à la fin de chaque combat gagné.', fx: { healAfterCombat: 4 } },
+  item('epee_longue', 'Épée longue', 'arme', 'commun', 'Tes Attaques infligent +1 dégât.', { attackBonus: 1 }),
+  item('hache_de_guerre', 'Hache de guerre', 'arme', 'rare', 'Tes Attaques infligent +1 dégât, et +3 contre une cible sous 50 % de PV.', { attackBonus: 1, lowHpBonus: 2 }),
+  item('amulette_vigueur', 'Amulette de vigueur', 'amulette', 'commun', '+8 PV max.', { maxHp: 8 }),
+  item('amulette_rempart', 'Amulette du rempart', 'amulette', 'commun', 'Commence chaque combat avec 6 blocage.', { startBlock: 6 }),
+  item('amulette_sang', 'Amulette du sang versé', 'amulette', 'rare', 'Soigne 3 PV chaque fois qu\'un ennemi meurt.', { healOnKill: 3 }),
+  item('anneau_force', 'Anneau de force', 'bague', 'rare', 'Commence chaque combat avec 1 Puissance.', { startPuissance: 1 }),
+  item('anneau_soldat', 'Anneau du soldat', 'bague', 'commun', '+4 PV max.', { maxHp: 4 }),
+  item('bague_vivacite', 'Bague de vivacité', 'bague', 'rare', 'Pioche 1 carte de plus au premier tour de chaque combat.', { firstTurnDraw: 1 }),
+  item('pierre_braise', 'Pierre de braise', 'bijou', 'commun', 'Soigne 4 PV à la fin de chaque combat gagné.', { healAfterCombat: 4 }),
+  item('charme_epines', 'Charme d\'épines', 'bijou', 'commun', 'Quand tu bloques entièrement une attaque, renvoie 2 dégâts à l\'attaquant.', { blockReflect: 2 }),
+  item('talisman_rage', 'Talisman de rage', 'bijou', 'rare', 'Commence chaque combat avec 3 rage.', { startRage: 3 }),
 
-  // --- Table de loot de Sœur Cendrine ---
-  amulette_cendres: { id: 'amulette_cendres', name: 'Amulette des cendres', slot: 'amulette', rarity: 'rare', text: 'Les Zones de feu t\'infligent 50 % de dégâts en moins.', fx: { zoneReduce: 50 } },
-  encensoir_ardent: { id: 'encensoir_ardent', name: 'Encensoir ardent', slot: 'bijou', rarity: 'rare', text: 'Quand tu joues une Zone de feu (« Bouger »), gagne 4 blocage.', fx: { zoneBlock: 4 } },
-  bague_pretresse: { id: 'bague_pretresse', name: 'Bague de la prêtresse', slot: 'bague', rarity: 'rare', text: 'Soigne 5 PV à la fin de chaque combat gagné.', fx: { healAfterCombat: 5 } },
-  fleau_cendrine: { id: 'fleau_cendrine', name: 'Fléau de Cendrine', slot: 'arme', rarity: 'rare', text: 'Tes Attaques infligent +2 dégâts.', fx: { attackBonus: 2 } },
+  // --- Morvax le Maudisseur ---
+  item('bague_impie', 'Bague de l\'impie', 'bague', 'rare', 'Les malédictions que tu subis durent 1 tour de moins.', { debuffReduce: 1 }),
+  item('grimoire_morvax', 'Grimoire de Morvax', 'bijou', 'rare', 'Au début de chaque combat, tous les ennemis sont Démoralisés 2 tours.', { startDemoralise: 2 }),
+  item('lame_maudite', 'Lame maudite', 'arme', 'rare', 'Tes Attaques infligent +3 dégâts. Au début de chaque combat, un Fardeau est ajouté à ta pioche.', { attackBonus: 3, startFardeau: 1 }),
+  item('amulette_purification', 'Amulette de purification', 'amulette', 'rare', 'Au début de ton tour, dissipe automatiquement une malédiction.', { purify: 1 }),
 
-  // --- Table de loot du Héraut Brannoc ---
-  etendard_heraut: { id: 'etendard_heraut', name: 'Étendard du héraut', slot: 'bijou', rarity: 'rare', text: 'Commence chaque combat avec 1 Puissance et 1 Robustesse.', fx: { startPuissance: 1, startRobustesse: 1 } },
-  marteau_brannoc: { id: 'marteau_brannoc', name: 'Marteau de Brannoc', slot: 'arme', rarity: 'rare', text: 'Tes Attaques infligent +2 dégâts et te soignent de 1 PV.', fx: { attackBonus: 2, healOnAttack: 1 } },
-  bague_commandement: { id: 'bague_commandement', name: 'Bague de commandement', slot: 'bague', rarity: 'rare', text: 'Chaque fois que tu interromps une incantation, pioche 1 carte.', fx: { interruptDraw: 1 } },
-  amulette_heraut: { id: 'amulette_heraut', name: 'Amulette du héraut', slot: 'amulette', rarity: 'rare', text: '+5 PV max. Soigne 5 PV à la fin de chaque combat gagné.', fx: { maxHp: 5, healAfterCombat: 5 } },
-};
+  // --- Croc-de-lave, le Molosse ancestral ---
+  item('collier_crocs', 'Collier de crocs', 'amulette', 'rare', '+6 PV max. Tu es immunisé aux cartes Paniquées.', { maxHp: 6, panicImmune: 1 }),
+  item('croc_de_lave', 'Croc de lave', 'bijou', 'rare', 'Ta première Attaque de chaque tour applique Saignement 2.', { bleedFirstAttack: 2 }),
+  item('hache_molosse', 'Hache du molosse', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts, et +4 contre une cible sous 50 % de PV.', { attackBonus: 2, lowHpBonus: 2 }),
+  item('anneau_chasseur', 'Anneau du chasseur de lave', 'bague', 'rare', 'Commence chaque combat avec 1 Puissance et 2 rage.', { startPuissance: 1, startRage: 2 }),
+
+  // --- Sœur Cendrine ---
+  item('amulette_cendres', 'Amulette des cendres', 'amulette', 'rare', 'Les Zones de feu t\'infligent 50 % de dégâts en moins.', { zoneReduce: 50 }),
+  item('encensoir_ardent', 'Encensoir ardent', 'bijou', 'rare', 'Quand tu joues une Zone de feu (« Bouger »), gagne 4 blocage.', { zoneBlock: 4 }),
+  item('bague_pretresse', 'Bague de la prêtresse', 'bague', 'rare', 'Soigne 5 PV à la fin de chaque combat gagné.', { healAfterCombat: 5 }),
+  item('fleau_cendrine', 'Fléau de Cendrine', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts.', { attackBonus: 2 }),
+
+  // --- Gorlok le Fragmenté ---
+  item('eclat_gorlok', 'Éclat de Gorlok', 'bijou', 'rare', 'Quand un ennemi meurt, il explose : 5 dégâts à tous les autres ennemis.', { onKillAoe: 5 }),
+  item('masse_basalte', 'Masse de basalte', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Ta première Attaque de chaque combat inflige +10 dégâts.', { attackBonus: 2, firstAttackBonus: 10 }),
+  item('anneau_pierre', 'Anneau de pierre', 'bague', 'rare', 'Commence chaque combat avec 1 Robustesse.', { startRobustesse: 1 }),
+  item('amulette_granit', 'Amulette de granit', 'amulette', 'rare', 'Commence chaque combat avec 8 blocage.', { startBlock: 8 }),
+
+  // --- Le Baron Vossk ---
+  item('coeur_bombe', 'Cœur de la bombe', 'bijou', 'rare', 'Quand tu perds 10 PV ou plus en une fois, inflige 8 dégâts à tous les ennemis.', { bigHitAoe: 8 }),
+  item('bague_mana_brulant', 'Bague de mana brûlant', 'bague', 'rare', '+1 énergie au premier tour de chaque combat.', { firstTurnEnergy: 1 }),
+  item('sceptre_baron', 'Sceptre du Baron', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Tes Saignements sont augmentés de 1.', { spellBonus: 2, bleedBonus: 1 }),
+  item('amulette_inferno', 'Amulette de l\'inferno', 'amulette', 'rare', 'Les dégâts qui ne viennent pas d\'une attaque (feu, explosions, poisons) sont réduits de 2.', { nonAttackReduce: 2 }),
+
+  // --- Zhaal le Tisseur d'arcanes ---
+  item('bague_tisseur', 'Bague du tisseur', 'bague', 'rare', 'La première carte que tu joues dans chaque combat coûte 0.', { firstCardFree: 1 }),
+  item('orbe_distorsion', 'Orbe de distorsion', 'bijou', 'rare', 'Une fois par combat, la première incantation ennemie qui se termine est annulée.', { castCancel: 1 }),
+  item('dague_arcanique', 'Dague arcanique', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Pioche 1 carte de plus au premier tour de chaque combat.', { spellBonus: 2, firstTurnDraw: 1 }),
+  item('amulette_clairvoyance', 'Amulette de clairvoyance', 'amulette', 'rare', 'Tu vois les deux prochaines intentions de chaque ennemi.', { seeTwoIntents: 1 }),
+
+  // --- Le Héraut Brannoc ---
+  item('etendard_heraut', 'Étendard du héraut', 'bijou', 'rare', 'Commence chaque combat avec 1 Puissance et 1 Robustesse.', { startPuissance: 1, startRobustesse: 1 }),
+  item('marteau_brannoc', 'Marteau de Brannoc', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts et te soignent de 1 PV.', { attackBonus: 2, healOnAttack: 1 }),
+  item('bague_commandement', 'Bague de commandement', 'bague', 'rare', 'Chaque fois que tu interromps une incantation, pioche 1 carte.', { interruptDraw: 1 }),
+  item('amulette_heraut', 'Amulette du héraut', 'amulette', 'rare', '+5 PV max. Soigne 5 PV à la fin de chaque combat gagné.', { maxHp: 5, healAfterCombat: 5 }),
+
+  // --- Krâgg le Mange-roche ---
+  item('poing_kragg', 'Poing de Krâgg', 'arme', 'rare', 'Tes Attaques qui coûtent 2 énergie ou plus infligent +6 dégâts.', { heavyAttackBonus: 6 }),
+  item('collier_mange_roche', 'Collier du mange-roche', 'amulette', 'rare', '+10 PV max.', { maxHp: 10 }),
+  item('pierre_magma', 'Pierre de magma', 'bijou', 'rare', 'Tous les 2 tours, gagne 1 Puissance (3 au maximum par combat).', { magmaPuissance: 3 }),
+  item('bague_molosses', 'Bague des molosses', 'bague', 'rare', 'Tes alliés (familier, compagnon, totems, invocations) infligent +2 dégâts.', { allyBonus: 2 }),
+
+  // --- Le Grand Intendant Saldris ---
+  item('baton_intendant', 'Bâton de l\'intendant', 'arme', 'rare', 'Tes Attaques infligent +1 dégât, et tes cartes de blocage donnent +2 blocage.', { attackBonus: 1, blockBonus: 2 }),
+  item('miroir_intendant', 'Miroir de l\'intendant', 'bijou', 'rare', 'Quand tu bloques entièrement une attaque, renvoie 4 dégâts à l\'attaquant.', { blockReflect: 4 }),
+  item('trousseau_intendant', 'Trousseau de l\'intendant', 'bijou', 'rare', 'Les coffres te proposent 2 objets au choix au lieu d\'un.', { chestChoice: 1 }),
+  item('amulette_intendant', 'Amulette de l\'intendant', 'amulette', 'rare', 'Tu as 1 emplacement de potion de plus.', { potionSlots: 1 }),
+].map((d) => [d.id, d]));
 
 /** Les objets que l'on trouve dans les coffres et chez le vendeur. */
 export const COMMON_POOL: string[] = [
-  'epee_longue', 'hache_de_guerre', 'amulette_vigueur', 'amulette_rempart', 'anneau_force', 'anneau_pierre',
-  'anneau_soldat', 'bague_mana_brulant', 'croc_de_lave', 'eclat_gorlok', 'masse_basalte', 'pierre_braise',
+  'epee_longue', 'hache_de_guerre', 'amulette_vigueur', 'amulette_rempart', 'amulette_sang', 'anneau_force',
+  'anneau_soldat', 'bague_vivacite', 'pierre_braise', 'charme_epines', 'talisman_rage',
 ];
 
 /** Les tables de loot des boss secondaires (clé : id de la table, donnée par la rencontre). */
 export const LOOT_TABLES: Record<string, string[]> = {
+  morvax: ['bague_impie', 'grimoire_morvax', 'lame_maudite', 'amulette_purification'],
+  croc: ['collier_crocs', 'croc_de_lave', 'hache_molosse', 'anneau_chasseur'],
   cendrine: ['amulette_cendres', 'encensoir_ardent', 'bague_pretresse', 'fleau_cendrine'],
+  gorlok: ['eclat_gorlok', 'masse_basalte', 'anneau_pierre', 'amulette_granit'],
+  vossk: ['coeur_bombe', 'bague_mana_brulant', 'sceptre_baron', 'amulette_inferno'],
+  zhaal: ['bague_tisseur', 'orbe_distorsion', 'dague_arcanique', 'amulette_clairvoyance'],
   brannoc: ['etendard_heraut', 'marteau_brannoc', 'bague_commandement', 'amulette_heraut'],
+  kragg: ['poing_kragg', 'collier_mange_roche', 'pierre_magma', 'bague_molosses'],
+  saldris: ['baton_intendant', 'miroir_intendant', 'trousseau_intendant', 'amulette_intendant'],
 };
 
 export type Equipment = Record<SlotKey, string | null>;

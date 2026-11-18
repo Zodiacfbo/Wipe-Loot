@@ -10,7 +10,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
 export const REPAIR_BILLS = [50, 100, 150];
 /** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
@@ -23,8 +23,8 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 7, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
-    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, broken: [], heirloom, chestDone: false, chestDeposit: null,
+    version: 8, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlt: null, broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
@@ -71,6 +71,12 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
       run.rewardTitle = 'Coffre';
       run.rewardGold = 0;
       run.pendingItem = rollItem(run);
+      // Trousseau de l'intendant : deux objets au choix.
+      if (gearEffects(run.equipment, run.broken).chestChoice) {
+        let alt = rollItem(run);
+        for (let i = 0; i < 20 && alt === run.pendingItem; i++) alt = rollItem(run);
+        run.pendingAlt = alt;
+      }
       run.screen = 'reward';
       break;
     case 'event': {
@@ -100,6 +106,7 @@ function backToMap(run: RunState): void {
   run.shop = null;
   run.rewardGold = 0;
   run.pendingItem = null;
+  run.pendingAlt = null;
   run.pendingPotion = null;
   run.rewardChoices = [];
   run.eventId = null;
@@ -265,6 +272,17 @@ function rollItem(run: RunState): string {
   return pool[Math.floor(random(run) * pool.length)];
 }
 
+/** Ajuste le nombre d'emplacements de potion à l'équipement (Amulette de l'intendant). */
+export function syncPotionSlots(run: RunState): void {
+  const wanted = POTION_SLOTS + (gearEffects(run.equipment, run.broken).potionSlots ?? 0);
+  while (run.potions.length < wanted) run.potions.push(null);
+  while (run.potions.length > wanted) {
+    // On retire d'abord un emplacement vide ; sinon la dernière potion est perdue.
+    const empty = run.potions.lastIndexOf(null);
+    run.potions.splice(empty >= 0 ? empty : run.potions.length - 1, 1);
+  }
+}
+
 /** Équipe un objet dans un emplacement, en remplaçant l'ancien. Ajuste les PV max. */
 function putOn(run: RunState, itemId: string, slot: SlotKey): void {
   const old = run.equipment[slot];
@@ -280,20 +298,23 @@ function putOn(run: RunState, itemId: string, slot: SlotKey): void {
   const gained = ITEMS[itemId].fx.maxHp ?? 0;
   run.maxHp += gained;
   run.hp += gained;
+  syncPotionSlots(run);
 }
 
 /** Équipe l'objet trouvé (coffre ou butin de boss). */
-export function equipPending(run: RunState, slot: SlotKey): boolean {
-  const id = run.pendingItem;
+export function equipPending(run: RunState, slot: SlotKey, alt = false): boolean {
+  const id = alt ? run.pendingAlt : run.pendingItem;
   if (!id || !slotsFor(id).includes(slot)) return false;
   putOn(run, id, slot);
   run.pendingItem = null;
+  run.pendingAlt = null;
   return true;
 }
 
 /** Laisse l'objet trouvé. */
 export function leavePending(run: RunState): void {
   run.pendingItem = null;
+  run.pendingAlt = null;
 }
 
 /** Répare un objet brisé chez le vendeur. */
@@ -307,6 +328,7 @@ export function repairItem(run: RunState, slot: SlotKey): boolean {
   const gained = ITEMS[id].fx.maxHp ?? 0;
   run.maxHp += gained;
   run.hp += gained;
+  syncPotionSlots(run);
   return true;
 }
 
@@ -404,6 +426,7 @@ function breakItem(run: RunState, slot: SlotKey): void {
   const lost = ITEMS[run.equipment[slot]!].fx.maxHp ?? 0;
   run.maxHp -= lost;
   run.hp = Math.min(run.hp, run.maxHp);
+  syncPotionSlots(run);
 }
 
 export function retryAfterWipe(run: RunState): void {
@@ -426,6 +449,7 @@ export function retryAfterWipe(run: RunState): void {
   run.deck = run.entry.deck.map((c) => ({ ...c }));
   // Les potions bues pendant l'essai raté sont perdues… mais on retrouve celles qu'on avait en entrant.
   if (run.entry.potions) run.potions = [...run.entry.potions];
+  syncPotionSlots(run);
   startEncounter(run, run.encounter);
   if (brokenNow) run.combat!.fx = [{ kind: 'banner', text: `Objet brisé : ${brokenNow}` }];
 }

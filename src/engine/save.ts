@@ -41,7 +41,11 @@ export function migrate(raw: unknown): RunState | null {
     run.chestDeposit = null;
     run.version = 7;
   }
-  return run.version === 7 ? (run as unknown as RunState) : null;
+  if (run.version === 7) {
+    run.pendingAlt = null;
+    run.version = 8;
+  }
+  return run.version === 8 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

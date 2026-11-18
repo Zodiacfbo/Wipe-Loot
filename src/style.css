@@ -389,3 +389,13 @@ img.px { image-rendering: pixelated; }
 .article-coffre { display: flex; }
 .article-coffre .objet { flex: 1; width: auto; }
 .ecran p.mention-brise { color: #ff7a5a; }
+
+/* ---------- Boss secondaires : malédictions, panique, boucliers ---------- */
+.intention.malediction { background: #2c2433; border-color: #8e6ab8; color: #d6c8e6; }
+.effet-intention { max-width: 190px; font-size: 11px; line-height: 1.25; color: var(--texte-2); text-align: center; }
+.intention-suivante { font-size: 10px; color: #8fb8e8; text-align: center; max-width: 180px; }
+.ennemi.insaisissable img { opacity: 0.45; filter: drop-shadow(0 0 8px #8e6ab8); }
+.chip.bouclier-saldris { background: #172230; border-color: #3e6a9e; color: #a8c8f0; }
+.carte.paniquee { filter: grayscale(0.8) brightness(0.55); }
+.tampon-panique { position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%) rotate(-14deg); padding: 2px 8px; border: 2px solid #ff7a5a; border-radius: 6px; background: rgba(30, 10, 8, 0.85); color: #ff9a7a; font-size: 13px; font-weight: 800; z-index: 3; }
+.cout.augmente { color: #ff8a7a; }

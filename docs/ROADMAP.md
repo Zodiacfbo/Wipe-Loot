@@ -45,7 +45,8 @@
 
 ### 1.2 Le combat
 - [ ] Tous les ennemis de trash de l'acte 1, et leurs packs
-- [ ] Les 9 boss secondaires de l'acte 1, avec leurs mécaniques (fait : Sœur Cendrine, Héraut Brannoc)
+- [x] Les 9 boss secondaires de l'acte 1, avec leurs mécaniques et leurs sprites (Morvax, Croc-de-lave, Cendrine, Gorlok, Vossk, Zhaal, Brannoc, Krâgg, Saldris)
+- [ ] Équilibrer les boss secondaires (Krâgg et Saldris semblent très durs avec un deck de départ)
 - [x] Vulkhar, Souverain des flammes (phases, plongée dans la lave, Rejetons de flamme, Marteau des flammes, Éruption)
 - [ ] La quête des Gardiens des Sources qui affaiblit Vulkhar
 - [ ] Cartes-statut de l'acte : Bombe vivante, Paniqué, Fardeau, Cendres
@@ -61,9 +62,9 @@
 ### 1.4 Le loot et l'économie
 - [x] L'or (99 au départ, gains après chaque combat, plus sur les boss secondaires)
 - [x] L'équipement : 6 emplacements, règle de remplacement, fenêtre « Équipement » (16 objets dans le prototype)
-- [x] Les tables de loot des boss secondaires (Cendrine, Brannoc), avec les « ??? » jusqu'au premier drop (mémorisé entre les runs)
+- [x] Les tables de loot des 9 boss secondaires (36 objets), avec les « ??? » jusqu'au premier drop (mémorisé entre les runs)
 - [x] Les coffres donnent un objet (70 % commun, 30 % rare)
-- [ ] Les tables de loot des 7 autres boss secondaires de l'acte 1, et les sorts de barre dans les tables
+- [ ] Les sorts de barre dans les tables de loot (avec les sorts du Guerrier)
 - [ ] Le butin de boss : 1 objet épique parmi 3
 - [x] Les potions : 3 emplacements, 8 potions, 40 % de chance après un combat gagné, retrouvées après un wipe
 - [x] Le coffre de la guilde : 6 places, 1 objet déposé après une victoire, 1 objet emporté au départ (perdu si la run échoue)
@@ -121,7 +122,7 @@
 Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de barre, ses talents, son légendaire et sa quête, et son sprite.
 
 ### 3.3 Les légendaires
-- [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter à la place de l'objet du coffre
+- [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter en plus d'un objet du coffre (qui ne peut alors pas être une arme)
 - [ ] Les 7 légendaires restants et leurs quêtes (Bâton du Veilleur, Sillon d'orage, Équinoxe, l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres)
 
 ---

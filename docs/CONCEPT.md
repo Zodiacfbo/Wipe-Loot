@@ -525,7 +525,7 @@ Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.
 **Règles d'obtention :**
 - chaque légendaire s'obtient via une **petite chaîne de quête de 2 ou 3 étapes**, réparties sur les événements « ? » et les boss de la run ;
 - **un seul légendaire par run** ;
-- **une fois forgé, le légendaire est gardé pour toujours** : il rejoint le râtelier de la guilde (à côté du coffre, §12.8). Au début d'une run avec cette classe, on peut l'emporter **à la place** de l'objet du coffre. Il n'est jamais perdu, même si la run échoue. La quête reste à faire une fois par classe ; ensuite, elle peut servir à débloquer une version améliorée *(piste à creuser)* ;
+- **une fois forgé, le légendaire est gardé pour toujours** : il rejoint le râtelier de la guilde (à côté du coffre, §12.8). Au début d'une run avec cette classe, on peut l'emporter **en plus** de l'objet du coffre : le légendaire prend l'emplacement d'Arme, et l'objet du coffre doit alors aller dans un autre emplacement (Amulette, Bague ou Bijou). Il n'est jamais perdu, même si la run échoue. La quête reste à faire une fois par classe ; ensuite, elle peut servir à débloquer une version améliorée *(piste à creuser)* ;
 - *Exemple (Voleur, Sillon d'orage)* : récupérer le Fermoir gauche de l'orage sur **Gorlok le Fragmenté**, le Fermoir droit sur le **Baron Vossk**, puis trouver l'événement **Ventor, Prince des tempêtes**, qui forge l'arme.
 
 ### 12.4 Pas de reliques : tout passe par l'équipement
@@ -590,7 +590,7 @@ Dans Slay the Spire, rien de ce qu'on trouve ne survit à la run. Ici, **un peu 
 - **Au début d'une run**, on peut **emporter 1 objet** du coffre. Il est équipé dès le départ.
 - **L'objet emporté est en jeu :** si la run est gagnée (et qu'il est toujours équipé), il revient au coffre, en plus de l'objet déposé. Si la run échoue, ou s'il a été remplacé pendant la run, **il est perdu**.
 - Un objet brisé déposé au coffre est réparé par la guilde.
-- Le **légendaire de classe**, lui, n'est jamais perdu une fois forgé (voir §12.3).
+- Le **légendaire de classe**, lui, n'est jamais perdu une fois forgé, et s'emporte en plus de l'objet du coffre (voir §12.3).
 
 **Ce que ça change :** on farme un boss pour son objet, on le met à l'abri, puis on décide de le risquer ou non. C'est la boucle « wipe & loot ».
 

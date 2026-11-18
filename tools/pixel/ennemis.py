@@ -167,6 +167,229 @@ def gobelin():
     s.ellipse(2, 30, 10, 38, '#FFD45E', glow=True)  # pièce
     return s.render()
 
+
+# ---------- Boss secondaires de l'acte 1 et leurs adds ----------
+
+def morvax():
+    """Morvax le Maudisseur : un démon mineur, cornes et grimoire."""
+    s = Sprite(64, 64)
+    s.poly([(22, 28), (44, 28), (50, 62), (14, 62)], '#3A1E3E')  # robe
+    s.poly([(28, 30), (38, 30), (42, 62), (24, 62)], '#5A2A5E')
+    s.dots([(26, 44), (38, 50), (30, 56)], '#B86AE8', glow=True)  # runes
+    s.ellipse(18, 22, 32, 32, '#4A2A4E')
+    s.ellipse(34, 22, 48, 32, '#4A2A4E')
+    s.ellipse(22, 8, 42, 28, '#A8443A')  # tête rouge
+    s.poly([(24, 12), (16, 2), (20, 0), (28, 10)], '#2A1C18')  # cornes
+    s.poly([(40, 12), (48, 2), (44, 0), (36, 10)], '#2A1C18')
+    s.rect(26, 16, 29, 18, '#B86AE8', glow=True)  # yeux violets
+    s.rect(35, 16, 38, 18, '#B86AE8', glow=True)
+    s.poly([(28, 23), (36, 23), (32, 26)], '#2A1C18')
+    s.poly([(4, 30), (16, 28), (18, 42), (6, 44)], '#4A2E1E')  # grimoire
+    s.rect(9, 32, 14, 40, '#B86AE8', glow=True, shade=False)
+    s.ellipse(2, 18, 14, 30, '#8E4AC8', glow=True)  # malédiction qui flotte
+    s.ellipse(5, 21, 11, 27, '#E0B8FF', glow=True)
+    s.poly([(50, 40), (60, 56), (56, 58), (48, 44)], '#A8443A')  # queue
+    return s.render()
+
+
+def croc():
+    """Croc-de-lave : un molosse ancestral, énorme, crinière de flammes."""
+    s = Sprite(64, 64)
+    s.poly([(50, 26), (60, 16), (62, 22), (54, 32)], '#F59A2E', glow=True)  # queue
+    s.rect(42, 44, 47, 58, '#3A2A26')
+    s.rect(20, 44, 25, 58, '#3A2A26')
+    s.ellipse(16, 26, 56, 50, '#4E3A33')  # corps massif
+    s.rect(46, 46, 51, 58, '#4E3A33')
+    s.rect(24, 46, 29, 58, '#4E3A33')
+    s.line([(22, 34), (48, 34)], '#FF8A2A', glow=True)
+    s.line([(26, 40), (44, 40)], '#FF8A2A', glow=True)
+    s.line([(30, 30), (36, 44)], '#FF8A2A', glow=True)
+    s.poly([(16, 26), (22, 12), (28, 22), (34, 10), (40, 22), (46, 14), (50, 28), (16, 30)], '#F59A2E', glow=True)  # crinière
+    s.poly([(20, 22), (26, 16), (30, 24), (36, 16), (40, 24)], '#FFE27A', glow=True)
+    s.ellipse(2, 20, 26, 40, '#4E3A33')  # tête
+    s.poly([(0, 30), (12, 30), (12, 40), (2, 39)], '#3A2A26')  # gueule
+    s.poly([(14, 20), (18, 10), (22, 22)], '#2A1C18')  # oreille
+    s.rect(8, 25, 11, 27, '#FFE27A', glow=True)  # œil
+    s.dots([(2, 32), (5, 32), (8, 32), (3, 38), (7, 38)], '#FFE27A', glow=True)  # crocs
+    return s.render()
+
+
+def gorlok():
+    """Gorlok le Fragmenté : un élémentaire de roche fendu de lave."""
+    s = Sprite(64, 64)
+    s.ellipse(14, 54, 50, 63, '#2A1C18')
+    s.rect(20, 46, 28, 62, '#4A4038')  # jambes
+    s.rect(36, 46, 44, 62, '#4A4038')
+    s.poly([(14, 22), (50, 22), (54, 48), (10, 48)], '#5E544A')  # torse de pierre
+    s.line([(24, 24), (30, 36), (26, 46)], '#FF8A2A', glow=True)  # fissures
+    s.line([(40, 26), (36, 38), (42, 46)], '#FF8A2A', glow=True)
+    s.ellipse(28, 30, 36, 38, '#FFB04A', glow=True)
+    s.ellipse(4, 24, 18, 40, '#6E6458')  # bras
+    s.ellipse(46, 24, 60, 40, '#6E6458')
+    s.ellipse(0, 36, 16, 52, '#5E544A')  # poings
+    s.ellipse(48, 36, 64, 52, '#5E544A')
+    s.poly([(22, 8), (42, 8), (46, 22), (18, 22)], '#6E6458')  # tête
+    s.rect(25, 13, 29, 15, '#FFE27A', glow=True)
+    s.rect(35, 13, 39, 15, '#FFE27A', glow=True)
+    s.poly([(4, 6), (8, 2), (12, 6), (8, 10)], '#8A8A94')  # éclats en orbite
+    s.poly([(52, 4), (56, 0), (60, 4), (56, 8)], '#8A8A94')
+    s.dots([(8, 6), (56, 4)], '#FF8A2A', glow=True)
+    return s.render()
+
+
+def eclat():
+    """Éclat de Gorlok : un fragment de roche instable."""
+    s = Sprite(32, 32)
+    s.poly([(16, 2), (26, 12), (22, 28), (8, 26), (4, 12)], '#6E6458')
+    s.poly([(16, 6), (22, 13), (19, 23), (11, 22), (8, 13)], '#8A8A94')
+    s.line([(12, 10), (16, 16), (14, 24)], '#FF8A2A', glow=True)
+    s.line([(20, 10), (17, 16)], '#FF8A2A', glow=True)
+    s.rect(11, 14, 12, 15, '#FFE27A', glow=True)
+    s.rect(19, 14, 20, 15, '#FFE27A', glow=True)
+    s.dots([(4, 4), (28, 6), (27, 26), (3, 28)], '#FFC24B', glow=True)
+    return s.render()
+
+
+def vossk():
+    """Le Baron Vossk : seigneur élémentaire au cœur de magma, en armure noire."""
+    s = Sprite(64, 64)
+    s.ellipse(12, 54, 52, 63, '#E8742A', glow=True)
+    s.poly([(18, 26), (46, 26), (52, 60), (12, 60)], '#2E2A30')  # armure
+    s.poly([(26, 28), (38, 28), (40, 52), (24, 52)], '#3E3840')
+    s.ellipse(26, 32, 38, 44, '#FF6A2A', glow=True)  # cœur de magma
+    s.ellipse(29, 35, 35, 41, '#FFE27A', glow=True)
+    s.ellipse(10, 20, 26, 32, '#3E3840')  # épaulières
+    s.ellipse(38, 20, 54, 32, '#3E3840')
+    s.poly([(10, 20), (14, 12), (18, 20)], '#F59A2E', glow=True)
+    s.poly([(46, 20), (50, 12), (54, 20)], '#F59A2E', glow=True)
+    s.ellipse(22, 6, 42, 26, '#2E2A30')  # heaume
+    s.rect(25, 15, 39, 17, '#FF8A2A', glow=True)  # visière
+    s.poly([(26, 6), (32, 0), (38, 6)], '#F59A2E', glow=True)
+    s.ellipse(0, 34, 14, 48, '#F59A2E', glow=True)  # bombe dans la main
+    s.ellipse(3, 37, 11, 45, '#FFE27A', glow=True)
+    s.ellipse(8, 40, 16, 48, '#3E3840')
+    return s.render()
+
+
+def zhaal():
+    """Zhaal le Tisseur d'arcanes : un mage élémentaire, flamme et arcane."""
+    s = Sprite(64, 64)
+    s.poly([(20, 26), (44, 26), (50, 58), (32, 62), (14, 58)], '#5A3A8E', glow=True)  # corps d'énergie
+    s.poly([(26, 28), (38, 28), (42, 56), (22, 56)], '#8E6AE0', glow=True)
+    s.poly([(28, 34), (36, 34), (38, 52), (26, 52)], '#F59A2E', glow=True)
+    s.ellipse(22, 6, 42, 28, '#3A2A5E')  # capuche
+    s.ellipse(26, 11, 38, 25, '#1A1230', shade=False)
+    s.rect(28, 16, 30, 18, '#E0B8FF', glow=True)
+    s.rect(34, 16, 36, 18, '#E0B8FF', glow=True)
+    s.ellipse(14, 22, 26, 32, '#3A2A5E')
+    s.ellipse(38, 22, 50, 32, '#3A2A5E')
+    s.line([(8, 8), (12, 58)], '#5A3822', width=2)  # bâton brisé
+    s.poly([(2, 2), (10, 0), (14, 8), (6, 12)], '#B86AE8', glow=True)  # fragment du Veilleur
+    s.ellipse(4, 2, 12, 10, '#E0B8FF', glow=True)
+    s.dots([(52, 10), (58, 24), (50, 40), (56, 52), (20, 4)], '#B86AE8', glow=True)  # runes flottantes
+    s.dots([(46, 6), (60, 36)], '#FFC24B', glow=True)
+    return s.render()
+
+
+def kragg():
+    """Krâgg le Mange-roche : un géant de roche massif, des cristaux sur le dos."""
+    s = Sprite(64, 64)
+    s.ellipse(8, 54, 56, 63, '#2A1C18')
+    s.poly([(18, 6), (24, 0), (28, 8)], '#E8742A', glow=True)  # cristaux de magma
+    s.poly([(30, 4), (36, -2), (40, 6)], '#E8742A', glow=True)
+    s.poly([(42, 8), (48, 2), (50, 12)], '#E8742A', glow=True)
+    s.ellipse(12, 6, 56, 46, '#5A4A3E')  # dos énorme
+    s.ellipse(20, 20, 50, 52, '#6E5A4A')  # ventre
+    s.line([(28, 28), (34, 40), (30, 50)], '#FF8A2A', glow=True)
+    s.rect(18, 48, 28, 62, '#4A3C32')  # jambes
+    s.rect(38, 48, 48, 62, '#4A3C32')
+    s.ellipse(2, 16, 22, 34, '#5A4A3E')  # tête basse
+    s.rect(6, 22, 9, 24, '#FFE27A', glow=True)
+    s.rect(13, 22, 16, 24, '#FFE27A', glow=True)
+    s.poly([(4, 28), (18, 28), (16, 32), (6, 32)], '#2A1C18')  # mâchoire
+    s.dots([(7, 28), (11, 28), (15, 28)], '#E6E0D0')
+    s.ellipse(0, 34, 18, 54, '#6E5A4A')  # poing
+    s.dots([(4, 40), (10, 46)], '#FF8A2A', glow=True)
+    return s.render()
+
+
+def molosse_enrage():
+    """Molosse enragé : un molosse de braise, plus sombre et plus massif."""
+    s = Sprite(48, 48)
+    s.poly([(36, 20), (44, 12), (46, 18), (40, 24)], '#E8442A', glow=True)
+    s.rect(30, 32, 34, 43, '#2A1C18')
+    s.rect(14, 32, 18, 43, '#2A1C18')
+    s.ellipse(10, 18, 42, 37, '#3A2A26')
+    s.rect(34, 33, 38, 43, '#3A2A26')
+    s.rect(18, 33, 22, 43, '#3A2A26')
+    s.line([(16, 26), (36, 26)], '#E8442A', glow=True)
+    s.line([(20, 31), (32, 31)], '#E8442A', glow=True)
+    s.ellipse(2, 13, 19, 29, '#3A2A26')
+    s.poly([(0, 22), (10, 22), (10, 29), (2, 28)], '#2A1C18')
+    s.poly([(10, 14), (13, 6), (16, 15)], '#1A1210')
+    s.rect(6, 17, 9, 19, '#FF5A3A', glow=True)
+    s.dots([(3, 24), (5, 24), (7, 24), (4, 27)], '#FFE27A', glow=True)
+    s.poly([(14, 16), (18, 8), (22, 14), (26, 6), (30, 14), (34, 10), (36, 18), (14, 20)], '#E8442A', glow=True)
+    return s.render()
+
+
+def saldris():
+    """Le Grand Intendant Saldris : vieil intendant en robe, bâton et bouclier magique."""
+    s = Sprite(64, 64)
+    s.ellipse(0, 6, 22, 58, '#4C8FE0', glow=True)  # bouclier magique
+    s.ellipse(3, 9, 19, 55, '#1A2A40', glow=True)
+    s.poly([(24, 26), (46, 26), (52, 62), (18, 62)], '#6A4A2A')  # robe d'intendant
+    s.poly([(30, 28), (40, 28), (44, 62), (26, 62)], '#8A6A3A')
+    s.line([(35, 28), (35, 60)], '#E6B84A')
+    s.dots([(32, 40), (38, 46), (33, 52)], '#E6B84A')  # clés
+    s.ellipse(22, 22, 34, 32, '#5A3A22')
+    s.ellipse(36, 22, 48, 32, '#5A3A22')
+    s.ellipse(26, 6, 44, 26, '#C8A27A')  # tête
+    s.poly([(26, 10), (35, 2), (44, 10)], '#5A3A22')  # bonnet
+    s.rect(29, 15, 32, 16, '#2A1C18')
+    s.rect(37, 15, 40, 16, '#2A1C18')
+    s.poly([(28, 20), (42, 20), (40, 30), (30, 30)], '#E6E0D0')  # longue barbe
+    s.line([(54, 4), (52, 60)], '#5A3822', width=2)  # bâton
+    s.ellipse(48, 0, 60, 10, '#F59A2E', glow=True)
+    return s.render()
+
+
+def pretre():
+    """Prêtre de la flamme : robe rouge, mains en feu."""
+    s = Sprite(48, 48)
+    s.poly([(16, 20), (32, 20), (36, 46), (12, 46)], '#8A2A1E')
+    s.poly([(20, 22), (28, 22), (30, 46), (18, 46)], '#B8402A')
+    s.line([(24, 22), (24, 44)], '#E6B84A')
+    s.ellipse(16, 4, 32, 22, '#6A1E16')  # capuche
+    s.ellipse(19, 9, 29, 20, '#C8A27A')
+    s.rect(21, 13, 22, 14, '#FF8A2A', glow=True)
+    s.rect(26, 13, 27, 14, '#FF8A2A', glow=True)
+    s.ellipse(4, 22, 14, 32, '#F59A2E', glow=True)  # flamme dans la main
+    s.ellipse(6, 24, 12, 30, '#FFE27A', glow=True)
+    s.ellipse(8, 28, 15, 34, '#C8A27A')
+    return s.render()
+
+
+def gardien():
+    """Gardien de lave : un élémentaire en armure avec un grand bouclier."""
+    s = Sprite(48, 48)
+    s.rect(18, 36, 23, 46, '#3A2A26')
+    s.rect(27, 36, 32, 46, '#3A2A26')
+    s.poly([(16, 16), (36, 16), (38, 38), (14, 38)], '#4E3A33')
+    s.line([(26, 18), (24, 36)], '#FF8A2A', glow=True)
+    s.ellipse(18, 2, 34, 18, '#4E3A33')  # tête
+    s.rect(21, 9, 31, 11, '#FF8A2A', glow=True)
+    s.poly([(2, 14), (16, 12), (18, 40), (4, 42)], '#6E5A4A')  # bouclier
+    s.poly([(5, 17), (14, 16), (15, 37), (7, 38)], '#8A6A4A')
+    s.ellipse(6, 22, 14, 30, '#FF8A2A', glow=True)
+    return s.render()
+
+
+ELITES = {
+    'morvax': morvax, 'croc': croc, 'gorlok': gorlok, 'eclat': eclat, 'vossk': vossk, 'zhaal': zhaal,
+    'kragg': kragg, 'molosse_enrage': molosse_enrage, 'saldris': saldris, 'pretre': pretre, 'gardien': gardien,
+}
+
 if __name__ == '__main__':
     os.makedirs(DEST, exist_ok=True)
     for name, fn in (('molosse', molosse), ('eclaireur', eclaireur), ('etincelle', etincelle),
@@ -176,4 +399,6 @@ if __name__ == '__main__':
     rejeton().save(os.path.join(DEST, 'ennemi_rejeton.png'))
     # Vulkhar est dessiné dans sprites.py ; il regarde vers la gauche en jeu.
     vulkhar().transpose(0).save(os.path.join(DEST, 'ennemi_vulkhar.png'))
+    for name, fn in ELITES.items():
+        fn().save(os.path.join(DEST, f'ennemi_{name}.png'))
     print('ok')

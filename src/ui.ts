@@ -11,7 +11,7 @@ import {
   previewIntentDamage,
   useSpell,
 } from './engine/combat';
-import { ENEMIES, isInterruptible } from './engine/enemies';
+import { ENEMIES, intentAt, isInterruptible } from './engine/enemies';
 import { EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
@@ -49,7 +49,7 @@ import { loadProfile, localSave, saveProfile } from './engine/save';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx } from './fx';
-import type { CardInstance, CombatState, EnemyState, Posture, RunState } from './engine/types';
+import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
@@ -84,6 +84,7 @@ const ICON = {
   coeur: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>',
   piece: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/></svg>',
   sablier: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>',
+  crane: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a8 8 0 0 0-8 8c0 3 1.5 4.5 3 5.5V20h10v-3.5c1.5-1 3-2.5 3-5.5a8 8 0 0 0-8-8z"/><circle cx="9" cy="11" r="1.6" fill="currentColor"/><circle cx="15" cy="11" r="1.6" fill="currentColor"/><path d="M10 20v-2M14 20v-2"/></svg>',
   charge: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h12M13 6l6 6-6 6"/></svg>',
 };
 
@@ -99,17 +100,18 @@ const POSTURES: { id: Posture; label: string; aide: string }[] = [
 
 // ---------- Rendu d'une carte ----------
 
-function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null } = {}): string {
+function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean } = {}): string {
   const def = CARDS[card.id];
   const frame = `cadre_${RARITY_FRAME[def.rarity]}${def.rageCost !== undefined ? '_rage' : ''}.png`;
   const cost = opts.combat ? energyCost(opts.combat, card.id, card.upgraded) : card.upgraded && def.costUp !== undefined ? def.costUp : def.cost;
   const reduced = cost < def.cost;
   const rage = def.rageCost === 'all' ? 'X' : def.rageCost ?? '';
-  const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : ''].join(' ');
+  const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : ''].join(' ');
   return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${def.text(card.upgraded)}">
     <img class="cadre px" src="${A(frame)}" alt="">
     <img class="icone px" src="${A(`icone_${def.icon}.png`)}" alt="">
-    <span class="cout ${reduced ? 'reduit' : ''}">${cost}</span>
+    <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
+    ${opts.panicked ? '<span class="tampon-panique">Paniquée</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}</span>
@@ -185,7 +187,7 @@ function potionHtml(id: string, extra = ''): string {
 
 function rememberItems(run: RunState): void {
   const profile = loadProfile();
-  const ids = [run.pendingItem, ...SLOT_KEYS.map((k) => run.equipment[k])].filter((x): x is string => !!x);
+  const ids = [run.pendingItem, run.pendingAlt, ...SLOT_KEYS.map((k) => run.equipment[k])].filter((x): x is string => !!x);
   const fresh = ids.filter((id) => !profile.discoveredItems.includes(id));
   if (fresh.length > 0) {
     profile.discoveredItems.push(...fresh);
@@ -411,10 +413,46 @@ function enemyChips(e: EnemyState): string {
   if (b.ralenti > 0) chips.push(`<span class="chip debuff">Ralenti ${b.ralenti}</span>`);
   if (b.armureFracassee > 0) chips.push(`<span class="chip debuff">Armure fracassée ${b.armureFracassee}</span>`);
   if (b.saignement > 0) chips.push(`<span class="chip saigne">Saignement ${b.saignement}</span>`);
+  if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
+  if (e.defId === 'gardien' && e.block > 0) chips.push('<span class="chip">Renvoie 3 par Attaque</span>');
+  if (e.shield) chips.push(`<span class="chip bouclier-saldris">Anti-${e.shield} : renvoie 50 %</span><span class="chip">Ensuite : anti-${e.shield === 'coups' ? 'sorts' : 'coups'}</span>`);
   return chips.join('');
 }
 
+/** Résumé court d'une intention (Amulette de clairvoyance). */
+function intentShort(i: Intent): string {
+  if (i.cast) return `Incantation : ${i.cast}`;
+  switch (i.kind) {
+    case 'attack': return `Attaque ${i.dmg}${i.times && i.times > 1 ? ` × ${i.times}` : ''}`;
+    case 'block': return `Blocage ${i.amount}`;
+    case 'buff': return `Puissance +${i.puissance}`;
+    case 'heal': return `Soin ${i.amount}`;
+    case 'curse': return i.label;
+    case 'summon': return i.label;
+    case 'blink': return 'Clignement';
+  }
+}
+
+/** Ce que fait une malédiction, en une phrase. */
+function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
+  const parts: string[] = [];
+  if (i.demoralise) parts.push(`Démoralisé ${i.demoralise} tours (tes Attaques −25 %)`);
+  if (i.impie) parts.push(`ta 1re carte de chaque tour coûte 1 de plus (${i.impie} tours)`);
+  if (i.arcane) parts.push('tes Sorts coûtent 1 de plus au prochain tour');
+  if (i.manaBurn) parts.push(`${i.manaBurn} énergie de moins au prochain tour`);
+  if (i.panic) parts.push(`${i.panic} cartes Paniquées au prochain tour`);
+  if (i.fardeau) parts.push(`${i.fardeau} Fardeaux dans ta pioche`);
+  if (i.bomb) parts.push('une Bombe vivante dans ta main');
+  const text = parts.join(', ');
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function intentHtml(c: CombatState, e: EnemyState): string {
+  const next = c.gear?.seeTwoIntents ? `<div class="intention-suivante">Ensuite : ${intentShort(intentAt(ENEMIES[e.defId], e.step + 1, e.phase ?? 1, e.hp < e.maxHp / 2))}</div>` : '';
+  return intentNow(c, e) + next;
+}
+
+function intentNow(c: CombatState, e: EnemyState): string {
   const i = e.intent;
   if (e.interrupted) return `<div class="intention interrompu">Interrompu</div>`;
   if (i.cast) {
@@ -439,6 +477,12 @@ function intentHtml(c: CombatState, e: EnemyState): string {
       return `<div class="intention soutien">${ICON.hausse}<span>Puissance +${i.puissance}</span></div>`;
     case 'heal':
       return `<div class="intention soutien">${ICON.coeur}<span>Soin ${i.amount}</span></div>`;
+    case 'curse':
+      return `<div class="intention malediction" title="${curseText(i)}">${ICON.crane}<span>${i.label}</span></div><div class="effet-intention">${curseText(i)}</div>`;
+    case 'summon':
+      return `<div class="intention soutien">${ICON.hausse}<span>${i.label}</span></div>`;
+    case 'blink':
+      return `<div class="intention soutien">${ICON.charge}<span>Clignement</span></div><div class="effet-intention">Ne pourra plus être ciblé jusqu'à son prochain tour</div>`;
   }
 }
 
@@ -450,6 +494,21 @@ function needsEnemyTarget(c: CombatState): boolean {
     return !!card && CARDS[card.id].needsTarget;
   }
   return SPELLS[c.spells[sel.index].id].needsTarget;
+}
+
+function playerChips(c: CombatState): string {
+  const p = c.player;
+  const d = p.debuffs;
+  const chips: string[] = [];
+  if (p.puissance > 0) chips.push(`<span class="chip">Puissance ${p.puissance}</span>`);
+  if (p.robustesse > 0) chips.push(`<span class="chip">Robustesse ${p.robustesse}</span>`);
+  if (d?.demoralise) chips.push(`<span class="chip debuff" title="Tes Attaques infligent 25 % de dégâts en moins">Démoralisé ${d.demoralise}</span>`);
+  if (d?.impie) chips.push(`<span class="chip debuff" title="Ta première carte de chaque tour coûte 1 de plus">Impie ${d.impie}</span>`);
+  if (d?.arcane) chips.push(`<span class="chip debuff" title="Tes Sorts coûtent 1 de plus">Malédiction arcanique ${d.arcane}</span>`);
+  if (d?.manaBurn) chips.push(`<span class="chip debuff">Mana brûlé : −${d.manaBurn} énergie au prochain tour</span>`);
+  if (d?.panic) chips.push(`<span class="chip debuff">Terreur : ${d.panic} cartes Paniquées au prochain tour</span>`);
+  if (c.fireProof) chips.push('<span class="chip">Protégé du feu</span>');
+  return chips.join('');
 }
 
 function combatScreen(run: RunState, c: CombatState): string {
@@ -467,12 +526,13 @@ function combatScreen(run: RunState, c: CombatState): string {
 
   const enemies = c.enemies.filter((e) => !e.dead && !e.submerged).map((e) => {
     const def = ENEMIES[e.defId];
-    const big = e.defId === 'seigneur' || e.defId === 'brannoc' || e.defId === 'cendrine';
-    const small = e.defId === 'etincelle' || e.defId === 'rejeton';
+    const big = e.defId === 'seigneur' || (def.elite && e.defId !== 'croc');
+    const small = e.defId === 'etincelle' || e.defId === 'rejeton' || e.defId === 'eclat';
     const size = e.defId === 'vulkhar' ? 240 : big ? 192 : small ? 96 : 144;
     const pct = Math.max(0, (e.hp / e.maxHp) * 100);
-    const tag = targeting ? 'button' : 'div';
-    return `<${tag} ${targeting ? 'type="button"' : ''} class="ennemi ${targeting ? 'ciblable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}, ${e.hp} PV">
+    const canTarget = targeting && !e.untargetable;
+    const tag = canTarget ? 'button' : 'div';
+    return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}, ${e.hp} PV">
       ${intentHtml(c, e)}
       <img class="px" data-fx="${e.uid}" src="${A(`ennemi_${e.defId}.png`)}" alt="" style="width:${size}px;height:${size}px">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
@@ -491,6 +551,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   }).join('');
 
   const hand = c.hand.map((card, i) => cardHtml(card, {
+    panicked: c.panicked?.includes(card.uid),
     action: `data-action="carte" data-index="${i}"`,
     disabled: !canPlayCard(c, i),
     selected: ui.selection?.kind === 'card' && ui.selection.index === i,
@@ -506,17 +567,20 @@ function combatScreen(run: RunState, c: CombatState): string {
 
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
   const underLava = c.enemies.find((e) => !e.dead && e.submerged);
+  const reviving = c.enemies.filter((e) => e.dead && e.reviveIn);
   const consigne = targeting
     ? `<div class="consigne">Choisis une cible</div>`
     : underLava
       ? `<div class="consigne lave">${underLava.name} est sous la lave : il refait surface dans ${underLava.submerged} tour${underLava.submerged! > 1 ? 's' : ''}. Chaque Rejeton encore en vie le soignera de 15 PV !</div>`
-      : '';
+      : reviving.length > 0
+        ? `<div class="consigne lave">${reviving.length} Molosse${reviving.length > 1 ? 's' : ''} enragé${reviving.length > 1 ? 's' : ''} se relèvera${reviving.length > 1 ? 'nt' : ''} dans ${Math.min(...reviving.map((e) => e.reviveIn!))} tour${Math.min(...reviving.map((e) => e.reviveIn!)) > 1 ? 's' : ''}, tant que Krâgg est en vie.</div>`
+        : '';
 
   return `<div class="sol"></div>
     ${topbar(run, p.hp)}
     ${enrage}
     <div class="heros">
-      <div class="buffs">${p.puissance > 0 ? `<span class="chip">Puissance ${p.puissance}</span>` : ''}</div>
+      <div class="buffs">${playerChips(c)}</div>
       <img class="px" data-fx="player" src="${A('guerrier.png')}" alt="Le Guerrier" style="width:192px;height:192px">
       <div class="jauges">
         <div class="ligne">
@@ -573,7 +637,8 @@ function rewardScreen(run: RunState): string {
     <h2>${run.rewardTitle}</h2>
     ${run.rewardGold > 0 ? `<div class="gain-or">${ICON.piece}<span>+${run.rewardGold} or</span></div>` : ''}
     ${run.pendingItem || run.pendingPotion ? `<div class="butins">
-      ${run.pendingItem ? `<div class="butin"><span class="butin-titre">Butin</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
+      ${run.pendingItem ? `<div class="butin"><span class="butin-titre">${run.pendingAlt ? 'Butin · au choix' : 'Butin'}</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', run.pendingAlt ? '' : '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
+      ${run.pendingItem && run.pendingAlt ? `<div class="butin"><span class="butin-titre">ou</span>${itemHtml(run.pendingAlt)}${equipChoices(run, run.pendingAlt, 'data-action="equiper" data-alt="1"', '<button type="button" class="bouton-objet secondaire" data-action="laisser">Aucun des deux</button>')}</div>` : ''}
       ${run.pendingPotion ? potionReward(run, run.pendingPotion) : ''}
     </div>` : ''}
     ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton deck.</p>' : ''}
@@ -790,6 +855,8 @@ export function render(): void {
 async function commit(): Promise<void> {
   const run = ui.run;
   const events = run?.combat?.fx?.splice(0) ?? [];
+  // On sauvegarde tout de suite : fermer le jeu pendant une animation ne perd pas l'action.
+  if (run) localSave.save(run);
   if (events.length > 0) {
     busy = true;
     try {
@@ -897,7 +964,12 @@ function handleClick(ev: MouseEvent): void {
     }
     case 'sans-heritage': startNewRun(); return;
     case 'voir-coffre': ui.overlay = 'coffre'; render(); return;
-    case 'continuer': ui.run = localSave.load(); ui.overlay = null; render(); return;
+    case 'continuer':
+      ui.run = localSave.load();
+      ui.overlay = null;
+      if (ui.run) afterCombatAction(ui.run); // une victoire ou un wipe sauvegardé pendant l'animation
+      render();
+      return;
     case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; render(); return;
     case 'deck': ui.overlay = 'deck'; render(); return;
     case 'menu': ui.overlay = 'menu'; render(); return;
@@ -935,7 +1007,7 @@ function handleClick(ev: MouseEvent): void {
       break;
     case 'boutique-retour': ui.shopMode = null; render(); break;
     case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; leaveShop(run); commit(); break;
-    case 'equiper': equipPending(run, el.dataset.slot as SlotKey); commit(); break;
+    case 'equiper': equipPending(run, el.dataset.slot as SlotKey, el.dataset.alt === '1'); commit(); break;
     case 'laisser': leavePending(run); commit(); break;
     case 'boire': drinkPotion(run, Number(el.dataset.slot)); ui.overlay = null; ui.selection = null; commit(); break;
     case 'jeter': discardPotion(run, Number(el.dataset.slot)); ui.overlay = null; commit(); break;

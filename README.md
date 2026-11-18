@@ -12,7 +12,7 @@ Un deckbuilder roguelite dans la lignée de *Slay the Spire*, dans un univers de
 
 Le prototype jouable contient :
 - le **Guerrier** : rage, postures, barre de sorts (Charge), deck de départ et une vingtaine de cartes à gagner ;
-- une **run dans l'acte 1** sur une **carte à embranchements** de 10 étages : combats, boss secondaires (Sœur Cendrine, le Héraut Brannoc), « ? » (événements et embuscades), coffre, feux de camp, puis **Vulkhar, Souverain des flammes** (deux phases, plongée dans la lave) ;
+- une **run dans l'acte 1** sur une **carte à embranchements** de 10 étages : combats, les **9 boss secondaires** (Morvax, Croc-de-lave, Cendrine, Gorlok, Vossk, Zhaal, Brannoc, Krâgg, Saldris), chacun avec sa mécanique et sa table de loot, « ? » (événements et embuscades), coffre, feux de camp, puis **Vulkhar, Souverain des flammes** (deux phases, plongée dans la lave) ;
 - l'**or** et le **vendeur gobelin** (cartes, objets, potions, retrait, amélioration) ;
 - les **potions** (3 emplacements), à boire sans dépenser d'énergie ;
 - le **coffre de la guilde** : après une victoire, on y met un objet à l'abri ; au début d'une run, on peut en emporter un, au risque de le perdre ;
