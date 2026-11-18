@@ -56,7 +56,7 @@
 ### 1.3 Le Guerrier complet
 - [x] Les 52 cartes du Guerrier (les épiques apparaissent rarement chez les boss secondaires, en attendant les talents)
 - [x] Les sorts de barre du Guerrier : les 7 de sa fiche + 2 sorts de loot (Cri de commandement, Vague de choc), 3 emplacements
-- [ ] Le 4ᵉ emplacement de la barre (talent Protection, phase 2)
+- [x] Le 4ᵉ emplacement de la barre (talent Protection)
 - [x] Une illustration en pixel art par carte (62 illustrations, `tools/pixel/illustrations.py`)
 - [x] Le légendaire Brisemonts et sa quête (forge éteinte → Krâgg → Reforger au feu de camp)
 - [ ] Le râtelier de la guilde : garder le légendaire forgé d'une run à l'autre (phase 2)
@@ -96,7 +96,7 @@
 - [ ] Premier lancement : choix libre de la classe de départ parmi les 9, avec une fiche de présentation
 - [ ] Déblocage des autres classes par paliers d'expérience, au choix du joueur
 - [x] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint (prêt, il servira avec la 2e classe)
-- [ ] Les talents permanents : écran des 3 arbres, choix avant la run, respec gratuit
+- [x] Les talents permanents du Guerrier : écran des 3 arbres (27 talents), choix avant la run, respec gratuit, récompenses orientées vers les arbres investis
 - [ ] Les déblocages de cartes et d'objets par niveau
 - [ ] Les niveaux de difficulté (1 à 20)
 - [ ] Les archives de la guilde (compendium : cartes, objets, monstres découverts)

@@ -2,6 +2,7 @@
 // Référence : docs/classes/GUERRIER.md (§4.2 et §6)
 import { drawCards, fx, gainRage, livingEnemies, log, playerAttack } from './actions';
 import { ENEMIES, isInterruptible } from './enemies';
+import { TALENT_SPELLS } from './talents';
 import type { CombatState, EnemyState } from './types';
 
 /** Nombre d'emplacements de la barre (un 4e viendra avec un talent). */
@@ -123,8 +124,5 @@ export const SPELLS: Record<string, SpellDef> = {
   },
 };
 
-/**
- * Les sorts que le Guerrier peut trouver dans les tables de loot des boss secondaires.
- * Prototype : en attendant les talents (phase 2), tous ses sorts sont dans ce lot.
- */
-export const WARRIOR_LOOT_SPELLS = Object.keys(SPELLS).filter((id) => id !== 'charge');
+/** Les sorts que le Guerrier peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
+export const WARRIOR_LOOT_SPELLS = Object.keys(SPELLS).filter((id) => id !== 'charge' && !TALENT_SPELLS.has(id));

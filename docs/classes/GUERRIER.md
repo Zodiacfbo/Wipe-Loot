@@ -97,7 +97,8 @@ Au premier tour, Charge permet de lancer une Frappe héroïque immédiatement. C
 - **Peur** : l'ennemi ne fait rien à son prochain tour. « Sauf boss » vaut aussi pour les boss secondaires (même règle pour Désarmement).
 - **Pouvoir** : la carte reste active jusqu'à la fin du combat (elle ne revient pas dans la pioche).
 - **Éphémère** : si la carte est encore en main à la fin du tour, elle disparaît (Frappe de la main gauche).
-- **Les cartes épiques** sont normalement débloquées par le dernier palier de talent de leur arbre. En attendant les talents, elles apparaissent rarement dans les récompenses des boss secondaires.
+- **Les cartes épiques** sont débloquées par le palier 5 de leur arbre : un exemplaire dans le deck de départ, et elles peuvent ensuite apparaître (rarement) dans les récompenses des boss secondaires.
+- **Les récompenses de cartes** penchent vers les arbres où tu as mis des points (+50 % de chances par point pour les cartes de cet arbre).
 
 ### 5.1 Tronc commun (9 cartes)
 
@@ -191,7 +192,7 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 
 **Les sorts de barre qu'on peut trouver dans les tables de loot** : *Cri de commandement* (1 énergie, recharge 4 : tous les ennemis Démoralisés 2 tours et +1 Robustesse), *Vague de choc* (1 énergie, recharge 3 : 6 dégâts à tous et Ralenti 1).
 
-**Dans le prototype :** les talents n'existent pas encore, donc **tous** les sorts ci-dessus (sauf Charge) peuvent tomber sur les boss secondaires (1 chance sur 5, un sort que tu n'as pas encore). La barre a **3 emplacements** ; un sort trouvé s'ajoute ou en remplace un. Quand les talents arriveront, les sorts de talent quitteront les tables de loot.
+**Dans le prototype :** les sorts de talent sont dans la barre dès le début de la run. Seuls *Cri de commandement* et *Vague de choc* tombent sur les boss secondaires (1 chance sur 5). La barre a **3 emplacements** (4 avec le talent Quatrième emplacement) ; si les talents donnent plus de sorts que d'emplacements, la barre s'agrandit pour tous les accueillir. Un sort trouvé s'ajoute ou en remplace un.
 
 **Rappel de règle :** un sort de barre ne se pioche pas : il est toujours là, mais il a un temps de recharge. Sur téléphone, un premier appui affiche le sort, un second le lance.
 

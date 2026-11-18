@@ -183,7 +183,9 @@ export interface CombatState {
   /** L'Orbe de distorsion a déjà servi pendant ce combat. */
   orbUsed?: boolean;
   /** La carte en train d'être jouée (pour les bonus qui dépendent de son coût ou de son type). */
-  playing?: { cost: number; type: CardType };
+  playing?: { cost: number; type: CardType; id: string };
+  /** Les ennemis sont en train de jouer leur tour. */
+  enemyActing?: boolean;
   /** Puissance déjà gagnée avec la Pierre de magma. */
   magmaGained?: number;
   /** Les Pouvoirs joués pendant ce combat (id → valeur cumulée). */
@@ -217,7 +219,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 13;
+  version: 14;
   seed: number;
   rng: number;
   maxHp: number;
@@ -254,6 +256,8 @@ export interface RunState {
   detour: boolean;
   /** L'acte en cours (1 dans le prototype). */
   act: number;
+  /** Les talents choisis pour cette run (fixés pendant la run). */
+  talents: string[];
   /** Combats et boss secondaires gagnés (pour le score). */
   stats: { combats: number; elites: number };
   /** Le bilan de fin de run, calculé une seule fois (score, expérience, niveau). */

@@ -42,7 +42,7 @@ export function createCombat(
     turn: 0,
     phase: 'player',
     player: {
-      hp, maxHp, block: 0, energy: 3, maxEnergy: 3, rage: 0, maxRage: 10, posture: 'combat',
+      hp, maxHp, block: 0, energy: 3, maxEnergy: 3, rage: 0, maxRage: Math.max(10, gear.maxRage ?? 0), posture: 'combat',
       postureChanged: false, puissance: 0, ignorerDouleur: false, blockedFullAttack: false, drawPenalty: 0, robustesse: 0,
       debuffs: emptyDebuffs(),
     },
@@ -147,6 +147,7 @@ export function startPlayerTurn(c: CombatState): void {
     d.panic = 0;
   }
   p.fearless = false;
+  if (c.gear?.turnRage) gainRage(c, c.gear.turnRage); // Colère intérieure
   // Pouvoirs de début de tour
   if (power(c, 'furie_inextinguible')) gainRage(c, power(c, 'furie_inextinguible'));
   if (power(c, 'concentration') && p.rage >= 5) {
@@ -254,7 +255,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
   const blockBefore = p.block;
-  c.playing = { cost, type: def.type };
+  c.playing = { cost, type: def.type, id: card.id };
   def.play(ctx);
   c.playing = undefined;
   if (c.cleaving) c.cleave = (c.cleave ?? 1) - 1;
@@ -263,10 +264,19 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     p.enrageReady = 0;
     c.attacksThisTurn = (c.attacksThisTurn ?? 0) + 1;
     if (c.attacksThisTurn === 3 && power(c, 'rafale')) drawCards(c, power(c, 'rafale'));
+    // Frénésie : la 3e Attaque du tour rend de l'énergie.
+    if (c.attacksThisTurn === 3 && c.gear?.frenzyEnergy) p.energy += c.gear.frenzyEnergy;
+    // Entaille : les Attaques à 2 énergie ou plus font saigner.
+    if (cost >= 2 && ctx.dealt && target && !target.dead && c.gear?.heavyBleed) applySaignement(target, c.gear.heavyBleed, c);
     // Entaille profonde : les Attaques à rage qui touchent font saigner.
     if (def.rageCost !== undefined && ctx.dealt && target && !target.dead && power(c, 'entaille_profonde')) {
       applySaignement(target, power(c, 'entaille_profonde'), c);
     }
+  }
+  // Voix de stentor : les Cris donnent plus de rage et démoralisent plus longtemps.
+  if (c.gear?.shoutBonus && SHOUTS.has(card.id)) {
+    gainRage(c, c.gear.shoutBonus);
+    for (const e of livingEnemies(c)) if (e.buffs.demoralise > 0) e.buffs.demoralise += c.gear.shoutBonus;
   }
   // Bastion : une carte qui donne du blocage blesse tous les ennemis.
   if (power(c, 'bastion') && p.block > blockBefore && def.type !== 'Pouvoir') {
@@ -322,7 +332,7 @@ export function changePosture(c: CombatState, posture: Posture): boolean {
   if (c.phase !== 'player' || p.postureChanged || p.posture === posture) return false;
   p.posture = posture;
   p.postureChanged = true;
-  p.rage = Math.min(p.rage, 3);
+  p.rage = Math.min(p.rage, c.gear?.postureRage ?? 3);
   log(c, `Posture : ${posture === 'combat' ? 'Combat' : posture === 'berserker' ? 'Berserker' : 'Défensive'}.`);
   return true;
 }
@@ -492,7 +502,19 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
   }
 }
 
+/** Les cartes de Cri (Voix de stentor). */
+const SHOUTS = new Set(['cri_de_guerre', 'cri_demoralisant', 'cri_de_bataille', 'cri_intimidation', 'hurlement_furieux', 'cri_de_ralliement']);
+
 function enemyTurn(c: CombatState): void {
+  c.enemyActing = true;
+  try {
+    enemyTurnInner(c);
+  } finally {
+    c.enemyActing = false;
+  }
+}
+
+function enemyTurnInner(c: CombatState): void {
   for (const e of [...c.enemies]) {
     if (c.phase !== 'player') break;
     // Molosse de Krâgg : se relève au bout de 2 tours, tant que Krâgg vit.

@@ -7,11 +7,12 @@ import { COMMON_POOL, ITEMS, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipmen
 import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
 import { BAR_SLOTS, WARRIOR_LOOT_SPELLS } from './spells';
+import { EPIC_CARDS, TALENTS, TREES } from './talents';
 import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -21,27 +22,56 @@ export const POTION_DROP_CHANCE = 0.4;
 export const SERVICE_BASE_PRICE = 75;
 export const SERVICE_PRICE_STEP = 25;
 
-/** `heirloom` : l'objet emporté du coffre de la guilde, équipé dès le départ. */
-export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null): RunState {
+/**
+ * `heirloom` : l'objet emporté du coffre de la guilde, équipé dès le départ.
+ * `talents` : les talents choisis avant la run (ids, voir talents.ts).
+ */
+export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null, talents: string[] = []): RunState {
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 13, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    version: 14, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
-    weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null,
+    weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
   };
   run.map = generateMap(run);
+  applyTalents(run, talents);
   if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
   return run;
+}
+
+/** Les talents au début de la run : PV max, sorts de barre, carte épique dans le deck. */
+function applyTalents(run: RunState, ids: string[]): void {
+  run.talents = ids.filter((id) => TALENTS[id]);
+  for (const id of run.talents) {
+    const t = TALENTS[id];
+    if (t.maxHp) {
+      run.maxHp += t.maxHp;
+      run.hp += t.maxHp;
+    }
+    if (t.spell && !run.spells.includes(t.spell)) run.spells.push(t.spell);
+    if (t.card) run.deck.push({ uid: run.nextUid++, id: t.card, upgraded: false });
+  }
+}
+
+/** La taille de la barre de sorts : 3, +1 avec Quatrième emplacement ; jamais moins que les sorts donnés par les talents. */
+export function barCapacity(run: RunState): number {
+  const bonus = run.talents.reduce((a, id) => a + (TALENTS[id]?.barSlots ?? 0), 0);
+  const fromTalents = 1 + run.talents.filter((id) => TALENTS[id]?.spell).length;
+  return Math.max(BAR_SLOTS + bonus, fromTalents);
 }
 
 /** Les effets de l'équipement porté, avec le renfort du Fantôme du forgeron. */
 export function runGear(run: RunState): ItemEffects {
   const g = gearEffects(run.equipment, run.broken);
+  // Les talents s'ajoutent aux effets de l'équipement.
+  for (const id of run.talents ?? []) {
+    for (const [k, v] of Object.entries(TALENTS[id]?.fx ?? {}) as [keyof ItemEffects, number][]) g[k] = (g[k] ?? 0) + v;
+  }
   if (run.weaponUpgrade && run.equipment.arme === run.weaponUpgrade && !run.broken.includes('arme')) {
     g.attackBonus = (g.attackBonus ?? 0) + 2;
   }
@@ -211,14 +241,34 @@ function rollRarity(run: RunState, min: Rarity): Rarity {
   return roll < 0.6 ? 'commune' : roll < 0.9 ? 'peu_commune' : 'rare';
 }
 
+/** Une carte épique n'apparaît que si le palier 5 de son arbre est pris. */
+function cardUnlocked(run: RunState, id: string): boolean {
+  return !EPIC_CARDS.has(id) || run.talents.some((t) => TALENTS[t]?.card === id);
+}
+
+/** Les récompenses penchent vers les arbres où l'on a mis des points. */
+function weightedCard(run: RunState, pool: string[]): string {
+  const points = (id: string) => {
+    const tree = TREES.find((t) => t.cards.includes(id));
+    return tree ? run.talents.filter((t) => tree.tiers.flat().some((d) => d.id === t)).length : 0;
+  };
+  const weights = pool.map((id) => 1 + 0.5 * points(id));
+  let r = random(run) * weights.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+
 function offerCards(run: RunState, title: string, min: Rarity): void {
   const choices: string[] = [];
   let guard = 0;
   while (choices.length < 3 && guard++ < 100) {
     const rarity = rollRarity(run, min);
-    const pool = REWARD_POOL.filter((id) => CARDS[id].rarity === rarity && !choices.includes(id));
+    const pool = REWARD_POOL.filter((id) => CARDS[id].rarity === rarity && !choices.includes(id) && cardUnlocked(run, id));
     if (pool.length === 0) continue;
-    choices.push(pool[Math.floor(random(run) * pool.length)]);
+    choices.push(weightedCard(run, pool));
   }
   run.rewardChoices = choices;
   run.rewardTitle = title;
@@ -410,7 +460,7 @@ export function learnSpell(run: RunState, replace?: number): boolean {
   const id = run.pendingSpell;
   if (!id) return false;
   if (replace === undefined) {
-    if (run.spells.length >= BAR_SLOTS) return false;
+    if (run.spells.length >= barCapacity(run)) return false;
     run.spells.push(id);
   } else {
     if (!run.spells[replace]) return false;

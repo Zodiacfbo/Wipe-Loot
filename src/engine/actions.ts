@@ -91,6 +91,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (!c.firstAttackDone) dmg += g.firstAttackBonus ?? 0;
   if (c.playing && c.playing.cost >= 2) dmg += g.heavyAttackBonus ?? 0;
   if (c.playing?.type === 'Sort') dmg += g.spellBonus ?? 0;
+  if (c.playing && (c.playing.id === 'frappe' || c.playing.id === 'frappe_heroique')) dmg += g.strikeBonus ?? 0;
+  if (c.playing?.type === 'Attaque' && c.playing.cost === 0) dmg += g.zeroCostBonus ?? 0;
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
@@ -202,6 +204,11 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
   target.block = 0;
   fx(c, { kind: 'death', who: target.uid });
   log(c, `${target.name} est vaincu.`);
+  // Implacable : tuer un ennemi rend de la rage et pioche (pendant ton tour).
+  if (!c.enemyActing && c.phase === 'player') {
+    if (c.gear?.killRage) gainRage(c, c.gear.killRage);
+    if (c.gear?.killDraw) drawCards(c, c.gear.killDraw);
+  }
   if (c.gear?.healOnKill && c.player.hp > 0) c.player.hp = Math.min(c.player.maxHp, c.player.hp + c.gear.healOnKill);
   // Krâgg tombe : ses Molosses s'enfuient. Un Molosse tué pendant que Krâgg vit se relèvera.
   if (target.defId === 'kragg') {
@@ -272,7 +279,7 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
 
 export function applySaignement(target: EnemyState, amount: number, c?: CombatState): void {
   target.buffs.saignement += amount + (c?.gear?.bleedBonus ?? 0);
-  target.buffs.saignementTours = 3;
+  target.buffs.saignementTours = 3 + (c?.gear?.bleedDuration ?? 0);
 }
 
 export function drawCards(c: CombatState, count: number): void {

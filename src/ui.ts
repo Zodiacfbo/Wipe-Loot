@@ -46,13 +46,14 @@ import {
   discardPotion,
   drinkPotion,
   takePotion,
+  barCapacity,
   learnSpell,
   breakableSlots,
   repairBill,
   repairItem,
 } from './engine/run';
 import { POTIONS } from './engine/potions';
-import { BAR_SLOTS } from './engine/spells';
+import { TREES, clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
@@ -79,11 +80,13 @@ interface UiState {
   chestPick: boolean;
   /** Brégan : choix de la carte à retirer (Allègement). */
   blessingRemove: boolean;
+  /** Écran des talents (avant une run). */
+  talentScreen: boolean;
   /** Objet choisi pour le dépôt, quand le coffre est plein (on choisit ensuite quoi remplacer). */
   depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false, talentScreen: false };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -665,8 +668,11 @@ function combatScreen(run: RunState, c: CombatState): string {
   const underLava = c.enemies.find((e) => !e.dead && e.submerged);
   const reviving = c.enemies.filter((e) => e.dead && e.reviveIn);
   const selSpell = ui.selection?.kind === 'spell' ? SPELLS[c.spells[ui.selection.index].id] : null;
-  const consigne = selSpell
+  const spellInfo = selSpell
     ? `<div class="info-sort"><b>${selSpell.name}</b><small>${selSpell.cost > 0 ? `${selSpell.cost} énergie` : 'Gratuit'} · ${selSpell.once ? 'une fois par combat' : `recharge ${selSpell.cooldown} tours`}</small><span>${selSpell.text}</span><em>${targeting ? 'Choisis une cible.' : 'Touche à nouveau le sort pour le lancer.'}</em></div>`
+    : '';
+  const consigne = selSpell
+    ? ''
     : targeting
     ? `<div class="consigne">Choisis une cible</div>`
     : underLava
@@ -693,7 +699,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     </div>
     <div class="ennemis ${c.enemies.filter((e) => !e.dead && !e.submerged).length > 4 ? 'nombreux' : ''}">${enemies}</div>
     ${consigne}
-    <div class="barre-sorts"><span class="titre">SORTS</span>${spells}</div>
+    <div class="barre-sorts"><span class="titre">SORTS</span>${spells}${selSpell ? spellInfo : ''}</div>
     <div class="energie ${p.energy === 0 ? 'vide' : ''}" aria-label="Énergie">${p.energy}/${p.maxEnergy}</div>
     <div class="piles"><span class="pile">Pioche ${c.draw.length}</span><span class="pile">Défausse ${c.discard.length}</span></div>
     <div class="main">${hand}</div>
@@ -736,7 +742,7 @@ function spellHtml(id: string): string {
 }
 
 function spellReward(run: RunState, id: string): string {
-  const full = run.spells.length >= BAR_SLOTS;
+  const full = run.spells.length >= barCapacity(run);
   const buttons = full
     ? run.spells.map((s, i) => `<button type="button" class="bouton-objet" data-action="apprendre" data-index="${i}">Remplacer : ${SPELLS[s].name}</button>`).join('')
     : '<button type="button" class="bouton-objet" data-action="apprendre">Ajouter à ta barre</button>';
@@ -871,6 +877,48 @@ function summaryHtml(sum: RunSummary): string {
   </div>`;
 }
 
+/** La répartition de talents du Guerrier, ramenée aux points disponibles. */
+function myAlloc(): TalentAlloc {
+  const profile = loadProfile();
+  return clampAlloc(profile.talents.guerrier ?? emptyAlloc(), classLevel(profile, 'guerrier').level);
+}
+
+/** L'écran des talents : 3 arbres de 5 paliers. */
+function talentScreen(): string {
+  const profile = loadProfile();
+  const points = classLevel(profile, 'guerrier').level;
+  const alloc = myAlloc();
+  const left = points - pointsUsed(alloc);
+  const cols = TREES.map((tree) => {
+    const picks = alloc[tree.id];
+    const tiers = tree.tiers.map((options, tier) => {
+      const open = tier <= picks.length;
+      const buttons = options.map((d, i) => {
+        const choice: Choice = i === 0 ? 'A' : 'B';
+        const taken = picks[tier] === choice;
+        const can = taken || (tier < picks.length) || (tier === picks.length && left > 0);
+        const kind = d.spell ? 'Sort de barre' : d.card ? 'Carte épique' : 'Passif';
+        return `<button type="button" class="talent ${taken ? 'pris' : ''} ${d.card ? 'epique' : ''}" ${can ? `data-action="talent" data-tree="${tree.id}" data-tier="${tier}" data-choice="${choice}"` : 'disabled'}>
+          <b>${d.name}</b><em>${kind}</em><span>${d.text}</span></button>`;
+      }).join('<span class="ou">ou</span>');
+      return `<div class="palier ${open ? '' : 'ferme'}"><span class="num-palier">${tier + 1}</span><div class="choix-palier">${buttons}</div></div>`;
+    }).join('');
+    return `<section class="arbre"><h3>${tree.name} <span>${picks.length}/5</span></h3><p>${tree.theme}</p>${tiers}</section>`;
+  }).join('');
+  return `<div class="ecran ecran-talents">
+    <div class="tete-talents">
+      <h2>Talents du Guerrier</h2>
+      <span class="points-talent">${left} point${left > 1 ? 's' : ''} à répartir sur ${points}</span>
+    </div>
+    <p>1 point par niveau de classe. Il faut un point dans un palier pour ouvrir le suivant. Touche un talent pris pour changer de choix, ou retirer le dernier palier d'un arbre. Le respec est gratuit entre deux runs.</p>
+    <div class="arbres">${cols}</div>
+    <div class="actions">
+      <button type="button" class="gros-bouton secondaire" data-action="talents-reset">Tout réinitialiser</button>
+      <button type="button" class="gros-bouton" data-action="titre">Retour</button>
+    </div>
+  </div>`;
+}
+
 /** Le niveau du Guerrier, sur l'écran titre. */
 function classBadge(): string {
   const lvl = classLevel(loadProfile(), 'guerrier');
@@ -878,7 +926,7 @@ function classBadge(): string {
   return `<div class="badge-classe">
     <b>Guerrier · niveau ${lvl.level}</b>
     <div class="barre-xp petite"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
-    <span>${lvl.level} point${lvl.level > 1 ? 's' : ''} de talent (les talents arrivent bientôt)</span>
+    <button type="button" class="bouton" data-action="talents">Talents · ${pointsUsed(myAlloc())}/${lvl.level} points</button>
   </div>`;
 }
 
@@ -937,7 +985,7 @@ function overlayHtml(run: RunState | null): string {
     return `<div class="overlay"><div class="ecran" style="gap:16px">
       <h2>Équipement</h2>
       <div class="grille-equipement">${slots}</div>
-      <h3 class="titre-barre">Barre de sorts · ${run.spells.length}/${BAR_SLOTS}</h3>
+      <h3 class="titre-barre">Barre de sorts · ${run.spells.length}/${barCapacity(run)}</h3>
       <div class="grille-equipement">${run.spells.map((id) => spellHtml(id)).join('')}</div>
       <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
     </div></div>`;
@@ -982,7 +1030,7 @@ function overlayHtml(run: RunState | null): string {
 export function render(): void {
   const run = ui.run;
   if (!run) {
-    stage.innerHTML = ui.chestPick ? chestPickScreen() : titleScreen() + overlayHtml(null);
+    stage.innerHTML = ui.talentScreen ? talentScreen() : ui.chestPick ? chestPickScreen() : titleScreen() + overlayHtml(null);
     return;
   }
   let html = '';
@@ -1037,7 +1085,7 @@ function hideCard(index: number): void {
 function startNewRun(heirloom: string | null = null): void {
   ui.chestPick = false;
   ui.depositSlot = null;
-  ui.run = newRun(undefined, heirloom);
+  ui.run = newRun(undefined, heirloom, talentIds(myAlloc()));
   offerBlessing(ui.run);
   ui.blessingRemove = false;
   ui.selection = null;
@@ -1129,7 +1177,25 @@ function handleClick(ev: MouseEvent): void {
       // Une victoire ou un wipe sauvegardé pendant l'animation : commit() termine le combat et fait le bilan.
       void commit();
       return;
-    case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; render(); return;
+    case 'titre': ui.run = null; ui.overlay = null; ui.chestPick = false; ui.talentScreen = false; render(); return;
+    case 'talents': ui.run = null; ui.overlay = null; ui.talentScreen = true; render(); return;
+    case 'talent': {
+      const profile = loadProfile();
+      const alloc = myAlloc();
+      if (toggleTalent(alloc, el.dataset.tree as TreeId, Number(el.dataset.tier), el.dataset.choice as Choice, classLevel(profile, 'guerrier').level)) {
+        profile.talents.guerrier = alloc;
+        saveProfile(profile);
+      }
+      render();
+      return;
+    }
+    case 'talents-reset': {
+      const profile = loadProfile();
+      profile.talents.guerrier = emptyAlloc();
+      saveProfile(profile);
+      render();
+      return;
+    }
     case 'deck': ui.overlay = 'deck'; render(); return;
     case 'menu': ui.overlay = 'menu'; render(); return;
     case 'fermer': ui.overlay = null; render(); return;

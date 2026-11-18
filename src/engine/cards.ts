@@ -196,7 +196,7 @@ export const CARDS: Record<string, CardDef> = {
     text: (up) => `Toute ta rage : ${up ? 5 : 4} dégâts par point (${up ? 10 : 8} sous 30 % PV).`,
     play: (ctx) => {
       if (!ctx.target) return;
-      const low = ctx.target.hp <= ctx.target.maxHp * 0.3 || !!ctx.c.gear?.executeAlways;
+      const low = ctx.target.hp <= ctx.target.maxHp * (ctx.c.gear?.executeThreshold ?? 30) / 100 || !!ctx.c.gear?.executeAlways;
       const perPoint = low ? (ctx.up ? 10 : 8) : ctx.up ? 5 : 4;
       if (ctx.rageSpent > 0) hit(ctx, perPoint * ctx.rageSpent, { rageCard: true });
     },

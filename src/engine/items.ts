@@ -55,6 +55,19 @@ export interface ItemEffects {
   potionSlots?: number; // +X emplacements de potion
   rageOnHpLoss?: number; // +X rage quand tu perds des PV
   executeAlways?: number; // Exécution inflige toujours son bonus
+  // Effets des talents
+  strikeBonus?: number; // Frappe et Frappe héroïque : +X dégâts
+  postureRage?: number; // rage conservée en changeant de posture (3 par défaut)
+  bleedDuration?: number; // les Saignements durent X tours de plus
+  heavyBleed?: number; // les Attaques à 2 énergie ou plus appliquent Saignement X
+  executeThreshold?: number; // seuil (en %) du bonus d'Exécution (30 par défaut)
+  killRage?: number; // tuer un ennemi : +X rage
+  killDraw?: number; // tuer un ennemi : pioche X cartes
+  turnRage?: number; // +X rage au début de chaque tour
+  shoutBonus?: number; // cartes de Cri : +X rage, Démoralisé +X tour
+  zeroCostBonus?: number; // Attaques à 0 énergie : +X dégâts
+  maxRage?: number; // rage maximale
+  frenzyEnergy?: number; // 3e Attaque du tour : +X énergie
   maxHp?: number; // +X PV max
   healAfterCombat?: number; // soigne X PV à la fin de chaque combat gagné
 }
