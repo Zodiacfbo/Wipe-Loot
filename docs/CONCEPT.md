@@ -736,6 +736,20 @@ Après le niveau 10  Plus de nouveaux points. Le défi vient des niveaux de diff
 - **Navigateur web**, sur **PC** et sur **smartphone**. Pas d'installation nécessaire.
 - Plus tard, le jeu pourra être installable sur téléphone en tant qu'application web (PWA), et éventuellement distribué sur PC.
 
+### 16.1 bis Hébergement et données
+
+| Besoin | Solution | Remarques |
+|---|---|---|
+| **Héberger le jeu** | **GitHub Pages**, depuis le dépôt du projet | Un site statique : tout le jeu tourne dans le navigateur du joueur. |
+| **Comptes joueurs** | **Firebase Authentication** | Connexion **anonyme** au premier lancement (aucune inscription), puis possibilité de **lier un compte** (Google, e-mail) pour retrouver sa partie sur un autre appareil. |
+| **Sauvegardes et profil** | **Cloud Firestore** | Le profil (niveaux, talents, déblocages, tables de loot découvertes) et la run en cours. |
+| **Contenu du jeu** (cartes, ennemis, objets, actes) | **Fichiers de données dans le dépôt** (JSON), livrés avec le jeu | Le contenu évolue avec le code et reste versionné dans Git. Il n'a pas besoin d'être dans Firebase. |
+
+**Points d'attention :**
+- **Sécurité :** la configuration Firebase est visible par tout le monde dans le code du jeu, c'est normal. La protection vient des **règles de sécurité Firestore** : chaque joueur ne peut lire et écrire **que ses propres données**.
+- **Triche :** comme tout tourne chez le joueur, il est impossible d'empêcher complètement la triche. Pour un jeu solo, ce n'est pas un problème. Ça le deviendrait seulement pour un classement en ligne.
+- **Coût :** le palier gratuit de Firebase (Spark) suffit largement pour commencer. Il faut quand même limiter le nombre d'écritures (voir ci-dessous).
+
 ### 16.2 Contraintes d'interface
 
 | Contrainte | Conséquence |
@@ -777,12 +791,20 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 - **Une seule run en cours à la fois.** Lancer une nouvelle partie demande de confirmer l'abandon de la run en cours (qui compte alors comme une défaite pour l'expérience).
 - **Pas de triche par rechargement** : les tirages aléatoires (récompenses, pioche, événements) sont déterminés par une **graine** propre à la run. Recharger la partie ne change pas ce qui va sortir. Seul un wipe donne une nouvelle graine pour le combat retenté (voir §6.7).
 
-**Où sont stockées les sauvegardes :**
-- **Première version :** dans le navigateur de l'appareil (stockage local). Simple, sans compte ni serveur.
-- **Limite à connaître :** si le joueur vide les données de son navigateur ou change d'appareil, il perd sa sauvegarde.
-- **Plus tard :**
-  - un **export/import** de la sauvegarde (un fichier ou un code à copier), pour la conserver ou la transférer ;
-  - éventuellement une **synchronisation en ligne** avec un compte, pour commencer une run sur PC et la finir sur téléphone.
+**Où sont stockées les sauvegardes :** sur deux niveaux.
+
+| Niveau | Où | Quand | Rôle |
+|---|---|---|---|
+| **Local** | Le navigateur de l'appareil | **Après chaque action** | La reprise exacte, même au milieu d'un combat, même sans réseau. |
+| **En ligne** | **Cloud Firestore** (Firebase) | À chaque **changement de nœud** (fin d'un combat, d'un événement, d'une visite chez le vendeur…), à la **fin d'une run**, et quand le joueur fait « Sauvegarder et quitter » | Retrouver sa partie sur un autre appareil, et ne rien perdre si le navigateur est vidé. |
+
+- Ce rythme limite les écritures en ligne à quelques dizaines par run, ce qui reste dans le palier gratuit de Firebase.
+- **Sans réseau**, le jeu continue de fonctionner avec la sauvegarde locale, puis synchronise quand la connexion revient.
+- **En cas de conflit** (deux appareils), le jeu garde la sauvegarde **la plus avancée** et prévient le joueur.
+- **Organisation des données (première idée) :**
+  - `joueurs/{id}/profil` : niveaux et talents de chaque classe, déblocages, tables de loot découvertes, difficultés atteintes, statistiques, options ;
+  - `joueurs/{id}/runs/en_cours` : l'état complet de la run en cours ;
+  - `joueurs/{id}/historique/{run}` : un résumé de chaque run terminée (classe, score, étage atteint), pour les statistiques et les archives.
 
 ---
 
@@ -818,7 +840,8 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | **Légendaires** | Un par classe, obtenu par une petite quête, un seul par run |
 | **Progression** | Déblocages de contenu et 20 niveaux de difficulté comme dans StS, **plus** des talents permanents jusqu'au niveau 10 de chaque classe |
 | **Plateformes** | Navigateur, sur PC et smartphone, **en mode paysage** |
-| **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat), stockée dans le navigateur au départ |
+| **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat). Locale après chaque action, en ligne (Firestore) à chaque nœud |
+| **Hébergement** | GitHub Pages (site statique) + Firebase (Authentication et Firestore) pour les comptes, le profil et les sauvegardes |
 | **Modes futurs** | Mode rapide et mode infini |
 
 ---
@@ -829,7 +852,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 |---|---|---|
 | 1 | **Classes du premier prototype** | Proposition : **Guerrier** (rage), **Mage** (écoles), **Démoniste** (familier + DoTs), pour 3 styles de jeu très différents. |
 | 2 | **Ordre de déblocage des classes** | Le Guerrier est disponible dès le départ. Dans quel ordre débloquer les 8 autres ? |
-| 3 | **Technologie** | Pour un jeu navigateur PC + mobile : TypeScript avec un moteur 2D web (Phaser ou PixiJS), ou Godot avec export web. À décider au moment du prototype. |
+| 3 | **Technologie** | Pour un jeu statique sur GitHub Pages avec Firebase : TypeScript avec un moteur 2D web (Phaser ou PixiJS), ou une interface web classique (HTML/CSS avec un framework comme React ou Svelte), puisque le jeu est surtout fait de cartes et de menus. À décider au moment du prototype. |
 | 4 | **Visuels** | Faits main, générés, ou des éléments simples (icônes et formes) pour le prototype ? |
 | 5 | **Noms de l'univers** | Les noms actuels (Eldrava, Vulkhar, Vhaeryx, Irem, Sarvok…) sont une première proposition. On pourra les ajuster. |
 
