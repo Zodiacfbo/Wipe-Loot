@@ -238,6 +238,7 @@ L'**Incantation** est la mécanique signature du combat. Un boss commence à lan
 | **Interruption** | Annule l'incantation en cours de la cible. |
 | **Dissipation (type)** | Retire un débuff du type indiqué (Magie, Malédiction, Poison, Maladie). |
 | **DoT (X)** | Inflige X dégâts au début de chaque tour de l'ennemi, pendant plusieurs tours. |
+| **Saignement (X)** | Un DoT physique de 3 tours. Un nouveau Saignement s'ajoute au précédent et remet la durée à 3 tours. |
 | **Contrôle** | La cible saute son prochain tour. Les boss y sont immunisés. |
 | **Épuisé** | La carte est retirée pour le reste du combat une fois jouée. |
 | **Éphémère** | Si la carte est encore en main à la fin du tour, elle est retirée du combat. |
@@ -773,5 +774,6 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 1. ~~Écrire le concept général~~ ✅
 2. ~~Passer en univers original~~ ✅
 3. **Concevoir les classes** une par une : deck de départ, environ 50 cartes, 3 arbres de talents, sorts de barre, légendaire. On commence par les 3 classes du prototype.
+   - [Guerrier](classes/GUERRIER.md) ✅ (version 0.1)
 4. **Concevoir l'acte 1 (les Profondeurs Ardentes)** en détail : trash, boss secondaires, Vulkhar, tables de loot, événements, chiffres.
 5. **Prototyper le combat** (sur papier ou en code) avec 1 classe et quelques ennemis.
