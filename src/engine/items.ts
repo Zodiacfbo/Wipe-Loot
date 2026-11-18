@@ -3,7 +3,7 @@
 
 export type Slot = 'arme' | 'amulette' | 'bague' | 'bijou';
 export type SlotKey = 'arme' | 'amulette' | 'bague1' | 'bague2' | 'bijou1' | 'bijou2';
-export type ItemRarity = 'commun' | 'rare' | 'epique';
+export type ItemRarity = 'commun' | 'rare' | 'epique' | 'legendaire';
 
 export const SLOT_KEYS: SlotKey[] = ['arme', 'amulette', 'bague1', 'bague2', 'bijou1', 'bijou2'];
 
@@ -53,6 +53,8 @@ export interface ItemEffects {
   allyBonus?: number; // tes alliés (familier, totems…) infligent +X dégâts
   chestChoice?: number; // les coffres proposent 2 objets au choix
   potionSlots?: number; // +X emplacements de potion
+  rageOnHpLoss?: number; // +X rage quand tu perds des PV
+  executeAlways?: number; // Exécution inflige toujours son bonus
   maxHp?: number; // +X PV max
   healAfterCombat?: number; // soigne X PV à la fin de chaque combat gagné
 }
@@ -135,6 +137,9 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
   item('baton_intendant', 'Bâton de l\'intendant', 'arme', 'rare', 'Tes Attaques infligent +1 dégât, et tes cartes de blocage donnent +2 blocage.', { attackBonus: 1, blockBonus: 2 }),
   item('miroir_intendant', 'Miroir de l\'intendant', 'bijou', 'rare', 'Quand tu bloques entièrement une attaque, renvoie 4 dégâts à l\'attaquant.', { blockReflect: 4 }),
   item('trousseau_intendant', 'Trousseau de l\'intendant', 'bijou', 'rare', 'Les coffres te proposent 2 objets au choix au lieu d\'un.', { chestChoice: 1 }),
+  // --- Légendaires de classe ---
+  item('brisemonts', 'Brisemonts', 'arme', 'legendaire', 'Gagne 1 rage de plus chaque fois que tu perds des PV. Exécution inflige toujours son bonus de dégâts, quels que soient les PV de la cible.', { rageOnHpLoss: 1, executeAlways: 1 }),
+
   item('amulette_intendant', 'Amulette de l\'intendant', 'amulette', 'rare', 'Tu as 1 emplacement de potion de plus.', { potionSlots: 1 }),
 ].map((d) => [d.id, d]));
 
@@ -160,7 +165,7 @@ export const LOOT_TABLES: Record<string, string[]> = {
 export type Equipment = Record<SlotKey, string | null>;
 
 /** Prix de la réparation d'un objet brisé chez le vendeur gobelin. */
-export const REPAIR_PRICE: Record<ItemRarity, number> = { commun: 50, rare: 75, epique: 100 };
+export const REPAIR_PRICE: Record<ItemRarity, number> = { commun: 50, rare: 75, epique: 100, legendaire: 150 };
 
 export function emptyEquipment(): Equipment {
   return { arme: null, amulette: null, bague1: null, bague2: null, bijou1: null, bijou2: null };

@@ -12,7 +12,7 @@ import {
   useSpell,
 } from './engine/combat';
 import { ENEMIES, intentAt, isInterruptible } from './engine/enemies';
-import { EVENTS } from './engine/events';
+import { BLESSINGS, EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
   MAX_WIPES,
@@ -32,6 +32,11 @@ import {
   leaveShop,
   newRun,
   resolveEvent,
+  eventChoiceLock,
+  leaveEvent,
+  offerBlessing,
+  chooseBlessing,
+  campfireReforge,
   retryAfterWipe,
   servicePrice,
   buyPotion,
@@ -69,11 +74,13 @@ interface UiState {
   shopItem: number | null;
   /** Écran du coffre avant une nouvelle run. */
   chestPick: boolean;
+  /** Brégan : choix de la carte à retirer (Allègement). */
+  blessingRemove: boolean;
   /** Objet choisi pour le dépôt, quand le coffre est plein (on choisit ensuite quoi remplacer). */
   depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -91,7 +98,7 @@ const ICON = {
 };
 
 const RARITY_FRAME: Record<string, string> = {
-  depart: 'depart', commune: 'commune', peu_commune: 'peu_commune', rare: 'rare', epique: 'epique', statut: 'statut',
+  depart: 'depart', commune: 'commune', peu_commune: 'peu_commune', rare: 'rare', epique: 'epique', statut: 'statut', profession: 'depart',
 };
 
 const POSTURES: { id: Posture; label: string; aide: string }[] = [
@@ -162,7 +169,7 @@ function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false)
     return `<div class="objet vide"><span class="objet-icone">${SLOT_ICON[(slotLabel.toLowerCase() as Slot)] ?? ''}</span><div><b>${slotLabel}</b><span>Emplacement vide</span></div></div>`;
   }
   const it = ITEMS[id];
-  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : 'épique'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span></div>${extra}</div>`;
+  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span></div>${extra}</div>`;
 }
 
 /** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
@@ -189,7 +196,7 @@ function potionHtml(id: string, extra = ''): string {
 
 function rememberItems(run: RunState): void {
   const profile = loadProfile();
-  const ids = [run.pendingItem, run.pendingAlt, ...SLOT_KEYS.map((k) => run.equipment[k])].filter((x): x is string => !!x);
+  const ids = [run.pendingItem, ...run.pendingAlts, ...SLOT_KEYS.map((k) => run.equipment[k])].filter((x): x is string => !!x);
   const fresh = ids.filter((id) => !profile.discoveredItems.includes(id));
   if (fresh.length > 0) {
     profile.discoveredItems.push(...fresh);
@@ -249,6 +256,21 @@ function nodePos(n: MapNode): { x: number; y: number } {
   return { x: 80 + n.floor * 124, y: 170 + n.lane * 118 + jitter };
 }
 
+/** Les quêtes en cours, affichées sur la carte. */
+function questTracker(run: RunState): string {
+  const lines: string[] = [];
+  if (run.sourcesQuest === 'active') lines.push('<b>Gardiens des Sources</b> : bats le prochain boss secondaire, il portera la rune.');
+  if (run.sourcesQuest === 'rune') lines.push('<b>Gardiens des Sources</b> : bats le boss qui porte la rune.');
+  if (run.sourcesQuest === 'done') lines.push('<b>Eau des profondeurs</b> : Vulkhar commencera affaibli.');
+  if (run.brisemonts === 'lame') lines.push(run.map.nodes.some((n) => n.type === 'elite' && n.elite === KRAGG_INDEX)
+    ? '<b>Brisemonts</b> : bats Krâgg le Mange-roche pour obtenir le Cœur de la montagne.'
+    : '<b>Brisemonts</b> : Krâgg n\'est pas sur cette carte. La quête ne pourra pas être terminée cette fois.');
+  if (run.brisemonts === 'coeur') lines.push('<b>Brisemonts</b> : reforge l\'épée au prochain feu de camp.');
+  return lines.length ? `<div class="quetes"><span class="butin-titre">Quêtes</span>${lines.map((l) => `<p>${l}</p>`).join('')}</div>` : '';
+}
+
+const KRAGG_INDEX = ELITE_ENCOUNTERS.findIndex((e) => e.loot === 'kragg');
+
 function mapScreen(run: RunState): string {
   const nodes = run.map.nodes;
   const can = new Set(reachable(run.map, run.position).map((n) => n.id));
@@ -286,6 +308,7 @@ function mapScreen(run: RunState): string {
       <svg class="liens" width="1280" height="720" aria-hidden="true">${lines}</svg>
       ${buttons}
       <div class="legende">${legend}</div>
+      ${questTracker(run)}
       ${run.map.nodes.some((n) => n.type === 'elite') ? '<button type="button" class="bouton bouton-loot" data-action="loot">Tables de loot</button>' : ''}
     </div>`;
 }
@@ -293,11 +316,46 @@ function mapScreen(run: RunState): string {
 function eventScreen(run: RunState): string {
   const ev = run.eventId ? EVENTS[run.eventId] : null;
   if (!ev) return '';
-  const choices = ev.choices.map((ch, i) => `<button type="button" class="choix-evenement" data-action="choix" data-index="${i}"><b>${ch.label}</b><span>${ch.detail}</span></button>`).join('');
+  if (run.eventOutcome) {
+    return `${topbar(run, run.hp)}<div class="ecran">
+      <h2>${ev.title}</h2>
+      <p class="texte-evenement">${run.eventOutcome}</p>
+      <button type="button" class="gros-bouton" data-action="evenement-fin">Continuer</button>
+    </div>`;
+  }
+  const choices = ev.choices.map((ch, i) => {
+    const lock = eventChoiceLock(run, i);
+    return lock
+      ? `<button type="button" class="choix-evenement verrouille" disabled><b>${ch.label}</b><span>${ch.detail}</span><em>${lock}</em></button>`
+      : `<button type="button" class="choix-evenement" data-action="choix" data-index="${i}"><b>${ch.label}</b><span>${ch.detail}</span></button>`;
+  }).join('');
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>${ev.title}</h2>
     <p class="texte-evenement">${ev.text}</p>
+    ${ev.warriorText ? `<p class="texte-evenement classe">${ev.warriorText}</p>` : ''}
     <div class="choix-liste">${choices}</div>
+  </div>`;
+}
+
+function blessingScreen(run: RunState): string {
+  if (ui.blessingRemove) {
+    const cards = run.deck.map((card) => cardHtml(card, { action: `data-action="benediction-carte" data-uid="${card.uid}"` })).join('');
+    return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
+      <h2>Allègement</h2>
+      <p>Choisis la carte à retirer de ton deck.</p>
+      <div class="liste-deck">${cards}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="benediction-retour">Retour</button>
+    </div>`;
+  }
+  const choices = run.blessings.map((id) => {
+    const b = BLESSINGS[id];
+    return `<button type="button" class="choix-evenement" data-action="benediction" data-id="${id}"><b>${b.name}</b><span>${b.text}</span></button>`;
+  }).join('');
+  return `${topbar(run, run.hp)}<div class="ecran">
+    <img class="px" src="${A('bregan.png')}" alt="Brégan le Passeur" style="width:144px;height:144px">
+    <h2>Brégan le Passeur</h2>
+    <p class="texte-evenement">À l'entrée des Profondeurs Ardentes, un vieux nain t'attend près de sa barque. « Les profondeurs n'aiment pas les visiteurs. Prends ceci, ça pourrait te sauver la vie. »</p>
+    <div class="choix-liste grille">${choices}</div>
   </div>`;
 }
 
@@ -416,6 +474,7 @@ function enemyChips(e: EnemyState): string {
   if (b.armureFracassee > 0) chips.push(`<span class="chip debuff">Armure fracassée ${b.armureFracassee}</span>`);
   if (b.saignement > 0) chips.push(`<span class="chip saigne">Saignement ${b.saignement}</span>`);
   if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
+  if (ui.run?.encounter?.rune && ENEMIES[e.defId].elite) chips.push('<span class="chip rune">Rune des Sources</span>');
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
   if (e.disarmed) chips.push('<span class="chip debuff">Désarmé</span>');
   if (e.noHeal) chips.push('<span class="chip debuff">Insoignable</span>');
@@ -473,7 +532,7 @@ function intentNow(c: CombatState, e: EnemyState): string {
     case 'attack': {
       const dmg = previewIntentDamage(c, e) ?? 0;
       const times = i.times && i.times > 1 ? ` × ${i.times}` : '';
-      const zone = i.addZone ? ' + Zone de feu' : '';
+      const zone = i.addZone ? ' + Zone de feu' : i.stealGold ? ` + vole ${i.stealGold} or` : '';
       return `<div class="intention">${ICON.epee}<span>${dmg}${times}${zone}</span></div>`;
     }
     case 'block':
@@ -487,7 +546,7 @@ function intentNow(c: CombatState, e: EnemyState): string {
     case 'summon':
       return `<div class="intention soutien">${ICON.hausse}<span>${i.label}</span></div>`;
     case 'blink':
-      return `<div class="intention soutien">${ICON.charge}<span>Clignement</span></div><div class="effet-intention">Ne pourra plus être ciblé jusqu'à son prochain tour</div>`;
+      return `<div class="intention malediction">${ICON.charge}<span>Va se dérober</span></div><div class="effet-intention">À la fin de ce tour, il Cligne : pendant ton prochain tour, tu ne pourras pas le cibler (les attaques de zone le touchent)</div>`;
   }
 }
 
@@ -686,10 +745,11 @@ function rewardScreen(run: RunState): string {
   return `${topbar(run, run.hp)}<div class="ecran ${crowded ? 'serre' : ''}">
     <h2>${run.rewardTitle}</h2>
     ${run.rewardGold > 0 ? `<div class="gain-or">${ICON.piece}<span>+${run.rewardGold} or</span></div>` : ''}
+    ${run.questNote ? `<div class="note-quete"><span class="butin-titre">Objet de quête</span><p>${run.questNote}</p></div>` : ''}
     ${run.pendingSpell ? spellReward(run, run.pendingSpell) : ''}
     ${run.pendingItem || run.pendingPotion ? `<div class="butins">
-      ${run.pendingItem ? `<div class="butin"><span class="butin-titre">${run.pendingAlt ? 'Butin · au choix' : 'Butin'}</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', run.pendingAlt ? '' : '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
-      ${run.pendingItem && run.pendingAlt ? `<div class="butin"><span class="butin-titre">ou</span>${itemHtml(run.pendingAlt)}${equipChoices(run, run.pendingAlt, 'data-action="equiper" data-alt="1"', '<button type="button" class="bouton-objet secondaire" data-action="laisser">Aucun des deux</button>')}</div>` : ''}
+      ${run.pendingItem ? `<div class="butin"><span class="butin-titre">${run.pendingAlts.length ? 'Butin · au choix' : 'Butin'}</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', run.pendingAlts.length ? '' : '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
+      ${run.pendingItem ? run.pendingAlts.map((alt, i) => `<div class="butin"><span class="butin-titre">ou</span>${itemHtml(alt)}${equipChoices(run, alt, `data-action="equiper" data-alt="${i}"`, i === run.pendingAlts.length - 1 ? '<button type="button" class="bouton-objet secondaire" data-action="laisser">Aucun</button>' : '')}</div>`).join('') : ''}
       ${run.pendingPotion ? potionReward(run, run.pendingPotion) : ''}
     </div>` : ''}
     ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton deck.</p>' : ''}
@@ -715,7 +775,9 @@ function campfireScreen(run: RunState): string {
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>Feu de camp</h2>
     <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
+    ${run.brisemonts === 'coeur' ? `<p class="texte-evenement classe">Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d'entraînement. L'épée remplacera ton arme actuelle.</p>${itemHtml('brisemonts')}` : ''}
     <div class="actions">
+      ${run.brisemonts === 'coeur' ? '<button type="button" class="gros-bouton legendaire" data-action="reforger">Reforger Brisemonts</button>' : ''}
       <button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>
       <button type="button" class="gros-bouton secondaire" data-action="feu-ameliorer">Améliorer une carte</button>
     </div>
@@ -895,6 +957,7 @@ export function render(): void {
   switch (run.screen) {
     case 'map': html = mapScreen(run); break;
     case 'event': html = eventScreen(run); break;
+    case 'blessing': html = blessingScreen(run); break;
     case 'shop': html = shopScreen(run); break;
     case 'combat': html = run.combat ? combatScreen(run, run.combat) : ''; break;
     case 'reward': html = rewardScreen(run); break;
@@ -937,6 +1000,8 @@ function startNewRun(heirloom: string | null = null): void {
   ui.chestPick = false;
   ui.depositSlot = null;
   ui.run = newRun(undefined, heirloom);
+  offerBlessing(ui.run);
+  ui.blessingRemove = false;
   ui.selection = null;
   ui.overlay = null;
   ui.campfireUpgrade = false;
@@ -1051,8 +1116,15 @@ function handleClick(ev: MouseEvent): void {
       commit();
       break;
     case 'recompense': chooseReward(run, el.dataset.id || null); commit(); break;
-    case 'noeud': chooseNode(run, Number(el.dataset.id)); commit(); break;
-    case 'choix': resolveEvent(run, Number(el.dataset.index)); commit(); break;
+    case 'noeud': chooseNode(run, Number(el.dataset.id)); render(); commit(); break; // le combat s'affiche avant ses animations (embuscade, rune)
+    case 'choix': resolveEvent(run, Number(el.dataset.index)); render(); commit(); break;
+    case 'evenement-fin': leaveEvent(run); commit(); break;
+    case 'benediction':
+      if (el.dataset.id === 'allegement') { ui.blessingRemove = true; render(); break; }
+      chooseBlessing(run, el.dataset.id!); commit(); break;
+    case 'benediction-carte': chooseBlessing(run, 'allegement', Number(el.dataset.uid)); ui.blessingRemove = false; commit(); break;
+    case 'benediction-retour': ui.blessingRemove = false; render(); break;
+    case 'reforger': campfireReforge(run); commit(); break;
     case 'acheter': buyCard(run, Number(el.dataset.index)); commit(); break;
     case 'service': ui.shopMode = el.dataset.service as 'remove' | 'upgrade'; render(); break;
     case 'service-carte':
@@ -1063,7 +1135,7 @@ function handleClick(ev: MouseEvent): void {
       break;
     case 'boutique-retour': ui.shopMode = null; render(); break;
     case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; leaveShop(run); commit(); break;
-    case 'equiper': equipPending(run, el.dataset.slot as SlotKey, el.dataset.alt === '1'); commit(); break;
+    case 'equiper': equipPending(run, el.dataset.slot as SlotKey, el.dataset.alt === undefined ? undefined : Number(el.dataset.alt)); commit(); break;
     case 'laisser': leavePending(run); commit(); break;
     case 'boire': drinkPotion(run, Number(el.dataset.slot)); ui.overlay = null; ui.selection = null; commit(); break;
     case 'jeter': discardPotion(run, Number(el.dataset.slot)); ui.overlay = null; commit(); break;
@@ -1114,7 +1186,7 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'vendeur_gobelin.png', 'icone_epee.png', 'icone_bouclier.png', 'icone_pouvoir.png', 'icone_feu.png',
+  'guerrier.png', 'vendeur_gobelin.png', 'icone_epee.png', 'icone_bouclier.png', 'icone_pouvoir.png', 'icone_feu.png', 'icone_sang.png', 'bregan.png',
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`),
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),
 ];

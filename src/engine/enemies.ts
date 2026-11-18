@@ -159,6 +159,13 @@ export const ENEMIES: Record<string, EnemyDef> = {
     id: 'saldris', name: 'Grand Intendant Saldris', hpMin: 60, hpMax: 60, elite: true,
     cycle: [{ kind: 'attack', dmg: 8 }],
   },
+  mimique: {
+    id: 'mimique', name: 'Gobelin mimique', hpMin: 45, hpMax: 45,
+    cycle: [
+      { kind: 'attack', dmg: 9 },
+      { kind: 'attack', dmg: 9, stealGold: 15 },
+    ],
+  },
   rejeton: {
     id: 'rejeton', name: 'Rejeton de flamme', hpMin: 12, hpMax: 12,
     cycle: [{ kind: 'attack', dmg: 4 }],
@@ -206,6 +213,16 @@ export interface Encounter {
   enrageTurn?: number;
   /** Table de loot (boss secondaires). */
   loot?: string;
+  /** Les ennemis agissent avant ton premier tour (embuscade). */
+  ambush?: boolean;
+  /** Or gagné en plus (Gobelin mimique). */
+  goldReward?: [number, number];
+  /** Un objet d'équipement en plus après la victoire. */
+  bonusItem?: 'commun' | 'rare';
+  /** Ce boss secondaire porte la rune des Gardiens des Sources. */
+  rune?: boolean;
+  /** Vulkhar est affaibli par l'Eau des profondeurs (−15 % de PV, Marteau des flammes retardé). */
+  weakened?: boolean;
 }
 
 /** Packs faciles (étages 1 à 4). */

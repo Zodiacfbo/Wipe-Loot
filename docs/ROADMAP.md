@@ -58,7 +58,8 @@
 - [x] Les sorts de barre du Guerrier : les 7 de sa fiche + 2 sorts de loot (Cri de commandement, Vague de choc), 3 emplacements
 - [ ] Le 4ᵉ emplacement de la barre (talent Protection, phase 2)
 - [ ] Une illustration en pixel art par carte
-- [ ] Le légendaire Brisemonts et sa quête
+- [x] Le légendaire Brisemonts et sa quête (forge éteinte → Krâgg → Reforger au feu de camp)
+- [ ] Le râtelier de la guilde : garder le légendaire forgé d'une run à l'autre (phase 2)
 
 ### 1.4 Le loot et l'économie
 - [x] L'or (99 au départ, gains après chaque combat, plus sur les boss secondaires)
@@ -77,9 +78,11 @@
 - [x] La facture de réparation après un wipe (50, 100, 150 or), et les objets brisés
 
 ### 1.5 Les nœuds « ? »
-- [ ] Les événements narratifs de l'acte 1 (premiers événements simples en place : la source chaude, le raideur tombé)
-- [ ] Les combats cachés (fait : embuscade ; reste : gobelin mimique, patrouille)
-- [ ] La quête des Gardiens des Sources (affaiblit Vulkhar)
+- [x] Les événements narratifs de l'acte 1 : 9 de la fiche + la source chaude et le raideur tombé (Ventor viendra avec le Voleur) ; choix grisés avec leur raison ; chacun une fois par run
+- [x] Les combats cachés : embuscade cendreuse (les ennemis frappent d'abord), gobelin mimique (vole de l'or), patrouille de la flamme
+- [x] La bénédiction d'entrée de Brégan le Passeur (4 bonus parmi 8)
+- [x] La quête des Gardiens des Sources (Vulkhar −15 % de PV, Marteau des flammes retardé)
+- [ ] Les cartes de profession (Ingénierie pour le pont de la rivière de lave, plus de Premiers soins…)
 
 ### 1.6 Équilibrage
 - [ ] Tester des runs complètes et ajuster les PV, les dégâts et les récompenses

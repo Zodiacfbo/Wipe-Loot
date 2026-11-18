@@ -119,7 +119,7 @@ describe('potions', () => {
     delete old.potions;
     delete old.pendingPotion;
     const run = migrate(old)!;
-    expect(run.version).toBe(9);
+    expect(run.version).toBe(10);
     expect(run.potions).toEqual([null, null, null]);
   });
 });

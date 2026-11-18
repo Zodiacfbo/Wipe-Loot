@@ -50,7 +50,21 @@ export function migrate(raw: unknown): RunState | null {
     run.pendingSpell = null;
     run.version = 9;
   }
-  return run.version === 9 ? (run as unknown as RunState) : null;
+  if (run.version === 9) {
+    run.pendingAlts = run.pendingAlt ? [run.pendingAlt] : [];
+    delete run.pendingAlt;
+    run.blessings = [];
+    run.seenEvents = [];
+    run.eventOutcome = null;
+    run.sourcesQuest = null;
+    run.brisemonts = null;
+    run.questNote = null;
+    run.weaponUpgrade = null;
+    run.detour = false;
+    if (run.eventId === 'source') run.eventId = 'source_chaude';
+    run.version = 10;
+  }
+  return run.version === 10 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

@@ -2,7 +2,7 @@
 // Après une victoire, on y dépose 1 objet. Au début d'une run, on peut en emporter 1 :
 // il revient au coffre si la run est gagnée, il est perdu sinon.
 // Référence : docs/CONCEPT.md (§12.8)
-import { SLOT_KEYS, type SlotKey } from './items';
+import { ITEMS, SLOT_KEYS, type SlotKey } from './items';
 import type { RunState } from './types';
 
 export const CHEST_SIZE = 6;
@@ -28,7 +28,8 @@ export function heirloomSlot(run: RunState): SlotKey | null {
 /** Les objets que l'on peut déposer après une victoire (tout l'équipement, sauf l'objet emporté qui revient de lui-même). */
 export function depositableSlots(run: RunState): SlotKey[] {
   const back = heirloomSlot(run);
-  return SLOT_KEYS.filter((k) => run.equipment[k] && k !== back);
+  // Le légendaire de classe ne va pas au coffre (il aura son propre râtelier).
+  return SLOT_KEYS.filter((k) => run.equipment[k] && k !== back && ITEMS[run.equipment[k]!].rarity !== 'legendaire');
 }
 
 /** Place restante dans le coffre une fois l'objet emporté revenu. */

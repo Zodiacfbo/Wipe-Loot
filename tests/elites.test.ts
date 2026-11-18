@@ -213,11 +213,11 @@ describe('les nouveaux objets', () => {
     const node = run.map.nodes.find((n) => n.type === 'chest')!;
     run.position = run.map.nodes.find((n) => n.next.includes(node.id))!.id;
     chooseNode(run, node.id);
-    expect(run.pendingAlt).toBeTruthy();
-    expect(run.pendingAlt).not.toBe(run.pendingItem);
-    const alt = run.pendingAlt!;
+    expect(run.pendingAlts).toHaveLength(1);
+    expect(run.pendingAlts[0]).not.toBe(run.pendingItem);
+    const alt = run.pendingAlts[0];
     const slot = (['arme', 'amulette', 'bague1', 'bijou2'] as const).find((k) => ITEMS[alt].slot === k.replace(/\d/, ''))!;
-    expect(equipPending(run, slot, true)).toBe(true);
+    expect(equipPending(run, slot, 0)).toBe(true);
     expect(run.pendingItem).toBeNull();
   });
 

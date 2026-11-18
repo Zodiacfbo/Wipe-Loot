@@ -43,7 +43,7 @@ export interface CardDef {
   unplayable?: boolean;
   /** Commence le combat dans la main (une fois améliorée, pour Furie croissante). */
   innateUp?: boolean;
-  icon: 'epee' | 'bouclier' | 'pouvoir' | 'feu';
+  icon: 'epee' | 'bouclier' | 'pouvoir' | 'feu' | 'sang';
   text: (up: boolean) => string;
   play: (ctx: PlayContext) => void;
 }
@@ -196,7 +196,7 @@ export const CARDS: Record<string, CardDef> = {
     text: (up) => `Toute ta rage : ${up ? 5 : 4} dégâts par point (${up ? 10 : 8} sous 30 % PV).`,
     play: (ctx) => {
       if (!ctx.target) return;
-      const low = ctx.target.hp <= ctx.target.maxHp * 0.3;
+      const low = ctx.target.hp <= ctx.target.maxHp * 0.3 || !!ctx.c.gear?.executeAlways;
       const perPoint = low ? (ctx.up ? 10 : 8) : ctx.up ? 5 : 4;
       if (ctx.rageSpent > 0) hit(ctx, perPoint * ctx.rageSpent, { rageCard: true });
     },
@@ -204,7 +204,7 @@ export const CARDS: Record<string, CardDef> = {
 
   // --- Arbre Armes ---
   taillade: {
-    id: 'taillade', name: 'Taillade', type: 'Attaque', rarity: 'commune', cost: 0, needsTarget: true, icon: 'epee',
+    id: 'taillade', name: 'Taillade', type: 'Attaque', rarity: 'commune', cost: 0, needsTarget: true, icon: 'sang',
     text: (up) => `Inflige ${up ? 5 : 3} dégâts. Saignement ${up ? 3 : 2}.`,
     play: (ctx) => {
       hit(ctx, ctx.up ? 5 : 3);
@@ -213,8 +213,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   pourfendre: {
     id: 'pourfendre', name: 'Pourfendre', type: 'Attaque', rarity: 'commune', cost: 1, needsTarget: true,
-    icon: 'epee',
-    text: (up) => `Saignement ${up ? 7 : 5} (3 tours).`,
+    icon: 'sang',
+    text: (up) => `Saignement ${up ? 7 : 5} pendant\u00a03\u00a0tours.`,
     play: (ctx) => {
       if (ctx.target) applySaignement(ctx.target, ctx.up ? 7 : 5, ctx.c);
     },
@@ -322,7 +322,7 @@ export const CARDS: Record<string, CardDef> = {
   },
   entaille_profonde: {
     id: 'entaille_profonde', name: 'Entaille profonde', type: 'Pouvoir', rarity: 'peu_commune', cost: 1,
-    needsTarget: false, icon: 'pouvoir',
+    needsTarget: false, icon: 'sang',
     text: (up) => `Tes Attaques à rage qui touchent appliquent Saignement ${up ? 3 : 2}.`,
     play: (ctx) => powerCard(ctx, 'entaille_profonde', ctx.up ? 3 : 2, 'Entaille profonde'),
   },
@@ -601,6 +601,23 @@ export const CARDS: Record<string, CardDef> = {
     ethereal: true, exhaust: true, icon: 'feu',
     text: () => `S'éloigner. Sinon : 15 dégâts en fin de tour (et 5 à chaque ennemi).`,
     play: () => {},
+  },
+  malediction: {
+    id: 'malediction', name: 'Fardeau', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
+    unplayable: true, icon: 'pouvoir',
+    text: () => `Malédiction permanente. Injouable.`,
+    play: () => {},
+  },
+  bandage_de_lin: {
+    id: 'bandage_de_lin', name: 'Bandage de lin', type: 'Compétence', rarity: 'profession', cost: 1, needsTarget: false,
+    exhaust: true, icon: 'bouclier',
+    text: (up) => `Premiers soins. Soigne ${up ? 9 : 6} PV. Épuisé.`,
+    play: (ctx) => {
+      const p = ctx.c.player;
+      const healed = Math.min(p.maxHp - p.hp, ctx.up ? 9 : 6);
+      p.hp += healed;
+      fx(ctx.c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+    },
   },
   fardeau: {
     id: 'fardeau', name: 'Fardeau', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,

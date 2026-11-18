@@ -114,6 +114,16 @@ def flamme():
     return s.render()
 
 
+def goutte():
+    """Une goutte de sang : l'icône des cartes de Saignement."""
+    s = Sprite(32, 32)
+    s.poly([(16, 2), (19, 9), (24, 16), (25, 22), (22, 28), (16, 30), (10, 28), (7, 22), (8, 16), (13, 9)], '#B8202A')
+    s.poly([(16, 8), (19, 13), (22, 19), (22, 24), (19, 27), (16, 27)], '#D83A3A', shade=False)
+    s.ellipse(11, 16, 15, 23, '#FF9A9A', glow=True)
+    s.dots([(5, 26), (27, 25), (25, 8)], '#D83A3A')
+    return s.render()
+
+
 def big(img, scale):
     return img.resize((img.width * scale, img.height * scale), Image.NEAREST)
 

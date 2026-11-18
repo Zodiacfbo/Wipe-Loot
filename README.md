@@ -18,6 +18,7 @@ Le prototype jouable contient :
 - le **coffre de la guilde** : après une victoire, on y met un objet à l'abri ; au début d'une run, on peut en emporter un, au risque de le perdre ;
 - l'**équipement** (6 emplacements) et les **tables de loot** des boss secondaires, cachées en « ??? » tant qu'un objet n'a jamais été obtenu ;
 - les **incantations interruptibles**, les **Zones de feu**, le **Saignement**, les **wipes** (3 nouveaux essais, avec une facture de réparation : sans assez d'or, un objet est brisé) ;
+- la **bénédiction de Brégan** au départ, les **événements « ? »** de l'acte 1 et ses **combats cachés**, la quête des **Gardiens des Sources** et la quête légendaire **Brisemonts** ;
 - la **sauvegarde automatique** dans le navigateur, après chaque action.
 
 ### Jouer en local

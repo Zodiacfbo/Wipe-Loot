@@ -385,9 +385,47 @@ def gardien():
     return s.render()
 
 
+
+def mimique():
+    """Le Gobelin mimique : un coffre à dents, une langue, des yeux de gobelin."""
+    s = Sprite(48, 48)
+    s.rect(6, 26, 42, 44, '#7A4A2A')  # caisse
+    s.rect(6, 26, 42, 28, '#5A3822')
+    s.rect(22, 30, 26, 36, '#E6B84A')  # serrure
+    s.poly([(4, 8), (44, 8), (42, 22), (6, 22)], '#8A5A32')  # couvercle ouvert
+    s.rect(4, 8, 44, 10, '#E6B84A')
+    s.poly([(8, 22), (40, 22), (40, 26), (8, 26)], '#2A0E0A')  # gueule
+    s.dots([(10, 22), (14, 22), (18, 22), (22, 22), (26, 22), (30, 22), (34, 22), (38, 22)], '#F4F7FB')
+    s.dots([(12, 25), (18, 25), (24, 25), (30, 25), (36, 25)], '#F4F7FB')
+    s.poly([(18, 24), (30, 24), (34, 34), (26, 32), (20, 36)], '#D8505A')  # langue
+    s.rect(14, 13, 17, 16, '#FFE27A', glow=True)  # yeux
+    s.rect(31, 13, 34, 16, '#FFE27A', glow=True)
+    s.dots([(8, 44), (40, 44)], '#3A2418')
+    return s.render()
+
+
+def bregan():
+    """Brégan le Passeur : un vieux nain à la longue barbe, une lanterne et une perche."""
+    s = Sprite(48, 48)
+    s.line([(40, 2), (36, 46)], '#5A3822', width=2)  # perche
+    s.rect(16, 36, 21, 46, '#3A2A26')  # jambes
+    s.rect(26, 36, 31, 46, '#3A2A26')
+    s.poly([(12, 22), (36, 22), (38, 40), (10, 40)], '#3A5A6A')  # manteau
+    s.rect(12, 32, 36, 34, '#5A3822')  # ceinture
+    s.ellipse(14, 6, 34, 24, '#C8A27A')  # tête
+    s.poly([(13, 10), (24, 2), (35, 10)], '#4A3A44')  # capuchon
+    s.rect(18, 12, 21, 13, '#2A1C18')
+    s.rect(27, 12, 30, 13, '#2A1C18')
+    s.poly([(15, 16), (33, 16), (30, 34), (24, 38), (18, 34)], '#E6E0D0')  # grande barbe
+    s.poly([(21, 18), (27, 18), (25, 22), (23, 22)], '#D8B89A')  # nez
+    s.ellipse(2, 26, 10, 36, '#F59A2E', glow=True)  # lanterne
+    s.ellipse(4, 28, 8, 34, '#FFE27A', glow=True)
+    s.line([(6, 22), (6, 26)], '#5A3822')
+    return s.render()
+
 ELITES = {
     'morvax': morvax, 'croc': croc, 'gorlok': gorlok, 'eclat': eclat, 'vossk': vossk, 'zhaal': zhaal,
-    'kragg': kragg, 'molosse_enrage': molosse_enrage, 'saldris': saldris, 'pretre': pretre, 'gardien': gardien,
+    'kragg': kragg, 'molosse_enrage': molosse_enrage, 'saldris': saldris, 'pretre': pretre, 'gardien': gardien, 'mimique': mimique,
 }
 
 if __name__ == '__main__':
@@ -401,4 +439,5 @@ if __name__ == '__main__':
     vulkhar().transpose(0).save(os.path.join(DEST, 'ennemi_vulkhar.png'))
     for name, fn in ELITES.items():
         fn().save(os.path.join(DEST, f'ennemi_{name}.png'))
+    bregan().save(os.path.join(DEST, 'bregan.png'))
     print('ok')

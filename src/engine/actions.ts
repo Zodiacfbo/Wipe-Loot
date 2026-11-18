@@ -66,6 +66,7 @@ export function gainRage(c: CombatState, amount: number): void {
 export function onHpLost(c: CombatState): void {
   const bonus = power(c, 'enrage');
   if (bonus > 0) c.player.enrageReady = (c.player.enrageReady ?? 0) + bonus;
+  if (c.gear?.rageOnHpLoss) gainRage(c, c.gear.rageOnHpLoss); // Brisemonts
 }
 
 /** `fromCard` : le blocage vient d'une carte (Bâton de l'intendant : +2). */

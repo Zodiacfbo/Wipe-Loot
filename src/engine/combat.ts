@@ -68,6 +68,13 @@ export function createCombat(
   for (const e of c.enemies) if (e.defId === 'saldris') e.shield = 'coups';
   if (gear.startFardeau) addStatusToDraw(c, 'fardeau', gear.startFardeau);
   log(c, `Combat : ${encounter.name}.`);
+  // L'Eau des profondeurs affaiblit Vulkhar.
+  if (encounter.weakened) {
+    for (const e of c.enemies.filter((x) => x.defId === 'vulkhar')) {
+      e.hp = Math.floor(e.maxHp * 0.85);
+      e.delayHammer = true;
+    }
+  }
   startPlayerTurn(c);
   // Effets de l'équipement au début du combat.
   const p = c.player;
@@ -82,6 +89,14 @@ export function createCombat(
     for (const e of livingEnemies(c)) damageEnemy(c, e, gear.startAoe, false);
   }
   c.fx = [];
+  if (encounter.rune) c.fx.push({ kind: 'banner', text: 'Ce boss porte la rune des Sources !' });
+  if (encounter.weakened) c.fx.push({ kind: 'banner', text: 'L\'Eau des profondeurs affaiblit Vulkhar !' });
+  // Embuscade : les ennemis frappent avant ton premier tour.
+  if (encounter.ambush) {
+    c.fx.push({ kind: 'banner', text: 'Embuscade !' });
+    log(c, 'Embuscade ! Les ennemis attaquent avant que tu ne réagisses.');
+    enemyTurn(c);
+  }
   return c;
 }
 
@@ -390,6 +405,11 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         const blockBefore = c.player.block;
         fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(blockBefore, dmg), ranged: !!intent.cast });
         const lost = damagePlayer(c, dmg, true);
+        if (intent.stealGold && lost > 0) {
+          c.goldStolen = (c.goldStolen ?? 0) + intent.stealGold;
+          fx(c, { kind: 'buff', who: e.uid, label: `Avale ${intent.stealGold} or !` });
+          log(c, `${e.name} t'avale ${intent.stealGold} or !`);
+        }
         log(c, `${e.name}${intent.cast ? ` lance ${intent.cast}` : ' attaque'} : ${dmg} dégâts (${lost} PV perdus).`);
         // Miroir de l'intendant, Charme d'épines : une attaque entièrement bloquée est renvoyée.
         // Parade ripostée : la première attaque reçue est renvoyée.
@@ -555,6 +575,13 @@ function enemyTurn(c: CombatState): void {
     e.disarmed = false;
     e.step += 1;
     e.intent = intentAt(ENEMIES[e.defId], e.step, e.phase ?? 1, e.hp < e.maxHp / 2);
+    // Vulkhar affaibli : son premier Marteau des flammes arrive un tour plus tard.
+    if (e.delayHammer && e.intent.cast === 'Marteau des flammes') {
+      e.delayHammer = false;
+      e.step -= 1;
+      e.intent = { kind: 'attack', dmg: 14 };
+      log(c, 'Affaibli par l\'eau, Vulkhar met plus de temps à lever son marteau.');
+    }
   }
   // Le Grand Intendant renforce un garde et change de bouclier (annoncé un tour à l'avance).
   const saldris = c.enemies.find((e) => e.defId === 'saldris' && !e.dead);

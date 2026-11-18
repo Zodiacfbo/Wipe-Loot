@@ -4,7 +4,7 @@ import type { Encounter } from './enemies';
 import type { Equipment, ItemEffects, SlotKey } from './items';
 import type { ActMap } from './map';
 
-export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
+export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut' | 'profession';
 export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Sort' | 'Statut';
 export type Posture = 'combat' | 'berserker' | 'defensive';
 
@@ -34,6 +34,8 @@ export type Intent =
       drawPenalty?: number;
       /** Les dégâts augmentent de cette valeur à chaque utilisation. */
       grow?: number;
+      /** Vole cet or si l'attaque fait perdre des PV (Gobelin mimique). */
+      stealGold?: number;
     }
   | { kind: 'block'; amount: number; cast?: string }
   | { kind: 'buff'; puissance: number; target: 'allies' | 'self'; cast?: string }
@@ -88,6 +90,8 @@ export interface EnemyState {
   untargetable?: boolean;
   /** Molosse de Krâgg : se relève dans ce nombre de tours. */
   reviveIn?: number;
+  /** Vulkhar affaibli par l'Eau des profondeurs : son premier Marteau des flammes arrive un tour plus tard. */
+  delayHammer?: boolean;
   /** Saldris : bouclier actif (renvoie 50 % des dégâts de ce type). */
   shield?: 'coups' | 'sorts';
   /** Saldris s'est rendu, ou un Molosse s'est enfui : il n'est plus là. */
@@ -188,12 +192,14 @@ export interface CombatState {
   /** Balayage : Attaques restantes qui touchent aussi un 2e ennemi, et l'Attaque en cours en profite-t-elle ? */
   cleave?: number;
   cleaving?: boolean;
+  /** Or volé par le Gobelin mimique. */
+  goldStolen?: number;
   bleedDoneThisTurn?: boolean;
   nextUid: number;
   rng: number;
 }
 
-export type Screen = 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'shop' | 'wipe' | 'victory' | 'gameover';
+export type Screen = 'blessing' | 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'shop' | 'wipe' | 'victory' | 'gameover';
 
 export interface ShopCard {
   id: string;
@@ -210,7 +216,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 9;
+  version: 10;
   seed: number;
   rng: number;
   maxHp: number;
@@ -227,8 +233,24 @@ export interface RunState {
   equipment: Equipment;
   /** Objet trouvé, en attente de décision (équiper ou laisser). */
   pendingItem: string | null;
-  /** Deuxième objet proposé par un coffre (Trousseau de l'intendant) : on en garde un seul. */
-  pendingAlt: string | null;
+  /** Autres objets proposés au choix (Trousseau de l'intendant, Pari risqué) : on en garde un seul. */
+  pendingAlts: string[];
+  /** Bénédiction de Brégan : les 4 bonus proposés au début de la run. */
+  blessings: string[];
+  /** Événements déjà vus pendant la run (chacun n'apparaît qu'une fois). */
+  seenEvents: string[];
+  /** Ce qui vient de se passer dans un événement (affiché avant de revenir à la carte). */
+  eventOutcome: string | null;
+  /** Quête des Gardiens des Sources. */
+  sourcesQuest: 'active' | 'rune' | 'done' | 'refused' | null;
+  /** Quête légendaire Brisemonts (Guerrier). */
+  brisemonts: 'lame' | 'coeur' | 'forged' | null;
+  /** Objet de quête obtenu au dernier combat (affiché sur l'écran de victoire). */
+  questNote: string | null;
+  /** Le Fantôme du forgeron a renforcé cette arme (+2 dégâts tant qu'elle est équipée). */
+  weaponUpgrade: string | null;
+  /** La rivière de lave : le prochain nœud devient un combat difficile. */
+  detour: boolean;
   /** Emplacements dont l'objet est brisé (effet désactivé jusqu'à la réparation). */
   broken: SlotKey[];
   /** Objet emporté du coffre de la guilde au début de la run (perdu si la run échoue). */

@@ -411,3 +411,18 @@ img.px { image-rendering: pixelated; }
 .info-sort small { font-size: 11px; color: var(--texte-2); }
 .chip.pouvoir { background: #2a1f3a; border-color: #8e6ab8; color: #e0ccff; }
 .carte .texte.tres-long { font-size: 10px; line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+
+/* ---------- Événements, Brégan, quêtes ---------- */
+.choix-evenement.verrouille { opacity: 0.55; cursor: not-allowed; }
+.choix-evenement em { font-style: normal; font-size: 12px; font-weight: 700; color: #ff9a7a; }
+.choix-liste.grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 760px; }
+.texte-evenement.classe { color: var(--or-clair); font-style: italic; }
+.quetes { left: 24px; bottom: 58px; max-width: 560px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--or); background: rgba(30, 22, 12, 0.92); display: flex; flex-direction: column; gap: 4px; }
+.quetes p { margin: 0; font-size: 12px; line-height: 1.35; color: var(--texte); }
+.note-quete { max-width: 560px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--or); background: #2e2416; }
+.note-quete p { margin: 4px 0 0; font-size: 13px; color: var(--texte); }
+.objet.legendaire { border-color: #ff9a2a; box-shadow: 0 0 12px rgba(255, 154, 42, 0.35); }
+.objet.legendaire .objet-icone { color: #ffb45a; }
+.gros-bouton.legendaire { background: #ff9a2a; border-color: #ffd08a; }
+.chip.rune { background: #10283a; border-color: #4cc3e0; color: #a8e8ff; }
+.choix-evenement.verrouille:hover { border-color: #5a4433; background: var(--panneau); transform: none; }

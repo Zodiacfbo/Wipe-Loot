@@ -2,8 +2,8 @@
 import { CARDS, REWARD_POOL, STARTER_DECK } from './cards';
 import { createCombat } from './combat';
 import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, type Encounter } from './enemies';
-import { AMBUSH, EVENTS } from './events';
-import { COMMON_POOL, ITEMS, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type SlotKey } from './items';
+import { BLESSINGS, EVENTS, HIDDEN_FIGHTS } from './events';
+import { COMMON_POOL, ITEMS, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
 import { BAR_SLOTS, WARRIOR_LOOT_SPELLS } from './spells';
@@ -11,7 +11,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
 export const REPAIR_BILLS = [50, 100, 150];
 /** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
@@ -24,15 +24,26 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 9, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
-    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlt: null, broken: [], heirloom, chestDone: false, chestDeposit: null,
+    version: 10, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
+    blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
+    weaponUpgrade: null, detour: false,
   };
   run.map = generateMap(run);
   if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
   return run;
+}
+
+/** Les effets de l'équipement porté, avec le renfort du Fantôme du forgeron. */
+export function runGear(run: RunState): ItemEffects {
+  const g = gearEffects(run.equipment, run.broken);
+  if (run.weaponUpgrade && run.equipment.arme === run.weaponUpgrade && !run.broken.includes('arme')) {
+    g.attackBonus = (g.attackBonus ?? 0) + 2;
+  }
+  return g;
 }
 
 export function currentNode(run: RunState) {
@@ -51,15 +62,29 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
   run.position = nodeId;
   run.path.push(nodeId);
   const node = run.map.nodes[nodeId];
+  // La rivière de lave : le détour mène droit dans un pack difficile.
+  if (run.detour && node.type !== 'boss') {
+    run.detour = false;
+    startEncounter(run, { ...pick(run, HARD_ENCOUNTERS), name: 'Le détour' });
+    return true;
+  }
   switch (node.type) {
     case 'combat':
       startEncounter(run, pick(run, node.floor <= 3 ? EASY_ENCOUNTERS : HARD_ENCOUNTERS));
       break;
-    case 'elite':
-      startEncounter(run, ELITE_ENCOUNTERS[node.elite ?? Math.floor(random(run) * ELITE_ENCOUNTERS.length)]);
+    case 'elite': {
+      const enc = ELITE_ENCOUNTERS[node.elite ?? Math.floor(random(run) * ELITE_ENCOUNTERS.length)];
+      // Quête des Gardiens des Sources : le premier boss secondaire affronté porte la rune.
+      if (run.sourcesQuest === 'active') {
+        run.sourcesQuest = 'rune';
+        startEncounter(run, { ...enc, rune: true });
+      } else {
+        startEncounter(run, enc);
+      }
       break;
+    }
     case 'boss':
-      startEncounter(run, BOSS_ENCOUNTER);
+      startEncounter(run, run.sourcesQuest === 'done' ? { ...BOSS_ENCOUNTER, weakened: true } : BOSS_ENCOUNTER);
       break;
     case 'campfire':
       run.screen = 'campfire';
@@ -73,20 +98,19 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
       run.rewardGold = 0;
       run.pendingItem = rollItem(run);
       // Trousseau de l'intendant : deux objets au choix.
-      if (gearEffects(run.equipment, run.broken).chestChoice) {
-        let alt = rollItem(run);
-        for (let i = 0; i < 20 && alt === run.pendingItem; i++) alt = rollItem(run);
-        run.pendingAlt = alt;
-      }
+      if (runGear(run).chestChoice) run.pendingAlts = [rollOther(run, [run.pendingItem])];
       run.screen = 'reward';
       break;
     case 'event': {
-      const roll = random(run);
-      if (roll < 0.25) {
-        startEncounter(run, { ...pick(run, node.floor <= 3 ? EASY_ENCOUNTERS : HARD_ENCOUNTERS), name: 'Embuscade !' });
-        run.eventId = AMBUSH;
+      // Un « ? » cache parfois un combat.
+      const pool = Object.values(EVENTS).filter((e) => !run.seenEvents.includes(e.id) && (e.available?.(run) ?? true));
+      if (random(run) < 0.2 || pool.length === 0) {
+        startEncounter(run, pick(run, HIDDEN_FIGHTS));
       } else {
-        run.eventId = pick(run, Object.keys(EVENTS));
+        const ev = pick(run, pool);
+        run.eventId = ev.id;
+        run.seenEvents.push(ev.id);
+        run.eventOutcome = null;
         run.screen = 'event';
       }
       break;
@@ -98,7 +122,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, gearEffects(run.equipment, run.broken), run.spells);
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells);
   run.screen = 'combat';
 }
 
@@ -107,11 +131,13 @@ function backToMap(run: RunState): void {
   run.shop = null;
   run.rewardGold = 0;
   run.pendingItem = null;
-  run.pendingAlt = null;
+  run.pendingAlts = [];
   run.pendingPotion = null;
   run.pendingSpell = null;
+  run.questNote = null;
   run.rewardChoices = [];
   run.eventId = null;
+  run.eventOutcome = null;
   run.screen = 'map';
 }
 
@@ -123,8 +149,13 @@ export function afterCombatAction(run: RunState): void {
   if (!c || run.screen !== 'combat') return;
   run.rng = c.rng;
   run.nextUid = c.nextUid;
+  if (c.phase === 'victory' || c.phase === 'defeat') {
+    // Le Gobelin mimique a avalé de l'or.
+    run.gold = Math.max(0, run.gold - (c.goldStolen ?? 0));
+    c.goldStolen = 0;
+  }
   if (c.phase === 'victory') {
-    run.hp = Math.min(run.maxHp, c.player.hp + (gearEffects(run.equipment, run.broken).healAfterCombat ?? 0));
+    run.hp = Math.min(run.maxHp, c.player.hp + (runGear(run).healAfterCombat ?? 0));
     if (currentNode(run)?.type === 'boss') {
       run.screen = 'victory';
       run.combat = null;
@@ -143,6 +174,23 @@ export function afterCombatAction(run: RunState): void {
         else run.pendingItem = table[roll % table.length];
       }
       if (random(run) < POTION_DROP_CHANCE) run.pendingPotion = rollPotion(run);
+      const enc = run.encounter;
+      if (enc?.goldReward) {
+        const [min, max] = enc.goldReward;
+        const extra = min + Math.floor(random(run) * (max - min + 1));
+        run.gold += extra;
+        run.rewardGold += extra;
+      }
+      if (enc?.bonusItem && !run.pendingItem) run.pendingItem = rollItem(run, enc.bonusItem);
+      // Quêtes
+      if (enc?.rune && run.sourcesQuest === 'rune') {
+        run.sourcesQuest = 'done';
+        run.questNote = 'Eau des profondeurs : les Gardiens des Sources sont libres. Vulkhar commencera le combat affaibli.';
+      }
+      if (enc?.loot === 'kragg' && run.brisemonts === 'lame') {
+        run.brisemonts = 'coeur';
+        run.questNote = 'Cœur de la montagne : la pierre en fusion de Krâgg. Au prochain feu de camp, tu pourras reforger Brisemonts.';
+      }
     }
   } else if (c.phase === 'defeat') {
     run.screen = run.wipesLeft > 0 ? 'wipe' : 'gameover';
@@ -171,6 +219,7 @@ function offerCards(run: RunState, title: string, min: Rarity): void {
   run.rewardChoices = choices;
   run.rewardTitle = title;
   run.rewardGold = 0;
+  run.questNote = null;
   run.combat = null;
   run.screen = 'reward';
 }
@@ -276,15 +325,22 @@ export function buyItem(run: RunState, index: number, slot: SlotKey): boolean {
 // --- Équipement ---
 
 /** Un objet au hasard parmi ceux des coffres et du vendeur (70 % communs, 30 % rares). */
-function rollItem(run: RunState): string {
-  const rarity = random(run) < 0.7 ? 'commun' : 'rare';
+function rollItem(run: RunState, forced?: 'commun' | 'rare'): string {
+  const rarity = forced ?? (random(run) < 0.7 ? 'commun' : 'rare');
   const pool = COMMON_POOL.filter((id) => ITEMS[id].rarity === rarity);
   return pool[Math.floor(random(run) * pool.length)];
 }
 
+/** Un objet différent de ceux de `not`. */
+function rollOther(run: RunState, not: (string | null)[], forced?: 'commun' | 'rare'): string {
+  let id = rollItem(run, forced);
+  for (let i = 0; i < 30 && not.includes(id); i++) id = rollItem(run, forced);
+  return id;
+}
+
 /** Ajuste le nombre d'emplacements de potion à l'équipement (Amulette de l'intendant). */
 export function syncPotionSlots(run: RunState): void {
-  const wanted = POTION_SLOTS + (gearEffects(run.equipment, run.broken).potionSlots ?? 0);
+  const wanted = POTION_SLOTS + (runGear(run).potionSlots ?? 0);
   while (run.potions.length < wanted) run.potions.push(null);
   while (run.potions.length > wanted) {
     // On retire d'abord un emplacement vide ; sinon la dernière potion est perdue.
@@ -312,19 +368,20 @@ function putOn(run: RunState, itemId: string, slot: SlotKey): void {
 }
 
 /** Équipe l'objet trouvé (coffre ou butin de boss). */
-export function equipPending(run: RunState, slot: SlotKey, alt = false): boolean {
-  const id = alt ? run.pendingAlt : run.pendingItem;
+/** `alt` : l'index de l'objet choisi parmi les autres propositions (Trousseau, Pari risqué). */
+export function equipPending(run: RunState, slot: SlotKey, alt?: number): boolean {
+  const id = alt === undefined ? run.pendingItem : run.pendingAlts[alt];
   if (!id || !slotsFor(id).includes(slot)) return false;
   putOn(run, id, slot);
   run.pendingItem = null;
-  run.pendingAlt = null;
+  run.pendingAlts = [];
   return true;
 }
 
 /** Laisse l'objet trouvé. */
 export function leavePending(run: RunState): void {
   run.pendingItem = null;
-  run.pendingAlt = null;
+  run.pendingAlts = [];
 }
 
 /** Répare un objet brisé chez le vendeur. */
@@ -421,19 +478,202 @@ export function buyPotion(run: RunState, index: number): boolean {
 
 // --- Événements ---
 
-export function resolveEvent(run: RunState, choice: number): void {
-  if (run.screen !== 'event' || !run.eventId) return;
-  const id = run.eventId;
-  if (id === 'source' && choice === 0) {
-    run.hp = Math.min(run.maxHp, run.hp + 15);
+/** Un choix d'événement est-il possible ? (null : oui ; sinon la raison) */
+export function eventChoiceLock(run: RunState, choice: number): string | null {
+  const ev = run.eventId ? EVENTS[run.eventId] : null;
+  return ev?.choices[choice]?.locked?.(run) ?? null;
+}
+
+function addCurse(run: RunState): void {
+  run.deck.push({ uid: run.nextUid++, id: 'malediction', upgraded: false });
+}
+
+function upgradeRandom(run: RunState, count: number): string[] {
+  const names: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const pool = run.deck.filter((c) => !c.upgraded && !CARDS[c.id].unplayable);
+    if (pool.length === 0) break;
+    const card = pick(run, pool);
+    card.upgraded = true;
+    names.push(CARDS[card.id].name);
   }
-  if (id === 'cadavre' && choice === 0) {
-    run.hp = Math.max(1, run.hp - 6);
-    offerCards(run, 'Le sac du raideur', 'commune');
-    run.eventId = null;
-    return;
+  return names;
+}
+
+/** Affiche le résultat d'un événement avant de revenir à la carte. */
+function outcome(run: RunState, text: string): void {
+  run.eventOutcome = text;
+}
+
+export function resolveEvent(run: RunState, choice: number): void {
+  if (run.screen !== 'event' || !run.eventId || run.eventOutcome) return;
+  const ev = EVENTS[run.eventId];
+  if (!ev?.choices[choice] || eventChoiceLock(run, choice)) return;
+  const heal = (n: number) => { const before = run.hp; run.hp = Math.min(run.maxHp, run.hp + n); return run.hp - before; };
+  const hurt = (n: number) => { run.hp = Math.max(1, run.hp - n); };
+
+  switch (`${ev.id}:${choice}`) {
+    case 'sources:0':
+      run.sourcesQuest = 'active';
+      return outcome(run, 'Les Gardiens tracent une rune d\'eau sur ta lame. Le prochain boss secondaire que tu affronteras portera la rune qui les enchaîne.');
+    case 'sources:1':
+      run.sourcesQuest = 'refused';
+      return outcome(run, `Ils t'aspergent d'une eau fraîche. Tu récupères ${heal(10)} PV.`);
+    case 'riviere:0':
+      hurt(8);
+      return outcome(run, 'Tu traverses en serrant les dents. Tu perds 8 PV.');
+    case 'riviere:1':
+      run.detour = true;
+      return outcome(run, 'Le détour longe un nid de créatures de feu. Le prochain nœud sera un combat difficile.');
+    case 'forge:0':
+      run.brisemonts = 'lame';
+      return outcome(run, 'Tu emportes la Lame brisée de Brisemonts. Pour la reforger, il te faut le Cœur de la montagne… que garde Krâgg le Mange-roche.');
+    case 'forge:1': {
+      hurt(6);
+      const up = upgradeRandom(run, 2);
+      return outcome(run, `Tu rallumes la forge et tu y passes un moment. Tu perds 6 PV. Cartes améliorées : ${up.join(', ') || 'aucune'}.`);
+    }
+    case 'forge:2':
+      run.gold += 40;
+      return outcome(run, 'Sous les gravats, une bourse oubliée : 40 or.');
+    case 'trappeur:0': {
+      const i = run.potions.findIndex((p) => p);
+      if (i >= 0) run.potions[i] = null;
+      run.deck.push({ uid: run.nextUid++, id: 'bandage_de_lin', upgraded: false });
+      return outcome(run, '« Merci, l\'ami. » Il te montre comment faire un bon bandage. Bandage de lin rejoint ton deck.');
+    }
+    case 'cercle:0': {
+      const i = run.deck.findIndex((c) => c.id === 'malediction');
+      if (i >= 0) run.deck.splice(i, 1);
+      return outcome(run, 'Les esprits murmurent, et le poids qui t\'accablait se dissipe. Une Malédiction quitte ton deck.');
+    }
+    case 'cercle:1':
+      return outcome(run, `Le silence des pierres t'apaise. Tu récupères ${heal(10)} PV.`);
+    case 'chapelle:0':
+      run.maxHp += 5;
+      run.hp += 5;
+      return outcome(run, 'Une chaleur douce t\'envahit. +5 PV max.');
+    case 'chapelle:1':
+      run.gold += 80;
+      addCurse(run);
+      return outcome(run, 'Tu remplis ta bourse : 80 or. Mais une ombre te suit désormais : une Malédiction rejoint ton deck.');
+    case 'fantome:0':
+      hurt(10);
+      run.weaponUpgrade = run.equipment.arme;
+      return outcome(run, `Le forgeron guide tes mains. Tu perds 10 PV, mais ${ITEMS[run.equipment.arme!].name} inflige +2 dégâts pour le reste de la run.`);
+    case 'gobelin:0':
+      if (random(run) < 0.5) {
+        backToMap(run);
+        run.rewardChoices = [];
+        run.rewardTitle = 'Le gobelin reconnaissant';
+        run.rewardGold = 0;
+        run.pendingItem = rollItem(run);
+        run.screen = 'reward';
+        return;
+      }
+      run.eventId = null;
+      startEncounter(run, HIDDEN_FIGHTS.find((f) => f.enemies[0] === 'mimique')!);
+      return;
+    case 'gobelin:1':
+      run.gold += 120;
+      addCurse(run);
+      return outcome(run, 'Tu repars avec le coffre sous le bras : 120 or. Les jurons du gobelin te suivent : une Malédiction rejoint ton deck.');
+    case 'fonceur:0':
+      run.eventId = null;
+      startEncounter(run, { ...pick(run, HARD_ENCOUNTERS), name: 'Le joueur qui fonce', bonusItem: 'rare' });
+      return;
+    case 'source_chaude:0':
+      return outcome(run, `L'eau brûlante te revigore. Tu récupères ${heal(15)} PV.`);
+    case 'cadavre:0':
+      hurt(6);
+      run.eventId = null;
+      offerCards(run, 'Le sac du raideur', 'commune');
+      return;
   }
   backToMap(run);
+}
+
+/** Quitte l'écran d'événement après avoir lu le résultat. */
+export function leaveEvent(run: RunState): void {
+  if (run.screen === 'event') backToMap(run);
+}
+
+// --- Bénédiction d'entrée : Brégan le Passeur ---
+
+/** Au tout début de la run, Brégan propose 4 bonus au hasard. */
+export function offerBlessing(run: RunState): void {
+  const ids = Object.keys(BLESSINGS);
+  const choices: string[] = [];
+  while (choices.length < 4) {
+    const id = pick(run, ids);
+    if (!choices.includes(id)) choices.push(id);
+  }
+  run.blessings = choices;
+  run.screen = 'blessing';
+}
+
+/** Choisit un bonus de Brégan. `uid` : la carte retirée (Allègement). */
+export function chooseBlessing(run: RunState, id: string, uid?: number): boolean {
+  if (run.screen !== 'blessing' || !run.blessings.includes(id)) return false;
+  if (id === 'allegement' && !run.deck.some((c) => c.uid === uid)) return false;
+  run.blessings = [];
+  run.screen = 'map';
+  switch (id) {
+    case 'provisions':
+      run.maxHp += 8;
+      run.hp += 8;
+      break;
+    case 'bourse':
+      run.gold += 100;
+      break;
+    case 'potions':
+      for (let i = 0; i < 2; i++) {
+        const slot = run.potions.indexOf(null);
+        if (slot >= 0) run.potions[slot] = rollPotion(run);
+      }
+      break;
+    case 'entrainement':
+      upgradeRandom(run, 2);
+      break;
+    case 'allegement':
+      run.deck = run.deck.filter((c) => c.uid !== uid);
+      break;
+    case 'marche':
+      addCurse(run);
+      run.gold += 200;
+      break;
+    case 'pret':
+    case 'pari': {
+      if (id === 'pari') {
+        const lost = Math.floor(run.maxHp * 0.1);
+        run.maxHp -= lost;
+        run.hp = Math.min(run.hp, run.maxHp);
+      }
+      run.rewardChoices = [];
+      run.rewardGold = 0;
+      run.rewardTitle = id === 'pari' ? 'Le pari de Brégan' : 'L\'équipement de prêt';
+      const rarity = id === 'pari' ? 'rare' : 'commun';
+      run.pendingItem = rollItem(run, rarity);
+      if (id === 'pari') {
+        const second = rollOther(run, [run.pendingItem], 'rare');
+        run.pendingAlts = [second, rollOther(run, [run.pendingItem, second], 'rare')];
+      }
+      run.screen = 'reward';
+      break;
+    }
+  }
+  return true;
+}
+
+// --- Feu de camp : reforger Brisemonts ---
+
+/** Au feu de camp, avec la Lame brisée et le Cœur de la montagne : Brisemonts est reforgée et équipée. */
+export function campfireReforge(run: RunState): boolean {
+  if (run.screen !== 'campfire' || run.brisemonts !== 'coeur') return false;
+  putOn(run, 'brisemonts', 'arme');
+  run.brisemonts = 'forged';
+  backToMap(run);
+  return true;
 }
 
 // --- Wipe ---
