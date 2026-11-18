@@ -1,6 +1,6 @@
 # Wipe & Loot — Document de concept
 
-> Version 0.3 · Projet personnel
+> Version 0.4 · Univers original · Projet personnel
 
 ---
 
@@ -8,38 +8,39 @@
 
 1. [Pitch](#1-pitch)
 2. [Piliers de design](#2-piliers-de-design)
-3. [Structure d'une run](#3-structure-dune-run)
-4. [Le héros](#4-le-héros)
-5. [Le combat](#5-le-combat)
-6. [Les cartes](#6-les-cartes)
-7. [Les classes](#7-les-classes)
-8. [Spécialisations et talents](#8-spécialisations-et-talents)
-9. [Les ennemis](#9-les-ennemis)
-10. [Les raids (actes)](#10-les-raids-actes)
-11. [Récompenses](#11-récompenses)
-12. [Les événements](#12-les-événements)
-13. [Le vendeur gobelin](#13-le-vendeur-gobelin)
-14. [Progression](#14-progression)
-15. [Plateformes et interface](#15-plateformes-et-interface)
-16. [Direction artistique et ambiance](#16-direction-artistique-et-ambiance)
-17. [Décisions prises](#17-décisions-prises)
-18. [Questions ouvertes](#18-questions-ouvertes)
-19. [Prochaines étapes](#19-prochaines-étapes)
+3. [L'univers](#3-lunivers)
+4. [Structure d'une run](#4-structure-dune-run)
+5. [Le héros](#5-le-héros)
+6. [Le combat](#6-le-combat)
+7. [Les cartes](#7-les-cartes)
+8. [Les classes](#8-les-classes)
+9. [Spécialisations et talents](#9-spécialisations-et-talents)
+10. [Les ennemis](#10-les-ennemis)
+11. [Les raids (actes)](#11-les-raids-actes)
+12. [Récompenses](#12-récompenses)
+13. [Les événements](#13-les-événements)
+14. [Le vendeur gobelin](#14-le-vendeur-gobelin)
+15. [Progression](#15-progression)
+16. [Plateformes et interface](#16-plateformes-et-interface)
+17. [Direction artistique et ambiance](#17-direction-artistique-et-ambiance)
+18. [Décisions prises](#18-décisions-prises)
+19. [Questions ouvertes](#19-questions-ouvertes)
+20. [Prochaines étapes](#20-prochaines-étapes)
 
 ---
 
 ## 1. Pitch
 
-**Wipe & Loot** est un **deckbuilder roguelike** dans la lignée de *Slay the Spire*, situé dans l'univers de **World of Warcraft**.
+**Wipe & Loot** est un **deckbuilder roguelike** dans la lignée de *Slay the Spire*, dans un univers de **fantasy héroïque original** inspiré des grands MMO.
 
-Le joueur incarne **seul** un héros d'une des 9 classes de WoW Classic et s'attaque aux **raids mythiques d'Azeroth** : le Cœur du Magma, le Repaire de l'Aile noire, Ahn'Qiraj… Chaque boss reprend ses **mécaniques iconiques**, traduites en règles de cartes. On meurt (« wipe »), on recommence, on débloque, on progresse.
+Le joueur incarne **seul** un champion de l'une des 9 classes du jeu. Il s'attaque aux **raids** les plus redoutés du monde d'**Eldrava** : les Profondeurs Ardentes, l'Aire de Vhaeryx, la cité ensevelie d'Irem… Chaque boss a des **mécaniques de raid** traduites en règles de cartes. On meurt (« wipe »), on recommence, on débloque, on progresse.
 
 **Phrase d'accroche :** *« Chaque boss est une mécanique, chaque loot est une décision. »*
 
 **Ce qui le distingue de Slay the Spire :**
-1. **Une barre de sorts à temps de recharge**, en plus du deck : les gros sorts de classe sont toujours disponibles, mais il faut les planifier (§5.6).
-2. **Le droit de wiper** : une défaite n'est pas forcément la fin de la run. On paie la réparation et on retente le combat, avec un nombre d'essais limité (§5.7).
-3. **Des tables de loot** sur les boss, qui se révèlent au fil des parties et guident le choix du chemin (§11.7).
+1. **Une barre de sorts à temps de recharge**, en plus du deck : les gros sorts de classe sont toujours disponibles, mais il faut les planifier (§6.6).
+2. **Le droit de wiper** : une défaite n'est pas forcément la fin de la run. On paie la réparation et on retente le combat, avec un nombre d'essais limité (§6.7).
+3. **Des tables de loot** sur les boss, qui se révèlent au fil des parties et guident le choix du chemin (§12.7).
 
 **Plateformes :** navigateur sur PC et smartphone.
 
@@ -48,13 +49,13 @@ Le joueur incarne **seul** un héros d'une des 9 classes de WoW Classic et s'att
 ## 2. Piliers de design
 
 1. **L'identité de classe avant tout**
-   Chaque classe a sa propre ressource, ses propres contraintes et ses sorts iconiques. Jouer un Guerrier et jouer un Mage doivent donner deux expériences différentes.
+   Chaque classe a sa propre ressource, ses propres contraintes et ses sorts signatures. Jouer un Guerrier et jouer un Mage doivent donner deux expériences différentes.
 
 2. **Les boss sont des mécaniques, pas des sacs à PV**
    Interrompre, sortir du feu, dissiper, gérer les phases, battre l'enrage : le joueur doit *lire* le combat comme un raideur lit un boss.
 
-3. **La nostalgie Classic, en restant simple**
-   Arbres de talents, fragments d'harmonisation, objets légendaires, professions, buffs mondiaux. On garde la saveur sans la complexité d'un MMO.
+3. **La saveur des MMO, en restant simple**
+   Arbres de talents, clés de raid, armes légendaires, professions, buffs de raid. On garde la saveur sans la complexité d'un MMO.
 
 4. **Facile à prendre en main, profond à maîtriser**
    Les systèmes annexes (l'équipement par exemple) restent volontairement légers. La profondeur vient des cartes et des synergies.
@@ -67,38 +68,72 @@ Le joueur incarne **seul** un héros d'une des 9 classes de WoW Classic et s'att
 
 ---
 
-## 3. Structure d'une run
+## 3. L'univers
 
-### 3.1 Vue d'ensemble
+### 3.1 Principe
+
+Le jeu se déroule dans un **univers original**. Il reprend les **archétypes** de la fantasy héroïque et des MMO (guerriers, mages, démonistes, dragons, seigneur du feu, dieu ancien, nécropole…) avec **ses propres noms, lieux, personnages et histoires**.
+
+**Les règles qu'on se fixe :**
+- **Aucun nom propre** repris d'une œuvre existante (personnages, lieux, objets, factions).
+- **Pas de noms trop ressemblants** à des noms existants : ils posent les mêmes problèmes qu'une copie.
+- **Les mots génériques restent libres** : Guerrier, Mage, Boule de feu, Charge, Exécution, Métamorphose, Bouclier divin…
+- **Les visuels, icônes et interface** sont créés pour le jeu, jamais repris.
+- **Des clins d'œil discrets** à la culture MMO sont bienvenus (wipe, loot, aggro, le joueur qui fonce dans le tas…), tant qu'ils ne renvoient pas à un jeu précis.
+
+Les inspirations d'origine sont notées dans un document interne séparé (`docs/INSPIRATIONS.md`), qui sert uniquement au travail de conception.
+
+### 3.2 Le monde d'Eldrava
+
+**Eldrava** est un monde de royaumes, de forges naines, de forêts anciennes et de déserts oubliés. Depuis la **Grande Brèche**, une fissure entre les plans, d'anciennes puissances se réveillent une à une :
+- sous le **mont Durgal**, un seigneur élémentaire du feu est revenu ;
+- au sommet du mont, un dragon-alchimiste façonne une armée de dragons hybrides ;
+- sous les sables de l'Est, un dieu endormi commence à rêver ;
+- et dans le ciel, une nécropole volante projette son ombre sur les royaumes.
+
+### 3.3 Le joueur et la guilde
+
+Le joueur est le **champion d'une guilde d'aventuriers**. Chaque run est une **expédition** envoyée contre ces menaces.
+
+- Le **menu principal** est le **hall de la guilde**.
+- Le **compendium** devient les **archives de la guilde** : on y consigne les monstres, cartes et objets découverts.
+- Les **wipes** et les **morts** font partie de l'histoire : la guilde renvoie un champion, et on retente.
+
+---
+
+## 4. Structure d'une run
+
+### 4.1 Vue d'ensemble
 
 ```
 Choix de la classe ─► Bénédiction d'entrée
-   └─► Acte 1 : Cœur du Magma        (10 étages)
-   └─► Acte 2 : Repaire de l'Aile noire (10 étages)
-   └─► Acte 3 : Ahn'Qiraj             (10 étages)
-   └─► [Acte bonus : Naxxramas]       (court, si les 3 fragments sont réunis)
+   └─► Acte 1 : Les Profondeurs Ardentes  (10 étages)
+   └─► Acte 2 : L'Aire de Vhaeryx         (10 étages)
+   └─► Acte 3 : Irem, la cité ensevelie   (10 étages)
+   └─► [Acte bonus : La Nécropole céleste] (court, si les 3 éclats de clé sont réunis)
 ```
 
 - Une **run** = **3 actes de 10 étages**, plus un acte bonus facultatif.
 - **Durée visée :** environ **45 minutes à 1 heure** pour une run complète.
 - Chaque acte est une **carte à embranchements** : le joueur choisit son chemin d'étage en étage.
 - **Après chaque combat**, le joueur choisit une carte parmi 3 (ou n'en prend aucune).
-- **Après chaque boss**, il gagne un **point de talent** (voir §8).
-- **La mort met fin à la run.** Le joueur gagne quand même de l'expérience pour sa classe (voir §14).
+- **Après chaque boss**, il gagne un **point de talent** (voir §9).
+- **Un wipe n'est pas forcément la fin** : le joueur peut retenter un combat perdu, dans la limite de 3 wipes par run (voir §6.7).
+- **Quand la run s'arrête**, le joueur gagne quand même de l'expérience pour sa classe (voir §15).
 
-### 3.2 Les nœuds de la carte
+### 4.2 Les nœuds de la carte
 
 | Nœud | Équivalent StS | Description |
 |---|---|---|
 | ⚔️ **Pack de trash** | Combat | Combat standard contre les monstres du raid. |
-| 💀 **Boss secondaire** | Élite | Un boss du raid avec sa mécanique (Magmadar, Garr…). Meilleur loot. |
-| 🔥 **Feu de camp** | Repos | **Se reposer** (soigne 30 % des PV max) **ou** aller voir le **maître de classe** (améliorer une carte). |
-| 💰 **Vendeur gobelin** | Marchand | Achat de cartes, de potions et d'objets, retrait de cartes (voir §13). |
-| ❓ **Quête** | Événement | Rencontres avec des PNJ du lore, choix narratifs et étapes des quêtes légendaires (voir §12). |
+| 💀 **Boss secondaire** | Élite | Un boss du raid avec sa mécanique. Le nœud indique **quel boss** s'y trouve, et on peut consulter sa table de loot (§12.7). |
+| 🔥 **Feu de camp** | Repos | **Se reposer** (soigne 30 % des PV max) **ou** aller voir le **maître de classe** (améliorer une carte ou un sort). |
+| 💰 **Vendeur gobelin** | Marchand | Achat de cartes, de potions et d'objets, retrait de cartes, réparations (voir §14). |
+| ❓ **Quête** | Événement | Rencontres avec des PNJ, choix narratifs et étapes des quêtes légendaires (voir §13). |
 | 📦 **Coffre** | Trésor | Loot gratuit : équipement ou relique. |
-| 👑 **Boss de fin d'acte** | Boss | Le boss final du raid : Ragnaros, Nefarian, C'Thun… |
+| 👑 **Boss de fin d'acte** | Boss | Le boss final du raid. |
 
-### 3.3 Structure d'un acte (10 étages)
+### 4.3 Structure d'un acte (10 étages)
 
 | Étage | Contenu |
 |---|---|
@@ -113,33 +148,33 @@ Choix de la classe ─► Bénédiction d'entrée
 - Un chemin « prudent » passe par peu de boss secondaires. Un chemin « gourmand » en enchaîne 2 ou 3, pour plus de loot et de risque.
 - Les boss secondaires sont **tirés au hasard** dans le pool du raid : on ne les affronte pas tous à chaque run. Cela renouvelle les parties.
 
-### 3.4 Modes futurs (hors première version)
+### 4.4 Modes futurs (hors première version)
 
 - **Mode rapide** : un seul acte (ou 3 actes de 5 étages), pour une partie de 15 à 20 minutes.
-- **Mode infini (endless)** : après Naxxramas, les raids recommencent en boucle avec une difficulté croissante, jusqu'à la mort. Le but est le meilleur score.
-- Plus tard, de **nouveaux raids** (The Burning Crusade, Wrath of the Lich King…) pourraient s'ajouter comme nouveaux actes ou nouvelles campagnes.
+- **Mode infini (endless)** : après la Nécropole, les raids recommencent en boucle avec une difficulté croissante, jusqu'à la fin de la run. Le but est le meilleur score.
+- Plus tard, de **nouveaux raids** pourraient s'ajouter comme nouveaux actes ou nouvelles campagnes.
 
 ---
 
-## 4. Le héros
+## 5. Le héros
 
-### 4.1 Statistiques de base
+### 5.1 Statistiques de base
 
 | Statistique | Valeur de départ (indicative) |
 |---|---|
-| **PV max** | 65 à 80 selon la classe (les classes en plaques ont plus de PV que les classes en tissu) |
+| **PV max** | 65 à 80 selon la classe (les classes en armure lourde ont plus de PV que les classes en tissu) |
 | **Énergie** | **3 par tour**, commune à toutes les classes |
 | **Pioche** | 5 cartes par tour |
-| **Ressource de classe** | Propre à chaque classe (voir §4.2) |
-| **Barre de sorts** | 3 emplacements, dont 1 occupé par le sort de départ de la classe (voir §5.6) |
-| **Wipes autorisés** | 3 par run (voir §5.7) |
+| **Ressource de classe** | Propre à chaque classe (voir §5.2) |
+| **Barre de sorts** | 3 emplacements, dont 1 occupé par le sort de départ de la classe (voir §6.6) |
+| **Wipes autorisés** | 3 par run (voir §6.7) |
 | **Emplacements de potions** | 3 |
 | **Or** | 99 au départ |
-| **Deck de départ** | 10 cartes (voir §6.5) |
+| **Deck de départ** | 10 cartes (voir §7.5) |
 
 Les PV **ne remontent pas** automatiquement entre les combats. On se soigne aux feux de camp, avec des potions, des reliques ou des cartes.
 
-### 4.2 Énergie commune + ressource de classe
+### 5.2 Énergie commune + ressource de classe
 
 **Toutes les classes** jouent leurs cartes avec la même **énergie (3 par tour)**, comme dans StS. Cela rend l'équilibrage plus simple.
 
@@ -149,19 +184,19 @@ Les PV **ne remontent pas** automatiquement entre les combats. On se soigne aux 
 |---|---|---|
 | **Guerrier** | **Rage** | Se gagne en frappant et en étant frappé. Certaines cartes coûtent de l'énergie **et** de la rage, ou deviennent plus fortes avec plus de rage. |
 | **Voleur** | **Points de combo** (max 5) | Les générateurs en donnent, les finishers les consomment pour un effet proportionnel. |
-| **Mage** | **Charges d'école** | Givre : Gel sur l'ennemi. Feu : Enflammer. Arcane : Charges arcaniques. |
-| **Démoniste** | **Fragments d'âme** | Gagnés quand un ennemi meurt sous Drain d'âme. Consommés par les sorts les plus puissants. |
-| **Chasseur** | **Familier** | Pas une ressource chiffrée : le familier est une entité alliée qui attaque chaque tour. |
+| **Mage** | **Charges d'école** | Givre : Gel sur l'ennemi. Feu : Brûlure. Arcane : Charges arcaniques. |
+| **Démoniste** | **Éclats d'âme** | Gagnés quand un ennemi meurt sous Siphon d'âme. Consommés par les sorts les plus puissants. |
+| **Chasseur** | **Compagnon** | Pas une ressource chiffrée : le compagnon animal est une entité alliée qui attaque chaque tour. |
 | **Paladin** | **Sceau actif** | Un seul Sceau à la fois. Le Jugement le consomme pour un effet puissant. |
-| **Prêtre** | **Foi** | Gagnée en soignant au-delà de ses PV max ou en protégeant avec un Bouclier. |
+| **Prêtre** | **Foi** | Gagnée en soignant au-delà de ses PV max ou en protégeant avec une Égide. |
 | **Chaman** | **Totems** (4 emplacements) | Les totems posés restent en jeu et agissent chaque tour. |
-| **Druide** | **Forme** | La forme active (Ours, Félin, Sélénien) change ce que les cartes font. |
+| **Druide** | **Forme** | La forme active (Ours, Félin, Astrale) change ce que les cartes font. |
 
 ---
 
-## 5. Le combat
+## 6. Le combat
 
-### 5.1 Le tour de jeu
+### 6.1 Le tour de jeu
 
 1. **Début du tour du joueur** : le blocage restant disparaît, le joueur récupère 3 énergie et pioche 5 cartes. Les temps de recharge de la barre de sorts diminuent de 1.
 2. **Phase du joueur** : il joue ses cartes et ses sorts prêts dans l'ordre qu'il veut, tant qu'il a de l'énergie.
@@ -170,7 +205,7 @@ Les PV **ne remontent pas** automatiquement entre les combats. On se soigne aux 
 
 Quand la pioche est vide, la défausse est mélangée pour former une nouvelle pioche.
 
-### 5.2 Les intentions des ennemis
+### 6.2 Les intentions des ennemis
 
 Les ennemis annoncent toujours leur prochaine action. Les types d'intention :
 
@@ -183,20 +218,20 @@ Les ennemis annoncent toujours leur prochaine action. Les types d'intention :
 | **Invocation** | Portail | Fait apparaître des adds. |
 | **Incantation** | **Barre de cast** | Un sort puissant qui prend effet **au tour suivant**. Il peut être **interrompu**. |
 
-L'**Incantation** est la mécanique signature du jeu. Un boss commence à lancer *Pyroblast* : la barre de cast s'affiche, et le joueur a un tour pour réagir (interrompre, se protéger ou tuer le lanceur avant la fin de l'incantation).
+L'**Incantation** est la mécanique signature du combat. Un boss commence à lancer un gros sort : la barre de cast s'affiche, et le joueur a un tour pour réagir (interrompre, se protéger, utiliser un sort de sa barre ou tuer le lanceur avant la fin de l'incantation).
 
-### 5.3 Les ajouts WoW
+### 6.3 Les mécaniques de raid
 
-| Mécanique WoW | Traduction en cartes |
+| Mécanique de raid | Traduction en cartes |
 |---|---|
-| **Interruption** | Les cartes avec le mot-clé **Interruption** (Coup de pied, Contresort, Volée de coups, Horion de terre…) annulent l'incantation en cours. |
+| **Interruption** | Les cartes et les sorts avec le mot-clé **Interruption** (Coup de pied, Contresort, Coup de bouclier, Choc tellurique…) annulent l'incantation en cours. |
 | **Enrage timer** | Après un nombre de tours défini, le boss passe en **Berserk** : ses dégâts sont fortement augmentés. Le compteur est visible en permanence. Cela empêche le jeu trop défensif. |
 | **Phases** | Le boss change de comportement et de règles à certains seuils de PV (75 %, 50 %, 25 %…). |
 | **« Ne restez pas dans le feu »** | Une carte-statut **Zone de feu** est ajoutée à la main du joueur. S'il ne la joue pas (coût 1 : « Bouger »), elle lui inflige des dégâts en fin de tour. |
 | **Malédictions, poisons, magie, maladies** | Des débuffs typés qui ne s'enlèvent qu'avec une carte de **Dissipation** du bon type. Toutes les classes ne peuvent pas tout dissiper, et c'est voulu. |
 | **Adds** | Des ennemis secondaires invoqués par le boss. Le **contrôle des foules** (Métamorphose, Peur, Piège givrant, Assommer) prend tout son sens. |
 
-### 5.4 Mots-clés
+### 6.4 Mots-clés
 
 | Mot-clé | Effet |
 |---|---|
@@ -210,21 +245,21 @@ L'**Incantation** est la mécanique signature du jeu. Un boss commence à lancer
 | **Inné** | La carte est toujours dans la main de départ du combat. |
 | **Injouable** | La carte ne peut pas être jouée (statuts, malédictions). |
 
-### 5.5 Buffs et débuffs principaux
+### 6.5 Buffs et débuffs principaux
 
-On garde une liste **courte**, avec des noms qui sentent WoW :
+On garde une liste **courte** :
 
 | Effet | Type | Effet en jeu |
 |---|---|---|
 | **Puissance** | Buff | +1 dégât par point sur chaque attaque et chaque sort de dégâts. |
 | **Robustesse** | Buff | +1 blocage par point sur chaque carte qui donne du blocage. |
-| **Armure fracassée** | Débuff | La cible subit 50 % de dégâts en plus (inspiré de Fracasser armure). |
-| **Démoralisé** | Débuff | La cible inflige 25 % de dégâts en moins (inspiré de Cri démoralisant). |
+| **Armure fracassée** | Débuff | La cible subit 50 % de dégâts en plus. |
+| **Démoralisé** | Débuff | La cible inflige 25 % de dégâts en moins. |
 | **Ralenti** | Débuff | Le blocage gagné par la cible est réduit de 25 %. |
 | **Gel** | Débuff | Spécifique au Mage : la cible gelée subit des critiques garantis avec Fracasser. |
 | **Peur** | Débuff | La cible ne peut pas agir pendant un tour (comme Contrôle). |
 
-### 5.6 La barre de sorts (temps de recharge)
+### 6.6 La barre de sorts (temps de recharge)
 
 **C'est la première mécanique qui distingue le jeu de Slay the Spire.**
 
@@ -238,7 +273,7 @@ Le héros dispose de deux sources d'actions :
 - Utiliser un sort coûte de l'**énergie** (de 0 à 2), comme une carte. Le sort passe ensuite en **recharge** pendant X tours (de 2 à 5 selon sa puissance).
 - Certains sorts très puissants sont **« 1 fois par combat »**.
 - **Au début de chaque combat**, tous les sorts sont prêts.
-- **Obtenir de nouveaux sorts :** par les **talents** (voir §8), sur les **tables de loot** des boss (voir §11.7) et auprès du **maître de classe**.
+- **Obtenir de nouveaux sorts :** par les **talents** (voir §9), sur les **tables de loot** des boss (voir §12.7) et auprès du **maître de classe**.
 - Quand la barre est pleine, un nouveau sort **remplace** un sort existant, ou on le refuse. C'est la même règle simple que pour l'équipement.
 - Les sorts de la barre peuvent être **améliorés** au feu de camp, comme les cartes (temps de recharge réduit ou effet renforcé).
 
@@ -246,23 +281,23 @@ Le héros dispose de deux sources d'actions :
 
 | Classe | Sort de départ | Autres sorts de barre (exemples) |
 |---|---|---|
-| **Guerrier** | Charge (gagne de la rage, recharge 3) | Mur protecteur, Témérité, Cri de défi |
+| **Guerrier** | Charge (gagne de la rage, recharge 3) | Rempart, Témérité, Cri de défi |
 | **Voleur** | Sprint (pioche des cartes, recharge 3) | Disparition, Poussée d'adrénaline, Évasion |
-| **Mage** | Contresort (Interruption, recharge 3) | Bloc de glace, Combustion, Évocation, Pouvoir des arcanes |
-| **Démoniste** | Connexion (PV contre énergie, recharge 2) | Voile mortel, Pacte démoniaque, Pierre d'âme |
-| **Chasseur** | Tir des arcanes (recharge 2) | Feindre la mort, Courroux bestial, Tir rapide |
-| **Paladin** | Jugement (recharge 2) | Bouclier divin, Imposition des mains (1 fois par combat), Marteau de la justice |
-| **Prêtre** | Mot de pouvoir : Bouclier (recharge 2) | Infusion de puissance, Focalisation intérieure, Cri psychique |
-| **Chaman** | Horion de terre (Interruption, recharge 3) | Maîtrise élémentaire, Totem de mana, Rappel totémique |
-| **Druide** | Innervation (gagne de l'énergie, recharge 4) | Renaissance (1 fois par combat), Rugissement frénétique, Écorce |
+| **Mage** | Contresort (Interruption, recharge 3) | Carapace de glace, Combustion, Évocation, Pouvoir des arcanes |
+| **Démoniste** | Pacte de sang (PV contre énergie, recharge 2) | Spirale mortelle, Pacte démoniaque, Pierre d'âme |
+| **Chasseur** | Tir arcanique (recharge 2) | Feindre la mort, Fureur bestiale, Tir rapide |
+| **Paladin** | Jugement (recharge 2) | Bouclier divin, Imposition des mains (1 fois par combat), Marteau du jugement |
+| **Prêtre** | Égide sacrée (recharge 2) | Transfusion de puissance, Focalisation intérieure, Cri psychique |
+| **Chaman** | Choc tellurique (Interruption, recharge 3) | Maîtrise élémentaire, Totem de mana, Rappel totémique |
+| **Druide** | Sève vitale (gagne de l'énergie, recharge 4) | Renaissance (1 fois par combat), Régénération sauvage, Écorce |
 
 **Pourquoi c'est intéressant :** le joueur gère deux choses à la fois. Sa main dépend du hasard, alors que sa barre se **planifie**. Il doit sans cesse se demander s'il utilise son sort maintenant ou s'il le garde pour l'incantation que le boss prépare au tour suivant.
 
-### 5.7 Wipe et nouvel essai
+### 6.7 Wipe et nouvel essai
 
 **C'est la deuxième mécanique qui distingue le jeu de Slay the Spire, et elle justifie le titre.**
 
-Dans WoW, quand le raid meurt, on paie les réparations et on retente. Ici, c'est pareil.
+Dans un raid, quand tout le monde meurt, on paie les réparations et on retente. Ici, c'est pareil.
 
 **Les règles :**
 - Quand les PV du héros tombent à 0, quel que soit le combat, c'est un **wipe**.
@@ -271,32 +306,32 @@ Dans WoW, quand le raid meurt, on paie les réparations et on retente. Ici, c'es
 - **La facture de réparation :** chaque wipe coûte de l'**or** (par exemple 50, puis 100, puis 150). Si le joueur ne peut pas payer, un objet d'équipement au hasard est **brisé** : son effet est désactivé jusqu'à ce qu'il soit réparé chez le vendeur gobelin.
 - **3 wipes autorisés par run.** Un 4ᵉ wipe met fin à la run.
 - Le nouvel essai utilise une **nouvelle graine aléatoire** : la pioche et les actions des ennemis ne seront pas identiques.
-- Chaque wipe **réduit le score** de fin de run (voir §14.3).
+- Chaque wipe **réduit le score** de fin de run (voir §15.3).
 - Le joueur peut aussi **renoncer** et terminer sa run immédiatement.
 
 **Ce que ça change :**
 - Les boss peuvent être **plus durs et plus mécaniques**, car le joueur a le droit d'apprendre le combat, comme en raid.
 - Le jeu est **moins punitif sur mobile**, où une erreur de toucher est vite arrivée.
-- Les niveaux de difficulté peuvent **réduire le nombre de wipes** jusqu'à 0, pour un vrai mode « hardcore » (voir §14.2).
+- Les niveaux de difficulté peuvent **réduire le nombre de wipes** jusqu'à 0, pour un vrai mode « hardcore » (voir §15.2).
 
 ---
 
-## 6. Les cartes
+## 7. Les cartes
 
-### 6.1 Types de cartes
+### 7.1 Types de cartes
 
 | Type | Description |
 |---|---|
-| **Attaque** | Inflige des dégâts physiques (Frappe héroïque, Attaque pernicieuse…). |
+| **Attaque** | Inflige des dégâts physiques (Frappe héroïque, Attaque sinistre…). |
 | **Sort** | Inflige des dégâts magiques, ou produit un effet magique (Boule de feu, Corruption…). |
 | **Compétence** | Défense et utilitaire : blocage, pioche, interruption, dissipation… |
 | **Pouvoir** | Un effet permanent pour tout le combat (Posture de combat, Forme d'Ombre, Aura de dévotion…). |
 | **Statut** | Une carte négative temporaire ajoutée par un ennemi (Zone de feu, Bombe vivante…). Elle disparaît à la fin du combat. |
 | **Malédiction** | Une carte négative **permanente** dans le deck, obtenue via certains événements ou certaines reliques. Il faut l'enlever chez le vendeur. |
 
-La distinction entre **Attaque** et **Sort** permet des mécaniques WoW : un ennemi qui *réduit au silence* bloque les Sorts, un autre qui *désarme* bloque les Attaques.
+La distinction entre **Attaque** et **Sort** permet des mécaniques de raid : un ennemi qui *réduit au silence* bloque les Sorts, un autre qui *désarme* bloque les Attaques.
 
-### 6.2 Raretés (couleurs WoW)
+### 7.2 Raretés
 
 | Rareté | Couleur | Fréquence |
 |---|---|---|
@@ -304,30 +339,30 @@ La distinction entre **Attaque** et **Sort** permet des mécaniques WoW : un enn
 | **Commune** | Blanc | Très fréquente dans les récompenses. |
 | **Peu commune** | Vert | Fréquente. |
 | **Rare** | Bleu | Peu fréquente, plus probable après un boss secondaire. |
-| **Épique** | Violet | Les cartes signatures de spécialisation, débloquées par les talents (voir §8). |
+| **Épique** | Violet | Les cartes signatures de spécialisation, débloquées par les talents (voir §9). |
 
-L'**orange (légendaire)** est réservé aux **armes légendaires** (voir §11.3).
+L'**orange (légendaire)** est réservé aux **armes légendaires** (voir §12.3).
 
-### 6.3 Amélioration
+### 7.3 Amélioration
 
 - Chaque carte peut être **améliorée une fois** (Frappe héroïque → **Frappe héroïque+**).
 - L'amélioration augmente les chiffres, réduit le coût ou ajoute un effet.
 - On améliore une carte au **feu de camp** (maître de classe), grâce à certains événements ou à certaines reliques.
 
-### 6.4 Les cartes neutres : les professions
+### 7.4 Les cartes neutres : les professions
 
-Les cartes neutres, jouables par toutes les classes, viennent des **professions** de WoW :
+Les cartes neutres, jouables par toutes les classes, viennent des **professions** :
 
 | Profession | Exemples de cartes |
 |---|---|
-| **Ingénierie** | Bombe en fer (dégâts à tous les ennemis), Filet-o-matic (Contrôle), Grenade gobeline |
+| **Ingénierie** | Bombe en fer (dégâts à tous les ennemis), Lance-filet (Contrôle), Grenade gobeline |
 | **Alchimie** | Transmutation (transforme une carte), Pierre philosophale |
-| **Premiers soins** | Bandage en étoffe runique (soin), Antidote (dissipe un Poison) |
-| **Forge, Enchantement…** | Pierre à aiguiser (+dégâts à une attaque), Enchantement de l'arme (bonus pour le combat) |
+| **Premiers soins** | Bandage de lin (soin), Antidote (dissipe un Poison) |
+| **Forge, Enchantement…** | Pierre à aiguiser (+dégâts à une attaque), Enchantement d'arme (bonus pour le combat) |
 
 On les obtient surtout via les **événements** et le **vendeur gobelin**.
 
-### 6.5 Taille du pool
+### 7.5 Taille du pool
 
 - **Deck de départ :** 10 cartes, par exemple 4 attaques basiques, 4 défenses basiques et 2 cartes de classe.
 - **Pool par classe :** environ **50 cartes** pour la première version, réparties sur les 3 arbres de talents et un tronc commun.
@@ -336,131 +371,133 @@ On les obtient surtout via les **événements** et le **vendeur gobelin**.
 
 ---
 
-## 7. Les classes
+## 8. Les classes
 
-Le jeu proposera les **9 classes de WoW Classic**. Chacune a une **mécanique principale** qui la rend unique. Le détail de chaque classe (cartes, talents, deck de départ) fera l'objet d'un document séparé.
+Le jeu proposera **9 classes**, chacune avec une **mécanique principale** qui la rend unique. Le détail de chaque classe (cartes, talents, deck de départ) fera l'objet d'un document séparé.
 
-| Classe | Mécanique principale | Sorts iconiques |
+| Classe | Mécanique principale | Sorts signatures |
 |---|---|---|
-| **Guerrier** | **Rage** : se gagne en frappant et en étant frappé, sans régénération naturelle. **Postures** (Armes / Fureur / Défensive) qui modifient les effets des cartes. | Charge, Frappe héroïque, Frappe mortelle, **Exécution** (consomme toute la rage), Tourbillon, Sanguinaire, Heurt de bouclier, Mur protecteur |
-| **Voleur** | **Points de combo** : les générateurs en donnent, les finishers les consomment. **Camouflage** : une carte d'ouverture spéciale jouable au tour 1. | Attaque pernicieuse, Attaque sournoise, Éviscération, Débiter, Aiguillon perfide, Disparition, Poisons |
-| **Mage** | **Écoles de magie** : Givre (geler l'ennemi, puis *Fracasser* = critiques garantis), Feu (*Enflammer* qui s'accumule, Combustion), Arcane (charges arcaniques, Arcanes surpuissants). | Éclair de givre, Boule de feu, Pyroblast, Nova de givre, Métamorphose, Bloc de glace, Évocation, Contresort |
-| **Démoniste** | **Démon familier** permanent (Diablotin, Marcheur du Vide, Succube, Chasseur corrompu). **DoTs** qui s'accumulent. **Connexion** : sacrifier des PV contre de l'énergie. **Fragments d'âme**. | Corruption, Malédiction d'agonie, Immolation, Trait de l'ombre, Feu de l'âme, Peur, Voile mortel |
-| **Chasseur** | **Familier** autonome qui attaque chaque tour et obéit à des cartes d'ordre. **Aspects** (sortes de postures). **Pièges** posés à l'avance, qui se déclenchent quand l'ennemi agit. | Visée, Flèches multiples, Piqûre de serpent, Marque du chasseur, Piège givrant, Feindre la mort |
-| **Paladin** | **Sceaux et Jugement** : un Sceau actif améliore les attaques, le Jugement le consomme pour un effet puissant. **Auras** passives. | Sceau de vertu, Sceau du croisé, Jugement, Consécration, Marteau de la justice, Bouclier divin, Imposition des mains |
-| **Prêtre** | **Boucliers persistants** (Mot de pouvoir : Bouclier) et **Foi** gagnée avec les soins en excès. **Forme d'Ombre** qui transforme le style de jeu. | Mot de l'ombre : Douleur, Fouet mental, Étreinte vampirique, Châtiment, Flammes sacrées, Infusion de puissance |
-| **Chaman** | **4 emplacements de totems** (Terre, Feu, Eau, Air) : des entités persistantes avec un effet à chaque tour. **Réincarnation** : une résurrection par run. | Éclair, Chaîne d'éclairs, Horion de terre, Horion de flammes, Arme Furie-des-vents, Frappe-tempête, Vague de soins |
-| **Druide** | **Formes** : Ours (blocage, rage), Félin (combo), Sélénien / lanceur de sorts. Les cartes ont un **tag de forme**, et changer de forme coûte une action. | Mutilation, Morsure féroce, Rugissement, Éclat lunaire, Feu stellaire, Colère, Récupération, Renaissance, Innervation |
+| **Guerrier** | **Rage** : se gagne en frappant et en étant frappé, sans régénération naturelle. **Postures** (Combat / Berserker / Défensive) qui modifient les effets des cartes. | Charge, Frappe héroïque, Frappe mortelle, **Exécution** (consomme toute la rage), Tourbillon, Sanguinaire, Heurt de bouclier, Rempart |
+| **Voleur** | **Points de combo** : les générateurs en donnent, les finishers les consomment. **Camouflage** : une carte d'ouverture spéciale jouable au tour 1. | Attaque sinistre, Coup dans le dos, Éviscération, Danse des lames, Coup aux reins, Disparition, Poisons |
+| **Mage** | **Écoles de magie** : Givre (geler l'ennemi, puis *Fracasser* = critiques garantis), Feu (*Brûlure* qui s'accumule, Combustion), Arcane (charges arcaniques). | Éclair de givre, Boule de feu, Pyrolance, Nova de givre, Métamorphose, Carapace de glace, Évocation, Contresort |
+| **Démoniste** | **Démon familier** permanent (Diablotin, Rôdeur du néant, Succube, Molosse infernal). **DoTs** qui s'accumulent. **Pacte de sang** : sacrifier des PV contre de l'énergie. **Éclats d'âme**. | Corruption, Malédiction de souffrance, Immolation, Trait de l'ombre, Feu de l'âme, Peur, Spirale mortelle |
+| **Chasseur** | **Compagnon animal** autonome qui attaque chaque tour et obéit à des cartes d'ordre. **Aspects** (sortes de postures). **Pièges** posés à l'avance, qui se déclenchent quand l'ennemi agit. | Tir ajusté, Flèches multiples, Flèche venimeuse, Marque de la proie, Piège givrant, Feindre la mort |
+| **Paladin** | **Sceaux et Jugement** : un Sceau actif améliore les attaques, le Jugement le consomme pour un effet puissant. **Auras** passives. | Sceau de droiture, Sceau du croisé, Jugement, Consécration, Marteau du jugement, Bouclier divin, Imposition des mains |
+| **Prêtre** | **Boucliers persistants** (Égide sacrée) et **Foi** gagnée avec les soins en excès. **Forme d'Ombre** qui transforme le style de jeu. | Murmure de douleur, Fouet psychique, Étreinte vampirique, Châtiment, Feu sacré, Transfusion de puissance |
+| **Chaman** | **4 emplacements de totems** (Terre, Feu, Eau, Air) : des entités persistantes avec un effet à chaque tour. **Réincarnation** : une résurrection par run. | Éclair, Chaîne d'éclairs, Choc tellurique, Choc de flammes, Arme des vents, Frappe d'orage, Vague de soins |
+| **Druide** | **Formes** : Ours (blocage, rage), Félin (combo), Forme astrale (sorts). Les cartes ont un **tag de forme**, et changer de forme coûte une action. | Lacération, Morsure féroce, Rugissement, Feu de lune, Feu stellaire, Colère, Renouveau, Renaissance |
 
-**Pour la première version**, on vise **3 classes** très différentes (voir §18). Les autres arriveront ensuite.
+**Pour la première version**, on vise **3 classes** très différentes (voir §19). Les autres arriveront ensuite.
 
 ---
 
-## 8. Spécialisations et talents
+## 9. Spécialisations et talents
 
-Le joueur ne choisit **pas sa spécialisation au départ**. Il choisit une **classe**, et sa spé se construit **au fil de la run**, comme les arbres de talents de Classic.
+Le joueur ne choisit **pas sa spécialisation au départ**. Il choisit une **classe**, et sa spé se construit **au fil de la run**, grâce à des arbres de talents.
 
-- Chaque classe possède **3 arbres de talents**, ceux de Classic (Guerrier : Armes / Fureur / Protection ; Mage : Arcane / Feu / Givre ; etc.).
+- Chaque classe possède **3 arbres de talents** (Guerrier : Armes / Fureur / Protection ; Mage : Arcane / Feu / Givre ; etc.).
 - Le joueur gagne **un point de talent après chaque boss** (secondaire ou de fin d'acte). Sur une run complète, cela représente environ **6 à 9 points**.
 - Chaque arbre compte **5 paliers**. Il faut avoir investi dans un palier pour accéder au suivant.
 - Plus le joueur investit dans un arbre, plus les **récompenses de cartes** proposées après les combats penchent vers cet arbre.
-- Le **dernier palier** de chaque arbre débloque les **cartes épiques** de la spécialisation (Frappe mortelle, Sanguinaire, Heurt de bouclier, Pyroblast, Forme d'Ombre…), qui apparaissent alors dans les récompenses.
-- Certains paliers donnent un **sort de barre** (voir §5.6) au lieu d'un bonus passif. Par exemple, le palier 3 de l'arbre Givre donne Bloc de glace.
-- Les **builds hybrides** sont possibles et encouragés, dans l'esprit de Classic.
+- Le **dernier palier** de chaque arbre débloque les **cartes épiques** de la spécialisation (Frappe mortelle, Sanguinaire, Heurt de bouclier, Pyrolance, Forme d'Ombre…), qui apparaissent alors dans les récompenses.
+- Certains paliers donnent un **sort de barre** (voir §6.6) au lieu d'un bonus passif. Par exemple, le palier 3 de l'arbre Givre donne Carapace de glace.
+- Les **builds hybrides** sont possibles et encouragés.
 
 > **Exemple :** un Guerrier qui met ses 3 premiers points en Protection verra plus de cartes de blocage et de Heurt de bouclier, mais il peut ensuite basculer vers Fureur pour un build « tank qui tape ».
 
 ---
 
-## 9. Les ennemis
+## 10. Les ennemis
 
-### 9.1 Les trois catégories
+### 10.1 Les trois catégories
 
-| Catégorie | Description | Exemples (Cœur du Magma) |
+| Catégorie | Description | Exemples (Profondeurs Ardentes) |
 |---|---|---|
-| **Trash** | Ennemis standard, souvent en groupe de 1 à 4. Comportements simples et prévisibles. | Chien du Magma, Géant de lave, Surineur du Magma |
-| **Boss secondaire** | Un boss du raid avec **une mécanique principale** à gérer. Plus de PV, meilleur loot. | Magmadar, Garr, Baron Geddon |
-| **Boss de fin d'acte** | Le boss final, avec **plusieurs phases**, un **enrage timer** et au moins une mécanique unique. | Ragnaros |
+| **Trash** | Ennemis standard, souvent en groupe de 1 à 4. Comportements simples et prévisibles. | Molosse de braise, Géant de lave, Éclaireur cendreux |
+| **Boss secondaire** | Un boss du raid avec **une mécanique principale** à gérer. Plus de PV, meilleur loot. | Croc-de-lave, Gorlok le Fragmenté, Baron Vossk |
+| **Boss de fin d'acte** | Le boss final, avec **plusieurs phases**, un **enrage timer** et au moins une mécanique unique. | Vulkhar, Souverain des flammes |
 
-### 9.2 Principes de design
+### 10.2 Principes de design
 
 - **Une mécanique claire par ennemi.** Le joueur doit comprendre en un tour ce que fait l'ennemi.
 - **Des combats qui posent une question.** Chaque boss secondaire teste une compétence : interrompre, dissiper, tuer les adds, tenir sous la pression, faire beaucoup de dégâts vite…
 - **Aucune classe ne doit être bloquée.** Si un boss exige une Dissipation, il doit exister une alternative (une potion, une carte neutre, encaisser).
 - **Les packs de trash ont un thème.** Ils annoncent les mécaniques du raid et préparent aux boss.
 
-### 9.3 Progression de la difficulté
+### 10.3 Progression de la difficulté
 
 - L'acte 2 et l'acte 3 ont des ennemis plus nombreux, plus résistants et plus complexes.
 - Les **premiers combats de chaque acte** sont plus faciles, pour laisser le joueur s'adapter.
-- Les niveaux de difficulté (voir §14.2) ajoutent des modificateurs par-dessus.
+- Les niveaux de difficulté (voir §15.2) ajoutent des modificateurs par-dessus.
 
 ---
 
-## 10. Les raids (actes)
+## 11. Les raids (actes)
 
-On commence par **WoW Classic**. Chaque raid est un acte, avec ses monstres de trash, un pool de boss secondaires (élites) et son boss final. Le **lore** du raid sert de fil narratif à l'acte.
+Chaque raid est un acte, avec ses monstres de trash, un pool de boss secondaires et son boss final. L'**histoire** du raid sert de fil narratif à l'acte.
 
-### Acte 1 — Le Cœur du Magma
-*Les profondeurs du mont Rochenoire. Le Seigneur du feu Ragnaros est revenu.*
+### Acte 1 — Les Profondeurs Ardentes
+*Sous le mont Durgal, les anciennes forges naines se sont effondrées dans un océan de lave. Vulkhar, Souverain des flammes, a été arraché à son plan par la Grande Brèche, et ses serviteurs préparent son retour complet.*
 
-- **Trash** : Chiens du Magma, Géants de lave, Seigneurs du feu, Surineurs du Magma
+- **Trash** : Molosses de braise, Géants de lave, Seigneurs des cendres, Éclaireurs cendreux
 - **Pool de boss secondaires** :
-  - **Lucifron** : lance des malédictions qu'il faut dissiper.
-  - **Magmadar** : *Panique*, certaines cartes en main deviennent injouables pendant un tour.
-  - **Gehennas** : *Pluie de feu*, des cartes Zone de feu arrivent en main.
-  - **Garr** : accompagné d'adds qui explosent à leur mort.
-  - **Baron Geddon** : *Bombe vivante*, une carte qui t'inflige de lourds dégâts si elle est encore dans ta main en fin de tour.
-  - **Shazzrah** : se téléporte et contre tes sorts.
-  - **Sulfuron** : soigne ses lieutenants, qu'il faut interrompre.
-  - **Golemagg** : accompagné de deux Rageurs du Magma.
-  - **Majordome Executus** : entouré de ses gardes, qu'il protège avec des boucliers.
-- **Boss final** : **Ragnaros**
-  - *Courroux de Ragnaros* : défausse ta main.
-  - Au tour X, il **submerge** : des **Fils de la flamme** apparaissent et il faut les tuer avant son retour.
-- **Événement spécial** : les **Seigneurs de l'eau d'Hydraxis** te confient de quoi éteindre les runes du Cœur du Magma, ce qui affaiblit Ragnaros.
+  - **Morvax le Maudisseur** : lance des malédictions qu'il faut dissiper.
+  - **Croc-de-lave, le Molosse ancestral** : *Hurlement de terreur*, certaines cartes en main deviennent injouables pendant un tour.
+  - **Sœur Cendrine, prêtresse des braises** : *Pluie de cendres*, des cartes Zone de feu arrivent en main.
+  - **Gorlok le Fragmenté** : un élémentaire de roche entouré d'éclats qui explosent à leur mort.
+  - **Le Baron Vossk** : *Bombe vivante*, une carte qui t'inflige de lourds dégâts si elle est encore dans ta main en fin de tour.
+  - **Zhaal le Tisseur d'arcanes** : se téléporte et contre tes sorts.
+  - **Le Héraut Brannoc** : soigne ses lieutenants, qu'il faut interrompre.
+  - **Krâgg le Mange-roche** : accompagné de deux molosses enragés.
+  - **Le Grand Intendant Saldris** : entouré de ses gardes, qu'il protège avec des boucliers.
+- **Boss final** : **Vulkhar, Souverain des flammes**
+  - *Marteau des flammes* : défausse ta main.
+  - Au tour X, il **plonge dans la lave** : des **Rejetons de flamme** apparaissent et il faut les tuer avant son retour.
+- **Événement spécial** : les **Gardiens des Sources**, des élémentaires d'eau, te confient de l'eau des profondeurs pour éteindre les runes de feu, ce qui affaiblit Vulkhar.
 
-### Acte 2 — Le Repaire de l'Aile noire
-*Le sommet du mont Rochenoire. Nefarian mène ses expériences sur les dragons chromatiques.*
-
-- **Pool de boss secondaires** :
-  - **Tranchetripe l'Indompté** : une phase de contrôle d'orbe.
-  - **Vaelastrasz le Corrompu** : *Adrénaline brûlante*, énergie illimitée mais tu brûles à chaque tour. Une course contre la montre.
-  - **Seigneur des couvées Lashlayer** : il frappe de plus en plus fort tant qu'on ne le tue pas.
-  - **Gueule-de-feu, Ebonroc, Flamegor** : les souffles des dragons.
-  - **Chromaggus** : souffles aléatoires et 5 afflictions de couvée. Si elles s'accumulent, tu es transformé.
-- **Boss final** : **Nefarian**
-  - **Appels de classe** : des effets qui visent **spécifiquement la classe du joueur**.
-
-### Acte 3 — Ahn'Qiraj
-*Les profondeurs du temple d'Ahn'Qiraj. Un Dieu très ancien rêve sous le sable.*
+### Acte 2 — L'Aire de Vhaeryx
+*Au sommet du mont Durgal, le dragon-alchimiste Vhaeryx mène des expériences interdites. Il fusionne le sang de plusieurs lignées de dragons pour créer une armée invincible.*
 
 - **Pool de boss secondaires** :
-  - **Le Prophète Skeram** : crée des copies de lui-même.
-  - **Les Empereurs jumeaux** : ils échangent leurs positions et chacun est immunisé à un type de dégâts (l'un aux Attaques, l'autre aux Sorts).
-  - **Ouro**, **la Famille royale insectoïde**, **Viscidus**…
-- **Boss final** : **C'Thun**
+  - **Le Gardien des couvées Skarn** : il faut s'emparer du *Sceptre de domination* pour retourner ses dragonnets contre lui.
+  - **Ysolde la Rouge, dragonne asservie** : *Adrénaline ardente*, énergie illimitée mais tu brûles à chaque tour. Une course contre la montre.
+  - **Le Contremaître Draksis** : il frappe de plus en plus fort tant qu'on ne le tue pas.
+  - **Les Trois Souffles** : trois drakes, chacun avec un souffle différent.
+  - **Prismagor, l'Abomination chromatique** : souffles aléatoires et 5 afflictions de sang. Si elles s'accumulent, tu es transformé.
+- **Boss final** : **Vhaeryx, le Dragon-Alchimiste**
+  - **Malédiction de lignée** : des effets qui visent **spécifiquement la classe du joueur**.
+
+### Acte 3 — Irem, la cité ensevelie
+*Sous les sables de l'Est, la cité aux mille colonnes s'est réveillée. Ses prêtres-insectes servent Yzhar, le Dieu dormant, dont les rêves rendent fous ceux qui s'approchent.*
+
+- **Pool de boss secondaires** :
+  - **Le Prophète Méhkar** : crée des copies de lui-même.
+  - **Les Rois-Jumeaux Asheth et Neshet** : ils échangent leurs positions, et chacun est immunisé à un type de dégâts (l'un aux Attaques, l'autre aux Sorts).
+  - **Gharul, le Ver des sables** : il s'enfouit et ressurgit.
+  - **La Triade de la Ruche** : trois insectes royaux à tuer presque en même temps.
+  - **Le Limon primordial** : il faut le geler avant de pouvoir le briser.
+- **Boss final** : **Yzhar, le Dieu dormant**
   - Phase 1 : l'**Œil**, avec des rayons qui se propagent.
-  - Phase 2 : le corps, et une phase **dans l'estomac** où le joueur combat avec une main réduite.
+  - Phase 2 : le corps, et une phase **dans ses entrailles** où le joueur combat avec une main réduite.
 
-### Acte bonus — Naxxramas
-*La nécropole flottante du Fléau.*
+### Acte bonus — La Nécropole céleste
+*Une citadelle d'os et de pierre noire flotte au-dessus des royaumes. Son maître, l'Archiliche Sarvok, attend que les autres puissances aient affaibli Eldrava.*
 
-- Débloqué en récupérant les **3 fragments d'harmonisation** pendant la run (voir §14.1), comme l'acte 4 de StS avec ses 3 clés.
+- Débloqué en récupérant les **3 éclats de clé** pendant la run (voir §15.1), comme l'acte 4 de StS avec ses 3 clés.
 - **Acte court** : un feu de camp, un vendeur, un boss secondaire, puis le boss final.
-- **Boss final** : **Kel'Thuzad**. C'est la vraie fin du jeu.
+- **Boss final** : **l'Archiliche Sarvok**. C'est la vraie fin du jeu.
 
 ### Plus tard
-- **Pools de boss de fin d'acte** : comme dans StS, chaque acte pourrait tirer son boss final parmi plusieurs. Par exemple, l'acte 1 pourrait se terminer par Ragnaros **ou Onyxia** (« Many whelps! Handle it! »), et l'acte 2 par Nefarian **ou Hakkar** (Zul'Gurub).
+- **Pools de boss de fin d'acte** : comme dans StS, chaque acte pourrait tirer son boss final parmi plusieurs. Par exemple, l'acte 1 pourrait se terminer par Vulkhar **ou Sythra, la Matriarche des cendres** (une reine-dragon et ses dragonnets), et l'acte 2 par Vhaeryx **ou Ekhara, le Serpent de sang** (un dieu-serpent dans une cité de la jungle).
 
 ---
 
-## 11. Récompenses
+## 12. Récompenses
 
-### 11.1 Les cartes
-Après chaque combat, le joueur choisit une carte parmi 3, ou n'en prend aucune. Les cartes proposées dépendent de la classe et des talents investis (voir §8). Après un boss secondaire, les chances d'obtenir une carte rare sont plus élevées.
+### 12.1 Les cartes
+Après chaque combat, le joueur choisit une carte parmi 3, ou n'en prend aucune. Les cartes proposées dépendent de la classe et des talents investis (voir §9). Après un boss secondaire, les chances d'obtenir une carte rare sont plus élevées.
 
-### 11.2 L'équipement (volontairement simple)
+### 12.2 L'équipement (volontairement simple)
 
 **6 emplacements :**
 
@@ -480,54 +517,54 @@ Après chaque combat, le joueur choisit une carte parmi 3, ou n'en prend aucune.
 - pas de statistiques chiffrées à comparer ;
 - pas de raretés à gérer (la couleur est purement visuelle) ;
 - pas de bonus de set ;
-- pas de restrictions plaque / maille / cuir / tissu : le loot proposé est déjà adapté à la classe.
+- pas de restrictions d'armure lourde, moyenne ou légère : le loot proposé est déjà adapté à la classe.
 
-**Où trouver de l'équipement :** dans les coffres, sur les boss secondaires (une chance), chez le vendeur gobelin et dans certains événements.
+**Où trouver de l'équipement :** dans les coffres, sur les tables de loot des boss (voir §12.7), chez le vendeur gobelin et dans certains événements.
 
-### 11.3 Les légendaires de classe
+### 12.3 Les légendaires de classe
 
 Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.
 
 | Classe | Légendaire | Effet (première idée) |
 |---|---|---|
-| **Guerrier** | **Quel'Serrar** | Chaque fois que tu prends des dégâts, gagne +1 rage supplémentaire. |
-| **Paladin** | **Porte-cendres** | Tes Jugements infligent des dégâts doublés aux morts-vivants et aux démons, et te soignent. |
-| **Chasseur** | **Rhok'delar** | Ton familier attaque une fois de plus chaque tour. |
-| **Voleur** | **Tonnerre-furie** | Tes attaques ont une chance de déclencher un éclair qui frappe tous les ennemis. |
-| **Prêtre** | **Bénédiction / Anathème** | Une arme double : elle change d'effet selon que tu es en forme Sacrée ou en forme d'Ombre. |
-| **Chaman** | **Marteau-du-destin** | Tes totems ont un emplacement de plus, ou se déclenchent deux fois. |
-| **Mage** | **Atiesh (version Mage)** | Le premier sort de chaque tour coûte 0. |
-| **Démoniste** | **Atiesh (version Démoniste)** | Connexion ne coûte plus de PV une fois par tour, et tes DoTs durent 1 tour de plus. |
-| **Druide** | **Atiesh (version Druide)** | Changer de forme ne coûte plus d'action. |
+| **Guerrier** | **Brisemonts**, l'épée des rois nains | Chaque fois que tu prends des dégâts, gagne +1 rage supplémentaire. |
+| **Paladin** | **L'Aurore ardente** | Tes Jugements infligent des dégâts doublés aux morts-vivants et aux démons, et te soignent. |
+| **Chasseur** | **Corde-des-anciens**, l'arc du premier chasseur | Ton compagnon attaque une fois de plus chaque tour. |
+| **Voleur** | **Sillon d'orage** | Tes attaques ont une chance de déclencher un éclair qui frappe tous les ennemis. |
+| **Prêtre** | **Équinoxe**, le bâton de lumière et d'ombre | Une arme double : elle change d'effet selon que tu es en forme Sacrée ou en forme d'Ombre. |
+| **Chaman** | **Le Marteau des ancêtres** | Tes totems ont un emplacement de plus, ou se déclenchent deux fois. |
+| **Mage** | **Le Bâton du Veilleur (version Mage)** | Le premier sort de chaque tour coûte 0. |
+| **Démoniste** | **Le Bâton du Veilleur (version Démoniste)** | Pacte de sang ne coûte plus de PV une fois par tour, et tes DoTs durent 1 tour de plus. |
+| **Druide** | **Le Bâton du Veilleur (version Druide)** | Changer de forme ne coûte plus d'action. |
 
 **Règles d'obtention :**
 - chaque légendaire s'obtient via une **petite chaîne de quête de 2 ou 3 étapes**, réparties sur les événements « ? » et les boss de la run ;
 - **un seul légendaire par run** ;
-- *Exemple (Voleur, Tonnerre-furie)* : récupérer la Garde liée de gauche sur **Garr**, celle de droite sur le **Baron Geddon**, puis trouver l'événement **Prince Tonneraan** pour forger l'arme.
+- *Exemple (Voleur, Sillon d'orage)* : récupérer le Fermoir gauche de l'orage sur **Gorlok le Fragmenté**, le Fermoir droit sur le **Baron Vossk**, puis trouver l'événement **Ventor, Prince des tempêtes**, qui forge l'arme.
 
-### 11.4 Les reliques
+### 12.4 Les reliques
 Des **objets passifs** sans emplacement, qui s'accumulent comme dans StS. Trois sources :
-- **Reliques communes** : dans les coffres et sur les boss secondaires.
-- **Butin de boss** : après chaque boss de fin d'acte, choix parmi 3 reliques puissantes, souvent avec un inconvénient (voir §14.1).
+- **Reliques communes** : dans les coffres et sur les tables de loot des boss.
+- **Butin de boss** : après chaque boss de fin d'acte, choix parmi 3 reliques puissantes, souvent avec un inconvénient (voir §15.1).
 - **Reliques de boutique** : chez le vendeur gobelin.
 
 Exemples d'inspiration :
-- **Objets de lore** : Pierre de foyer, Clé du Repaire de l'Aile noire, Œil de Sulfuron, Tête d'Onyxia…
-- **Buffs mondiaux** (actifs pour quelques combats seulement) : Fleur-de-chant, Bénédiction du Chef de guerre, Cri de ralliement du Pourfendeur de dragons.
+- **Objets d'histoire** : Pierre de retour, Sceau de l'Aire, Cœur de Vulkhar, Croc de la Matriarche…
+- **Buffs de raid** (actifs pour quelques combats seulement) : Fleur des fées, Cri du Héraut, Cri du Tueur de dragons.
 
-### 11.5 Les potions (consommables)
+### 12.5 Les potions (consommables)
 - **3 emplacements** au départ.
 - Elles se trouvent après les combats (une chance), dans les événements et chez le vendeur.
-- Exemples : Flacon des Titans, Élixir de la mangouste, Pierre de soins, Potion de protection contre le feu, Potion de soins majeure, Potion de rage puissante…
+- Exemples : Flacon du colosse, Élixir du félin, Pierre de vie, Potion de protection contre le feu, Potion de soins majeure, Potion de rage…
 
-### 11.6 L'or
-L'or se gagne après chaque combat (plus sur les boss secondaires) et dans certains événements. Il se dépense chez le vendeur gobelin et sert à payer les **factures de réparation** après un wipe (voir §5.7).
+### 12.6 L'or
+L'or se gagne après chaque combat (plus sur les boss secondaires) et dans certains événements. Il se dépense chez le vendeur gobelin et sert à payer les **factures de réparation** après un wipe (voir §6.7).
 
-### 11.7 Les tables de loot
+### 12.7 Les tables de loot
 
 **C'est la troisième mécanique qui distingue le jeu de Slay the Spire.**
 
-Chaque **boss secondaire** et chaque **boss de fin d'acte** a sa propre **table de loot**, comme dans WoW.
+Chaque **boss secondaire** et chaque **boss de fin d'acte** a sa propre **table de loot**.
 
 **Les règles :**
 - Une table contient **4 à 6 objets** propres à ce boss : de l'équipement, des reliques et des sorts de barre, adaptés à la classe du joueur.
@@ -536,34 +573,34 @@ Chaque **boss secondaire** et chaque **boss de fin d'acte** a sa propre **table 
 
 **Le loot se révèle au fil des parties :**
 - Un objet que le joueur **n'a encore jamais obtenu** apparaît dans la table sous forme de **silhouette « ??? »**. Seuls son emplacement (Arme, Bijou…) et sa couleur sont visibles.
-- Dès qu'un objet a été **obtenu une fois**, dans n'importe quelle run, il devient **visible pour toujours** dans la table de ce boss. Cette découverte est enregistrée dans le profil et dans le compendium.
-- Ainsi, au début, le joueur découvre le loot. Plus tard, il connaît les tables et peut **viser un objet précis** : « Je passe par Magmadar pour essayer d'avoir son bijou, qui va avec mon build Feu ».
+- Dès qu'un objet a été **obtenu une fois**, dans n'importe quelle run, il devient **visible pour toujours** dans la table de ce boss. Cette découverte est enregistrée dans le profil et dans les archives de la guilde.
+- Ainsi, au début, le joueur découvre le loot. Plus tard, il connaît les tables et peut **viser un objet précis** : « Je passe par Croc-de-lave pour essayer d'avoir son bijou, qui va avec mon build Feu ».
 
 **Ce que ça change :** le choix du chemin sur la carte n'est plus seulement une question de risque. Il devient aussi une question de **build**. Cela donne une raison d'affronter des boss secondaires, et une raison de rejouer pour compléter les tables.
 
 ---
 
-## 12. Les événements
+## 13. Les événements
 
-Les nœuds « ? » proposent une petite scène narrative avec **2 ou 3 choix**, souvent avec un risque ou une contrepartie. Ils font vivre le **lore** et portent les **quêtes légendaires**.
+Les nœuds « ? » proposent une petite scène narrative avec **2 ou 3 choix**, souvent avec un risque ou une contrepartie. Ils font vivre l'**univers** et portent les **quêtes légendaires**.
 
 **Exemples :**
 
 | Événement | Acte | Choix (idée) |
 |---|---|---|
-| **Les Seigneurs de l'eau d'Hydraxis** | 1 | Accepter la quête (affaiblit Ragnaros, mais il faut battre un boss secondaire) / Refuser. |
+| **Les Gardiens des Sources** | 1 | Accepter leur quête (affaiblit Vulkhar, mais il faut battre un boss secondaire) / Refuser. |
 | **Un gobelin coincé dans un coffre** | Tous | Le libérer (récompense aléatoire, ou un piège) / Prendre le coffre et partir (or, mais une malédiction). |
-| **Pierre d'invocation** | Tous | Invoquer un « membre du raid » : gagner une carte neutre / Payer en PV pour retirer une carte du deck. |
-| **Le joueur qui fonce** | Tous | Un aventurier fonce dans le pack en criant son nom. L'aider (combat difficile, grosse récompense) / Le laisser (rien ne se passe). |
-| **Le Prince Tonneraan** | 1 | Étape de la quête de Tonnerre-furie. |
-| **Les œufs de dragon** | 2 | Détruire les œufs (combat contre des dragonnets, puis récompense) / Les laisser (Nefarian aura un add de plus). |
-| **Le gong du Seigneur Scarabée** | 3 | Frapper le gong (une relique puissante, mais le prochain combat est plus dur) / Passer son chemin. |
-| **L'Aube d'argent** | 3 | Recevoir une bénédiction contre les morts-vivants / Obtenir un indice sur un fragment d'harmonisation. |
-| **Le fantôme du raideur** | Tous | Un raideur mort dans un wipe précédent. Récupérer son équipement (un objet, plus une malédiction) / Le laisser reposer (soin). |
+| **Le cercle d'appel** | Tous | Appeler un membre de la guilde en renfort : gagner une carte neutre / Payer en PV pour retirer une carte du deck. |
+| **Le joueur qui fonce** | Tous | Un aventurier fonce dans le pack en hurlant son propre nom. L'aider (combat difficile, grosse récompense) / Le laisser (rien ne se passe). |
+| **Ventor, Prince des tempêtes** | 1 | Étape de la quête de Sillon d'orage. |
+| **Les œufs de dragon** | 2 | Détruire les œufs (combat contre des dragonnets, puis récompense) / Les laisser (Vhaeryx aura un add de plus). |
+| **Le gong des Sables** | 3 | Frapper le gong (une relique puissante, mais le prochain combat est plus dur) / Passer son chemin. |
+| **Les Veilleurs de l'Aurore** | 3 | Recevoir une bénédiction contre les morts-vivants / Obtenir un indice sur un éclat de clé. |
+| **Le fantôme du raideur** | Tous | Un aventurier mort lors d'un wipe précédent. Récupérer son équipement (un objet, plus une malédiction) / Le laisser reposer (soin). |
 
 ---
 
-## 13. Le vendeur gobelin
+## 14. Le vendeur gobelin
 
 Le vendeur propose à chaque visite :
 
@@ -575,35 +612,36 @@ Le vendeur propose à chaque visite :
 | **Reliques** | 2 reliques | 150 à 300 or |
 | **Potions** | 3 potions | 50 à 100 or |
 | **Service : retirer une carte** | 1 fois par visite | 75 or, puis +25 à chaque utilisation pendant la run |
+| **Service : réparation** | Répare un objet brisé (voir §6.7) | 50 à 100 or |
 
 Le prix d'une des cartes est réduit de moitié (« promo du jour »).
 
 ---
 
-## 14. Progression (inspirée de Slay the Spire)
+## 15. Progression (inspirée de Slay the Spire)
 
-Le principe de StS est repris tel quel : **le joueur ne devient pas plus fort d'une run à l'autre**. Il débloque du **contenu** (nouvelles cartes, reliques, classes) et de la **difficulté**. Toute la puissance se gagne pendant la run.
+Le principe de StS est repris : **le joueur ne devient pas plus fort d'une run à l'autre**. Il débloque du **contenu** (nouvelles cartes, reliques, classes) et de la **difficulté**. Toute la puissance se gagne pendant la run.
 
-### 14.1 Pendant la run
+### 15.1 Pendant la run
 
-| Élément StS | Version WoW |
+| Élément StS | Version Wipe & Loot |
 |---|---|
-| **Bénédiction de Neow** en début de run | **Bénédiction à l'entrée du raid** : un PNJ (par exemple Lothos Rift-waker à l'entrée du Cœur du Magma) propose un choix parmi 4 bonus de départ, dont certains avec une contrepartie (« Perds 10 PV max, obtiens une relique rare »). |
-| Deck de départ basique | **Deck de départ de la classe** : 10 cartes (voir §6.5). |
-| Récompenses de cartes après combat | Inchangé : 1 carte parmi 3, influencée par les talents (§8). |
-| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte. |
+| **Bénédiction** en début de run | **Bénédiction d'entrée** : **Brégan le Passeur**, qui guide les expéditions jusqu'aux Profondeurs Ardentes, propose un choix parmi 4 bonus de départ, dont certains avec une contrepartie (« Perds 10 PV max, obtiens une relique rare »). |
+| Deck de départ basique | **Deck de départ de la classe** : 10 cartes (voir §7.5). |
+| Récompenses de cartes après combat | Inchangé : 1 carte parmi 3, influencée par les talents (§9). |
+| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte ou un sort de barre. |
 | **Relique de boss** après chaque boss de fin d'acte | **Butin de boss** : choix parmi 3 reliques puissantes, souvent avec un inconvénient. |
-| Ordre fixe des actes | **Ordre fixe des raids** : Cœur du Magma → Repaire de l'Aile noire → Ahn'Qiraj. |
-| **Acte 4** débloqué par 3 clés | **Naxxramas** débloqué par **3 fragments d'harmonisation** récupérés pendant la run (voir ci-dessous). |
+| Ordre fixe des actes | **Ordre fixe des raids** : Profondeurs Ardentes → Aire de Vhaeryx → Irem. |
+| **Acte 4** débloqué par 3 clés | **La Nécropole céleste**, débloquée par **3 éclats de clé** récupérés pendant la run (voir ci-dessous). |
 
-**Les 3 fragments d'harmonisation pour Naxxramas** (équivalents des 3 clés de StS) :
-- 🔴 **Fragment de feu** : à la place du repos ou de l'amélioration, sur un feu de camp.
-- 🔵 **Fragment des dragons** : en battant un **boss secondaire renforcé** (signalé sur la carte).
-- 🟢 **Fragment ancien** : en renonçant à la récompense d'un coffre.
+**Les 3 éclats de clé de la Nécropole :**
+- 🔴 **Éclat de braise** : à la place du repos ou de l'amélioration, sur un feu de camp.
+- 🔵 **Éclat d'écaille** : en battant un **boss secondaire renforcé** (signalé sur la carte).
+- 🟡 **Éclat de sable** : en renonçant à la récompense d'un coffre.
 
-### 14.2 Entre les runs
+### 15.2 Entre les runs
 
-- **Barre d'expérience par classe** : à la fin de chaque run, victoire ou défaite, le joueur gagne de l'expérience selon son **score** (voir §14.3). Chaque niveau débloque **un lot de nouvelles cartes ou de nouvelles reliques** pour cette classe.
+- **Barre d'expérience par classe** : à la fin de chaque run, victoire ou défaite, le joueur gagne de l'expérience selon son **score** (voir §15.3). Chaque niveau débloque **un lot de nouvelles cartes ou de nouvelles reliques** pour cette classe.
 - **Déblocage des classes** : au départ, 1 classe est disponible. Les autres se débloquent en accumulant de l'expérience au total (comme les personnages de StS).
 - **Niveaux de difficulté** (l'équivalent de l'Ascension) : **20 niveaux par classe**, débloqués un par un en gagnant une run au niveau précédent. Chaque niveau ajoute un modificateur cumulable, par exemple :
   - *Les ennemis ont plus de PV*
@@ -614,13 +652,13 @@ Le principe de StS est repris tel quel : **le joueur ne devient pas plus fort d'
   - *Un wipe autorisé de moins* (ce modificateur revient à plusieurs niveaux, jusqu'à 0 wipe autorisé)
   - *Les factures de réparation coûtent plus cher*
   - *Niveau 20 : deux boss d'affilée à la fin de l'acte 3*
-- **Compendium** : une encyclopédie qui recense les cartes, reliques, objets et monstres découverts, avec un petit texte de lore pour chaque entrée.
+- **Archives de la guilde** (compendium) : une encyclopédie qui recense les cartes, reliques, objets et monstres découverts, avec un petit texte d'histoire pour chaque entrée.
 
-### 14.3 Score et fin de run
+### 15.3 Score et fin de run
 
 À la fin de chaque run, un écran récapitule :
 - les étages atteints, les boss vaincus et les boss secondaires tués ;
-- le deck final, l'équipement et les reliques ;
+- le deck final, l'équipement, la barre de sorts et les reliques ;
 - des **bonus de score** (« Aucun dégât sur un boss », « Légendaire forgé », « Speedrun », « Aucun wipe »…) ;
 - un **malus pour chaque wipe**.
 
@@ -628,14 +666,14 @@ Le score détermine l'expérience gagnée. Il servira aussi de base au futur **m
 
 ---
 
-## 15. Plateformes et interface
+## 16. Plateformes et interface
 
-### 15.1 Cible
+### 16.1 Cible
 
 - **Navigateur web**, sur **PC** et sur **smartphone**. Pas d'installation nécessaire.
 - Plus tard, le jeu pourra être installable sur téléphone en tant qu'application web (PWA), et éventuellement distribué sur PC.
 
-### 15.2 Contraintes d'interface
+### 16.2 Contraintes d'interface
 
 | Contrainte | Conséquence |
 |---|---|
@@ -643,21 +681,22 @@ Le score détermine l'expérience gagnée. Il servira aussi de base au futur **m
 | **Tactile** | Toucher une carte pour la sélectionner, puis toucher la cible. Sur PC, on peut aussi glisser-déposer. |
 | **Pas de survol sur mobile** | Les infobulles (description d'un mot-clé, d'un buff…) s'ouvrent par **appui long** sur mobile et par **survol** sur PC. |
 | **Lisibilité** | Textes de cartes courts, chiffres en gros, icônes claires. Une carte doit se comprendre en un coup d'œil sur un petit écran. |
-| **Sessions interrompues** | La run est **sauvegardée automatiquement** en permanence. On peut fermer le navigateur à tout moment et reprendre plus tard (voir §15.4). |
+| **Sessions interrompues** | La run est **sauvegardée automatiquement** en permanence. On peut fermer le navigateur à tout moment et reprendre plus tard (voir §16.4). |
 
-### 15.3 Écrans principaux
+### 16.3 Écrans principaux
 
-1. **Menu principal** : nouvelle partie, continuer, compendium, options.
+1. **Hall de la guilde** (menu principal) : nouvelle partie, continuer, archives, options.
 2. **Choix de la classe** et du niveau de difficulté.
-3. **Carte de l'acte** : les étages et les chemins.
+3. **Carte de l'acte** : les étages, les chemins et les tables de loot des boss.
 4. **Combat**.
 5. **Récompenses** : choix de carte, or, objet.
-6. **Fiche du héros** : deck, équipement (6 emplacements), reliques, talents.
+6. **Fiche du héros** : deck, barre de sorts, équipement (6 emplacements), reliques, talents.
 7. **Arbre de talents**.
 8. **Feu de camp**, **vendeur**, **événement**.
-9. **Fin de run** : score et expérience.
+9. **Wipe** : réessayer (avec le coût de réparation affiché) ou renoncer.
+10. **Fin de run** : score et expérience.
 
-### 15.4 Sauvegarde et reprise
+### 16.4 Sauvegarde et reprise
 
 Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans rien perdre.
 
@@ -665,15 +704,15 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 
 | Sauvegarde | Contenu |
 |---|---|
-| **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, équipement, reliques, potions, talents, étapes de quête légendaire, fragments d'harmonisation. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, ennemis, buffs et débuffs). |
-| **Le profil du joueur** | Expérience et niveaux de chaque classe, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, compendium, statistiques, options. |
+| **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, barre de sorts, équipement, reliques, potions, talents, wipes restants, étapes de quête légendaire, éclats de clé. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, temps de recharge, ennemis, buffs et débuffs). |
+| **Le profil du joueur** | Expérience et niveaux de chaque classe, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, archives de la guilde, statistiques, options. |
 
 **Les règles :**
 - **Sauvegarde automatique** après chaque action : chaque carte jouée, chaque choix, chaque nœud. Il n'y a pas de bouton à penser.
 - **Bouton « Sauvegarder et quitter »** dans le menu pause, pour ceux qui veulent quitter proprement.
 - **Reprise exacte** : en relançant le jeu, « Continuer » ramène le joueur exactement où il en était, même au milieu d'un combat.
 - **Une seule run en cours à la fois.** Lancer une nouvelle partie demande de confirmer l'abandon de la run en cours (qui compte alors comme une défaite pour l'expérience).
-- **Pas de triche par rechargement** : les tirages aléatoires (récompenses, pioche, événements) sont déterminés par une **graine** propre à la run. Recharger la partie ne change pas ce qui va sortir, comme dans StS.
+- **Pas de triche par rechargement** : les tirages aléatoires (récompenses, pioche, événements) sont déterminés par une **graine** propre à la run. Recharger la partie ne change pas ce qui va sortir. Seul un wipe donne une nouvelle graine pour le combat retenté (voir §6.7).
 
 **Où sont stockées les sauvegardes :**
 - **Première version :** dans le navigateur de l'appareil (stockage local). Simple, sans compte ni serveur.
@@ -684,40 +723,40 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 
 ---
 
-## 16. Direction artistique et ambiance
+## 17. Direction artistique et ambiance
 
-- Une interface qui évoque celle de WoW : barre de cast des ennemis, icônes de sorts reconnaissables, alertes de boss façon add-on de raid (« ⚠ Bombe vivante sur toi ! »).
-- Des cartes illustrées avec les **icônes de sorts**, une bordure aux couleurs de rareté et un liseré de la couleur de la classe.
+- Une interface qui évoque les **MMO de raid**, avec un style propre au jeu : barre de cast des ennemis, barre de sorts avec des temps de recharge visibles, alertes de boss (« ⚠ Bombe vivante sur toi ! »).
+- Des cartes illustrées avec des **icônes de sorts créées pour le jeu**, une bordure aux couleurs de rareté et un liseré de la couleur de la classe.
 - Une carte d'acte dessinée comme un plan du raid.
-- Un ton qui joue aussi sur la **culture raid** (wipes, loot, « Leeroy Jenkins »…), sans tomber dans la parodie.
-- Musique et sons : ambiance épique, et des sons qui rappellent les sorts (un « clic » distinct pour une interruption réussie, par exemple).
+- Un ton qui joue sur la **culture raid** (wipes, loot, le joueur qui fonce dans le tas…), sans tomber dans la parodie.
+- Musique et sons : ambiance épique, et des sons distincts pour les moments clés (une interruption réussie, un sort qui revient de recharge, un loot légendaire).
 
 ---
 
-## 17. Décisions prises
+## 18. Décisions prises
 
 | Sujet | Décision |
 |---|---|
 | **Titre** | **Wipe & Loot** |
 | **Genre** | Deckbuilder roguelike à la *Slay the Spire* |
-| **Univers** | World of Warcraft, en commençant par les raids de Classic |
-| **Mode de jeu** | **Solo pur** : un seul héros. Les familiers (Chasseur, Démoniste) et les totems (Chaman) sont les seules entités alliées. |
+| **Univers** | **Original** (le monde d'Eldrava), inspiré des MMO de fantasy, sans noms ni éléments repris d'une œuvre existante |
+| **Mode de jeu** | **Solo pur** : un seul héros. Les familiers, compagnons et totems sont les seules entités alliées. |
 | **Énergie** | **3 par tour, commune à toutes les classes**, plus une **ressource de classe** propre à chacune |
-| **Structure** | **3 actes de 10 étages**, plus un acte bonus (Naxxramas) |
+| **Structure** | **3 actes de 10 étages**, plus un acte bonus (la Nécropole céleste) |
 | **Spécialisation** | Construite pendant la run via 3 arbres de talents |
+| **Barre de sorts** | 3 à 4 emplacements de gros sorts à temps de recharge, en plus du deck |
+| **Wipe** | 3 wipes autorisés par run : on paie la réparation et on retente le combat |
+| **Tables de loot** | Chaque boss a sa table. Un objet reste caché (« ??? ») tant qu'il n'a pas été obtenu une fois. |
 | **Équipement** | 6 emplacements (Arme, Amulette, 2 Bagues, 2 Bijoux), une seule règle de remplacement |
 | **Légendaires** | Un par classe, obtenu par une petite quête, un seul par run |
 | **Progression** | Calquée sur StS : déblocages de contenu et 20 niveaux de difficulté, pas de puissance permanente |
 | **Plateformes** | Navigateur, sur PC et smartphone |
 | **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat), stockée dans le navigateur au départ |
-| **Barre de sorts** | 3 à 4 emplacements de gros sorts à temps de recharge, en plus du deck |
-| **Wipe** | 3 wipes autorisés par run : on paie la réparation et on retente le combat |
-| **Tables de loot** | Chaque boss a sa table. Un objet reste caché (« ??? ») tant qu'il n'a pas été obtenu une fois. |
 | **Modes futurs** | Mode rapide et mode infini |
 
 ---
 
-## 18. Questions ouvertes
+## 19. Questions ouvertes
 
 | # | Question | Pistes |
 |---|---|---|
@@ -725,17 +764,14 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | 2 | **Classe disponible dès le départ** | Le Guerrier, la plus simple à comprendre ? |
 | 3 | **Technologie** | Pour un jeu navigateur PC + mobile : TypeScript avec un moteur 2D web (Phaser ou PixiJS), ou Godot avec export web. À décider au moment du prototype. |
 | 4 | **Visuels** | Faits main, générés, ou des éléments simples (icônes et formes) pour le prototype ? |
-| 5 | **Univers : WoW ou univers original inspiré de WoW ?** | Un univers original, avec les mêmes archétypes mais des noms et un lore propres, éviterait les problèmes de droits et laisserait la porte ouverte à une sortie publique. |
+| 5 | **Noms de l'univers** | Les noms actuels (Eldrava, Vulkhar, Vhaeryx, Irem, Sarvok…) sont une première proposition. On pourra les ajuster. |
 
 ---
 
-## 19. Prochaines étapes
+## 20. Prochaines étapes
 
 1. ~~Écrire le concept général~~ ✅
-2. **Concevoir les classes** une par une : deck de départ, environ 50 cartes, 3 arbres de talents, légendaire. On commence par les 3 classes du prototype.
-3. **Concevoir l'acte 1 (Cœur du Magma)** en détail : trash, boss secondaires, Ragnaros, événements, chiffres.
-4. **Prototyper le combat** (sur papier ou en code) avec 1 classe et quelques ennemis.
-
----
-
-> **Note :** World of Warcraft et tous ses éléments (noms, personnages, lieux, objets) appartiennent à Blizzard Entertainment. Ce projet est un fan game personnel et non commercial. Une sortie commerciale nécessiterait de passer à un univers original.
+2. ~~Passer en univers original~~ ✅
+3. **Concevoir les classes** une par une : deck de départ, environ 50 cartes, 3 arbres de talents, sorts de barre, légendaire. On commence par les 3 classes du prototype.
+4. **Concevoir l'acte 1 (les Profondeurs Ardentes)** en détail : trash, boss secondaires, Vulkhar, tables de loot, événements, chiffres.
+5. **Prototyper le combat** (sur papier ou en code) avec 1 classe et quelques ennemis.
