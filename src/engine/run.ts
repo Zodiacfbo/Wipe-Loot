@@ -13,7 +13,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 15;
+export const SAVE_VERSION = 16;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -32,7 +32,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 15, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes,
+    version: 16, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
@@ -202,6 +202,8 @@ export function afterCombatAction(run: RunState): void {
   }
   if (c.phase === 'victory') {
     run.hp = Math.min(run.maxHp, c.player.hp + (runGear(run).healAfterCombat ?? 0));
+    // Archives : les monstres vaincus.
+    for (const e of c.enemies) if (e.dead && !e.gone) run.kills[e.defId] = (run.kills[e.defId] ?? 0) + 1;
     if (currentNode(run)?.type === 'elite') run.stats.elites += 1;
     else run.stats.combats += 1;
     if (currentNode(run)?.type === 'boss') {

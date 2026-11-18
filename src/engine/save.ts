@@ -1,5 +1,6 @@
 // Sauvegarde de la run. Pour l'instant dans le navigateur (localStorage) ;
 // Firebase pourra remplacer ou compléter ce module plus tard sans toucher au reste.
+import type { ArchiveProfile } from './archives';
 import type { ProgressProfile } from './progression';
 import type { TalentAlloc } from './talents';
 import type { RunState } from './types';
@@ -94,7 +95,11 @@ export function migrate(raw: unknown): RunState | null {
     run.maxWipes = 3;
     run.version = 15;
   }
-  return run.version === 15 ? (run as unknown as RunState) : null;
+  if (run.version === 15) {
+    run.kills = {};
+    run.version = 16;
+  }
+  return run.version === 16 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {
@@ -134,8 +139,8 @@ export const localSave: SaveBackend = {
 
 const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
 
-export interface Profile extends ProgressProfile {
-  version: 6;
+export interface Profile extends ProgressProfile, ArchiveProfile {
+  version: 7;
   /** Le dernier niveau de difficulté choisi dans le hall. */
   lastDifficulty: number;
   /** La classe choisie au premier lancement, et les classes débloquées. */
@@ -179,12 +184,19 @@ export function loadProfile(): Profile {
         p.lastDifficulty = 0;
         p.version = 6;
       }
-      if (p.version === 6 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
+      if (p.version === 6) {
+        p.seenCards = [];
+        p.seenEnemies = [];
+        p.seenPotions = [];
+        p.kills = {};
+        p.version = 7;
+      }
+      if (p.version === 7 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
     }
   } catch {
     // profil illisible : on repart d'un profil vide
   }
-  return { version: 6, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0 };
+  return { version: 7, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0, seenCards: [], seenEnemies: [], seenPotions: [], kills: {} };
 }
 
 export function saveProfile(profile: Profile): void {

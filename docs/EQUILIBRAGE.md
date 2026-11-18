@@ -94,6 +94,8 @@ Mesure : `tools/balance/difficulte.sim.ts`.
 
 ## 6. À surveiller ensuite
 
+**Le principe :** ce n'est pas grave qu'un build soit un peu plus fort qu'un autre. Ce qu'on évite, ce sont les gros déséquilibres : un arbre ou une carte qui devient le seul choix raisonnable, ou un talent qui ne sert à rien.
+
 - **Les postures** : le bot ne les utilise pas. Un humain qui joue bien la posture Défensive ou Berserker pourrait trouver le jeu plus facile que prévu.
 - **Krâgg et Saldris** au niveau 1.
 - **L'écart entre le niveau 1 et le niveau 5** reste grand (19 % → 70 %). Si les premiers joueurs trouvent les débuts frustrants, on pourra adoucir les paliers 1 à 3.

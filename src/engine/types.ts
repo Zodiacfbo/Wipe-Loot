@@ -235,7 +235,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 15;
+  version: 16;
   seed: number;
   rng: number;
   maxHp: number;
@@ -272,6 +272,8 @@ export interface RunState {
   detour: boolean;
   /** L'acte en cours (1 dans le prototype). */
   act: number;
+  /** Les monstres vaincus pendant la run (pour les archives de la guilde). */
+  kills: Record<string, number>;
   /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */
   difficulty: number;
   maxWipes: number;

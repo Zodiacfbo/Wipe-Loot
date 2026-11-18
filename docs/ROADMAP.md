@@ -101,7 +101,7 @@
 - [x] Les talents permanents du Guerrier : écran des 3 arbres (27 talents), choix avant la run, respec gratuit, récompenses orientées vers les arbres investis
 - [ ] Les déblocages de cartes et d'objets par niveau
 - [x] Les niveaux de difficulté (1 à 20) : choix dans le hall, débloqués en gagnant, +5 % de score par niveau
-- [ ] Les archives de la guilde (compendium : cartes, objets, monstres découverts)
+- [x] Les archives de la guilde : cartes, objets (par source), potions et monstres (histoire, PV, passif, nombre de victoires), « ??? » tant que ce n'est pas découvert
 - [x] Le hall de la guilde comme écran principal : héros (niveau, talents, classes), expédition (continuer ou partir), coffre de la guilde (choisir l'objet à emporter), statistiques
 
 ---

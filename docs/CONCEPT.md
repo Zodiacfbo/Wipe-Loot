@@ -720,7 +720,7 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 | 19 | Les ennemis normaux commencent chaque combat avec 1 Puissance. |
 | 20 | Le Souverain enragé : Vulkhar commence avec 2 Puissance, et son enrage arrive 3 tours plus tôt. *(Avec les 3 actes : deux boss d'affilée à la fin de l'acte 3.)* |
 
-- **Archives de la guilde** (compendium) : une encyclopédie qui recense les cartes, objets et monstres découverts, avec un petit texte d'histoire pour chaque entrée.
+- **Archives de la guilde** (compendium) : une encyclopédie qui recense les cartes, objets, potions et monstres découverts, avec un petit texte d'histoire pour chaque monstre et le nombre de fois où on l'a vaincu. Ce qui n'a pas encore été vu reste caché (« ??? »). La progression (en %) s'affiche dans le hall.
 
 ### 15.3 Score et fin de run
 

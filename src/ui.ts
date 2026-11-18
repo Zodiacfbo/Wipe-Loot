@@ -1,5 +1,5 @@
 // L'interface : affiche l'état de la run et transmet les actions du joueur au moteur.
-import { CARDS, energyCost } from './engine/cards';
+import { CARDS, REWARD_POOL, energyCost } from './engine/cards';
 import {
   SPELLS,
   canPlayCard,
@@ -58,6 +58,9 @@ import { POTIONS } from './engine/potions';
 import { TREES, clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { CLASSES, chooseStartClass, nextUnlockAt, totalXp, unlocksAvailable } from './engine/classes';
 import { DIFFICULTY_TEXT } from './engine/difficulty';
+import { LORE, recordKills, recordSeen } from './engine/archives';
+import { COMMON_POOL } from './engine/items';
+import { POTION_IDS } from './engine/potions';
 import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
@@ -89,13 +92,16 @@ interface UiState {
   talentScreen: boolean;
   /** Écran des classes : choix de la classe de départ, ou consultation. */
   classScreen: boolean;
+  /** Archives de la guilde : écran ouvert et onglet. */
+  archivesScreen: boolean;
+  archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres';
   /** Carte dont on regarde l'amélioration avant de la confirmer. */
   upgradeUid: number | null;
   /** Objet choisi pour le dépôt, quand le coffre est plein (on choisit ensuite quoi remplacer). */
   depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false, upgradeUid: null, pileKind: 'draw', heirloom: null };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false, upgradeUid: null, pileKind: 'draw', heirloom: null, archivesScreen: false, archiveTab: 'monstres' };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -215,6 +221,15 @@ function potionIcon(id: string | null, size = 22): string {
 function potionHtml(id: string, extra = ''): string {
   const p = POTIONS[id];
   return `<div class="objet potion-fiche ${p.rarity}"><span class="objet-icone">${potionIcon(id, 30)}</span><div><b>${p.name}</b><em>Potion · ${p.rarity}</em><span>${p.text}</span></div>${extra}</div>`;
+}
+
+/** Les archives de la guilde : cartes, monstres et potions vus pendant la run. */
+function rememberArchives(run: RunState): void {
+  const profile = loadProfile();
+  const cards = [...run.deck.map((k) => k.id), ...run.rewardChoices, ...(run.shop?.cards.map((k) => k.id) ?? [])].filter((id) => CARDS[id] && !['statut'].includes(CARDS[id].rarity));
+  const enemies = run.combat?.enemies.map((e) => e.defId) ?? [];
+  const potions = [...run.potions, run.pendingPotion, ...(run.shop?.potions.map((x) => x.id) ?? [])];
+  if (recordSeen(profile, cards, enemies, potions)) saveProfile(profile);
 }
 
 function rememberItems(run: RunState): void {
@@ -783,10 +798,75 @@ function titleScreen(): string {
       <div class="grille-coffre">${tiles}</div>
       <p>${chest.length ? 'Touche un objet pour l\'emporter lors de la prochaine expédition (un seul). Il revient au coffre si tu gagnes, il est perdu sinon.' : 'Après une expédition gagnée, tu pourras y mettre un objet à l\'abri.'}</p>
       <button type="button" class="bouton" data-action="voir-coffre">Voir le détail du coffre</button>
+      <button type="button" class="gros-bouton secondaire" data-action="archives">Archives de la guilde · ${archivesProgress()} %</button>
       <div class="hall-stats">
         <span>Expéditions <b>${stats.runs}</b></span><span>Victoires <b>${stats.wins}</b></span><span>Objets découverts <b>${profile.discoveredItems.length}</b></span>
       </div>
     </section>
+  </div>`;
+}
+
+/** La progression des archives (en %), pour le hall. */
+function archivesProgress(): number {
+  const p = loadProfile();
+  const cards = REWARD_POOL.length + STARTER_CARDS.length;
+  const total = cards + Object.keys(ITEMS).length + POTION_IDS.length + Object.keys(ENEMIES).length;
+  const seenCards = p.seenCards.filter((id) => REWARD_POOL.includes(id) || STARTER_CARDS.includes(id)).length;
+  const found = seenCards + p.discoveredItems.length + p.seenPotions.length + p.seenEnemies.length;
+  return Math.min(100, Math.round((100 * found) / total));
+}
+
+const STARTER_CARDS = ['frappe', 'parade', 'frappe_heroique', 'cri_de_guerre'];
+
+/** Les archives de la guilde : cartes, objets, potions et monstres découverts. */
+function archivesScreen(): string {
+  const p = loadProfile();
+  const tab = ui.archiveTab;
+  const tabs = ([['cartes', 'Cartes'], ['objets', 'Objets'], ['potions', 'Potions'], ['monstres', 'Monstres']] as const)
+    .map(([id, label]) => `<button type="button" class="onglet ${tab === id ? 'actif' : ''}" data-action="archives-onglet" data-tab="${id}">${label}</button>`).join('');
+  let body = '';
+  let count = '';
+  if (tab === 'cartes') {
+    const ids = [...STARTER_CARDS, ...REWARD_POOL];
+    const seen = ids.filter((id) => p.seenCards.includes(id));
+    count = `${seen.length} / ${ids.length} cartes`;
+    body = `<div class="liste-deck archives-cartes">${ids.map((id) => p.seenCards.includes(id)
+      ? cardHtml({ uid: 0, id, upgraded: false }, { action: 'disabled' })
+      : '<div class="carte-inconnue">???</div>').join('')}</div>`;
+  } else if (tab === 'objets') {
+    const groups: [string, string[]][] = [['Coffres et vendeur gobelin', COMMON_POOL],
+      ...ELITE_ENCOUNTERS.map((e) => [e.name, LOOT_TABLES[e.loot!]] as [string, string[]]),
+      ['Légendaires', Object.keys(ITEMS).filter((id) => ITEMS[id].rarity === 'legendaire')]];
+    const all = groups.flatMap((g) => g[1]);
+    count = `${all.filter((id) => p.discoveredItems.includes(id)).length} / ${all.length} objets`;
+    body = groups.map(([name, ids]) => `<section class="table-loot"><h3>${name}</h3><div class="liste-objets">${ids.map((id) => p.discoveredItems.includes(id)
+      ? itemHtml(id)
+      : `<div class="objet inconnu"><span class="objet-icone">${SLOT_ICON[ITEMS[id].slot]}</span><div><b>???</b><span>${SLOT_LABEL[slotsFor(id)[0]]} · pas encore découvert</span></div></div>`).join('')}</div></section>`).join('');
+  } else if (tab === 'potions') {
+    count = `${POTION_IDS.filter((id) => p.seenPotions.includes(id)).length} / ${POTION_IDS.length} potions`;
+    body = `<div class="liste-objets">${POTION_IDS.map((id) => p.seenPotions.includes(id)
+      ? potionHtml(id)
+      : `<div class="objet inconnu"><span class="objet-icone">${potionIcon(null, 30)}</span><div><b>???</b><span>Potion pas encore découverte</span></div></div>`).join('')}</div>`;
+  } else {
+    const ids = Object.keys(ENEMIES);
+    count = `${ids.filter((id) => p.seenEnemies.includes(id)).length} / ${ids.length} monstres`;
+    body = `<div class="bestiaire">${ids.map((id) => {
+      const d = ENEMIES[id];
+      const seen = p.seenEnemies.includes(id);
+      const kills = p.kills[id] ?? 0;
+      const kind = d.boss ? 'Boss' : d.elite ? 'Boss secondaire' : 'Monstre';
+      return `<div class="fiche-monstre ${seen ? '' : 'inconnu'}">
+        <img class="px" src="${A(`ennemi_${id}.png`)}" alt="">
+        <div><b>${seen ? d.name : '???'}</b><em>${kind}${seen ? ` · ${d.hpMax} PV · vaincu ${kills} fois` : ''}</em>
+        <span>${seen ? LORE[id] ?? '' : 'Pas encore rencontré.'}</span>${seen && d.passive ? `<span class="passif-ennemi">${d.passive}</span>` : ''}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+  return `<div class="ecran ecran-archives">
+    <div class="tete-talents"><h2>Archives de la guilde</h2><span class="points-talent">${count}</span></div>
+    <div class="onglets">${tabs}</div>
+    <div class="contenu-archives">${body}</div>
+    <button type="button" class="gros-bouton secondaire" data-action="titre">Retour au hall</button>
   </div>`;
 }
 
@@ -1192,7 +1272,7 @@ function overlayHtml(run: RunState | null): string {
 export function render(): void {
   const run = ui.run;
   if (!run) {
-    stage.innerHTML = ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null);
+    stage.innerHTML = ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null);
     return;
   }
   let html = '';
@@ -1230,8 +1310,10 @@ async function commit(): Promise<void> {
     if ((run.screen === 'victory' || run.screen === 'gameover') && !run.summary) {
       const profile = loadProfile();
       run.summary = awardRun(profile, run);
+      recordKills(profile, run.kills ?? {});
       saveProfile(profile);
     }
+    rememberArchives(run);
     localSave.save(run);
     rememberItems(run);
   }
@@ -1374,7 +1456,9 @@ function handleClick(ev: MouseEvent): void {
       // Une victoire ou un wipe sauvegardé pendant l'animation : commit() termine le combat et fait le bilan.
       void commit();
       return;
-    case 'titre': ui.run = null; ui.overlay = null; ui.talentScreen = false; ui.classScreen = false; render(); return;
+    case 'titre': ui.run = null; ui.overlay = null; ui.talentScreen = false; ui.classScreen = false; ui.archivesScreen = false; render(); return;
+    case 'archives': ui.run = null; ui.overlay = null; ui.archivesScreen = true; render(); return;
+    case 'archives-onglet': ui.archiveTab = el.dataset.tab as UiState['archiveTab']; render(); return;
     case 'classes': ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return;
     case 'classe-depart': {
       const profile = loadProfile();
