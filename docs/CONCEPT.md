@@ -1,6 +1,6 @@
 # Wipe & Loot — Document de concept
 
-> Titre provisoire · Version 0.2 · Projet personnel / fan game
+> Version 0.3 · Projet personnel
 
 ---
 
@@ -36,6 +36,11 @@ Le joueur incarne **seul** un héros d'une des 9 classes de WoW Classic et s'att
 
 **Phrase d'accroche :** *« Chaque boss est une mécanique, chaque loot est une décision. »*
 
+**Ce qui le distingue de Slay the Spire :**
+1. **Une barre de sorts à temps de recharge**, en plus du deck : les gros sorts de classe sont toujours disponibles, mais il faut les planifier (§5.6).
+2. **Le droit de wiper** : une défaite n'est pas forcément la fin de la run. On paie la réparation et on retente le combat, avec un nombre d'essais limité (§5.7).
+3. **Des tables de loot** sur les boss, qui se révèlent au fil des parties et guident le choix du chemin (§11.7).
+
 **Plateformes :** navigateur sur PC et smartphone.
 
 ---
@@ -56,6 +61,9 @@ Le joueur incarne **seul** un héros d'une des 9 classes de WoW Classic et s'att
 
 5. **Des runs courtes et jouables partout**
    Une run complète doit tenir en une session raisonnable, sur PC comme sur téléphone.
+
+6. **L'expérience du raid : cooldowns, wipes et loot**
+   Planifier ses gros sorts, wiper puis retenter, viser un objet précis sur un boss. C'est ce qui donne au jeu une identité propre face à Slay the Spire.
 
 ---
 
@@ -123,6 +131,8 @@ Choix de la classe ─► Bénédiction d'entrée
 | **Énergie** | **3 par tour**, commune à toutes les classes |
 | **Pioche** | 5 cartes par tour |
 | **Ressource de classe** | Propre à chaque classe (voir §4.2) |
+| **Barre de sorts** | 3 emplacements, dont 1 occupé par le sort de départ de la classe (voir §5.6) |
+| **Wipes autorisés** | 3 par run (voir §5.7) |
 | **Emplacements de potions** | 3 |
 | **Or** | 99 au départ |
 | **Deck de départ** | 10 cartes (voir §6.5) |
@@ -153,8 +163,8 @@ Les PV **ne remontent pas** automatiquement entre les combats. On se soigne aux 
 
 ### 5.1 Le tour de jeu
 
-1. **Début du tour du joueur** : le blocage restant disparaît, le joueur récupère 3 énergie et pioche 5 cartes.
-2. **Phase du joueur** : il joue ses cartes dans l'ordre qu'il veut, tant qu'il a de l'énergie.
+1. **Début du tour du joueur** : le blocage restant disparaît, le joueur récupère 3 énergie et pioche 5 cartes. Les temps de recharge de la barre de sorts diminuent de 1.
+2. **Phase du joueur** : il joue ses cartes et ses sorts prêts dans l'ordre qu'il veut, tant qu'il a de l'énergie.
 3. **Fin du tour du joueur** : les cartes restantes en main sont défaussées (sauf effets contraires). Les effets « en fin de tour » s'appliquent (Zone de feu, Bombe vivante…).
 4. **Tour des ennemis** : chaque ennemi exécute l'**intention** qu'il affichait, puis montre la suivante.
 
@@ -213,6 +223,61 @@ On garde une liste **courte**, avec des noms qui sentent WoW :
 | **Ralenti** | Débuff | Le blocage gagné par la cible est réduit de 25 %. |
 | **Gel** | Débuff | Spécifique au Mage : la cible gelée subit des critiques garantis avec Fracasser. |
 | **Peur** | Débuff | La cible ne peut pas agir pendant un tour (comme Contrôle). |
+
+### 5.6 La barre de sorts (temps de recharge)
+
+**C'est la première mécanique qui distingue le jeu de Slay the Spire.**
+
+Le héros dispose de deux sources d'actions :
+- son **deck**, qui contient la rotation de base : les cartes sont piochées au hasard ;
+- sa **barre de sorts**, qui contient les **gros sorts de classe** : ils sont **toujours visibles et disponibles**, sans pioche, mais ont un **temps de recharge**.
+
+**Les règles :**
+- **3 emplacements** au départ, jusqu'à **4** grâce à un talent ou à une relique.
+- Chaque classe commence avec **1 sort de départ** dans sa barre.
+- Utiliser un sort coûte de l'**énergie** (de 0 à 2), comme une carte. Le sort passe ensuite en **recharge** pendant X tours (de 2 à 5 selon sa puissance).
+- Certains sorts très puissants sont **« 1 fois par combat »**.
+- **Au début de chaque combat**, tous les sorts sont prêts.
+- **Obtenir de nouveaux sorts :** par les **talents** (voir §8), sur les **tables de loot** des boss (voir §11.7) et auprès du **maître de classe**.
+- Quand la barre est pleine, un nouveau sort **remplace** un sort existant, ou on le refuse. C'est la même règle simple que pour l'équipement.
+- Les sorts de la barre peuvent être **améliorés** au feu de camp, comme les cartes (temps de recharge réduit ou effet renforcé).
+
+**Exemples par classe :**
+
+| Classe | Sort de départ | Autres sorts de barre (exemples) |
+|---|---|---|
+| **Guerrier** | Charge (gagne de la rage, recharge 3) | Mur protecteur, Témérité, Cri de défi |
+| **Voleur** | Sprint (pioche des cartes, recharge 3) | Disparition, Poussée d'adrénaline, Évasion |
+| **Mage** | Contresort (Interruption, recharge 3) | Bloc de glace, Combustion, Évocation, Pouvoir des arcanes |
+| **Démoniste** | Connexion (PV contre énergie, recharge 2) | Voile mortel, Pacte démoniaque, Pierre d'âme |
+| **Chasseur** | Tir des arcanes (recharge 2) | Feindre la mort, Courroux bestial, Tir rapide |
+| **Paladin** | Jugement (recharge 2) | Bouclier divin, Imposition des mains (1 fois par combat), Marteau de la justice |
+| **Prêtre** | Mot de pouvoir : Bouclier (recharge 2) | Infusion de puissance, Focalisation intérieure, Cri psychique |
+| **Chaman** | Horion de terre (Interruption, recharge 3) | Maîtrise élémentaire, Totem de mana, Rappel totémique |
+| **Druide** | Innervation (gagne de l'énergie, recharge 4) | Renaissance (1 fois par combat), Rugissement frénétique, Écorce |
+
+**Pourquoi c'est intéressant :** le joueur gère deux choses à la fois. Sa main dépend du hasard, alors que sa barre se **planifie**. Il doit sans cesse se demander s'il utilise son sort maintenant ou s'il le garde pour l'incantation que le boss prépare au tour suivant.
+
+### 5.7 Wipe et nouvel essai
+
+**C'est la deuxième mécanique qui distingue le jeu de Slay the Spire, et elle justifie le titre.**
+
+Dans WoW, quand le raid meurt, on paie les réparations et on retente. Ici, c'est pareil.
+
+**Les règles :**
+- Quand les PV du héros tombent à 0, quel que soit le combat, c'est un **wipe**.
+- Le joueur peut **retenter le combat depuis le début**. Il repart avec le deck, l'équipement, les reliques et les potions qu'il avait en entrant dans le combat. Les potions utilisées pendant l'essai raté sont perdues.
+- Ses PV sont remis à leur niveau d'entrée dans le combat, avec un **minimum de 50 % des PV max**.
+- **La facture de réparation :** chaque wipe coûte de l'**or** (par exemple 50, puis 100, puis 150). Si le joueur ne peut pas payer, un objet d'équipement au hasard est **brisé** : son effet est désactivé jusqu'à ce qu'il soit réparé chez le vendeur gobelin.
+- **3 wipes autorisés par run.** Un 4ᵉ wipe met fin à la run.
+- Le nouvel essai utilise une **nouvelle graine aléatoire** : la pioche et les actions des ennemis ne seront pas identiques.
+- Chaque wipe **réduit le score** de fin de run (voir §14.3).
+- Le joueur peut aussi **renoncer** et terminer sa run immédiatement.
+
+**Ce que ça change :**
+- Les boss peuvent être **plus durs et plus mécaniques**, car le joueur a le droit d'apprendre le combat, comme en raid.
+- Le jeu est **moins punitif sur mobile**, où une erreur de toucher est vite arrivée.
+- Les niveaux de difficulté peuvent **réduire le nombre de wipes** jusqu'à 0, pour un vrai mode « hardcore » (voir §14.2).
 
 ---
 
@@ -300,6 +365,7 @@ Le joueur ne choisit **pas sa spécialisation au départ**. Il choisit une **cla
 - Chaque arbre compte **5 paliers**. Il faut avoir investi dans un palier pour accéder au suivant.
 - Plus le joueur investit dans un arbre, plus les **récompenses de cartes** proposées après les combats penchent vers cet arbre.
 - Le **dernier palier** de chaque arbre débloque les **cartes épiques** de la spécialisation (Frappe mortelle, Sanguinaire, Heurt de bouclier, Pyroblast, Forme d'Ombre…), qui apparaissent alors dans les récompenses.
+- Certains paliers donnent un **sort de barre** (voir §5.6) au lieu d'un bonus passif. Par exemple, le palier 3 de l'arbre Givre donne Bloc de glace.
 - Les **builds hybrides** sont possibles et encouragés, dans l'esprit de Classic.
 
 > **Exemple :** un Guerrier qui met ses 3 premiers points en Protection verra plus de cartes de blocage et de Heurt de bouclier, mais il peut ensuite basculer vers Fureur pour un build « tank qui tape ».
@@ -455,7 +521,25 @@ Exemples d'inspiration :
 - Exemples : Flacon des Titans, Élixir de la mangouste, Pierre de soins, Potion de protection contre le feu, Potion de soins majeure, Potion de rage puissante…
 
 ### 11.6 L'or
-L'or se gagne après chaque combat (plus sur les boss secondaires) et dans certains événements. Il se dépense chez le vendeur gobelin.
+L'or se gagne après chaque combat (plus sur les boss secondaires) et dans certains événements. Il se dépense chez le vendeur gobelin et sert à payer les **factures de réparation** après un wipe (voir §5.7).
+
+### 11.7 Les tables de loot
+
+**C'est la troisième mécanique qui distingue le jeu de Slay the Spire.**
+
+Chaque **boss secondaire** et chaque **boss de fin d'acte** a sa propre **table de loot**, comme dans WoW.
+
+**Les règles :**
+- Une table contient **4 à 6 objets** propres à ce boss : de l'équipement, des reliques et des sorts de barre, adaptés à la classe du joueur.
+- Après la victoire, le boss fait tomber **1 objet tiré de sa table**, en plus des récompenses habituelles (carte, or).
+- Sur la carte de l'acte, les nœuds de boss secondaire indiquent **quel boss s'y trouve**. Le joueur peut consulter sa table de loot avant de choisir son chemin.
+
+**Le loot se révèle au fil des parties :**
+- Un objet que le joueur **n'a encore jamais obtenu** apparaît dans la table sous forme de **silhouette « ??? »**. Seuls son emplacement (Arme, Bijou…) et sa couleur sont visibles.
+- Dès qu'un objet a été **obtenu une fois**, dans n'importe quelle run, il devient **visible pour toujours** dans la table de ce boss. Cette découverte est enregistrée dans le profil et dans le compendium.
+- Ainsi, au début, le joueur découvre le loot. Plus tard, il connaît les tables et peut **viser un objet précis** : « Je passe par Magmadar pour essayer d'avoir son bijou, qui va avec mon build Feu ».
+
+**Ce que ça change :** le choix du chemin sur la carte n'est plus seulement une question de risque. Il devient aussi une question de **build**. Cela donne une raison d'affronter des boss secondaires, et une raison de rejouer pour compléter les tables.
 
 ---
 
@@ -527,6 +611,8 @@ Le principe de StS est repris tel quel : **le joueur ne devient pas plus fort d'
   - *L'enrage arrive un tour plus tôt*
   - *Le feu de camp soigne moins*
   - *Le deck de départ contient une carte de malédiction*
+  - *Un wipe autorisé de moins* (ce modificateur revient à plusieurs niveaux, jusqu'à 0 wipe autorisé)
+  - *Les factures de réparation coûtent plus cher*
   - *Niveau 20 : deux boss d'affilée à la fin de l'acte 3*
 - **Compendium** : une encyclopédie qui recense les cartes, reliques, objets et monstres découverts, avec un petit texte de lore pour chaque entrée.
 
@@ -535,7 +621,8 @@ Le principe de StS est repris tel quel : **le joueur ne devient pas plus fort d'
 À la fin de chaque run, un écran récapitule :
 - les étages atteints, les boss vaincus et les boss secondaires tués ;
 - le deck final, l'équipement et les reliques ;
-- des **bonus de score** (« Aucun dégât sur un boss », « Légendaire forgé », « Speedrun »…).
+- des **bonus de score** (« Aucun dégât sur un boss », « Légendaire forgé », « Speedrun », « Aucun wipe »…) ;
+- un **malus pour chaque wipe**.
 
 Le score détermine l'expérience gagnée. Il servira aussi de base au futur **mode infini**.
 
@@ -552,7 +639,7 @@ Le score détermine l'expérience gagnée. Il servira aussi de base au futur **m
 
 | Contrainte | Conséquence |
 |---|---|
-| **Smartphone en mode portrait** | L'écran de combat doit tenir en **portrait** : ennemis en haut, héros au milieu, main de cartes en bas. Sur PC, la même disposition s'élargit. |
+| **Smartphone en mode portrait** | L'écran de combat doit tenir en **portrait** : ennemis en haut, héros au milieu, **barre de sorts** juste au-dessus de la main, main de cartes en bas. Sur PC, la même disposition s'élargit. |
 | **Tactile** | Toucher une carte pour la sélectionner, puis toucher la cible. Sur PC, on peut aussi glisser-déposer. |
 | **Pas de survol sur mobile** | Les infobulles (description d'un mot-clé, d'un buff…) s'ouvrent par **appui long** sur mobile et par **survol** sur PC. |
 | **Lisibilité** | Textes de cartes courts, chiffres en gros, icônes claires. Une carte doit se comprendre en un coup d'œil sur un petit écran. |
@@ -579,7 +666,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | Sauvegarde | Contenu |
 |---|---|
 | **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, équipement, reliques, potions, talents, étapes de quête légendaire, fragments d'harmonisation. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, ennemis, buffs et débuffs). |
-| **Le profil du joueur** | Expérience et niveaux de chaque classe, classes et cartes débloquées, niveaux de difficulté atteints, compendium, statistiques, options. |
+| **Le profil du joueur** | Expérience et niveaux de chaque classe, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, compendium, statistiques, options. |
 
 **Les règles :**
 - **Sauvegarde automatique** après chaque action : chaque carte jouée, chaque choix, chaque nœud. Il n'y a pas de bouton à penser.
@@ -611,6 +698,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 
 | Sujet | Décision |
 |---|---|
+| **Titre** | **Wipe & Loot** |
 | **Genre** | Deckbuilder roguelike à la *Slay the Spire* |
 | **Univers** | World of Warcraft, en commençant par les raids de Classic |
 | **Mode de jeu** | **Solo pur** : un seul héros. Les familiers (Chasseur, Démoniste) et les totems (Chaman) sont les seules entités alliées. |
@@ -622,6 +710,9 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | **Progression** | Calquée sur StS : déblocages de contenu et 20 niveaux de difficulté, pas de puissance permanente |
 | **Plateformes** | Navigateur, sur PC et smartphone |
 | **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat), stockée dans le navigateur au départ |
+| **Barre de sorts** | 3 à 4 emplacements de gros sorts à temps de recharge, en plus du deck |
+| **Wipe** | 3 wipes autorisés par run : on paie la réparation et on retente le combat |
+| **Tables de loot** | Chaque boss a sa table. Un objet reste caché (« ??? ») tant qu'il n'a pas été obtenu une fois. |
 | **Modes futurs** | Mode rapide et mode infini |
 
 ---
@@ -634,7 +725,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | 2 | **Classe disponible dès le départ** | Le Guerrier, la plus simple à comprendre ? |
 | 3 | **Technologie** | Pour un jeu navigateur PC + mobile : TypeScript avec un moteur 2D web (Phaser ou PixiJS), ou Godot avec export web. À décider au moment du prototype. |
 | 4 | **Visuels** | Faits main, générés, ou des éléments simples (icônes et formes) pour le prototype ? |
-| 5 | **Titre définitif** | « Wipe & Loot » est provisoire. |
+| 5 | **Univers : WoW ou univers original inspiré de WoW ?** | Un univers original, avec les mêmes archétypes mais des noms et un lore propres, éviterait les problèmes de droits et laisserait la porte ouverte à une sortie publique. |
 
 ---
 
