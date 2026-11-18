@@ -39,11 +39,13 @@ import {
   discardPotion,
   drinkPotion,
   takePotion,
+  learnSpell,
   breakableSlots,
   repairBill,
   repairItem,
 } from './engine/run';
 import { POTIONS } from './engine/potions';
+import { BAR_SLOTS } from './engine/spells';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
@@ -508,6 +510,9 @@ function playerChips(c: CombatState): string {
   if (d?.manaBurn) chips.push(`<span class="chip debuff">Mana brûlé : −${d.manaBurn} énergie au prochain tour</span>`);
   if (d?.panic) chips.push(`<span class="chip debuff">Terreur : ${d.panic} cartes Paniquées au prochain tour</span>`);
   if (c.fireProof) chips.push('<span class="chip">Protégé du feu</span>');
+  if (p.temerite) chips.push('<span class="chip">Témérité : +50 % / subis +25 %</span>');
+  if (p.rempart) chips.push('<span class="chip">Rempart : dégâts ÷ 2</span>');
+  if (p.fearless) chips.push('<span class="chip">Sans peur</span>');
   return chips.join('');
 }
 
@@ -545,9 +550,12 @@ function combatScreen(run: RunState, c: CombatState): string {
     const def = SPELLS[s.id];
     const ready = canUseSpell(c, i);
     const selected = ui.selection?.kind === 'spell' && ui.selection.index === i;
-    return s.cooldown > 0
-      ? `<button type="button" class="sort recharge" disabled aria-label="${def.name}, recharge ${s.cooldown} tours"><b>${s.cooldown}</b>${def.name}</button>`
-      : `<button type="button" class="sort ${selected ? 'choisi' : ''}" data-action="sort" data-index="${i}" ${ready ? '' : 'disabled'} aria-label="${def.name}, prêt. ${def.text}" title="${def.text}">${ICON.charge}${def.name}</button>`;
+    if (s.cooldown > 0) {
+      return def.once
+        ? `<button type="button" class="sort recharge" disabled aria-label="${def.name}, déjà utilisé"><b>✓</b>${def.name}</button>`
+        : `<button type="button" class="sort recharge" disabled aria-label="${def.name}, recharge ${s.cooldown} tours"><b>${s.cooldown}</b>${def.name}</button>`;
+    }
+    return `<button type="button" class="sort ${selected ? 'choisi' : ''}" data-action="sort" data-index="${i}" ${ready ? '' : 'disabled'} aria-label="${def.name}, prêt. ${def.text}" title="${def.text}">${def.cost > 0 ? `<span class="cout-sort">${def.cost}</span>` : ''}${ICON[def.icon]}${def.name}</button>`;
   }).join('');
 
   const hand = c.hand.map((card, i) => cardHtml(card, {
@@ -568,7 +576,10 @@ function combatScreen(run: RunState, c: CombatState): string {
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
   const underLava = c.enemies.find((e) => !e.dead && e.submerged);
   const reviving = c.enemies.filter((e) => e.dead && e.reviveIn);
-  const consigne = targeting
+  const selSpell = ui.selection?.kind === 'spell' ? SPELLS[c.spells[ui.selection.index].id] : null;
+  const consigne = selSpell
+    ? `<div class="info-sort"><b>${selSpell.name}</b><small>${selSpell.cost > 0 ? `${selSpell.cost} énergie` : 'Gratuit'} · ${selSpell.once ? 'une fois par combat' : `recharge ${selSpell.cooldown} tours`}</small><span>${selSpell.text}</span><em>${targeting ? 'Choisis une cible.' : 'Touche à nouveau le sort pour le lancer.'}</em></div>`
+    : targeting
     ? `<div class="consigne">Choisis une cible</div>`
     : underLava
       ? `<div class="consigne lave">${underLava.name} est sous la lave : il refait surface dans ${underLava.submerged} tour${underLava.submerged! > 1 ? 's' : ''}. Chaque Rejeton encore en vie le soignera de 15 PV !</div>`
@@ -630,19 +641,33 @@ function potionReward(run: RunState, id: string): string {
   return `<div class="butin butin-potion"><span class="butin-titre">Potion</span>${potionHtml(id)}<div class="choix-objet">${buttons}<button type="button" class="bouton-objet secondaire" data-action="laisser-potion">Laisser</button></div></div>`;
 }
 
+function spellHtml(id: string): string {
+  const d = SPELLS[id];
+  return `<div class="objet sort-fiche"><span class="objet-icone">${ICON[d.icon]}</span><div><b>${d.name}</b><em>Sort de barre · ${d.cost > 0 ? `${d.cost} énergie` : 'gratuit'} · ${d.once ? 'une fois par combat' : `recharge ${d.cooldown} tours`}</em><span>${d.text}</span></div></div>`;
+}
+
+function spellReward(run: RunState, id: string): string {
+  const full = run.spells.length >= BAR_SLOTS;
+  const buttons = full
+    ? run.spells.map((s, i) => `<button type="button" class="bouton-objet" data-action="apprendre" data-index="${i}">Remplacer : ${SPELLS[s].name}</button>`).join('')
+    : '<button type="button" class="bouton-objet" data-action="apprendre">Ajouter à ta barre</button>';
+  return `<div class="butin"><span class="butin-titre">Sort de barre</span>${spellHtml(id)}<div class="choix-objet">${buttons}<button type="button" class="bouton-objet secondaire" data-action="laisser-sort">Laisser</button></div></div>`;
+}
+
 function rewardScreen(run: RunState): string {
   const cards = run.rewardChoices.map((id) => cardHtml({ uid: 0, id, upgraded: false }, { action: `data-action="recompense" data-id="${id}"` })).join('');
-  const crowded = (run.pendingItem || run.pendingPotion) && run.rewardChoices.length > 0;
+  const crowded = (run.pendingItem || run.pendingPotion || run.pendingSpell) && run.rewardChoices.length > 0;
   return `${topbar(run, run.hp)}<div class="ecran ${crowded ? 'serre' : ''}">
     <h2>${run.rewardTitle}</h2>
     ${run.rewardGold > 0 ? `<div class="gain-or">${ICON.piece}<span>+${run.rewardGold} or</span></div>` : ''}
+    ${run.pendingSpell ? spellReward(run, run.pendingSpell) : ''}
     ${run.pendingItem || run.pendingPotion ? `<div class="butins">
       ${run.pendingItem ? `<div class="butin"><span class="butin-titre">${run.pendingAlt ? 'Butin · au choix' : 'Butin'}</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', run.pendingAlt ? '' : '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
       ${run.pendingItem && run.pendingAlt ? `<div class="butin"><span class="butin-titre">ou</span>${itemHtml(run.pendingAlt)}${equipChoices(run, run.pendingAlt, 'data-action="equiper" data-alt="1"', '<button type="button" class="bouton-objet secondaire" data-action="laisser">Aucun des deux</button>')}</div>` : ''}
       ${run.pendingPotion ? potionReward(run, run.pendingPotion) : ''}
     </div>` : ''}
     ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton deck.</p>' : ''}
-    ${run.rewardChoices.length > 0 ? `<div class="choix-cartes ${run.pendingItem ? 'compact' : ''}">${cards}</div>` : ''}
+    ${run.rewardChoices.length > 0 ? `<div class="choix-cartes ${crowded ? 'compact' : ''}">${cards}</div>` : ''}
     <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">${run.rewardChoices.length > 0 ? 'Passer' : 'Continuer'}</button>
   </div>`;
 }
@@ -792,6 +817,8 @@ function overlayHtml(run: RunState | null): string {
     return `<div class="overlay"><div class="ecran" style="gap:16px">
       <h2>Équipement</h2>
       <div class="grille-equipement">${slots}</div>
+      <h3 class="titre-barre">Barre de sorts · ${run.spells.length}/${BAR_SLOTS}</h3>
+      <div class="grille-equipement">${run.spells.map((id) => spellHtml(id)).join('')}</div>
       <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
     </div></div>`;
   }
@@ -806,7 +833,8 @@ function overlayHtml(run: RunState | null): string {
       const list = table.map((id) => profile.discoveredItems.includes(id)
         ? itemHtml(id)
         : `<div class="objet inconnu"><span class="objet-icone">${SLOT_ICON[ITEMS[id].slot]}</span><div><b>???</b><span>${SLOT_LABEL[slotsFor(id)[0]]} · pas encore découvert</span></div></div>`).join('');
-      return `<section class="table-loot"><h3>${enc.name} <span>· étage${floors.includes(',') ? 's' : ''} ${floors}</span></h3><div class="liste-objets">${list}</div></section>`;
+      const spell = `<div class="objet inconnu"><span class="objet-icone">${ICON.charge}</span><div><b>Sort de barre de ta classe</b><span>Un sort que tu n'as pas encore</span></div></div>`;
+      return `<section class="table-loot"><h3>${enc.name} <span>· étage${floors.includes(',') ? 's' : ''} ${floors}</span></h3><div class="liste-objets">${list}${spell}</div></section>`;
     }).join('');
     return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:36px;gap:14px">
       <h2>Tables de loot</h2>
@@ -915,14 +943,16 @@ function onSpell(index: number): void {
   const c = ui.run?.combat;
   if (!c || !canUseSpell(c, index)) return;
   const sel = ui.selection;
-  if (sel?.kind === 'spell' && sel.index === index) {
-    ui.selection = null;
+  const def = SPELLS[c.spells[index].id];
+  const targets = c.enemies.filter((e) => !e.dead && !e.submerged && !e.untargetable).length;
+  // 1er appui : on affiche le sort (lisible aussi sur téléphone). 2e appui : on le lance.
+  if (sel?.kind !== 'spell' || sel.index !== index) {
+    ui.selection = { kind: 'spell', index };
     render();
     return;
   }
-  const def = SPELLS[c.spells[index].id];
-  if (def.needsTarget && c.enemies.filter((e) => !e.dead).length > 1) {
-    ui.selection = { kind: 'spell', index };
+  if (def.needsTarget && targets > 1) {
+    ui.selection = null;
     render();
     return;
   }
@@ -1013,6 +1043,8 @@ function handleClick(ev: MouseEvent): void {
     case 'jeter': discardPotion(run, Number(el.dataset.slot)); ui.overlay = null; commit(); break;
     case 'prendre-potion': takePotion(run, el.dataset.slot === undefined ? undefined : Number(el.dataset.slot)); commit(); break;
     case 'laisser-potion': run.pendingPotion = null; commit(); break;
+    case 'apprendre': learnSpell(run, el.dataset.index === undefined ? undefined : Number(el.dataset.index)); commit(); break;
+    case 'laisser-sort': run.pendingSpell = null; commit(); break;
     case 'potion-boutique': ui.shopPotion = Number(el.dataset.index); render(); break;
     case 'annuler-potion': ui.shopPotion = null; render(); break;
     case 'acheter-potion': buyPotion(run, Number(el.dataset.index)); ui.shopPotion = null; commit(); break;

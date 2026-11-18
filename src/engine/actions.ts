@@ -72,6 +72,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
   if (p.posture === 'defensive') dmg *= 0.8;
+  if (p.temerite) dmg *= 1.5;
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   return Math.max(0, Math.floor(dmg));
 }
@@ -214,6 +215,7 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
 export function damagePlayer(c: CombatState, amount: number, isAttack: boolean): number {
   const p = c.player;
   if (!isAttack) amount -= c.gear?.nonAttackReduce ?? 0;
+  if (p.rempart) amount = Math.floor(amount / 2);
   if (amount <= 0) return 0;
   const absorbed = Math.min(p.block, amount);
   p.block -= absorbed;

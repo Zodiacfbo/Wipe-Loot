@@ -55,7 +55,8 @@
 
 ### 1.3 Le Guerrier complet
 - [ ] Les 52 cartes du Guerrier
-- [ ] Les 7 sorts de barre, et le 4ᵉ emplacement
+- [x] Les sorts de barre du Guerrier : les 7 de sa fiche + 2 sorts de loot (Cri de commandement, Vague de choc), 3 emplacements
+- [ ] Le 4ᵉ emplacement de la barre (talent Protection, phase 2)
 - [ ] Une illustration en pixel art par carte
 - [ ] Le légendaire Brisemonts et sa quête
 
@@ -64,7 +65,7 @@
 - [x] L'équipement : 6 emplacements, règle de remplacement, fenêtre « Équipement » (16 objets dans le prototype)
 - [x] Les tables de loot des 9 boss secondaires (36 objets), avec les « ??? » jusqu'au premier drop (mémorisé entre les runs)
 - [x] Les coffres donnent un objet (70 % commun, 30 % rare)
-- [ ] Les sorts de barre dans les tables de loot (avec les sorts du Guerrier)
+- [x] Les sorts de barre dans les tables de loot (1 chance sur 5 sur un boss secondaire ; en attendant les talents, tous les sorts du Guerrier sont dans ce lot)
 - [ ] Le butin de boss : 1 objet épique parmi 3
 - [x] Les potions : 3 emplacements, 8 potions, 40 % de chance après un combat gagné, retrouvées après un wipe
 - [x] Le coffre de la guilde : 6 places, 1 objet déposé après une victoire, 1 objet emporté au départ (perdu si la run échoue)
@@ -122,7 +123,7 @@
 Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de barre, ses talents, son légendaire et sa quête, et son sprite.
 
 ### 3.3 Les légendaires
-- [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter en plus d'un objet du coffre (qui ne peut alors pas être une arme)
+- [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter en plus d'un objet du coffre (si on prend le légendaire, l'objet du coffre ne peut pas être une arme)
 - [ ] Les 7 légendaires restants et leurs quêtes (Bâton du Veilleur, Sillon d'orage, Équinoxe, l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres)
 
 ---

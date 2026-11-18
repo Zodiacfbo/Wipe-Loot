@@ -14,36 +14,16 @@ import {
   gainRage,
   livingEnemies,
   log,
-  playerAttack,
 } from './actions';
 import { CARDS, energyCost, type PlayContext } from './cards';
+import { SPELLS } from './spells';
 import { ENEMIES, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
 import type { CardInstance, CombatState, EnemyState, Intent, PlayerCurse, Posture } from './types';
 
-// --- Sorts de barre ---
-
-export interface SpellDef {
-  id: string;
-  name: string;
-  cost: number;
-  cooldown: number;
-  needsTarget: boolean;
-  text: string;
-  cast: (c: CombatState, target: EnemyState | null) => void;
-}
-
-export const SPELLS: Record<string, SpellDef> = {
-  charge: {
-    id: 'charge', name: 'Charge', cost: 0, cooldown: 3, needsTarget: true,
-    text: 'Inflige 3 dégâts et gagne 3 rage.',
-    cast: (c, target) => {
-      if (target) playerAttack(c, target, 3);
-      gainRage(c, 3);
-    },
-  },
-};
+// --- Sorts de barre : voir spells.ts ---
+export { SPELLS, type SpellDef } from './spells';
 
 // --- Création du combat ---
 
@@ -55,6 +35,7 @@ export function createCombat(
   rng: number,
   nextUid: number,
   gear: ItemEffects = {},
+  spells: string[] = ['charge'],
 ): CombatState {
   const c: CombatState = {
     turn: 0,
@@ -69,7 +50,7 @@ export function createCombat(
     hand: [],
     discard: [],
     exhaust: [],
-    spells: [{ id: 'charge', cooldown: 0 }],
+    spells: spells.map((id) => ({ id, cooldown: 0 })),
     enrageTurn: encounter.enrageTurn ?? null,
     gear,
     firstAttackDone: false,
@@ -114,6 +95,8 @@ export function startPlayerTurn(c: CombatState): void {
   c.cardsThisTurn = 0;
   c.spellsThisTurn = 0;
   c.panicked = [];
+  p.temerite = false;
+  p.rempart = false;
   drawCards(c, Math.max(0, 5 - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
   const d = (p.debuffs ??= emptyDebuffs());
@@ -127,7 +110,7 @@ export function startPlayerTurn(c: CombatState): void {
   if (c.gear?.purify) purifyOne(c);
   // Hurlement de terreur (Croc-de-lave) : des cartes au hasard sont Paniquées.
   if (d.panic > 0) {
-    if (c.gear?.panicImmune) {
+    if (c.gear?.panicImmune || p.fearless) {
       log(c, 'Ton collier te protège de la terreur.');
     } else {
       const pool = c.hand.filter((card) => !CARDS[card.id].unplayable);
@@ -139,6 +122,7 @@ export function startPlayerTurn(c: CombatState): void {
     }
     d.panic = 0;
   }
+  p.fearless = false;
   // Pierre de magma : +1 Puissance tous les 2 tours.
   const magma = c.gear?.magmaPuissance ?? 0;
   if (magma > 0 && c.turn % 2 === 0 && (c.magmaGained ?? 0) < magma) {
@@ -273,7 +257,7 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   if (target === 'invalid') return false;
   c.player.energy -= def.cost;
   def.cast(c, target);
-  s.cooldown = def.cooldown;
+  s.cooldown = def.once ? 999 : def.cooldown;
   log(c, `Tu lances ${def.name}.`);
   return true;
 }
@@ -337,6 +321,7 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number): number {
   let dmg = base + e.buffs.puissance;
   if (e.buffs.demoralise > 0) dmg *= 0.75;
   if (c.player.posture === 'berserker') dmg *= 1.2;
+  if (c.player.temerite) dmg *= 1.25;
   if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
   return Math.max(0, Math.floor(dmg));
 }

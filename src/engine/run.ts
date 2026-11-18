@@ -6,11 +6,12 @@ import { AMBUSH, EVENTS } from './events';
 import { COMMON_POOL, ITEMS, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
+import { BAR_SLOTS, WARRIOR_LOOT_SPELLS } from './spells';
 import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
 export const REPAIR_BILLS = [50, 100, 150];
 /** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
@@ -23,9 +24,9 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 8, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    version: 9, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlt: null, broken: [], heirloom, chestDone: false, chestDeposit: null,
-    potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, screen: 'map',
+    potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
   };
@@ -97,7 +98,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, gearEffects(run.equipment, run.broken));
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, gearEffects(run.equipment, run.broken), run.spells);
   run.screen = 'combat';
 }
 
@@ -108,6 +109,7 @@ function backToMap(run: RunState): void {
   run.pendingItem = null;
   run.pendingAlt = null;
   run.pendingPotion = null;
+  run.pendingSpell = null;
   run.rewardChoices = [];
   run.eventId = null;
   run.screen = 'map';
@@ -133,7 +135,13 @@ export function afterCombatAction(run: RunState): void {
       offerCards(run, 'Victoire !', elite ? 'peu_commune' : 'commune');
       run.rewardGold = gold;
       const table = run.encounter?.loot ? LOOT_TABLES[run.encounter.loot] : null;
-      if (table) run.pendingItem = table[Math.floor(random(run) * table.length)];
+      if (table) {
+        // 5 entrées : les 4 objets du boss, et un sort de barre de ta classe.
+        const roll = Math.floor(random(run) * (table.length + 1));
+        const spells = WARRIOR_LOOT_SPELLS.filter((id) => !run.spells.includes(id));
+        if (roll === table.length && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
+        else run.pendingItem = table[roll % table.length];
+      }
       if (random(run) < POTION_DROP_CHANCE) run.pendingPotion = rollPotion(run);
     }
   } else if (c.phase === 'defeat') {
@@ -329,6 +337,23 @@ export function repairItem(run: RunState, slot: SlotKey): boolean {
   run.maxHp += gained;
   run.hp += gained;
   syncPotionSlots(run);
+  return true;
+}
+
+// --- Sorts de barre ---
+
+/** Ajoute le sort trouvé à la barre : dans un emplacement libre, ou à la place du sort `replace`. */
+export function learnSpell(run: RunState, replace?: number): boolean {
+  const id = run.pendingSpell;
+  if (!id) return false;
+  if (replace === undefined) {
+    if (run.spells.length >= BAR_SLOTS) return false;
+    run.spells.push(id);
+  } else {
+    if (!run.spells[replace]) return false;
+    run.spells[replace] = id;
+  }
+  run.pendingSpell = null;
   return true;
 }
 

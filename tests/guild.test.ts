@@ -63,7 +63,7 @@ describe('coffre de la guilde', () => {
     delete old.heirloom;
     delete old.chestDone;
     const run = migrate(old)!;
-    expect(run.version).toBe(8);
+    expect(run.version).toBe(9);
     expect(run.heirloom).toBeNull();
     expect(run.chestDone).toBe(false);
   });

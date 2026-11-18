@@ -45,7 +45,12 @@ export function migrate(raw: unknown): RunState | null {
     run.pendingAlt = null;
     run.version = 8;
   }
-  return run.version === 8 ? (run as unknown as RunState) : null;
+  if (run.version === 8) {
+    run.spells = ['charge'];
+    run.pendingSpell = null;
+    run.version = 9;
+  }
+  return run.version === 9 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

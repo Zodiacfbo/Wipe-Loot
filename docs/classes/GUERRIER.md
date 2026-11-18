@@ -183,7 +183,11 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 | **Cri de défi** | 1 | 4 tours | L'intention de **tous les ennemis** devient une Attaque. Les Incantations en cours sont annulées. | Talent Protection, palier 3 |
 | **Dernier rempart** | 0 | 1 fois par combat | Soigne 25 % de tes PV max. | Talent Protection, palier 4 |
 
-**Les sorts de barre qu'on peut trouver dans les tables de loot** (exemples) : *Cri de commandement* (tous les ennemis Démoralisés et +1 Robustesse, recharge 4), *Vague de choc* (6 dégâts à tous et Ralenti, recharge 3).
+**Les sorts de barre qu'on peut trouver dans les tables de loot** : *Cri de commandement* (1 énergie, recharge 4 : tous les ennemis Démoralisés 2 tours et +1 Robustesse), *Vague de choc* (1 énergie, recharge 3 : 6 dégâts à tous et Ralenti 1).
+
+**Dans le prototype :** les talents n'existent pas encore, donc **tous** les sorts ci-dessus (sauf Charge) peuvent tomber sur les boss secondaires (1 chance sur 5, un sort que tu n'as pas encore). La barre a **3 emplacements** ; un sort trouvé s'ajoute ou en remplace un. Quand les talents arriveront, les sorts de talent quitteront les tables de loot.
+
+**Rappel de règle :** un sort de barre ne se pioche pas : il est toujours là, mais il a un temps de recharge. Sur téléphone, un premier appui affiche le sort, un second le lance.
 
 ---
 

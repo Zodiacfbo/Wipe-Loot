@@ -111,6 +111,10 @@ export interface PlayerState {
   robustesse: number;
   /** Malédictions des ennemis (Morvax, Croc-de-lave, Vossk, Zhaal). */
   debuffs?: PlayerDebuffs;
+  /** Sorts de barre actifs jusqu'au prochain tour. */
+  temerite?: boolean;
+  rempart?: boolean;
+  fearless?: boolean;
 }
 
 export interface SpellState {
@@ -187,7 +191,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 8;
+  version: 9;
   seed: number;
   rng: number;
   maxHp: number;
@@ -218,6 +222,10 @@ export interface RunState {
   potions: (string | null)[];
   /** Potion trouvée après un combat, en attente de décision. */
   pendingPotion: string | null;
+  /** La barre de sorts (3 emplacements). */
+  spells: string[];
+  /** Sort de barre trouvé sur un boss secondaire, en attente de décision. */
+  pendingSpell: string | null;
   screen: Screen;
   /** La carte de l'acte (voir map.ts). */
   map: ActMap;
