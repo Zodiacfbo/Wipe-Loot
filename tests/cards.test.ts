@@ -167,3 +167,11 @@ describe('les 52 cartes du Guerrier', () => {
     expect(e.hp).toBe(40 - 17 - 3);
   });
 });
+
+describe('les illustrations', () => {
+  it('chaque carte a son illustration', () => {
+    const files = Object.keys(import.meta.glob('../public/assets/carte_*.png'));
+    const missing = Object.keys(CARDS).filter((id) => !files.includes(`../public/assets/carte_${id}.png`));
+    expect(missing).toEqual([]);
+  });
+});

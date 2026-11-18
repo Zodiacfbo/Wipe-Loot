@@ -57,7 +57,7 @@
 - [x] Les 52 cartes du Guerrier (les épiques apparaissent rarement chez les boss secondaires, en attendant les talents)
 - [x] Les sorts de barre du Guerrier : les 7 de sa fiche + 2 sorts de loot (Cri de commandement, Vague de choc), 3 emplacements
 - [ ] Le 4ᵉ emplacement de la barre (talent Protection, phase 2)
-- [ ] Une illustration en pixel art par carte
+- [x] Une illustration en pixel art par carte (62 illustrations, `tools/pixel/illustrations.py`)
 - [x] Le légendaire Brisemonts et sa quête (forge éteinte → Krâgg → Reforger au feu de camp)
 - [ ] Le râtelier de la guilde : garder le légendaire forgé d'une run à l'autre (phase 2)
 

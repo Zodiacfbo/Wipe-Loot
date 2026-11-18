@@ -541,6 +541,7 @@ Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.
 
 **Règles d'obtention :**
 - chaque légendaire s'obtient via une **petite chaîne de quête de 2 ou 3 étapes**, réparties sur les événements « ? » et les boss de la run ;
+- **un légendaire ne se forge pas avant l'acte 2** : les premières étapes peuvent se faire à l'acte 1, mais la dernière (forger l'arme) demande d'avoir atteint l'acte 2. Un légendaire reste un objet de fin de run ;
 - **un seul légendaire par run** ;
 - **une fois forgé, le légendaire est gardé pour toujours** : il rejoint le râtelier de la guilde (à côté du coffre, §12.8). Au début d'une run avec cette classe, on peut l'emporter **en plus** de l'objet du coffre : le légendaire prend l'emplacement d'Arme, et l'objet du coffre doit alors aller dans un autre emplacement (Amulette, Bague ou Bijou). Le coffre accepte les armes : tant qu'on n'a pas le légendaire (il s'obtient tard), on peut partir avec une bonne arme gardée d'une run précédente. Il n'est jamais perdu, même si la run échoue. La quête reste à faire une fois par classe ; ensuite, elle peut servir à débloquer une version améliorée *(piste à creuser)* ;
 - *Exemple (Voleur, Sillon d'orage)* : récupérer le Fermoir gauche de l'orage sur **Gorlok le Fragmenté**, le Fermoir droit sur le **Baron Vossk**, puis trouver l'événement **Ventor, Prince des tempêtes**, qui forge l'arme.

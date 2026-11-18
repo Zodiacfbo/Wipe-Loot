@@ -186,7 +186,7 @@ describe('la quête des Gardiens des Sources', () => {
 });
 
 describe('la quête légendaire Brisemonts', () => {
-  it('Lame brisée → Cœur de la montagne sur Krâgg → Reforger au feu de camp', () => {
+  it('Lame brisée → Cœur de la montagne sur Krâgg → Reforger à un feu de camp de l\'acte 2', () => {
     const run = atEvent('forge');
     resolveEvent(run, 0);
     expect(run.brisemonts).toBe('lame');
@@ -196,6 +196,8 @@ describe('la quête légendaire Brisemonts', () => {
     expect(run.brisemonts).toBe('coeur');
     run.equipment.arme = 'epee_longue';
     run.screen = 'campfire';
+    expect(campfireReforge(run)).toBe(false); // pas avant l'acte 2
+    run.act = 2;
     expect(campfireReforge(run)).toBe(true);
     expect(run.equipment.arme).toBe('brisemonts');
     expect(run.brisemonts).toBe('forged');

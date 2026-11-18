@@ -51,3 +51,5 @@ s.render().save('mon_icone.png')
 ## Limites
 
 Le générateur produit une **bonne base**, mais pas un sprite fini : les visages, les mains et les petits détails gagneront à être retouchés pixel par pixel dans un éditeur (Aseprite, Piskel, LibreSprite…).
+
+- `illustrations.py` : les illustrations des cartes (32 × 32), une par carte, exportées en `public/assets/carte_<id>.png`. Lancer `python3 illustrations.py` depuis `tools/pixel/`.

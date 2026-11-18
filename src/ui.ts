@@ -37,6 +37,8 @@ import {
   offerBlessing,
   chooseBlessing,
   campfireReforge,
+  canReforge,
+  LEGENDARY_MIN_ACT,
   retryAfterWipe,
   servicePrice,
   buyPotion,
@@ -118,7 +120,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
   const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : ''].join(' ');
   return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${def.text(card.upgraded)}">
     <img class="cadre px" src="${A(frame)}" alt="">
-    <img class="icone px" src="${A(`icone_${def.icon}.png`)}" alt="">
+    <img class="icone px" src="${A(`carte_${card.id}.png`)}" alt="">
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
     ${opts.panicked ? '<span class="tampon-panique">Paniquée</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
@@ -265,7 +267,7 @@ function questTracker(run: RunState): string {
   if (run.brisemonts === 'lame') lines.push(run.map.nodes.some((n) => n.type === 'elite' && n.elite === KRAGG_INDEX)
     ? '<b>Brisemonts</b> : bats Krâgg le Mange-roche pour obtenir le Cœur de la montagne.'
     : '<b>Brisemonts</b> : Krâgg n\'est pas sur cette carte. La quête ne pourra pas être terminée cette fois.');
-  if (run.brisemonts === 'coeur') lines.push('<b>Brisemonts</b> : reforge l\'épée au prochain feu de camp.');
+  if (run.brisemonts === 'coeur') lines.push(run.act >= LEGENDARY_MIN_ACT ? '<b>Brisemonts</b> : reforge l\'épée au prochain feu de camp.' : `<b>Brisemonts</b> : garde la Lame et le Cœur. Tu pourras reforger l'épée à un feu de camp de l'acte ${LEGENDARY_MIN_ACT}.`);
   return lines.length ? `<div class="quetes"><span class="butin-titre">Quêtes</span>${lines.map((l) => `<p>${l}</p>`).join('')}</div>` : '';
 }
 
@@ -775,9 +777,9 @@ function campfireScreen(run: RunState): string {
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>Feu de camp</h2>
     <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
-    ${run.brisemonts === 'coeur' ? `<p class="texte-evenement classe">Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d'entraînement. L'épée remplacera ton arme actuelle.</p>${itemHtml('brisemonts')}` : ''}
+    ${canReforge(run) ? `<p class="texte-evenement classe">Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d'entraînement. L'épée remplacera ton arme actuelle.</p>${itemHtml('brisemonts')}` : ''}
     <div class="actions">
-      ${run.brisemonts === 'coeur' ? '<button type="button" class="gros-bouton legendaire" data-action="reforger">Reforger Brisemonts</button>' : ''}
+      ${canReforge(run) ? '<button type="button" class="gros-bouton legendaire" data-action="reforger">Reforger Brisemonts</button>' : ''}
       <button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>
       <button type="button" class="gros-bouton secondaire" data-action="feu-ameliorer">Améliorer une carte</button>
     </div>
@@ -1186,7 +1188,8 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'vendeur_gobelin.png', 'icone_epee.png', 'icone_bouclier.png', 'icone_pouvoir.png', 'icone_feu.png', 'icone_sang.png', 'bregan.png',
+  'guerrier.png', 'vendeur_gobelin.png', 'bregan.png',
+  ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`),
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),
 ];

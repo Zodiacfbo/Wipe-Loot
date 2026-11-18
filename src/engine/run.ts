@@ -11,7 +11,9 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
+/** Les légendaires ne se forgent pas avant cet acte. */
+export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
 export const REPAIR_BILLS = [50, 100, 150];
 /** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
@@ -24,13 +26,13 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 10, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    version: 11, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
-    weaponUpgrade: null, detour: false,
+    weaponUpgrade: null, detour: false, act: 1,
   };
   run.map = generateMap(run);
   if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
@@ -189,7 +191,7 @@ export function afterCombatAction(run: RunState): void {
       }
       if (enc?.loot === 'kragg' && run.brisemonts === 'lame') {
         run.brisemonts = 'coeur';
-        run.questNote = 'Cœur de la montagne : la pierre en fusion de Krâgg. Au prochain feu de camp, tu pourras reforger Brisemonts.';
+        run.questNote = `Cœur de la montagne : la pierre en fusion de Krâgg. Au premier feu de camp de l'acte ${LEGENDARY_MIN_ACT}, tu pourras reforger Brisemonts.`;
       }
     }
   } else if (c.phase === 'defeat') {
@@ -667,9 +669,14 @@ export function chooseBlessing(run: RunState, id: string, uid?: number): boolean
 
 // --- Feu de camp : reforger Brisemonts ---
 
+/** Peut-on reforger Brisemonts ici ? Il faut la Lame et le Cœur, et être au moins à l'acte 2. */
+export function canReforge(run: RunState): boolean {
+  return run.screen === 'campfire' && run.brisemonts === 'coeur' && run.act >= LEGENDARY_MIN_ACT;
+}
+
 /** Au feu de camp, avec la Lame brisée et le Cœur de la montagne : Brisemonts est reforgée et équipée. */
 export function campfireReforge(run: RunState): boolean {
-  if (run.screen !== 'campfire' || run.brisemonts !== 'coeur') return false;
+  if (!canReforge(run)) return false;
   putOn(run, 'brisemonts', 'arme');
   run.brisemonts = 'forged';
   backToMap(run);

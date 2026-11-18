@@ -64,7 +64,11 @@ export function migrate(raw: unknown): RunState | null {
     if (run.eventId === 'source') run.eventId = 'source_chaude';
     run.version = 10;
   }
-  return run.version === 10 ? (run as unknown as RunState) : null;
+  if (run.version === 10) {
+    run.act = 1;
+    run.version = 11;
+  }
+  return run.version === 11 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

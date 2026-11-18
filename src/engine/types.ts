@@ -216,7 +216,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 10;
+  version: 11;
   seed: number;
   rng: number;
   maxHp: number;
@@ -251,6 +251,8 @@ export interface RunState {
   weaponUpgrade: string | null;
   /** La rivière de lave : le prochain nœud devient un combat difficile. */
   detour: boolean;
+  /** L'acte en cours (1 dans le prototype). */
+  act: number;
   /** Emplacements dont l'objet est brisé (effet désactivé jusqu'à la réparation). */
   broken: SlotKey[];
   /** Objet emporté du coffre de la guilde au début de la run (perdu si la run échoue). */

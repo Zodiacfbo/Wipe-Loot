@@ -249,7 +249,7 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 **La quête (acte 1, 3 étapes) :**
 1. **Événement « La forge éteinte »** : dans une forge naine abandonnée, le Guerrier trouve la **Lame brisée de Brisemonts**.
 2. **Vaincre Krâgg le Mange-roche** (boss secondaire) : il fait tomber le **Cœur de la montagne**, une pierre en fusion.
-3. **Au feu de camp suivant** : une option **« Reforger »** remplace le repos et l'amélioration. Brisemonts est équipée dans l'emplacement Arme.
+3. **À un feu de camp de l'acte 2 ou plus** : une option **« Reforger »** remplace le repos et l'amélioration. Brisemonts est équipée dans l'emplacement Arme. On garde la Lame et le Cœur en attendant.
 
 Si Krâgg n'est pas présent sur la carte de cette run, la quête ne peut pas être terminée. C'est voulu : un légendaire reste un moment rare.
 
