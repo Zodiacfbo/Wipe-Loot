@@ -6,6 +6,7 @@ Un deckbuilder roguelite dans la lignée de *Slay the Spire*, dans un univers de
 - **Classes :** [docs/classes/](docs/classes/README.md)
 - **Actes :** [docs/actes/](docs/actes/)
 - **Direction artistique :** [docs/DIRECTION_ARTISTIQUE.md](docs/DIRECTION_ARTISTIQUE.md)
+- **Feuille de route :** [docs/ROADMAP.md](docs/ROADMAP.md)
 
 ## Le prototype
 
