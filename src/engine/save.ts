@@ -6,6 +6,21 @@ import type { RunState } from './types';
 // ont chacune leur sauvegarde.
 const KEY = `wipe-and-loot:${import.meta.env.BASE_URL === './' ? location.pathname.replace(/[^/]*$/, '') : import.meta.env.BASE_URL}:run`;
 
+/** Met une ancienne sauvegarde au format actuel. Renvoie null si elle est trop ancienne. */
+export function migrate(raw: unknown): RunState | null {
+  const run = raw as Record<string, unknown>;
+  if (!run || typeof run !== 'object') return null;
+  if (run.version === 2) {
+    run.gold = 99;
+    run.rewardGold = 0;
+    run.removals = 0;
+    run.upgradesBought = 0;
+    run.shop = null;
+    run.version = 3;
+  }
+  return run.version === 3 ? (run as unknown as RunState) : null;
+}
+
 export interface SaveBackend {
   load(): RunState | null;
   save(run: RunState): void;
@@ -18,7 +33,7 @@ export const localSave: SaveBackend = {
       const raw = localStorage.getItem(KEY);
       if (!raw) return null;
       const run = JSON.parse(raw) as RunState;
-      return run.version === 2 ? run : null;
+      return migrate(run);
     } catch {
       return null;
     }

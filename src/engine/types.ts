@@ -95,16 +95,35 @@ export interface CombatState {
   rng: number;
 }
 
-export type Screen = 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'wipe' | 'victory' | 'gameover';
+export type Screen = 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'shop' | 'wipe' | 'victory' | 'gameover';
+
+export interface ShopCard {
+  id: string;
+  price: number;
+  sold: boolean;
+}
+
+export interface ShopState {
+  cards: ShopCard[];
+  removeUsed: boolean;
+  upgradeUsed: boolean;
+}
 
 export interface RunState {
-  version: 2;
+  version: 3;
   seed: number;
   rng: number;
   maxHp: number;
   hp: number;
   deck: CardInstance[];
   wipesLeft: number;
+  gold: number;
+  /** Or gagné au dernier combat (pour l'écran de récompense). */
+  rewardGold: number;
+  /** Nombre de retraits et d'améliorations achetés chez le vendeur pendant la run (le prix augmente). */
+  removals: number;
+  upgradesBought: number;
+  shop: ShopState | null;
   screen: Screen;
   /** La carte de l'acte (voir map.ts). */
   map: ActMap;

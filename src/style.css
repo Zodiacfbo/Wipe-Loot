@@ -264,3 +264,34 @@ img.px { image-rendering: pixelated; }
 .choix-evenement span { font-size: 14px; color: var(--texte-2); }
 
 .carte .titre.long { font-size: 10px; letter-spacing: -0.01em; }
+
+/* ---------- Or et vendeur ---------- */
+.stat.or { color: #e6c36a; }
+.gain-or { display: flex; align-items: center; gap: 6px; font-size: 20px; font-weight: 800; color: #e6c36a; }
+.gain-or svg { width: 20px; height: 20px; }
+.noeud.shop { color: #e6c36a; }
+.boutique { position: absolute; inset: 52px 0 0 0; display: flex; align-items: center; gap: 10px; padding: 0 30px; }
+.vendeur { width: 250px; display: flex; flex-direction: column; align-items: center; gap: 12px; flex: none; }
+.replique { margin: 0; font-size: 14px; font-style: italic; color: var(--texte-2); text-align: center; }
+.etal { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.titre-boutique { margin: 0; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; }
+.articles { display: flex; gap: 22px; align-items: flex-start; height: 250px; }
+.article { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 140px; }
+.article .carte { margin: 0; }
+.article .carte:hover:not(:disabled) { transform: translateY(-8px) scale(1.05); }
+.article.vendu { height: 196px; border-radius: 12px; border: 2px dashed #4a372a; display: flex; align-items: center; justify-content: center; }
+.vendu-texte { font-weight: 800; color: #8e7c6a; }
+.prix { display: flex; align-items: center; gap: 5px; font-size: 16px; font-weight: 800; color: #e6c36a; }
+.prix.promo { color: #8fd49a; }
+.prix.trop-cher { color: #8a5a4a; }
+.services { display: flex; gap: 14px; align-items: stretch; }
+.service {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 8px 18px; border-radius: 12px;
+  border: 2px solid #5a4433; background: var(--panneau); text-align: left; min-width: 220px;
+}
+.service:hover:not(:disabled) { border-color: var(--or); }
+.service:disabled { opacity: 0.5; }
+.service b { font-size: 16px; }
+.service span { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #e6c36a; }
+
+.carte .texte.long { font-size: 11px; line-height: 1.1; }

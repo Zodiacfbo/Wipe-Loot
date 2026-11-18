@@ -18,14 +18,19 @@ import {
   MAX_WIPES,
   abandonRun,
   afterCombatAction,
+  buyCard,
+  buyRemoval,
+  buyUpgrade,
   campfireRest,
   campfireUpgrade,
   chooseNode,
   chooseReward,
   currentNode,
+  leaveShop,
   newRun,
   resolveEvent,
   retryAfterWipe,
+  servicePrice,
 } from './engine/run';
 import { localSave } from './engine/save';
 import { initFx, playFx } from './fx';
@@ -40,9 +45,10 @@ interface UiState {
   selection: Selection;
   overlay: 'deck' | 'menu' | null;
   campfireUpgrade: boolean;
+  shopMode: 'remove' | 'upgrade' | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -53,6 +59,7 @@ const ICON = {
   bouclier: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg>',
   hausse: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
   coeur: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  piece: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8"/></svg>',
   sablier: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>',
   charge: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h12M13 6l6 6-6 6"/></svg>',
 };
@@ -83,7 +90,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}</span>
-    <span class="texte">${def.text(card.upgraded)}</span>
+    <span class="texte ${def.text(card.upgraded).length > 42 ? 'long' : ''}">${def.text(card.upgraded)}</span>
   </button>`;
 }
 
@@ -122,6 +129,7 @@ function topbar(run: RunState, hp: number): string {
     <div class="groupe">
       <span class="nom-classe">Guerrier</span>
       <span class="stat pv">${ICON.coeur}<span>${hp} / ${run.maxHp}</span></span>
+      <span class="stat or">${ICON.piece}<span>${run.gold}</span></span>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="etape">Les Profondeurs Ardentes · ${etageLabel(run)}</span>
@@ -145,13 +153,14 @@ function etageLabel(run: RunState): string {
 // ---------- Carte de l'acte ----------
 
 const NODE_LABEL: Record<NodeType, string> = {
-  combat: 'Combat', elite: 'Boss secondaire', event: '?', campfire: 'Feu de camp', chest: 'Coffre', boss: 'Boss',
+  combat: 'Combat', elite: 'Boss secondaire', event: '?', shop: 'Vendeur', campfire: 'Feu de camp', chest: 'Coffre', boss: 'Boss',
 };
 
 const NODE_ICON: Record<NodeType, string> = {
   combat: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/></svg>',
   elite: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a7 7 0 0 0-7 7c0 2.5 1.3 4 3 5v3h8v-3c1.7-1 3-2.5 3-5a7 7 0 0 0-7-7z"/><circle cx="9.5" cy="10.5" r="1.5"/><circle cx="14.5" cy="10.5" r="1.5"/><path d="M10 18v3M14 18v3"/></svg>',
   event: '<span class="noeud-q">?</span>',
+  shop: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><circle cx="12" cy="14" r="2"/></svg>',
   campfire: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/><path d="M5 21l14-3M19 21L5 18"/></svg>',
   chest: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="11" rx="1"/><path d="M3 9a9 5 0 0 1 18 0M3 13h18M12 12v3"/></svg>',
   boss: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5L3 8z"/></svg>',
@@ -189,7 +198,7 @@ function mapScreen(run: RunState): string {
 
   const floorsLabels = Array.from({ length: FLOORS }, (_, f) => `<span class="etage-num" style="left:${80 + f * 124 - 30}px">${f + 1}</span>`).join('');
 
-  const legend = (['combat', 'elite', 'event', 'chest', 'campfire', 'boss'] as NodeType[])
+  const legend = (['combat', 'elite', 'event', 'shop', 'chest', 'campfire', 'boss'] as NodeType[])
     .map((t) => `<span class="legende-item"><span class="noeud mini ${t}">${NODE_ICON[t]}</span>${NODE_LABEL[t] === '?' ? 'Inconnu' : NODE_LABEL[t]}</span>`).join('');
 
   return `${topbar(run, run.hp)}
@@ -211,6 +220,63 @@ function eventScreen(run: RunState): string {
     <p class="texte-evenement">${ev.text}</p>
     <div class="choix-liste">${choices}</div>
   </div>`;
+}
+
+// ---------- Vendeur gobelin ----------
+
+function shopScreen(run: RunState): string {
+  const shop = run.shop;
+  if (!shop) return '';
+
+  if (ui.shopMode) {
+    const remove = ui.shopMode === 'remove';
+    const cards = run.deck.map((card) => {
+      const ok = remove || !card.upgraded;
+      return cardHtml(card, { action: ok ? `data-action="service-carte" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
+    }).join('');
+    return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
+      <h2>${remove ? 'Retirer une carte' : 'Améliorer une carte'}</h2>
+      <p>${remove ? 'Choisis la carte à retirer définitivement de ton deck.' : 'Choisis la carte à améliorer.'} Prix : ${servicePrice(remove ? run.removals : run.upgradesBought)} or.</p>
+      <div class="liste-deck">${cards}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="boutique-retour">Retour</button>
+    </div>`;
+  }
+
+  const items = shop.cards.map((item, i) => {
+    const affordable = run.gold >= item.price;
+    const def = CARDS[item.id];
+    const promo = item.price < (def.rarity === 'commune' ? 45 : def.rarity === 'peu_commune' ? 68 : 135);
+    if (item.sold) return `<div class="article vendu"><div class="vendu-texte">Vendu</div></div>`;
+    return `<div class="article">
+      ${cardHtml({ uid: 0, id: item.id, upgraded: false }, { action: affordable ? `data-action="acheter" data-index="${i}"` : 'disabled', disabled: !affordable })}
+      <span class="prix ${affordable ? '' : 'trop-cher'} ${promo ? 'promo' : ''}">${ICON.piece}${item.price}${promo ? ' · promo' : ''}</span>
+    </div>`;
+  }).join('');
+
+  const service = (kind: 'remove' | 'upgrade', label: string, used: boolean, count: number) => {
+    const price = servicePrice(count);
+    const ok = !used && run.gold >= price;
+    return `<button type="button" class="service" ${ok ? `data-action="service" data-service="${kind}"` : 'disabled'}>
+      <b>${label}</b><span>${used ? 'Déjà utilisé lors de cette visite' : `${ICON.piece} ${price} or`}</span>
+    </button>`;
+  };
+
+  return `${topbar(run, run.hp)}
+    <div class="boutique">
+      <div class="vendeur">
+        <img class="px" src="${A('vendeur_gobelin.png')}" alt="Le vendeur gobelin" style="width:192px;height:192px">
+        <p class="replique">« Tout est à vendre, champion ! Même ce qui ne m'appartient pas. »</p>
+      </div>
+      <div class="etal">
+        <h2 class="titre-boutique">Le vendeur gobelin</h2>
+        <div class="articles">${items}</div>
+        <div class="services">
+          ${service('remove', 'Retirer une carte', shop.removeUsed, run.removals)}
+          ${service('upgrade', 'Améliorer une carte', shop.upgradeUsed, run.upgradesBought)}
+          <button type="button" class="gros-bouton secondaire" data-action="partir">Partir</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 // ---------- Écran de combat ----------
@@ -365,6 +431,7 @@ function rewardScreen(run: RunState): string {
   const cards = run.rewardChoices.map((id) => cardHtml({ uid: 0, id, upgraded: false }, { action: `data-action="recompense" data-id="${id}"` })).join('');
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>${run.rewardTitle}</h2>
+    ${run.rewardGold > 0 ? `<div class="gain-or">${ICON.piece}<span>+${run.rewardGold} or</span></div>` : ''}
     <p>Choisis une carte à ajouter à ton deck.</p>
     <div class="choix-cartes">${cards}</div>
     <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">Passer</button>
@@ -450,6 +517,7 @@ export function render(): void {
   switch (run.screen) {
     case 'map': html = mapScreen(run); break;
     case 'event': html = eventScreen(run); break;
+    case 'shop': html = shopScreen(run); break;
     case 'combat': html = run.combat ? combatScreen(run, run.combat) : ''; break;
     case 'reward': html = rewardScreen(run); break;
     case 'campfire': html = campfireScreen(run); break;
@@ -581,6 +649,16 @@ function handleClick(ev: MouseEvent): void {
     case 'recompense': chooseReward(run, el.dataset.id || null); commit(); break;
     case 'noeud': chooseNode(run, Number(el.dataset.id)); commit(); break;
     case 'choix': resolveEvent(run, Number(el.dataset.index)); commit(); break;
+    case 'acheter': buyCard(run, Number(el.dataset.index)); commit(); break;
+    case 'service': ui.shopMode = el.dataset.service as 'remove' | 'upgrade'; render(); break;
+    case 'service-carte':
+      if (ui.shopMode === 'remove') buyRemoval(run, Number(el.dataset.uid));
+      else if (ui.shopMode === 'upgrade') buyUpgrade(run, Number(el.dataset.uid));
+      ui.shopMode = null;
+      commit();
+      break;
+    case 'boutique-retour': ui.shopMode = null; render(); break;
+    case 'partir': ui.shopMode = null; leaveShop(run); commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
     case 'feu-retour': ui.campfireUpgrade = false; render(); break;
@@ -601,7 +679,7 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'icone_epee.png', 'icone_bouclier.png', 'icone_pouvoir.png', 'icone_feu.png',
+  'guerrier.png', 'vendeur_gobelin.png', 'icone_epee.png', 'icone_bouclier.png', 'icone_pouvoir.png', 'icone_feu.png',
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`),
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),
 ];

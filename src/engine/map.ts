@@ -3,7 +3,7 @@
 import { random } from './rng';
 import type { HasRng } from './rng';
 
-export type NodeType = 'combat' | 'elite' | 'event' | 'campfire' | 'chest' | 'boss';
+export type NodeType = 'combat' | 'elite' | 'event' | 'shop' | 'campfire' | 'chest' | 'boss';
 
 export interface MapNode {
   id: number;
@@ -41,8 +41,8 @@ function typeForFloor(s: HasRng, floor: number): NodeType {
   if (floor === 4) return 'chest';
   if (floor === 8) return 'campfire';
   if (floor === 9) return 'boss';
-  if (floor <= 3) return weighted(s, [['combat', 60], ['event', 40]]);
-  return weighted(s, [['combat', 40], ['elite', 25], ['event', 25], ['campfire', 10]]);
+  if (floor <= 3) return weighted(s, [['combat', 52], ['event', 34], ['shop', 14]]);
+  return weighted(s, [['combat', 36], ['elite', 22], ['event', 22], ['shop', 10], ['campfire', 10]]);
 }
 
 /** Deux arêtes entre les mêmes étages se croisent-elles ? */
@@ -100,6 +100,11 @@ export function generateMap(s: HasRng): ActMap {
     if (n.type === 'elite' && n.floor === 7 && nodes.filter((m) => m.next.includes(n.id)).every((m) => m.type === 'elite')) {
       n.type = 'combat';
     }
+  }
+  // Au moins un vendeur par run : si le hasard n'en a pas mis, un « ? » ou un combat en devient un.
+  if (!nodes.some((n) => n.type === 'shop')) {
+    const candidates = nodes.filter((n) => n.floor >= 1 && n.floor <= 7 && n.floor !== 4 && (n.type === 'event' || n.type === 'combat'));
+    if (candidates.length > 0) pick(s, candidates).type = 'shop';
   }
   return { floors: FLOORS, lanes: LANES, nodes };
 }

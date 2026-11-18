@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { changePosture, createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
 import { reachable } from '../src/engine/map';
-import { afterCombatAction, chooseNode, chooseReward, newRun, retryAfterWipe } from '../src/engine/run';
+import {
+  afterCombatAction, buyCard, buyRemoval, buyUpgrade, chooseNode, chooseReward, newRun, retryAfterWipe, servicePrice,
+} from '../src/engine/run';
+import { migrate } from '../src/engine/save';
+import type { RunState } from '../src/engine/types';
 import type { CardInstance, CombatState } from '../src/engine/types';
 
 function deckOf(ids: string[]): CardInstance[] {
@@ -180,5 +184,71 @@ describe('run et carte', () => {
     expect(run.screen).toBe('combat');
     expect(run.encounter!.name).toBe(name);
     expect(run.combat!.player.hp).toBe(80);
+  });
+});
+
+describe('or et vendeur gobelin', () => {
+  function atShop(seed = 3): RunState {
+    const run = newRun(seed);
+    const shopNode = run.map.nodes.find((n) => n.type === 'shop')!;
+    run.position = run.map.nodes.find((n) => n.next.includes(shopNode.id))?.id ?? null;
+    if (shopNode.floor === 0) run.position = null;
+    chooseNode(run, shopNode.id);
+    return run;
+  }
+
+  it('chaque carte compte au moins un vendeur', () => {
+    for (let seed = 1; seed < 60; seed++) {
+      expect(newRun(seed).map.nodes.some((n) => n.type === 'shop')).toBe(true);
+    }
+  });
+
+  it('une victoire rapporte de l\'or', () => {
+    const run = newRun(7);
+    chooseNode(run, reachable(run.map, null)[0].id);
+    run.combat!.phase = 'victory';
+    afterCombatAction(run);
+    expect(run.gold).toBeGreaterThanOrEqual(99 + 10);
+    expect(run.gold).toBeLessThanOrEqual(99 + 20);
+    expect(run.rewardGold).toBe(run.gold - 99);
+  });
+
+  it('le vendeur propose 5 cartes, dont une à moitié prix', () => {
+    const run = atShop();
+    expect(run.screen).toBe('shop');
+    expect(run.shop!.cards.length).toBe(5);
+  });
+
+  it('acheter une carte coûte de l\'or et l\'ajoute au deck ; impossible sans assez d\'or', () => {
+    const run = atShop();
+    const item = run.shop!.cards[0];
+    run.gold = item.price;
+    const size = run.deck.length;
+    expect(buyCard(run, 0)).toBe(true);
+    expect(run.gold).toBe(0);
+    expect(run.deck.length).toBe(size + 1);
+    expect(buyCard(run, 0)).toBe(false); // déjà vendue
+    expect(buyCard(run, 1)).toBe(false); // plus d'or
+  });
+
+  it('retirer et améliorer une carte : une fois par visite, prix croissant', () => {
+    const run = atShop();
+    run.gold = 1000;
+    const [a, b] = run.deck;
+    expect(buyRemoval(run, a.uid)).toBe(true);
+    expect(run.deck.some((c) => c.uid === a.uid)).toBe(false);
+    expect(buyRemoval(run, b.uid)).toBe(false);
+    expect(buyUpgrade(run, b.uid)).toBe(true);
+    expect(b.upgraded).toBe(true);
+    expect(run.gold).toBe(1000 - 75 - 75);
+    expect(servicePrice(run.removals)).toBe(100);
+  });
+
+  it('une sauvegarde de la version précédente est convertie', () => {
+    const old = { ...newRun(5), version: 2 } as Record<string, unknown>;
+    delete old.gold;
+    const run = migrate(old)!;
+    expect(run.version).toBe(3);
+    expect(run.gold).toBe(99);
   });
 });

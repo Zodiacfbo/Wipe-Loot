@@ -130,9 +130,36 @@ def cendrine():
     s.ellipse(16, 30, 24, 38, '#C8A27A')  # main
     return s.render()
 
+def gobelin():
+    """Le vendeur gobelin (regarde vers la gauche)."""
+    s = Sprite(64, 64)
+    s.poly([(30, 30), (58, 28), (60, 56), (34, 58)], '#7A4A2A')  # gros sac
+    s.ellipse(40, 22, 54, 34, '#8A5A32')
+    s.line([(46, 22), (48, 18)], '#5A3822', width=2)
+    s.dots([(44, 40), (50, 44), (54, 38)], '#FFD45E', glow=True)  # pièces qui dépassent
+    s.rect(18, 48, 22, 60, '#3A5A2A')  # jambes
+    s.rect(26, 48, 30, 60, '#3A5A2A')
+    s.rect(16, 58, 23, 61, '#4A2E1E')
+    s.rect(25, 58, 32, 61, '#4A2E1E')
+    s.poly([(14, 30), (34, 30), (36, 50), (12, 50)], '#6A3A6E')  # gilet
+    s.rect(22, 32, 25, 48, '#E6B84A', shade=False)
+    s.ellipse(12, 12, 34, 32, '#6AA84A')  # tête
+    s.poly([(12, 18), (2, 12), (4, 22), (13, 24)], '#5A9A3E')  # oreilles pointues
+    s.poly([(34, 18), (44, 12), (42, 22), (33, 24)], '#5A9A3E')
+    s.ellipse(14, 6, 32, 16, '#5A3822')  # chapeau
+    s.rect(10, 13, 36, 15, '#4A2E1E')
+    s.rect(16, 19, 19, 21, '#FFE27A', glow=True)  # yeux malins
+    s.rect(25, 19, 28, 21, '#FFE27A', glow=True)
+    s.poly([(19, 26), (27, 26), (25, 28), (21, 28)], '#2A1C18')  # sourire
+    s.dots([(20, 26), (24, 26)], '#F4F7FB', glow=True)
+    s.ellipse(4, 34, 12, 42, '#6AA84A')  # main tendue
+    s.ellipse(2, 30, 10, 38, '#FFD45E', glow=True)  # pièce
+    return s.render()
+
 if __name__ == '__main__':
     os.makedirs(DEST, exist_ok=True)
     for name, fn in (('molosse', molosse), ('eclaireur', eclaireur), ('etincelle', etincelle),
                      ('seigneur', seigneur), ('lieutenant', lieutenant), ('brannoc', brannoc), ('cendrine', cendrine)):
         fn().save(os.path.join(DEST, f'ennemi_{name}.png'))
+    gobelin().save(os.path.join(DEST, 'vendeur_gobelin.png'))
     print('ok')

@@ -38,7 +38,7 @@
 
 ### 1.1 La run
 - [x] Carte de l'acte à embranchements (10 étages, combats, boss secondaires, « ? », coffre, feux de camp, boss)
-- [ ] Ajouter le vendeur gobelin sur la carte (avec l'or)
+- [x] Ajouter le vendeur gobelin sur la carte (au moins un par run)
 - [ ] Remplacer le boss provisoire (Brannoc) par Vulkhar
 - [ ] Bénédiction d'entrée de Brégan le Passeur
 - [ ] Écran de fin de run (score, statistiques)
@@ -58,12 +58,13 @@
 - [ ] Le légendaire Brisemonts et sa quête
 
 ### 1.4 Le loot et l'économie
-- [ ] L'or (gains après chaque combat)
+- [x] L'or (99 au départ, gains après chaque combat, plus sur les boss secondaires)
 - [ ] L'équipement : 6 emplacements, règle de remplacement, fiche du héros
 - [ ] Les tables de loot des boss, avec les silhouettes « ??? » jusqu'au premier drop
 - [ ] Le butin de boss : 1 objet épique parmi 3
 - [ ] Les potions (3 emplacements)
-- [ ] Le vendeur gobelin : cartes, équipement, potions, amélioration, retrait, réparation
+- [x] Le vendeur gobelin : 5 cartes dont une en promo, retrait et amélioration d'une carte (prix croissant)
+- [ ] Le vendeur gobelin : ajouter l'équipement, les potions, les cartes de profession et la réparation
 - [ ] La facture de réparation après un wipe, et les objets brisés
 
 ### 1.5 Les nœuds « ? »
@@ -159,7 +160,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 ## Technique et entretien
 
 - [ ] Mettre à jour les actions GitHub du déploiement (avertissement sur l'ancienne version de Node.js)
-- [ ] Prévoir la migration des sauvegardes quand leur format change (numéro de version déjà présent)
+- [x] Migration des sauvegardes quand leur format change (la version 2 est convertie en version 3)
 - [ ] Ajouter des tests à chaque nouvelle mécanique
 - [ ] Suivre les bugs et les idées avec les « Issues » GitHub (optionnel)
 

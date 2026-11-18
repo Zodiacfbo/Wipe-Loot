@@ -5,16 +5,19 @@ import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, typ
 import { AMBUSH, EVENTS } from './events';
 import { generateMap, reachable } from './map';
 import { random } from './rng';
-import type { CardInstance, Rarity, RunState } from './types';
+import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
+export const SERVICE_BASE_PRICE = 75;
+export const SERVICE_PRICE_STEP = 25;
 
 export function newRun(seed: number = Date.now() % 2147483647): RunState {
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 2, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, screen: 'map',
+    version: 3, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    removals: 0, upgradesBought: 0, shop: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
   };
@@ -51,6 +54,9 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
     case 'campfire':
       run.screen = 'campfire';
       break;
+    case 'shop':
+      openShop(run);
+      break;
     case 'chest':
       offerCards(run, 'Coffre', 'peu_commune');
       break;
@@ -78,6 +84,8 @@ function startEncounter(run: RunState, encounter: Encounter): void {
 
 function backToMap(run: RunState): void {
   run.combat = null;
+  run.shop = null;
+  run.rewardGold = 0;
   run.rewardChoices = [];
   run.eventId = null;
   run.screen = 'map';
@@ -98,7 +106,10 @@ export function afterCombatAction(run: RunState): void {
       run.combat = null;
     } else {
       const elite = currentNode(run)?.type === 'elite';
+      const gold = elite ? 25 + Math.floor(random(run) * 11) : 10 + Math.floor(random(run) * 11);
+      run.gold += gold;
       offerCards(run, 'Victoire !', elite ? 'peu_commune' : 'commune');
+      run.rewardGold = gold;
     }
   } else if (c.phase === 'defeat') {
     run.screen = run.wipesLeft > 0 ? 'wipe' : 'gameover';
@@ -124,6 +135,7 @@ function offerCards(run: RunState, title: string, min: Rarity): void {
   }
   run.rewardChoices = choices;
   run.rewardTitle = title;
+  run.rewardGold = 0;
   run.combat = null;
   run.screen = 'reward';
 }
@@ -134,6 +146,72 @@ export function chooseReward(run: RunState, cardId: string | null): void {
     run.deck.push({ uid: run.nextUid++, id: cardId, upgraded: false });
   }
   backToMap(run);
+}
+
+// --- Vendeur gobelin ---
+
+const PRICE_RANGE: Record<string, [number, number]> = {
+  commune: [45, 55],
+  peu_commune: [68, 82],
+  rare: [135, 165],
+};
+
+export function servicePrice(count: number): number {
+  return SERVICE_BASE_PRICE + SERVICE_PRICE_STEP * count;
+}
+
+function openShop(run: RunState): void {
+  const rarities: Rarity[] = ['commune', 'commune', 'peu_commune', 'peu_commune', 'rare'];
+  const cards: ShopCard[] = [];
+  for (const rarity of rarities) {
+    const pool = REWARD_POOL.filter((id) => CARDS[id].rarity === rarity && !cards.some((c) => c.id === id));
+    if (pool.length === 0) continue;
+    const id = pool[Math.floor(random(run) * pool.length)];
+    const [min, max] = PRICE_RANGE[rarity];
+    cards.push({ id, price: min + Math.floor(random(run) * (max - min + 1)), sold: false });
+  }
+  // La promo du jour : une carte à moitié prix.
+  const promo = Math.floor(random(run) * cards.length);
+  cards[promo].price = Math.floor(cards[promo].price / 2);
+  run.shop = { cards, removeUsed: false, upgradeUsed: false };
+  run.screen = 'shop';
+}
+
+export function buyCard(run: RunState, index: number): boolean {
+  const item = run.shop?.cards[index];
+  if (run.screen !== 'shop' || !item || item.sold || run.gold < item.price) return false;
+  run.gold -= item.price;
+  item.sold = true;
+  run.deck.push({ uid: run.nextUid++, id: item.id, upgraded: false });
+  return true;
+}
+
+export function buyRemoval(run: RunState, uid: number): boolean {
+  const price = servicePrice(run.removals);
+  if (run.screen !== 'shop' || !run.shop || run.shop.removeUsed || run.gold < price) return false;
+  const i = run.deck.findIndex((c) => c.uid === uid);
+  if (i < 0) return false;
+  run.deck.splice(i, 1);
+  run.gold -= price;
+  run.removals += 1;
+  run.shop.removeUsed = true;
+  return true;
+}
+
+export function buyUpgrade(run: RunState, uid: number): boolean {
+  const price = servicePrice(run.upgradesBought);
+  if (run.screen !== 'shop' || !run.shop || run.shop.upgradeUsed || run.gold < price) return false;
+  const card = run.deck.find((c) => c.uid === uid);
+  if (!card || card.upgraded) return false;
+  card.upgraded = true;
+  run.gold -= price;
+  run.upgradesBought += 1;
+  run.shop.upgradeUsed = true;
+  return true;
+}
+
+export function leaveShop(run: RunState): void {
+  if (run.screen === 'shop') backToMap(run);
 }
 
 // --- Événements ---
