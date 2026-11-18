@@ -57,7 +57,7 @@ export const TREES: TreeDef[] = [
     tiers: [
       [t('cruaute', 'Cruauté', 'Commence chaque combat avec 1 Puissance.', { fx: { startPuissance: 1 } }),
         t('colere_interieure', 'Colère intérieure', 'Gagne 1 rage au début de chaque tour.', { fx: { turnRage: 1 } })],
-      [t('voix_de_stentor', 'Voix de stentor', 'Tes cartes de Cri donnent 1 rage de plus, et leurs Démoralisés durent 1 tour de plus.', { fx: { shoutBonus: 1 } }),
+      [t('voix_de_stentor', 'Voix de stentor', 'Tes Cris (et Hurlement furieux) donnent 1 rage de plus, et leurs Démoralisés durent 1 tour de plus.', { fx: { shoutBonus: 1 } }),
         t('main_gauche_talent', 'Main gauche', 'Tes Attaques qui coûtent 0 énergie infligent +2 dégâts.', { fx: { zeroCostBonus: 2 } })],
       [t('t_rage_du_berserker', 'Rage du berserker', 'Ajoute ce sort à ta barre : +5 rage, immunisé aux cartes Paniquées.', { spell: 'rage_berserker' }),
         t('fureur_sans_fin', 'Fureur sans fin', 'Ta rage maximale passe à 15.', { fx: { maxRage: 15 } })],

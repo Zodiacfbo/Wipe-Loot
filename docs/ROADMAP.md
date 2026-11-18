@@ -57,6 +57,7 @@
 - [x] Les 52 cartes du Guerrier (les épiques apparaissent rarement chez les boss secondaires, en attendant les talents)
 - [x] Les sorts de barre du Guerrier : les 7 de sa fiche + 2 sorts de loot (Cri de commandement, Vague de choc), 3 emplacements
 - [x] Le 4ᵉ emplacement de la barre (talent Protection)
+- [ ] Améliorer un sort de barre (feu de camp, vendeur) : prévu par le concept, pas encore fait
 - [x] Une illustration en pixel art par carte (62 illustrations, `tools/pixel/illustrations.py`)
 - [x] Le légendaire Brisemonts et sa quête (forge éteinte → Krâgg → Reforger au feu de camp)
 - [ ] Le râtelier de la guilde : garder le légendaire forgé d'une run à l'autre (phase 2)
@@ -198,4 +199,6 @@ Reprises du [concept](CONCEPT.md#19-questions-ouvertes) :
 - [x] Jouer en plein écran → bouton Plein écran et installation comme application
 - [x] Rendre les attaques plus vivantes → animations de combat
 - [x] Animations un peu trop rapides → ralenties
+- [x] Voir ce que font les cartes épiques dans les talents → illustration, coût et effets
+- [x] Passe de cohérence : aperçu avant/après des améliorations, passifs des ennemis affichés, textes d'Exécution, de Pourfendre et de la Zone de feu qui suivent les talents et l'équipement, pioche et défausse consultables, objets sans effet pour le Guerrier signalés, Potion de force et Malédiction renommées, barre du haut cliquable partout
 - [ ] …

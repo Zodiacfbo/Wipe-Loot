@@ -47,6 +47,7 @@ import {
   drinkPotion,
   takePotion,
   barCapacity,
+  runGear,
   learnSpell,
   breakableSlots,
   repairBill,
@@ -70,7 +71,8 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 interface UiState {
   run: RunState | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | null;
+  pileKind: 'draw' | 'discard' | 'exhaust';
   /** Potion ouverte (emplacement du joueur), ou potion du vendeur regardée. */
   potionSlot: number | null;
   shopPotion: number | null;
@@ -85,11 +87,13 @@ interface UiState {
   talentScreen: boolean;
   /** Écran des classes : choix de la classe de départ, ou consultation. */
   classScreen: boolean;
+  /** Carte dont on regarde l'amélioration avant de la confirmer. */
+  upgradeUid: number | null;
   /** Objet choisi pour le dépôt, quand le coffre est plein (on choisit ensuite quoi remplacer). */
   depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, chestPick: false, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false, upgradeUid: null, pileKind: 'draw' };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -124,8 +128,10 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
   const cost = opts.combat ? energyCost(opts.combat, card.id, card.upgraded) : card.upgraded && def.costUp !== undefined ? def.costUp : def.cost;
   const reduced = cost < def.cost;
   const rage = def.rageCost === 'all' ? 'X' : def.rageCost ?? '';
+  const gear = opts.combat?.gear ?? (ui.run ? runGear(ui.run) : undefined);
+  const text = def.text(card.upgraded, gear);
   const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : ''].join(' ');
-  return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${def.text(card.upgraded)}">
+  return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${text}">
     <img class="cadre px" src="${A(frame)}" alt="">
     <img class="icone px" src="${A(`carte_${card.id}.png`)}" alt="">
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
@@ -133,7 +139,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}</span>
-    <span class="texte ${def.text(card.upgraded).length > 56 ? 'tres-long' : def.text(card.upgraded).length > 42 ? 'long' : ''}">${def.text(card.upgraded)}</span>
+    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}">${text}</span>
   </button>`;
 }
 
@@ -178,7 +184,13 @@ function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false)
     return `<div class="objet vide"><span class="objet-icone">${SLOT_ICON[(slotLabel.toLowerCase() as Slot)] ?? ''}</span><div><b>${slotLabel}</b><span>Emplacement vide</span></div></div>`;
   }
   const it = ITEMS[id];
-  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span></div>${extra}</div>`;
+  // Effets qui ne servent pas au Guerrier (il n'a ni Sorts ni alliés) : on le dit clairement.
+  const keys = Object.keys(it.fx);
+  const useless = keys.filter((k) => k === 'spellBonus' || k === 'allyBonus');
+  const note = useless.length === 0 ? '' : useless.length === keys.length
+    ? '<i class="note-objet">Sans effet pour le Guerrier.</i>'
+    : '<i class="note-objet">Le bonus aux Sorts ne sert pas au Guerrier.</i>';
+  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
 }
 
 /** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
@@ -374,11 +386,15 @@ function shopScreen(run: RunState): string {
   const shop = run.shop;
   if (!shop) return '';
 
+  if (ui.shopMode === 'upgrade' && ui.upgradeUid !== null) {
+    return `${topbar(run, run.hp)}${upgradePreview(run, ui.upgradeUid, `Améliorer pour ${servicePrice(run.upgradesBought)} or`, 'data-action="service-carte"')}`;
+  }
   if (ui.shopMode) {
     const remove = ui.shopMode === 'remove';
     const cards = run.deck.map((card) => {
-      const ok = remove || !card.upgraded;
-      return cardHtml(card, { action: ok ? `data-action="service-carte" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
+      const ok = remove || (!card.upgraded && !CARDS[card.id].unplayable);
+      const action = remove ? 'service-carte' : 'apercu-amelioration';
+      return cardHtml(card, { action: ok ? `data-action="${action}" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
     }).join('');
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>${remove ? 'Retirer une carte' : 'Améliorer une carte'}</h2>
@@ -487,7 +503,6 @@ function enemyChips(e: EnemyState): string {
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
   if (e.disarmed) chips.push('<span class="chip debuff">Désarmé</span>');
   if (e.noHeal) chips.push('<span class="chip debuff">Insoignable</span>');
-  if (e.defId === 'gardien' && e.block > 0) chips.push('<span class="chip">Renvoie 3 par Attaque</span>');
   if (e.shield) chips.push(`<span class="chip bouclier-saldris">Anti-${e.shield} : renvoie 50 %</span><span class="chip">Ensuite : anti-${e.shield === 'coups' ? 'sorts' : 'coups'}</span>`);
   return chips.join('');
 }
@@ -637,6 +652,7 @@ function combatScreen(run: RunState, c: CombatState): string {
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${e.hp} / ${e.maxHp}</span></div>
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${enemyChips(e)}</div>
+      ${def.passive ? `<div class="passif-ennemi">${def.passive}</div>` : ''}
     </${tag}>`;
   }).join('');
 
@@ -664,7 +680,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   if (c.enrageTurn !== null) {
     enrage = isEnraged(c)
       ? `<div class="enrage actif">${ICON.sablier}<span>ENRAGE : dégâts du boss doublés</span></div>`
-      : `<div class="enrage">${ICON.sablier}<span>Enrage dans ${c.enrageTurn - c.turn} tour${c.enrageTurn - c.turn > 1 ? 's' : ''}</span></div>`;
+      : `<div class="enrage">${ICON.sablier}<span>Enrage dans ${c.enrageTurn - c.turn} tour${c.enrageTurn - c.turn > 1 ? 's' : ''} : ses dégâts doubleront</span></div>`;
   }
 
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
@@ -704,7 +720,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     ${consigne}
     <div class="barre-sorts"><span class="titre">SORTS</span>${spells}${selSpell ? spellInfo : ''}</div>
     <div class="energie ${p.energy === 0 ? 'vide' : ''}" aria-label="Énergie">${p.energy}/${p.maxEnergy}</div>
-    <div class="piles"><span class="pile">Pioche ${c.draw.length}</span><span class="pile">Défausse ${c.discard.length}</span></div>
+    <div class="piles"><button type="button" class="pile" data-action="pile" data-pile="draw">Pioche ${c.draw.length}</button><button type="button" class="pile" data-action="pile" data-pile="discard">Défausse ${c.discard.length}</button>${c.exhaust.length ? `<button type="button" class="pile" data-action="pile" data-pile="exhaust">Épuisées ${c.exhaust.length}</button>` : ''}</div>
     <div class="main">${hand}</div>
     <div class="journal" aria-live="polite">${journal}</div>
     <button type="button" class="fin-tour" data-action="fin-tour" ${c.phase === 'player' ? '' : 'disabled'}>Fin du tour</button>`;
@@ -771,11 +787,32 @@ function rewardScreen(run: RunState): string {
   </div>`;
 }
 
+/** Avant d'améliorer : la carte telle qu'elle est, et telle qu'elle sera. */
+function upgradePreview(run: RunState, uid: number, label: string, confirm: string): string {
+  const card = run.deck.find((c) => c.uid === uid);
+  if (!card) return '';
+  return `<div class="ecran" style="gap:18px">
+    <h2>Améliorer ${CARDS[card.id].name} ?</h2>
+    <div class="apercu-amelioration">
+      ${cardHtml(card, { action: 'disabled' })}
+      <span class="fleche-amelioration">→</span>
+      ${cardHtml({ ...card, upgraded: true }, { action: 'disabled' })}
+    </div>
+    <div class="actions">
+      <button type="button" class="gros-bouton" ${confirm} data-uid="${uid}">${label}</button>
+      <button type="button" class="gros-bouton secondaire" data-action="annuler-amelioration">Choisir une autre carte</button>
+    </div>
+  </div>`;
+}
+
 function campfireScreen(run: RunState): string {
+  if (ui.campfireUpgrade && ui.upgradeUid !== null) {
+    return `${topbar(run, run.hp)}${upgradePreview(run, ui.upgradeUid, 'Améliorer cette carte', 'data-action="ameliorer"')}`;
+  }
   if (ui.campfireUpgrade) {
     const cards = run.deck.map((card) => cardHtml(card, {
-      action: card.upgraded ? 'disabled' : `data-action="ameliorer" data-uid="${card.uid}"`,
-      disabled: card.upgraded,
+      action: card.upgraded || CARDS[card.id].unplayable ? 'disabled' : `data-action="apercu-amelioration" data-uid="${card.uid}"`,
+      disabled: card.upgraded || CARDS[card.id].unplayable,
     })).join('');
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Le maître de classe</h2>
@@ -1002,6 +1039,19 @@ function overlayHtml(run: RunState | null): string {
     </div></div>`;
   }
   if (!run) return '';
+  if (ui.overlay === 'pile' && run.combat) {
+    const c = run.combat;
+    const kind = ui.pileKind;
+    // La pioche est montrée triée : on ne dévoile pas l'ordre des cartes.
+    const list = kind === 'draw' ? [...c.draw].sort((a, b) => CARDS[a.id].name.localeCompare(CARDS[b.id].name)) : kind === 'discard' ? c.discard : c.exhaust;
+    const title = kind === 'draw' ? 'Pioche' : kind === 'discard' ? 'Défausse' : 'Cartes épuisées';
+    return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:40px;gap:14px">
+      <h2>${title} (${list.length} carte${list.length > 1 ? 's' : ''})</h2>
+      ${kind === 'draw' ? '<p>Dans le désordre : l\'ordre de la pioche reste secret.</p>' : ''}
+      <div class="liste-deck">${list.map((card) => cardHtml(card, { action: 'disabled' })).join('') || '<p><i>Aucune carte.</i></p>'}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+    </div></div>`;
+  }
   if (ui.overlay === 'deck') {
     const cards = run.deck.map((card) => cardHtml(card, { action: 'disabled' })).join('');
     return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:40px;gap:14px">
@@ -1255,6 +1305,7 @@ function handleClick(ev: MouseEvent): void {
     case 'fermer': ui.overlay = null; render(); return;
     case 'equipement': ui.overlay = 'equipement'; render(); return;
     case 'loot': ui.overlay = 'loot'; render(); return;
+    case 'pile': ui.overlay = 'pile'; ui.pileKind = el.dataset.pile as 'draw' | 'discard' | 'exhaust'; render(); return;
     case 'potion': ui.overlay = 'potion'; ui.potionSlot = Number(el.dataset.slot); render(); return;
     case 'plein-ecran': void toggleFullscreen(); return;
   }
@@ -1289,9 +1340,12 @@ function handleClick(ev: MouseEvent): void {
       if (ui.shopMode === 'remove') buyRemoval(run, Number(el.dataset.uid));
       else if (ui.shopMode === 'upgrade') buyUpgrade(run, Number(el.dataset.uid));
       ui.shopMode = null;
+      ui.upgradeUid = null;
       commit();
       break;
-    case 'boutique-retour': ui.shopMode = null; render(); break;
+    case 'apercu-amelioration': ui.upgradeUid = Number(el.dataset.uid); render(); break;
+    case 'annuler-amelioration': ui.upgradeUid = null; render(); break;
+    case 'boutique-retour': ui.shopMode = null; ui.upgradeUid = null; render(); break;
     case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; leaveShop(run); commit(); break;
     case 'equiper': equipPending(run, el.dataset.slot as SlotKey, el.dataset.alt === undefined ? undefined : Number(el.dataset.alt)); commit(); break;
     case 'laisser': leavePending(run); commit(); break;
@@ -1326,8 +1380,8 @@ function handleClick(ev: MouseEvent): void {
     case 'reparer': repairItem(run, el.dataset.slot as SlotKey); commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
-    case 'feu-retour': ui.campfireUpgrade = false; render(); break;
-    case 'ameliorer': campfireUpgrade(run, Number(el.dataset.uid)); ui.campfireUpgrade = false; commit(); break;
+    case 'feu-retour': ui.campfireUpgrade = false; ui.upgradeUid = null; render(); break;
+    case 'ameliorer': campfireUpgrade(run, Number(el.dataset.uid)); ui.campfireUpgrade = false; ui.upgradeUid = null; commit(); break;
     case 'retenter': retryAfterWipe(run); render(); commit(); break; // on affiche le combat avant la bannière « Objet brisé »
     case 'abandonner': abandonRun(run); commit(); break;
   }

@@ -457,7 +457,7 @@ Au tout début de la run, Brégan propose **4 bonus au hasard** parmi :
 | **Un gobelin coincé dans un coffre** | **Le libérer :** 50 % d'avoir un objet, 50 % que ce soit un Gobelin mimique (combat caché). **Prendre le coffre et partir :** 120 or, mais une malédiction Fardeau. |
 | **Le joueur qui fonce** | Un aventurier fonce dans un pack de Molosses en hurlant son propre nom. **L'aider :** combat difficile (pack d'étage 6 à 8), puis il te donne un objet rare. **Le laisser :** rien ne se passe. On entend un wipe au loin. |
 
-**Dans le prototype :** chaque événement n'apparaît qu'**une fois par run**. Un choix impossible (il manque une potion, une arme ou la bonne classe) est **grisé** avec sa raison. La **Malédiction** des événements est une carte Fardeau **permanente** (injouable), qu'on retire chez le vendeur ou au Cercle des anciens. Un « ? » cache un combat **1 fois sur 5**.
+**Dans le prototype :** chaque événement n'apparaît qu'**une fois par run**. Un choix impossible (il manque une potion, une arme ou la bonne classe) est **grisé** avec sa raison. La **Malédiction** des événements est une carte **permanente** et injouable (différente du Fardeau de Morvax, qui disparaît à la fin du combat), qu'on retire chez le vendeur ou au Cercle des anciens. Un « ? » cache un combat **1 fois sur 5**.
 
 ### 7.3 Les combats cachés de l'acte 1
 

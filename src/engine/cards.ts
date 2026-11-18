@@ -16,6 +16,7 @@ import {
 import { ENEMIES, isInterruptible } from './enemies';
 import { random } from './rng';
 import { basicAttack } from './spells';
+import type { ItemEffects } from './items';
 import type { CardType, CombatState, EnemyState, Rarity } from './types';
 
 export interface PlayContext {
@@ -44,7 +45,8 @@ export interface CardDef {
   /** Commence le combat dans la main (une fois améliorée, pour Furie croissante). */
   innateUp?: boolean;
   icon: 'epee' | 'bouclier' | 'pouvoir' | 'feu' | 'sang';
-  text: (up: boolean) => string;
+  /** `g` : les effets de l'équipement et des talents, quand le texte en dépend (Exécution, Pourfendre). */
+  text: (up: boolean, g?: ItemEffects) => string;
   play: (ctx: PlayContext) => void;
 }
 
@@ -193,7 +195,9 @@ export const CARDS: Record<string, CardDef> = {
   execution: {
     id: 'execution', name: 'Exécution', type: 'Attaque', rarity: 'rare', cost: 1, rageCost: 'all', needsTarget: true,
     icon: 'epee',
-    text: (up) => `Toute ta rage : ${up ? 5 : 4} dégâts par point (${up ? 10 : 8} sous 30 % PV).`,
+    text: (up, g) => g?.executeAlways
+      ? `Toute ta rage : ${up ? 10 : 8} dégâts par point.`
+      : `Toute ta rage : ${up ? 5 : 4} dégâts par point (${up ? 10 : 8} sous ${g?.executeThreshold ?? 30} % PV).`,
     play: (ctx) => {
       if (!ctx.target) return;
       const low = ctx.target.hp <= ctx.target.maxHp * (ctx.c.gear?.executeThreshold ?? 30) / 100 || !!ctx.c.gear?.executeAlways;
@@ -214,7 +218,7 @@ export const CARDS: Record<string, CardDef> = {
   pourfendre: {
     id: 'pourfendre', name: 'Pourfendre', type: 'Attaque', rarity: 'commune', cost: 1, needsTarget: true,
     icon: 'sang',
-    text: (up) => `Saignement ${up ? 7 : 5} pendant\u00a03\u00a0tours.`,
+    text: (up, g) => `Saignement ${up ? 7 : 5} pendant\u00a0${3 + (g?.bleedDuration ?? 0)}\u00a0tours.`,
     play: (ctx) => {
       if (ctx.target) applySaignement(ctx.target, ctx.up ? 7 : 5, ctx.c);
     },
@@ -593,7 +597,7 @@ export const CARDS: Record<string, CardDef> = {
   zone_de_feu: {
     id: 'zone_de_feu', name: 'Zone de feu', type: 'Statut', rarity: 'statut', cost: 1, needsTarget: false,
     ethereal: true, exhaust: true, icon: 'feu',
-    text: () => `Bouger. Sinon : 6 dégâts en fin de tour.`,
+    text: (_up, g) => `Bouger. Sinon : ${Math.round(6 * (1 - Math.min(100, g?.zoneReduce ?? 0) / 100))} dégâts en fin de tour.`,
     play: () => {},
   },
   bombe_vivante: {
@@ -603,7 +607,7 @@ export const CARDS: Record<string, CardDef> = {
     play: () => {},
   },
   malediction: {
-    id: 'malediction', name: 'Fardeau', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
+    id: 'malediction', name: 'Malédiction', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
     unplayable: true, icon: 'pouvoir',
     text: () => `Malédiction permanente. Injouable.`,
     play: () => {},

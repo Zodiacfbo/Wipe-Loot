@@ -6,7 +6,7 @@ Ce document explique **ce que toutes les classes ont en commun**. Le détail de 
 
 | Classe | Fiche | Difficulté | Déblocage |
 |---|---|---|---|
-| Guerrier | [GUERRIER.md](GUERRIER.md) | ⭐ | Disponible dès le départ |
+| Guerrier | [GUERRIER.md](GUERRIER.md) | ⭐ | Expérience (ou classe de départ) |
 | Mage | [MAGE.md](MAGE.md) | ⭐⭐ | Expérience |
 | Paladin | [PALADIN.md](PALADIN.md) | ⭐ | Expérience |
 | Voleur | [VOLEUR.md](VOLEUR.md) | ⭐⭐ | Expérience |
@@ -16,7 +16,7 @@ Ce document explique **ce que toutes les classes ont en commun**. Le détail de 
 | Chaman | [CHAMAN.md](CHAMAN.md) | ⭐⭐⭐ | Expérience |
 | Druide | [DRUIDE.md](DRUIDE.md) | ⭐⭐⭐ | Expérience (dernière classe) |
 
-L'ordre exact de déblocage reste à décider.
+**Le déblocage :** au premier lancement, le joueur choisit librement sa **classe de départ** parmi les 9. Les autres se débloquent par paliers d'**expérience totale**, et c'est le joueur qui choisit laquelle (voir le concept, §15.2). Les étoiles indiquent la difficulté conseillée.
 
 ---
 
@@ -57,7 +57,7 @@ Guerrier niveau 7  →  7 points de talent        Deck de départ + Frappe morte
 5. Le **tronc commun** reste proposé quels que soient les talents.
 6. On peut **mélanger** les arbres pour un build hybride. Avec 10 points pour 15 paliers, on ne peut pas tout prendre : il faut choisir.
 
-**Pendant la run**, les boss ne donnent pas de point de talent. Ils donnent un objet de leur table de loot et une **amélioration de carte gratuite**.
+**Pendant la run**, les boss ne donnent pas de point de talent. Ils donnent un objet de leur table de loot (ou, parfois, un sort de barre).
 
 ---
 

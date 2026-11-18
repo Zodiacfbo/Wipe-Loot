@@ -38,7 +38,7 @@ export const POTIONS: Record<string, PotionDef> = {
     use: (c) => drawCards(c, 3),
   },
   potion_rage: {
-    id: 'potion_rage', name: 'Potion de rage', rarity: 'commun', color: '#f08a2a',
+    id: 'potion_rage', name: 'Potion de force', rarity: 'commun', color: '#f08a2a',
     text: 'Gagne 2 Puissance pour ce combat.',
     use: (c) => {
       c.player.puissance += 2;

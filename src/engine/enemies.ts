@@ -15,6 +15,8 @@ export interface EnemyDef {
   cycle2?: Intent[];
   /** Cycle utilisé sous 50 % de PV (boss secondaires). */
   cycleLow?: Intent[];
+  /** Ce que l'ennemi fait en permanence, affiché sous son nom. */
+  passive?: string;
 }
 
 export const ENEMIES: Record<string, EnemyDef> = {
@@ -33,6 +35,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   etincelle: {
     id: 'etincelle', name: 'Étincelle vivante', hpMin: 8, hpMax: 8,
+    passive: 'Explose à sa mort : 4 dégâts sur toi.',
     cycle: [{ kind: 'attack', dmg: 3 }],
   },
   seigneur: {
@@ -53,6 +56,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   cendrine: {
     id: 'cendrine', name: 'Sœur Cendrine', hpMin: 75, hpMax: 75, elite: true,
+    passive: 'Sous 50 % de PV : 3 Zones de feu au lieu de 2.',
     cycle: [
       { kind: 'attack', dmg: 5, addZone: 2 },
       { kind: 'attack', dmg: 8 },
@@ -67,6 +71,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   gardien: {
     // Au début de son tour : +6 blocage. Tant qu'il a du blocage, il renvoie 3 dégâts à chaque Attaque reçue.
     id: 'gardien', name: 'Gardien de lave', hpMin: 32, hpMax: 32,
+    passive: '+6 blocage à chaque tour. Tant qu\'il a du blocage, renvoie 3 dégâts par Attaque reçue.',
     cycle: [{ kind: 'attack', dmg: 7 }],
   },
   pretre: {
@@ -79,6 +84,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   morvax: {
     id: 'morvax', name: 'Morvax le Maudisseur', hpMin: 85, hpMax: 85, elite: true,
+    passive: 'Sous 50 % de PV : ajoute la Malédiction de l\'impie à son cycle.',
     cycle: [
       { kind: 'curse', label: 'Malédiction de faiblesse', demoralise: 4 },
       { kind: 'attack', dmg: 12 },
@@ -95,6 +101,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   croc: {
     id: 'croc', name: 'Croc-de-lave', hpMin: 90, hpMax: 90, elite: true,
+    passive: 'Sous 50 % de PV : ses Morsures frappent deux fois.',
     cycle: [
       { kind: 'attack', dmg: 10 },
       { kind: 'attack', dmg: 10 },
@@ -109,6 +116,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   gorlok: {
     // Au début de son tour : +4 blocage par Éclat encore en vie.
     id: 'gorlok', name: 'Gorlok le Fragmenté', hpMin: 70, hpMax: 70, elite: true,
+    passive: '+4 blocage par Éclat en vie, au début de son tour.',
     cycle: [
       { kind: 'attack', dmg: 10 },
       { kind: 'summon', id: 'eclat', max: 4, label: 'Rappel des éclats' },
@@ -118,6 +126,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   eclat: {
     // À sa mort, il explose : 5 dégâts au joueur.
     id: 'eclat', name: 'Éclat de Gorlok', hpMin: 10, hpMax: 10,
+    passive: 'Explose à sa mort : 5 dégâts sur toi.',
     cycle: [{ kind: 'attack', dmg: 3 }],
   },
   vossk: {
@@ -133,6 +142,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   zhaal: {
     // Passif : Contresort, la 3e carte de Sort de chaque tour est contrée.
     id: 'zhaal', name: 'Zhaal le Tisseur', hpMin: 80, hpMax: 80, elite: true,
+    passive: 'Contresort : ta 3e carte de Sort de chaque tour est annulée.',
     cycle: [
       { kind: 'attack', dmg: 12 },
       { kind: 'blink' },
@@ -143,6 +153,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   kragg: {
     // Passif : gagne 1 Puissance au début de chacun de ses tours.
     id: 'kragg', name: 'Krâgg le Mange-roche', hpMin: 110, hpMax: 110, elite: true,
+    passive: 'Gagne 1 Puissance au début de chacun de ses tours. Ses Molosses s\'enfuient s\'il meurt.',
     cycle: [
       { kind: 'attack', dmg: 14 },
       { kind: 'attack', dmg: 14 },
@@ -152,15 +163,18 @@ export const ENEMIES: Record<string, EnemyDef> = {
   molosse_enrage: {
     // Tant que Krâgg est en vie, se relève 2 tours après sa mort avec la moitié de ses PV.
     id: 'molosse_enrage', name: 'Molosse enragé', hpMin: 30, hpMax: 30,
+    passive: 'Se relève 2 tours après sa mort, tant que Krâgg est en vie.',
     cycle: [{ kind: 'attack', dmg: 6 }],
   },
   saldris: {
     // Alterne Bouclier anti-coups / anti-sorts, donne 8 blocage à un garde chaque tour, se rend sans ses gardes.
     id: 'saldris', name: 'Grand Intendant Saldris', hpMin: 60, hpMax: 60, elite: true,
+    passive: 'Bouclier qui renvoie 50 % des dégâts. Se rend quand ses 4 gardes sont tombés, ou sous 10 % de PV.',
     cycle: [{ kind: 'attack', dmg: 8 }],
   },
   mimique: {
     id: 'mimique', name: 'Gobelin mimique', hpMin: 45, hpMax: 45,
+    passive: 'S\'il te fait perdre des PV avec Avaler, il te vole 15 or.',
     cycle: [
       { kind: 'attack', dmg: 9 },
       { kind: 'attack', dmg: 9, stealGold: 15 },
@@ -172,6 +186,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   vulkhar: {
     id: 'vulkhar', name: 'Vulkhar', hpMin: 300, hpMax: 300, boss: true,
+    passive: 'À 50 % de PV, plonge dans la lave et appelle des Rejetons.',
     cycle: [
       { kind: 'attack', dmg: 14 },
       { kind: 'attack', dmg: 6, addZone: 2 },

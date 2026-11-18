@@ -178,7 +178,7 @@ Ces cartes apparaissent quel que soit l'arbre de talents investi.
 
 ## 6. La barre de sorts
 
-Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **talents** (voir §7), les **tables de loot** des boss et le **maître de classe**.
+Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **talents** (voir §7) et les **tables de loot** des boss secondaires.
 
 | Sort | Coût | Recharge | Effet | Source principale |
 |---|---|---|---|---|

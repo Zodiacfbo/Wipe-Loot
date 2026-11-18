@@ -281,7 +281,7 @@ Le héros dispose de deux sources d'actions :
 - Utiliser un sort coûte de l'**énergie** (de 0 à 2), comme une carte. Le sort passe ensuite en **recharge** pendant X tours (de 2 à 5 selon sa puissance).
 - Certains sorts très puissants sont **« 1 fois par combat »**.
 - **Au début de chaque combat**, tous les sorts sont prêts.
-- **Obtenir de nouveaux sorts :** par les **talents** (voir §9), sur les **tables de loot** des boss (voir §12.7) et auprès du **maître de classe**.
+- **Obtenir de nouveaux sorts :** par les **talents** (voir §9) et sur les **tables de loot** des boss (voir §12.7).
 - Quand la barre est pleine, un nouveau sort **remplace** un sort existant, ou on le refuse. C'est la même règle simple que pour l'équipement.
 - Les sorts de la barre peuvent être **améliorés** au feu de camp, comme les cartes (temps de recharge réduit ou effet renforcé).
 
@@ -557,7 +557,7 @@ Pour simplifier, le jeu **n'a pas de reliques** comme dans StS. Tous les effets 
 ### 12.5 Les potions (consommables)
 - **3 emplacements** au départ.
 - Elles se trouvent après les combats (une chance), dans les événements et chez le vendeur.
-- Exemples : Flacon du colosse, Élixir du félin, Pierre de vie, Potion de protection contre le feu, Potion de soins majeure, Potion de rage…
+- Exemples : Flacon du colosse, Élixir du félin, Pierre de vie, Potion de protection contre le feu, Potion de soins majeure, Potion de force…
 - **Règles :** une potion se boit pendant son tour, **sans dépenser d'énergie**, autant qu'on veut. Les potions de soins se boivent aussi hors combat. On peut jeter une potion pour faire de la place.
 - **Dans le prototype :**
 
@@ -567,7 +567,7 @@ Pour simplifier, le jeu **n'a pas de reliques** comme dans StS. Tous les effets 
 | Potion de soins majeure | Rare | Soigne 35 PV (aussi hors combat). |
 | Flacon du colosse | Commune | Gagne 14 blocage. |
 | Élixir du félin | Commune | Pioche 3 cartes. |
-| Potion de rage | Commune | Gagne 2 Puissance pour ce combat. |
+| Potion de force | Commune | Gagne 2 Puissance pour ce combat. |
 | Potion explosive | Commune | 10 dégâts à tous les ennemis. |
 | Potion de protection contre le feu | Commune | Les Zones de feu ne t'infligent plus de dégâts pendant ce combat. |
 | Potion de purification | Commune | Dissipe toutes tes malédictions et retire les Fardeaux de ta main. |

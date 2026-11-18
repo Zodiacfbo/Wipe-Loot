@@ -13,7 +13,7 @@ Le Mage est un lanceur de sorts fragile mais redoutable. Il maîtrise **trois é
 
 - **Rôle :** dégâts magiques à distance, contrôle.
 - **Difficulté :** ⭐⭐ Moyenne.
-- **Déblocage :** première classe débloquée par l'expérience.
+- **Déblocage :** par l'expérience (ou comme classe de départ).
 - **Fantasme de jeu :** geler un boss sur place, ou le regarder brûler pendant qu'on se protège derrière une Carapace de glace.
 
 | Statistique | Valeur |
