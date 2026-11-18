@@ -45,6 +45,12 @@ Les éléments de *Wipe & Loot* sont des **créations originales**. Ils reprenne
 | Gharul, le Ver des sables | Ver qui s'enfouit |
 | La Triade de la Ruche | Famille royale insectoïde |
 | Le Limon primordial | Gelée à geler puis briser |
+| Grizzik, l'Alchimiste fou | Gobelin aux potions aléatoires (création originale, ambiance gobeline des MMO) |
+| Ossyrax, le Drake ressuscité | Dragon mort-vivant relevé par le maître du repaire |
+| Vashka, la Gardienne des œufs | Gardienne de couvée (création originale) |
+| Sartaq, le Colosse d'obsidienne | Colosse de pierre invulnérable tant que des cristaux ne sont pas activés |
+| Nebet, l'Oracle aveugle | Prêtresse du dieu ancien qui inflige la folie (création originale) |
+| Gruthak, l'Abomination | Abomination recousue qui sert de pur test de dégâts |
 | **L'Archiliche Sarvok** | Liche maîtresse de la nécropole |
 
 ## Légendaires

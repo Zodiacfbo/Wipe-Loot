@@ -187,10 +187,10 @@ Les PV **ne remontent pas** automatiquement entre les combats. On se soigne aux 
 | **Guerrier** | **Rage** | Se gagne en frappant et en étant frappé. Certaines cartes coûtent de l'énergie **et** de la rage, ou deviennent plus fortes avec plus de rage. |
 | **Voleur** | **Points de combo** (max 5) | Les générateurs en donnent, les finishers les consomment pour un effet proportionnel. |
 | **Mage** | **Charges d'école** | Givre : Gel sur l'ennemi. Feu : Brûlure. Arcane : Charges arcaniques. |
-| **Démoniste** | **Éclats d'âme** | Gagnés quand un ennemi meurt sous Siphon d'âme. Consommés par les sorts les plus puissants. |
+| **Démoniste** | **Éclats d'âme** (0 à 5) | Gagnés quand un ennemi meurt sous un de ses DoT ou une de ses Malédictions (Siphon d'âme en donne plus). **Conservés d'un combat à l'autre.** Consommés par les sorts les plus puissants. |
 | **Chasseur** | **Compagnon** | Pas une ressource chiffrée : le compagnon animal est une entité alliée qui attaque chaque tour. |
 | **Paladin** | **Sceau actif** | Un seul Sceau à la fois. Le Jugement le consomme pour un effet puissant. |
-| **Prêtre** | **Foi** | Gagnée en soignant au-delà de ses PV max ou en protégeant avec une Égide. |
+| **Prêtre** | **Foi** (0 à 10) et **Égide** | La Foi se gagne à chaque carte qui soigne ou donne de l'Égide, et se dépense en colère divine. L'Égide est un bouclier qui ne disparaît pas d'un tour à l'autre. |
 | **Chaman** | **Totems** (4 emplacements) | Les totems posés restent en jeu et agissent chaque tour. |
 | **Druide** | **Forme** | La forme active (Ours, Félin, Astrale) change ce que les cartes font. |
 
@@ -241,6 +241,11 @@ L'**Incantation** est la mécanique signature du combat. Un boss commence à lan
 | **Dissipation (type)** | Retire un débuff du type indiqué (Magie, Malédiction, Poison, Maladie). |
 | **DoT (X)** | Inflige X dégâts au début de chaque tour de l'ennemi, pendant plusieurs tours. |
 | **Saignement (X)** | Un DoT physique de 3 tours. Un nouveau Saignement s'ajoute au précédent et remet la durée à 3 tours. |
+
+**Mots-clés propres à une classe ou à un acte** (définis dans leur fiche) :
+- **Classes :** Brûlure, Gel et Fracasser (Mage), Poison et Ouverture (Voleur), Égide (Prêtre), Résonance (Chaman), Piège (Chasseur), tags de forme [Ours] / [Félin] / [Astrale] (Druide).
+- **Actes :** Zone de feu et Bombe vivante (acte 1), Souffle, Mutation et Envol (acte 2), Folie, Hallucination, Ensevelissement et Résistance (acte 3), Givre de la mort (acte bonus).
+- **Tags d'ennemis :** Mort-vivant, Démon, Dragon, Élémentaire, Bête, Humanoïde, Insecte, Construct, Aberration. Certaines cartes sont plus fortes contre certains tags.
 | **Contrôle** | La cible saute son prochain tour. Les boss y sont immunisés. |
 | **Épuisé** | La carte est retirée pour le reste du combat une fois jouée. |
 | **Éphémère** | Si la carte est encore en main à la fin du tour, elle est retirée du combat. |
@@ -457,58 +462,16 @@ Le jeu proposera **9 classes**, chacune avec une **mécanique principale** qui l
 
 ## 11. Les raids (actes)
 
-Chaque raid est un acte, avec ses monstres de trash, un pool de boss secondaires et son boss final. L'**histoire** du raid sert de fil narratif à l'acte.
+Chaque raid est un acte, avec ses monstres de trash, un pool de boss secondaires et son boss final. L'**histoire** du raid sert de fil narratif à l'acte. Le détail complet (ennemis, boss, tables de loot, événements, chiffres) est dans les fiches d'acte.
 
-### Acte 1 — Les Profondeurs Ardentes
-*Sous le mont Durgal, les anciennes forges naines se sont effondrées dans un océan de lave. Vulkhar, Souverain des flammes, a été arraché à son plan par la Grande Brèche, et ses serviteurs préparent son retour complet.*
+| Acte | Raid | Rôle dans la run | Mécaniques signatures | Boss secondaires (pool) | Boss final |
+|---|---|---|---|---|---|
+| **1** | [Les Profondeurs Ardentes](actes/ACTE1_PROFONDEURS_ARDENTES.md) | Apprentissage : une mécanique par boss | Le feu (Zones de feu), interruption, adds | 9 : Morvax, Croc-de-lave, Sœur Cendrine, Gorlok, Baron Vossk, Zhaal, Héraut Brannoc, Krâgg, Grand Intendant Saldris | **Vulkhar, Souverain des flammes** (300 PV, enrage tour 14) |
+| **2** | [L'Aire de Vhaeryx](actes/ACTE2_AIRE_DE_VHAERYX.md) | Maîtrise : anticiper ce qu'on ne peut pas interrompre | Souffles non interruptibles, mutations, morts-vivants | 8 : Skarn, Ysolde la Rouge, Contremaître Draksis, les Trois Souffles, Prismagor, Grizzik, Ossyrax, Vashka | **Vhaeryx, le Dragon-Alchimiste** (420 PV, enrage tour 16) |
+| **3** | [Irem, la cité ensevelie](actes/ACTE3_IREM.md) | Test final : un build complet | Folie et Hallucinations, ensevelissement, immunités | 7 : Prophète Méhkar, Rois-Jumeaux, Gharul, Triade de la Ruche, Limon primordial, Sartaq, Nebet | **Yzhar, le Dieu dormant** (Œil 200 PV + Corps 340 PV, enrage tour 18) |
+| **Bonus** | [La Nécropole céleste](actes/ACTE_BONUS_NECROPOLE.md) | La vraie fin, avec les 3 éclats de clé | Uniquement des morts-vivants, Givre de la mort | 1 fixe : Gruthak, l'Abomination | **L'Archiliche Sarvok** (480 PV, enrage tour 20) |
 
-- **Trash** : Molosses de braise, Géants de lave, Seigneurs des cendres, Éclaireurs cendreux
-- **Pool de boss secondaires** :
-  - **Morvax le Maudisseur** : lance des malédictions qu'il faut dissiper.
-  - **Croc-de-lave, le Molosse ancestral** : *Hurlement de terreur*, certaines cartes en main deviennent injouables pendant un tour.
-  - **Sœur Cendrine, prêtresse des braises** : *Pluie de cendres*, des cartes Zone de feu arrivent en main.
-  - **Gorlok le Fragmenté** : un élémentaire de roche entouré d'éclats qui explosent à leur mort.
-  - **Le Baron Vossk** : *Bombe vivante*, une carte qui t'inflige de lourds dégâts si elle est encore dans ta main en fin de tour.
-  - **Zhaal le Tisseur d'arcanes** : se téléporte et contre tes sorts.
-  - **Le Héraut Brannoc** : soigne ses lieutenants, qu'il faut interrompre.
-  - **Krâgg le Mange-roche** : accompagné de deux molosses enragés.
-  - **Le Grand Intendant Saldris** : entouré de ses gardes, qu'il protège avec des boucliers.
-- **Boss final** : **Vulkhar, Souverain des flammes**
-  - *Marteau des flammes* : défausse ta main.
-  - Au tour X, il **plonge dans la lave** : des **Rejetons de flamme** apparaissent et il faut les tuer avant son retour.
-- **Événement spécial** : les **Gardiens des Sources**, des élémentaires d'eau, te confient de l'eau des profondeurs pour éteindre les runes de feu, ce qui affaiblit Vulkhar.
-
-### Acte 2 — L'Aire de Vhaeryx
-*Au sommet du mont Durgal, le dragon-alchimiste Vhaeryx mène des expériences interdites. Il fusionne le sang de plusieurs lignées de dragons pour créer une armée invincible.*
-
-- **Pool de boss secondaires** :
-  - **Le Gardien des couvées Skarn** : il faut s'emparer du *Sceptre de domination* pour retourner ses dragonnets contre lui.
-  - **Ysolde la Rouge, dragonne asservie** : *Adrénaline ardente*, énergie illimitée mais tu brûles à chaque tour. Une course contre la montre.
-  - **Le Contremaître Draksis** : il frappe de plus en plus fort tant qu'on ne le tue pas.
-  - **Les Trois Souffles** : trois drakes, chacun avec un souffle différent.
-  - **Prismagor, l'Abomination chromatique** : souffles aléatoires et 5 afflictions de sang. Si elles s'accumulent, tu es transformé.
-- **Boss final** : **Vhaeryx, le Dragon-Alchimiste**
-  - **Malédiction de lignée** : des effets qui visent **spécifiquement la classe du joueur**.
-
-### Acte 3 — Irem, la cité ensevelie
-*Sous les sables de l'Est, la cité aux mille colonnes s'est réveillée. Ses prêtres-insectes servent Yzhar, le Dieu dormant, dont les rêves rendent fous ceux qui s'approchent.*
-
-- **Pool de boss secondaires** :
-  - **Le Prophète Méhkar** : crée des copies de lui-même.
-  - **Les Rois-Jumeaux Asheth et Neshet** : ils échangent leurs positions, et chacun est immunisé à un type de dégâts (l'un aux Attaques, l'autre aux Sorts).
-  - **Gharul, le Ver des sables** : il s'enfouit et ressurgit.
-  - **La Triade de la Ruche** : trois insectes royaux à tuer presque en même temps.
-  - **Le Limon primordial** : il faut le geler avant de pouvoir le briser.
-- **Boss final** : **Yzhar, le Dieu dormant**
-  - Phase 1 : l'**Œil**, avec des rayons qui se propagent.
-  - Phase 2 : le corps, et une phase **dans ses entrailles** où le joueur combat avec une main réduite.
-
-### Acte bonus — La Nécropole céleste
-*Une citadelle d'os et de pierre noire flotte au-dessus des royaumes. Son maître, l'Archiliche Sarvok, attend que les autres puissances aient affaibli Eldrava.*
-
-- Débloqué en récupérant les **3 éclats de clé** pendant la run (voir §15.1), comme l'acte 4 de StS avec ses 3 clés.
-- **Acte court** : un feu de camp, un vendeur, un boss secondaire, puis le boss final.
-- **Boss final** : **l'Archiliche Sarvok**. C'est la vraie fin du jeu.
+**Règles communes aux boss secondaires :** 70 à 160 PV selon l'acte, enrage au tour 10, une table de loot de 4 objets propres plus 1 sort de barre de la classe du joueur.
 
 ### Plus tard
 - **Pools de boss de fin d'acte** : comme dans StS, chaque acte pourrait tirer son boss final parmi plusieurs. Par exemple, l'acte 1 pourrait se terminer par Vulkhar **ou Sythra, la Matriarche des cendres** (une reine-dragon et ses dragonnets), et l'acte 2 par Vhaeryx **ou Ekhara, le Serpent de sang** (un dieu-serpent dans une cité de la jungle).
@@ -549,12 +512,12 @@ Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.
 
 | Classe | Légendaire | Effet (première idée) |
 |---|---|---|
-| **Guerrier** | **Brisemonts**, l'épée des rois nains | Chaque fois que tu prends des dégâts, gagne +1 rage supplémentaire. |
+| **Guerrier** | **Brisemonts**, l'épée des rois nains | Chaque fois que tu prends des dégâts, gagne +1 rage supplémentaire. Exécution inflige toujours son bonus de dégâts. |
 | **Paladin** | **L'Aurore ardente** | Tes Jugements infligent des dégâts doublés aux morts-vivants et aux démons, et te soignent. |
 | **Chasseur** | **Corde-des-anciens**, l'arc du premier chasseur | Ton compagnon attaque une fois de plus chaque tour. |
-| **Voleur** | **Sillon d'orage** | Tes attaques ont une chance de déclencher un éclair qui frappe tous les ennemis. |
+| **Voleur** | **Sillon d'orage** | Toutes les 3 Attaques, un éclair inflige 6 dégâts à tous les ennemis. |
 | **Prêtre** | **Équinoxe**, le bâton de lumière et d'ombre | Une arme double : elle change d'effet selon que tu es en forme Sacrée ou en forme d'Ombre. |
-| **Chaman** | **Le Marteau des ancêtres** | Tes totems ont un emplacement de plus, ou se déclenchent deux fois. |
+| **Chaman** | **Le Marteau des ancêtres** | Tes totems agissent deux fois par tour. |
 | **Mage** | **Le Bâton du Veilleur (version Mage)** | Le premier sort de chaque tour coûte 0. |
 | **Démoniste** | **Le Bâton du Veilleur (version Démoniste)** | Pacte de sang ne coûte plus de PV une fois par tour, et tes DoTs durent 1 tour de plus. |
 | **Druide** | **Le Bâton du Veilleur (version Druide)** | Changer de forme ne coûte plus d'action. |
@@ -865,7 +828,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | # | Question | Pistes |
 |---|---|---|
 | 1 | **Classes du premier prototype** | Proposition : **Guerrier** (rage), **Mage** (écoles), **Démoniste** (familier + DoTs), pour 3 styles de jeu très différents. |
-| 2 | **Classe disponible dès le départ** | Le Guerrier, la plus simple à comprendre ? |
+| 2 | **Ordre de déblocage des classes** | Le Guerrier est disponible dès le départ. Dans quel ordre débloquer les 8 autres ? |
 | 3 | **Technologie** | Pour un jeu navigateur PC + mobile : TypeScript avec un moteur 2D web (Phaser ou PixiJS), ou Godot avec export web. À décider au moment du prototype. |
 | 4 | **Visuels** | Faits main, générés, ou des éléments simples (icônes et formes) pour le prototype ? |
 | 5 | **Noms de l'univers** | Les noms actuels (Eldrava, Vulkhar, Vhaeryx, Irem, Sarvok…) sont une première proposition. On pourra les ajuster. |
