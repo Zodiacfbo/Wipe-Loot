@@ -782,6 +782,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
    - [Paladin](classes/PALADIN.md) ✅ (version 0.1)
    - [Chasseur](classes/CHASSEUR.md) ✅ (version 0.1)
    - [Chaman](classes/CHAMAN.md) ✅ (version 0.1)
-   - Druide : à faire
+   - [Druide](classes/DRUIDE.md) ✅ (version 0.1)
+   - Règles communes : [fonctionnement des classes](classes/README.md)
 4. **Concevoir l'acte 1 (les Profondeurs Ardentes)** en détail : trash, boss secondaires, Vulkhar, tables de loot, événements, chiffres.
 5. **Prototyper le combat** (sur papier ou en code) avec 1 classe et quelques ennemis.
