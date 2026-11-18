@@ -82,7 +82,7 @@ Le jeu se déroule dans un **univers original**. Il reprend les **archétypes** 
 - **Les visuels, icônes et interface** sont créés pour le jeu, jamais repris.
 - **Des clins d'œil discrets** à la culture MMO sont bienvenus (wipe, loot, aggro, le joueur qui fonce dans le tas…), tant qu'ils ne renvoient pas à un jeu précis.
 
-Les inspirations d'origine sont notées dans un document interne séparé (`docs/INSPIRATIONS.md`), qui sert uniquement au travail de conception.
+Les inspirations d'origine sont notées dans un document de travail séparé, conservé hors du dépôt.
 
 ### 3.2 Le monde d'Eldrava
 
