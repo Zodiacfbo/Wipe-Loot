@@ -813,7 +813,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 - **Style : pixel art moderne pour tout le jeu** (héros, ennemis, boss, cartes, objets, décors). Lumière venant d'en haut à gauche, contours colorés, éléments lumineux (feu, lave, magie) sans contour. Le détail (règles, tailles, palettes, polices, animations, production) est dans **[la direction artistique](DIRECTION_ARTISTIQUE.md)**.
 - **Production :** les images sont dessinées en code avec le générateur du dépôt (`tools/pixel/`), puis retouchées si besoin.
 - Une interface qui évoque les **MMO de raid**, avec un style propre au jeu : barre de cast des ennemis, barre de sorts avec des temps de recharge visibles, alertes de boss (« ⚠ Bombe vivante sur toi ! »).
-- Des cartes avec un **cadre en pixel art par rareté**, une illustration de 32 × 32 pixels, et un texte posé par-dessus en police pixel (Pixelify Sans) pour rester net.
+- Des cartes avec un **cadre en pixel art par rareté**, une illustration de 32 × 32 pixels, et un texte posé par-dessus en Nunito, une police arrondie très lisible sur téléphone.
 - Une carte d'acte dessinée comme un plan du raid.
 - Un ton qui joue sur la **culture raid** (wipes, loot, le joueur qui fonce dans le tas…), sans tomber dans la parodie.
 - Musique et sons : ambiance épique, et des sons distincts pour les moments clés (une interruption réussie, un sort qui revient de recharge, un loot légendaire).

@@ -61,7 +61,7 @@ Les essais (le Guerrier, Vulkhar et trois cartes) sont dans `assets/essais/`.
 
 - **La gemme de coût** (énergie) en haut à gauche, orange. **Une gemme de ressource** en dessous si la carte coûte de la rage, des éclats d'âme, de la Foi…, à la couleur de la ressource.
 - **L'illustration** de 32 × 32 pixels au centre.
-- **Le texte n'est pas dessiné dans l'image :** il est posé par-dessus par le jeu, dans une police pixel, pour rester net, traduisible et modifiable.
+- **Le texte n'est pas dessiné dans l'image :** il est posé par-dessus par le jeu, en Nunito, pour rester net, traduisible et modifiable.
 - **Textes courts :** sur téléphone, une carte ne dépasse pas 2 ou 3 lignes de texte.
 
 ---
@@ -70,13 +70,12 @@ Les essais (le Guerrier, Vulkhar et trois cartes) sont dans `assets/essais/`.
 
 | Usage | Police | Remarque |
 |---|---|---|
-| **Textes en jeu** (cartes, PV, dégâts, bulles) | **Pixelify Sans** | Police pixel lisible, avec les accents. |
-| **Titres et menus** | **Cinzel** | Un contraste élégant avec le pixel art, pour le côté fantasy. |
-| **Textes longs** (archives, options, aide) | **Inter** | Pour le confort de lecture. |
+| **Textes en jeu** (cartes, PV, dégâts, boutons, menus, petits titres) | **Nunito** (graisses 600 à 800) | Arrondie et grasse : la plus lisible en petit, notamment sur téléphone où l'écran de jeu est réduit d'environ moitié. Elle se marie bien avec le pixel art. |
+| **Grands titres** (nom du jeu, écrans de victoire, de wipe, de récompense) | **Cinzel** | Pour la touche fantasy, uniquement en grande taille (30 px et plus). |
 
-Toutes les trois sont des polices Google Fonts, gratuites.
+Les deux sont des polices Google Fonts, gratuites.
 
----
+**Pourquoi pas une police pixel ?** Une comparaison à la taille réelle d'un téléphone a montré que les polices pixel (Pixelify Sans, VT323) deviennent difficiles à lire une fois l'écran réduit. Le pixel art reste réservé aux images.
 
 ## 6. Les palettes
 
