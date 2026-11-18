@@ -1,0 +1,147 @@
+# Direction artistique
+
+> Wipe & Loot · Version 0.1
+
+---
+
+## 1. Le choix : du pixel art moderne pour tout le jeu
+
+Wipe & Loot est entièrement en **pixel art moderne** : les héros, les monstres, les boss, les illustrations de cartes, les objets et les décors.
+
+**Pourquoi ce style :**
+- **Un style unifié :** les cartes, les personnages et les décors parlent la même langue visuelle.
+- **Une production réaliste :** les images sont dessinées en code avec le générateur du dépôt (`tools/pixel/`), puis retouchées si besoin. On peut tenir un style cohérent sur des centaines d'images.
+- **Lisible sur téléphone :** des formes simples, des couleurs franches, de bons contrastes.
+- **Facile à animer :** une respiration, un coup ou une mort se font en ne changeant que quelques pixels.
+
+Les essais (le Guerrier, Vulkhar et trois cartes) sont dans `assets/essais/`.
+
+---
+
+## 2. Les règles du style
+
+| Règle | Détail |
+|---|---|
+| **Lumière** | Elle vient **d'en haut à gauche**. Chaque forme a un reflet sur ses bords haut-gauche et une ombre sur ses bords bas-droite. |
+| **Contours** | Des **contours colorés** (une version sombre de la couleur voisine), jamais un noir pur. Ça adoucit les silhouettes. |
+| **Éléments lumineux** | Le feu, la lave, la magie et les éclats n'ont **ni contour ni ombre** : ils « brillent ». |
+| **Couleurs par forme** | 3 tons par couleur au maximum : la base, un ton clair et un ton sombre. |
+| **Pas d'anticrénelage** | Les pixels restent nets. À l'affichage, on agrandit toujours par un **nombre entier** (× 2, × 3…), avec un rendu « pixelated ». |
+| **Silhouette d'abord** | Un personnage doit être reconnaissable à sa seule silhouette, même en petit. |
+
+---
+
+## 3. Les tailles
+
+| Élément | Taille en pixels | Affichage sur PC | Affichage sur téléphone |
+|---|---|---|---|
+| **Héros** | 64 × 64 | × 3 ou × 4 | × 2 |
+| **Ennemis normaux** | 48 × 48 à 64 × 64 | × 3 | × 2 |
+| **Boss secondaires** | 64 × 64 à 80 × 80 | × 3 | × 2 |
+| **Boss de fin d'acte** | 96 × 96 (ou plus pour Yzhar et Sarvok) | × 3 à × 5 | × 2 |
+| **Illustrations de cartes** | 32 × 32 | × 3 | × 2 |
+| **Cadres de cartes** | 70 × 98 | × 3 (210 × 294) | × 2 (140 × 196) |
+| **Icônes** (objets, sorts de barre, buffs) | 16 × 16 ou 24 × 24 | × 2 ou × 3 | × 2 |
+| **Décors des actes** | 480 × 270 | × 4 (plein écran) | × 2 à × 3 |
+
+---
+
+## 4. Les cartes
+
+- **Un cadre par rareté**, le même pour toutes les classes :
+
+| Rareté | Couleur du cadre |
+|---|---|
+| De départ | Gris `#8A8178` |
+| Commune | Blanc cassé `#E9E1D3` |
+| Peu commune | Vert `#5FB86B` |
+| Rare | Bleu `#4C8FE0` |
+| Épique | Violet `#A66BE0` |
+| Légendaire (objets uniquement) | Orange `#E8742A` |
+
+- **La gemme de coût** (énergie) en haut à gauche, orange. **Une gemme de ressource** en dessous si la carte coûte de la rage, des éclats d'âme, de la Foi…, à la couleur de la ressource.
+- **L'illustration** de 32 × 32 pixels au centre.
+- **Le texte n'est pas dessiné dans l'image :** il est posé par-dessus par le jeu, dans une police pixel, pour rester net, traduisible et modifiable.
+- **Textes courts :** sur téléphone, une carte ne dépasse pas 2 ou 3 lignes de texte.
+
+---
+
+## 5. Les polices
+
+| Usage | Police | Remarque |
+|---|---|---|
+| **Textes en jeu** (cartes, PV, dégâts, bulles) | **Pixelify Sans** | Police pixel lisible, avec les accents. |
+| **Titres et menus** | **Cinzel** | Un contraste élégant avec le pixel art, pour le côté fantasy. |
+| **Textes longs** (archives, options, aide) | **Inter** | Pour le confort de lecture. |
+
+Toutes les trois sont des polices Google Fonts, gratuites.
+
+---
+
+## 6. Les palettes
+
+### 6.1 Interface
+
+| Rôle | Couleur |
+|---|---|
+| Fond | `#17110D` |
+| Panneaux | `#2B211A` |
+| Bordures | `#4A372A` |
+| Texte | `#F3EBDD` |
+| Texte secondaire | `#B9AE9F` |
+| Accent (énergie, boutons principaux) | `#E8742A` |
+| Or (titres, sorts prêts) | `#E6C36A` |
+| PV | `#C8413A` |
+| Blocage | `#8FB8E8` |
+
+### 6.2 Palettes des actes
+
+| Acte | Couleurs dominantes |
+|---|---|
+| **Acte 1 — Les Profondeurs Ardentes** | Basalte `#3A2A26`, lave `#E8562A`, flamme `#F59A2E`, braise `#FFE27A` |
+| **Acte 2 — L'Aire de Vhaeryx** | Pierre noire `#2A2030`, pourpre `#5A3A6E`, écailles chromatiques (rouge, bleu, vert, bronze), vert toxique `#7BD15A` |
+| **Acte 3 — Irem** | Sable `#D9B27A`, ocre `#A8743A`, carapace noire `#1E1A22`, chair violette `#7A3A6E` |
+| **Acte bonus — La Nécropole céleste** | Glace `#9FD3E8`, vert spectral `#7BE0B0`, os `#E3DCC8`, nuit `#141826` |
+
+### 6.3 Couleurs des classes
+
+Chaque classe a une couleur, utilisée pour son liseré dans l'interface et ses effets :
+
+| Classe | Couleur |
+|---|---|
+| Guerrier | Rouge brique `#A8322A` |
+| Mage | Bleu glace `#6FB6E8` |
+| Démoniste | Violet sombre `#7A4AB0` |
+| Prêtre | Blanc doré `#F0E6C8` |
+| Voleur | Jaune `#E8D25A` |
+| Paladin | Rose doré `#E8A0B8` |
+| Chasseur | Vert mousse `#8AB85A` |
+| Chaman | Bleu profond `#3A6AD0` |
+| Druide | Orange feuille `#E8883A` |
+
+---
+
+## 7. Animations
+
+Des animations courtes, de 2 à 6 images :
+
+| Animation | Images | Remarque |
+|---|---|---|
+| **Respiration** (au repos) | 2 à 4 | Le personnage monte et descend d'un pixel. |
+| **Attaque** | 3 à 4 | Un mouvement vers l'avant, puis retour. |
+| **Dégâts subis** | 2 | Un clignotement blanc, et un pixel de recul. |
+| **Mort** | 4 à 6 | Chute ou dissolution (en cendres, en lave, en poussière selon l'acte). |
+| **Incantation** | 2 à 4 | Une lueur qui grandit, de la couleur du sort. |
+
+Les flammes, la lave et les éclats peuvent aussi avoir une petite animation en boucle, de 2 à 3 images.
+
+---
+
+## 8. Production
+
+1. **Générer** la base avec `tools/pixel/` (voir son README).
+2. **Retoucher** à la main les détails importants (visages, mains, armes) dans un éditeur de pixel art (Aseprite, Piskel, LibreSprite…).
+3. **Exporter** en PNG à la taille réelle. Le jeu se charge de l'agrandissement.
+4. **Ranger** les fichiers dans `assets/` selon leur type (`heros/`, `ennemis/`, `boss/`, `cartes/`, `objets/`, `decors/`).
+
+**Ordre de production conseillé :** d'abord ce qu'il faut pour le prototype (le Guerrier, ses cartes de départ, les ennemis de l'acte 1 et Vulkhar), puis classe par classe et acte par acte.

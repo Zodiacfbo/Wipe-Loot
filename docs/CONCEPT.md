@@ -810,8 +810,10 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 
 ## 17. Direction artistique et ambiance
 
+- **Style : pixel art moderne pour tout le jeu** (héros, ennemis, boss, cartes, objets, décors). Lumière venant d'en haut à gauche, contours colorés, éléments lumineux (feu, lave, magie) sans contour. Le détail (règles, tailles, palettes, polices, animations, production) est dans **[la direction artistique](DIRECTION_ARTISTIQUE.md)**.
+- **Production :** les images sont dessinées en code avec le générateur du dépôt (`tools/pixel/`), puis retouchées si besoin.
 - Une interface qui évoque les **MMO de raid**, avec un style propre au jeu : barre de cast des ennemis, barre de sorts avec des temps de recharge visibles, alertes de boss (« ⚠ Bombe vivante sur toi ! »).
-- Des cartes illustrées avec des **icônes de sorts créées pour le jeu**, une bordure aux couleurs de rareté et un liseré de la couleur de la classe.
+- Des cartes avec un **cadre en pixel art par rareté**, une illustration de 32 × 32 pixels, et un texte posé par-dessus en police pixel (Pixelify Sans) pour rester net.
 - Une carte d'acte dessinée comme un plan du raid.
 - Un ton qui joue sur la **culture raid** (wipes, loot, le joueur qui fonce dans le tas…), sans tomber dans la parodie.
 - Musique et sons : ambiance épique, et des sons distincts pour les moments clés (une interruption réussie, un sort qui revient de recharge, un loot légendaire).
@@ -842,6 +844,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | **Plateformes** | Navigateur, sur PC et smartphone, **en mode paysage** |
 | **Sauvegarde** | Automatique et permanente, reprise exacte à tout moment (même en combat). Locale après chaque action, en ligne (Firestore) à chaque nœud |
 | **Hébergement** | GitHub Pages (site statique) + Firebase (Authentication et Firestore) pour les comptes, le profil et les sauvegardes |
+| **Direction artistique** | Pixel art moderne pour tout le jeu, généré en code puis retouché (voir [la direction artistique](DIRECTION_ARTISTIQUE.md)) |
 | **Modes futurs** | Mode rapide et mode infini |
 
 ---
@@ -853,8 +856,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | 1 | **Classes du premier prototype** | Proposition : **Guerrier** (rage), **Mage** (écoles), **Démoniste** (familier + DoTs), pour 3 styles de jeu très différents. |
 | 2 | **Ordre de déblocage des classes** | Le Guerrier est disponible dès le départ. Dans quel ordre débloquer les 8 autres ? |
 | 3 | **Technologie** | Pour un jeu statique sur GitHub Pages avec Firebase : TypeScript avec un moteur 2D web (Phaser ou PixiJS), ou une interface web classique (HTML/CSS avec un framework comme React ou Svelte), puisque le jeu est surtout fait de cartes et de menus. À décider au moment du prototype. |
-| 4 | **Visuels** | Faits main, générés, ou des éléments simples (icônes et formes) pour le prototype ? |
-| 5 | **Noms de l'univers** | Les noms actuels (Eldrava, Vulkhar, Vhaeryx, Irem, Sarvok…) sont une première proposition. On pourra les ajuster. |
+| 4 | **Noms de l'univers** | Les noms actuels (Eldrava, Vulkhar, Vhaeryx, Irem, Sarvok…) sont une première proposition. On pourra les ajuster. |
 
 ---
 
