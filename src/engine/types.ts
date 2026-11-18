@@ -4,7 +4,7 @@ import type { Encounter } from './enemies';
 import type { Equipment, ItemEffects, SlotKey } from './items';
 import type { ActMap } from './map';
 
-export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut' | 'profession';
+export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
 export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Sort' | 'Statut';
 export type Posture = 'combat' | 'berserker' | 'defensive';
 
@@ -216,7 +216,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 11;
+  version: 12;
   seed: number;
   rng: number;
   maxHp: number;

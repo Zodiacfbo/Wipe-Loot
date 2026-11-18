@@ -274,7 +274,7 @@ Si Krâgg n'est pas présent sur la carte de cette run, la quête ne peut pas ê
 | **Enrage timer** | ✅ Très bon : Exécution et les builds Fureur finissent vite les boss. |
 | **Adds** | ✅ Bon : Enchaînement, Coup de tonnerre, Tourbillon, Tempête d'acier. |
 | **Peur, cartes injouables** | ✅ Rage du berserker l'immunise. |
-| **Dissipation** | ❌ **Aucune.** Le Guerrier ne peut pas retirer les malédictions, poisons ou effets magiques. Il doit compter sur les potions, les cartes de profession (Antidote) ou encaisser. C'est sa vraie faiblesse. |
+| **Dissipation** | ❌ **Aucune.** Le Guerrier ne peut pas retirer les malédictions, poisons ou effets magiques. Il doit compter sur les potions (Purification), l'équipement (Amulette de purification) ou encaisser. C'est sa vraie faiblesse. |
 | **Zones de feu** | ➖ Neutre : il paie le coût de 1 énergie comme tout le monde. |
 | **Début de combat** | ❌ Lent : sans rage au tour 1, il dépend de Charge et du Cri de guerre. |
 

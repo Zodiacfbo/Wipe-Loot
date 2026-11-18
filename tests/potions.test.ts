@@ -119,7 +119,22 @@ describe('potions', () => {
     delete old.potions;
     delete old.pendingPotion;
     const run = migrate(old)!;
-    expect(run.version).toBe(11);
+    expect(run.version).toBe(12);
     expect(run.potions).toEqual([null, null, null]);
+  });
+});
+
+describe('la Potion de purification', () => {
+  it('dissipe les malédictions et retire les Fardeaux de la main', () => {
+    const run = inCombat();
+    const c = run.combat!;
+    c.player.debuffs!.demoralise = 3;
+    c.player.debuffs!.impie = 2;
+    c.hand.push({ uid: 7777, id: 'fardeau', upgraded: false });
+    run.potions[0] = 'potion_purification';
+    drinkPotion(run, 0);
+    expect(c.player.debuffs!.demoralise).toBe(0);
+    expect(c.player.debuffs!.impie).toBe(0);
+    expect(c.hand.some((k) => k.id === 'fardeau')).toBe(false);
   });
 });

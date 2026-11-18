@@ -11,7 +11,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -26,7 +26,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 11, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    version: 12, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
@@ -541,8 +541,9 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'trappeur:0': {
       const i = run.potions.findIndex((p) => p);
       if (i >= 0) run.potions[i] = null;
-      run.deck.push({ uid: run.nextUid++, id: 'bandage_de_lin', upgraded: false });
-      return outcome(run, '« Merci, l\'ami. » Il te montre comment faire un bon bandage. Bandage de lin rejoint ton deck.');
+      run.maxHp += 6;
+      run.hp += 6;
+      return outcome(run, '« Merci, l\'ami. » Il te montre comment tenir dans le froid comme dans le feu. +6 PV max.');
     }
     case 'cercle:0': {
       const i = run.deck.findIndex((c) => c.id === 'malediction');

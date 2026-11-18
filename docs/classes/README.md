@@ -122,7 +122,7 @@ Pour que les classes restent lisibles, leurs mécaniques reprennent quelques **f
 
 ## 5. Les rôles face aux mécaniques de raid
 
-Chaque classe a des **forces et des faiblesses** face aux mécaniques des boss. Aucune classe n'est bloquée, mais certaines devront compter sur les potions ou les cartes de profession.
+Chaque classe a des **forces et des faiblesses** face aux mécaniques des boss. Aucune classe n'est bloquée, mais certaines devront compter sur les potions et l'équipement.
 
 | Classe | Interruption | Dissipation | Adds | Enrage | Survie |
 |---|---|---|---|---|---|

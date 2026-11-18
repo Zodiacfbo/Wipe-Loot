@@ -100,7 +100,7 @@ const ICON = {
 };
 
 const RARITY_FRAME: Record<string, string> = {
-  depart: 'depart', commune: 'commune', peu_commune: 'peu_commune', rare: 'rare', epique: 'epique', statut: 'statut', profession: 'depart',
+  depart: 'depart', commune: 'commune', peu_commune: 'peu_commune', rare: 'rare', epique: 'epique', statut: 'statut',
 };
 
 const POSTURES: { id: Posture; label: string; aide: string }[] = [

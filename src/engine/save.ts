@@ -68,7 +68,17 @@ export function migrate(raw: unknown): RunState | null {
     run.act = 1;
     run.version = 11;
   }
-  return run.version === 11 ? (run as unknown as RunState) : null;
+  if (run.version === 11) {
+    // Les cartes de profession ont été retirées du jeu.
+    const keep = (cards: unknown) => (cards as { id: string }[]).filter((c) => c.id !== 'bandage_de_lin');
+    run.deck = keep(run.deck);
+    const entry = run.entry as Record<string, unknown> | null;
+    if (entry) entry.deck = keep(entry.deck);
+    const combat = run.combat as Record<string, unknown> | null;
+    if (combat) for (const pile of ['draw', 'hand', 'discard', 'exhaust']) combat[pile] = keep(combat[pile]);
+    run.version = 12;
+  }
+  return run.version === 12 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

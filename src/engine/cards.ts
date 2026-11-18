@@ -608,17 +608,6 @@ export const CARDS: Record<string, CardDef> = {
     text: () => `Malédiction permanente. Injouable.`,
     play: () => {},
   },
-  bandage_de_lin: {
-    id: 'bandage_de_lin', name: 'Bandage de lin', type: 'Compétence', rarity: 'profession', cost: 1, needsTarget: false,
-    exhaust: true, icon: 'bouclier',
-    text: (up) => `Premiers soins. Soigne ${up ? 9 : 6} PV. Épuisé.`,
-    play: (ctx) => {
-      const p = ctx.c.player;
-      const healed = Math.min(p.maxHp - p.hp, ctx.up ? 9 : 6);
-      p.hp += healed;
-      fx(ctx.c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
-    },
-  },
   fardeau: {
     id: 'fardeau', name: 'Fardeau', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
     unplayable: true, icon: 'pouvoir',

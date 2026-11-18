@@ -244,7 +244,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | **Adds** | ✅✅ Flèches multiples, Salve, Piège explosif, Piège à venin, Tir de recul. |
 | **Interruption** | ✅ Flèche muselière, Intimidation. Le Dard paralysant retarde les incantations. |
 | **Gros coups annoncés** | ✅ Feindre la mort détourne les Attaques vers le compagnon. |
-| **Dissipation** | ❌ **Aucune.** Il doit compter sur les potions et les cartes de profession. |
+| **Dissipation** | ❌ **Aucune.** Il doit compter sur les potions (Purification) et l'équipement, ou attendre que les effets expirent. |
 | **Soins** | ❌ Presque aucun soin en combat. |
 
 ---

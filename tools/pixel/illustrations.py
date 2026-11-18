@@ -587,7 +587,7 @@ def heurt_de_bouclier():
     return s.render()
 
 
-# ---------- Statuts et professions ----------
+# ---------- Cartes-statut ----------
 
 def bombe_vivante():
     s = nouveau()
@@ -616,16 +616,6 @@ def malediction():
     return s.render()
 
 
-def bandage_de_lin():
-    s = nouveau()
-    s.ellipse(4, 8, 20, 24, '#E6E0D0')
-    s.ellipse(9, 13, 15, 19, '#C8C0B0', shade=False)
-    s.rect(14, 16, 30, 23, '#E6E0D0')
-    s.rect(20, 17, 22, 22, '#D8303A', shade=False)
-    s.rect(18, 19, 24, 20, '#D8303A', shade=False)
-    return s.render()
-
-
 ILLUSTRATIONS = {
     'frappe': frappe, 'parade': parade, 'frappe_heroique': frappe_heroique, 'cri_de_guerre': cri_de_guerre,
     'enchainement': enchainement, 'coup_de_tonnerre': coup_de_tonnerre, 'fracasser_armure': fracasser_armure,
@@ -647,7 +637,6 @@ ILLUSTRATIONS = {
     'cri_de_ralliement': cri_de_ralliement, 'riposte_bouclier': riposte_bouclier, 'garde_de_fer': garde_de_fer,
     'bastion': bastion, 'heurt_de_bouclier': heurt_de_bouclier,
     'zone_de_feu': flamme, 'bombe_vivante': bombe_vivante, 'fardeau': fardeau, 'malediction': malediction,
-    'bandage_de_lin': bandage_de_lin,
 }
 
 if __name__ == '__main__':

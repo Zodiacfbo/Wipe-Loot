@@ -56,7 +56,7 @@ Le joueur incarne **seul** un champion de l'une des 9 classes du jeu. Il s'attaq
    Interrompre, sortir du feu, dissiper, gérer les phases, battre l'enrage : le joueur doit *lire* le combat comme un raideur lit un boss.
 
 3. **La saveur des MMO, en restant simple**
-   Arbres de talents, clés de raid, armes légendaires, professions, buffs de raid. On garde la saveur sans la complexité d'un MMO.
+   Arbres de talents, clés de raid, armes légendaires, buffs de raid. On garde la saveur sans la complexité d'un MMO.
 
 4. **Facile à prendre en main, profond à maîtriser**
    Les systèmes annexes (l'équipement par exemple) restent volontairement légers. La profondeur vient des cartes et des synergies.
@@ -377,24 +377,19 @@ L'**orange (légendaire)** est réservé aux **armes légendaires** (voir §12.3
   - chez le **vendeur gobelin**, contre de l'or.
 - Quelques événements peuvent aussi proposer une amélioration.
 
-### 7.4 Les cartes neutres : les professions
+### 7.4 Pas de cartes neutres ni de professions
 
-Les cartes neutres, jouables par toutes les classes, viennent des **professions** :
+Chaque deck ne contient que des **cartes de sa classe** (plus les cartes-statut et les malédictions imposées par les ennemis). Il n'y a pas de cartes neutres ni de « professions » : le jeu a déjà assez de systèmes (cartes, barre de sorts, équipement, potions).
 
-| Profession | Exemples de cartes |
-|---|---|
-| **Ingénierie** | Bombe en fer (dégâts à tous les ennemis), Lance-filet (Contrôle), Grenade gobeline |
-| **Alchimie** | Transmutation (transforme une carte), Pierre philosophale |
-| **Premiers soins** | Bandage de lin (soin), Antidote (dissipe un Poison) |
-| **Forge, Enchantement…** | Pierre à aiguiser (+dégâts à une attaque), Enchantement d'arme (bonus pour le combat) |
-
-On les obtient surtout via les **événements** et le **vendeur gobelin**.
+**Aucune classe n'est bloquée pour autant.** Chaque mécanique de boss a une réponse accessible à toutes les classes :
+- les malédictions et les débuffs **expirent seuls** au bout de quelques tours ;
+- les **potions** couvrent les besoins de secours (Potion de purification pour dissiper, soins, protection contre le feu…) ;
+- l'**équipement** des tables de loot donne des réponses ciblées (Amulette de purification, Collier de crocs…).
 
 ### 7.5 Taille du pool
 
 - **Deck de départ :** 10 cartes, par exemple 4 attaques basiques, 4 défenses basiques et 2 cartes de classe.
 - **Pool par classe :** environ **50 cartes** pour la première version, réparties sur les 3 arbres de talents et un tronc commun.
-- **Cartes neutres :** environ 15 à 20.
 - **Statuts et malédictions :** environ 10 à 15.
 
 ---
@@ -575,6 +570,7 @@ Pour simplifier, le jeu **n'a pas de reliques** comme dans StS. Tous les effets 
 | Potion de rage | Commune | Gagne 2 Puissance pour ce combat. |
 | Potion explosive | Commune | 10 dégâts à tous les ennemis. |
 | Potion de protection contre le feu | Commune | Les Zones de feu ne t'infligent plus de dégâts pendant ce combat. |
+| Potion de purification | Commune | Dissipe toutes tes malédictions et retire les Fardeaux de ta main. |
 | Potion d'énergie | Rare | Gagne 2 énergie. |
 
 ### 12.6 L'or
@@ -653,7 +649,6 @@ Le vendeur propose à chaque visite :
 | Rayon | Contenu | Prix (indicatif) |
 |---|---|---|
 | **Cartes de classe** | 5 cartes | 50 à 150 or selon la rareté |
-| **Cartes de profession** | 2 cartes neutres | 80 à 180 or |
 | **Équipement** | 3 objets | 120 à 300 or selon la puissance |
 | **Potions** | 3 potions | 50 à 100 or |
 | **Service : améliorer une carte** | Une carte ou un sort de barre, 1 fois par visite | 75 or, puis +25 à chaque utilisation pendant la run |

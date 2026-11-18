@@ -447,17 +447,17 @@ Au tout début de la run, Brégan propose **4 bonus au hasard** parmi :
 | Événement | Choix et conséquences |
 |---|---|
 | **Les Gardiens des Sources** | Des élémentaires d'eau prisonniers de la lave. **Accepter leur quête :** le prochain boss secondaire que tu affronteras porte une rune ; si tu le bats, tu reçois l'**Eau des profondeurs**, qui affaiblit Vulkhar (voir §6). **Refuser :** ils te soignent de 10 PV. |
-| **La rivière de lave** | Un passage étroit au-dessus de la lave. **Traverser :** perds 8 PV. **Faire le détour :** le prochain nœud devient un pack de trash difficile. **Construire un pont** (si tu as une carte d'Ingénierie) : rien ne se passe. |
+| **La rivière de lave** | Un passage étroit au-dessus de la lave. **Traverser :** perds 8 PV. **Faire le détour :** le prochain nœud devient un pack de trash difficile. |
 | **La forge éteinte** | Une forge naine abandonnée. **Guerrier :** tu trouves la **Lame brisée de Brisemonts** (étape 1 de la quête) ; il peut aussi, à la place, rallumer la forge ou fouiller. **Autres classes :** rallumer la forge (perds 6 PV, améliore 2 cartes) ou fouiller les décombres (40 or). |
 | **Ventor, Prince des tempêtes** | **N'apparaît que si le Voleur a les deux Fermoirs de l'orage.** Ventor, libéré, forge **Sillon d'orage**. |
-| **Le campement du vieux trappeur** | Un vieux chasseur nain blessé. **Chasseur :** il te confie le **Bois ancien** (étape 1 de Corde-des-anciens). **Autres classes :** le soigner (perds 1 potion, il te donne une carte de Premiers soins) ou l'ignorer. |
+| **Le campement du vieux trappeur** | Un vieux chasseur nain blessé. **Chasseur :** il te confie le **Bois ancien** (étape 1 de Corde-des-anciens). **Autres classes :** le soigner (perds 1 potion, +6 PV max) ou l'ignorer. |
 | **Le cercle des anciens** | Un cercle de pierres où murmurent des esprits. **Chaman :** ils te confient la **Tête du marteau** (étape 1 du Marteau des ancêtres). **Autres classes :** les écouter (retire une Malédiction de ton deck, ou soigne 10 PV). |
 | **La chapelle effondrée** | Une chapelle naine écrasée par la roche. **Prêtre :** tu trouves le **Bâton nu** (étape 1 d'Équinoxe). **Autres classes :** prier (+5 PV max) ou piller l'autel (80 or, mais une malédiction Fardeau). |
 | **Le fantôme du forgeron** | Un forgeron spectral, paisible, qui veut finir son dernier ouvrage. **L'aider :** perds 10 PV, il améliore ton arme (l'objet de ton emplacement Arme gagne +2 dégâts pour la run). **Le libérer** (Paladin ou Prêtre) : il t'offre un objet d'équipement rare. **Partir :** rien. |
 | **Un gobelin coincé dans un coffre** | **Le libérer :** 50 % d'avoir un objet, 50 % que ce soit un Gobelin mimique (combat caché). **Prendre le coffre et partir :** 120 or, mais une malédiction Fardeau. |
 | **Le joueur qui fonce** | Un aventurier fonce dans un pack de Molosses en hurlant son propre nom. **L'aider :** combat difficile (pack d'étage 6 à 8), puis il te donne un objet rare. **Le laisser :** rien ne se passe. On entend un wipe au loin. |
 
-**Dans le prototype :** chaque événement n'apparaît qu'**une fois par run**. Un choix impossible (il manque une potion, une arme, une carte d'Ingénierie, ou la bonne classe) est **grisé** avec sa raison. La **Malédiction** des événements est une carte Fardeau **permanente** (injouable), qu'on retire chez le vendeur ou au Cercle des anciens. Un « ? » cache un combat **1 fois sur 5**.
+**Dans le prototype :** chaque événement n'apparaît qu'**une fois par run**. Un choix impossible (il manque une potion, une arme ou la bonne classe) est **grisé** avec sa raison. La **Malédiction** des événements est une carte Fardeau **permanente** (injouable), qu'on retire chez le vendeur ou au Cercle des anciens. Un « ? » cache un combat **1 fois sur 5**.
 
 ### 7.3 Les combats cachés de l'acte 1
 

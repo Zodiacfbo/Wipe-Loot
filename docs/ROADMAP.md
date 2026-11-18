@@ -74,7 +74,6 @@
 - [x] Le vendeur gobelin : 5 cartes dont une en promo, retrait et amélioration d'une carte (prix croissant)
 - [x] Le vendeur gobelin : 2 objets d'équipement et 3 potions à vendre
 - [x] Le vendeur gobelin : réparation des objets brisés (50 / 75 / 100 or selon la rareté)
-- [ ] Le vendeur gobelin : ajouter les cartes de profession
 - [x] La facture de réparation après un wipe (50, 100, 150 or), et les objets brisés
 
 ### 1.5 Les nœuds « ? »
@@ -82,7 +81,7 @@
 - [x] Les combats cachés : embuscade cendreuse (les ennemis frappent d'abord), gobelin mimique (vole de l'or), patrouille de la flamme
 - [x] La bénédiction d'entrée de Brégan le Passeur (4 bonus parmi 8)
 - [x] La quête des Gardiens des Sources (Vulkhar −15 % de PV, Marteau des flammes retardé)
-- [ ] Les cartes de profession (Ingénierie pour le pont de la rivière de lave, plus de Premiers soins…)
+- [x] ~~Les cartes de profession~~ : retirées du concept (pas de cartes neutres) ; la Potion de purification couvre la Dissipation
 
 ### 1.6 Équilibrage
 - [ ] Tester des runs complètes et ajuster les PV, les dégâts et les récompenses

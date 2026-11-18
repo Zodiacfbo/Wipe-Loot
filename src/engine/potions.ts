@@ -64,6 +64,19 @@ export const POTIONS: Record<string, PotionDef> = {
       fx(c, { kind: 'buff', who: 'player', label: 'Protégé du feu' });
     },
   },
+  potion_purification: {
+    id: 'potion_purification', name: 'Potion de purification', rarity: 'commun', color: '#E0F0FF',
+    text: 'Dissipe toutes tes malédictions (Démoralisé, Impie, cartes Paniquées…) et retire les Fardeaux de ta main.',
+    use: (c) => {
+      const d = c.player.debuffs;
+      if (d) Object.assign(d, { demoralise: 0, impie: 0, arcane: 0, manaBurn: 0, panic: 0 });
+      c.panicked = [];
+      const curses = c.hand.filter((card) => card.id === 'fardeau' || card.id === 'malediction');
+      c.hand = c.hand.filter((card) => !curses.includes(card));
+      c.exhaust.push(...curses);
+      fx(c, { kind: 'buff', who: 'player', label: 'Purifié' });
+    },
+  },
   potion_energie: {
     id: 'potion_energie', name: 'Potion d\'énergie', rarity: 'rare', color: '#4cc3e0',
     text: 'Gagne 2 énergie.',

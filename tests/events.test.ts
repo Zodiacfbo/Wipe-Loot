@@ -82,8 +82,8 @@ describe('les événements de l\'acte 1', () => {
     expect(eventChoiceLock(run, 0)).toBeNull();
     resolveEvent(run, 0);
     expect(run.potions[0]).toBeNull();
-    expect(run.deck.some((c) => c.id === 'bandage_de_lin')).toBe(true);
-    expect(run.eventOutcome).toContain('Bandage');
+    expect(run.maxHp).toBe(86);
+    expect(run.eventOutcome).toContain('+6 PV max');
   });
 
   it('la chapelle : piller l\'autel donne 80 or et une Malédiction ; le cercle l\'enlève', () => {
