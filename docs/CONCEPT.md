@@ -301,6 +301,23 @@ Le héros dispose de deux sources d'actions :
 
 **Pourquoi c'est intéressant :** le joueur gère deux choses à la fois. Sa main dépend du hasard, alors que sa barre se **planifie**. Il doit sans cesse se demander s'il utilise son sort maintenant ou s'il le garde pour l'incantation que le boss prépare au tour suivant.
 
+**La règle de conception : la barre donne des outils, le deck donne la puissance.**
+
+| | Le deck | La barre de sorts |
+|---|---|---|
+| **Rôle** | La **puissance** : dégâts, blocage, synergies, combos | Les **outils** : interrompre, se protéger d'un gros coup, contrôler, préparer un gros tour, se soigner en urgence |
+| **Accès** | Au hasard de la pioche | Garanti, mais limité par la recharge |
+| **Taille** | Grandit pendant la run | Reste petite : 3 emplacements, 4 au maximum |
+
+Pour qu'un sort ait sa place dans la barre, il doit répondre à au moins une de ces questions :
+- **Répond-il à une mécanique de raid ?** Une interruption, une réduction de dégâts, une immunité, un nettoyage. C'est la garantie qu'**aucune classe n'est bloquée** par la pioche.
+- **Prépare-t-il un tour ?** Gagner de la ressource, de l'énergie ou des cartes, ou amplifier le tour en cours (Témérité).
+- **Est-ce un moment fort rare ?** Un sort « 1 fois par combat » (Dernier rempart, Renaissance).
+
+À éviter : un sort qui fait **simplement des dégâts ou du blocage**. Ce serait une carte gratuite, qui rend le deck moins important ou fait doublon avec lui. Si un sort fait des dégâts, ils restent petits et accompagnent un vrai effet (Charge : 3 dégâts, mais surtout 3 rage). Les recharges restent longues (3 à 5 tours) pour que chaque utilisation soit une décision.
+
+*À revoir pendant l'équilibrage : Vague de choc (6 dégâts à tous) est à la limite de la « carte gratuite ».*
+
 ### 6.7 Wipe et nouvel essai
 
 **C'est la deuxième mécanique qui distingue le jeu de Slay the Spire, et elle justifie le titre.**
