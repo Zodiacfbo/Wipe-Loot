@@ -252,3 +252,75 @@ describe('or et vendeur gobelin', () => {
     expect(run.gold).toBe(99);
   });
 });
+
+describe('Vulkhar, Souverain des flammes', () => {
+  function vulkhar(cards = ['parade', 'parade', 'parade', 'parade', 'parade']): CombatState {
+    return combat(['vulkhar'], cards, 14);
+  }
+
+  it('le Marteau des flammes ne peut pas être interrompu et assomme le joueur', () => {
+    const c = vulkhar(['coup_de_bouclier', 'parade', 'parade', 'parade', 'parade', 'parade', 'parade', 'parade']);
+    const v = c.enemies[0];
+    v.step = 2;
+    v.intent = { kind: 'attack', dmg: 10, cast: 'Marteau des flammes', uninterruptible: true, drawPenalty: 2 };
+    playCard(c, handIndex(c, 'coup_de_bouclier'));
+    expect(v.interrupted).toBe(false);
+    endTurn(c);
+    expect(c.player.hp).toBe(80 - 10);
+    expect(c.hand.length).toBe(3);
+  });
+
+  it('à 50 % de PV, il plonge dans la lave et 6 Rejetons apparaissent', () => {
+    const c = vulkhar(['frappe', 'frappe', 'frappe', 'frappe', 'frappe']);
+    const v = c.enemies[0];
+    v.hp = 152;
+    playCard(c, handIndex(c, 'frappe'));
+    expect(v.hp).toBe(150);
+    expect(v.submerged).toBe(2);
+    expect(c.enemies.filter((e) => e.defId === 'rejeton').length).toBe(6);
+    // il ne peut plus être ciblé
+    const hp = v.hp;
+    expect(playCard(c, handIndex(c, 'frappe'), v.uid)).toBe(false);
+    expect(v.hp).toBe(hp);
+    // une attaque de zone touche les Rejetons, mais pas Vulkhar ni ses débuffs
+    c.hand.push({ uid: 990, id: 'coup_de_tonnerre', upgraded: false });
+    playCard(c, handIndex(c, 'coup_de_tonnerre'));
+    expect(v.hp).toBe(hp);
+    expect(v.buffs.ralenti).toBe(0);
+    expect(c.enemies.filter((e) => e.defId === 'rejeton').every((r) => r.hp === 8)).toBe(true);
+  });
+
+  it('en refaisant surface, il absorbe les Rejetons en vie (+15 PV chacun) et passe en phase 2', () => {
+    const c = vulkhar(['frappe', 'frappe', 'frappe', 'frappe', 'frappe']);
+    const v = c.enemies[0];
+    v.hp = 152;
+    playCard(c, handIndex(c, 'frappe'));
+    const rejetons = c.enemies.filter((e) => e.defId === 'rejeton');
+    rejetons.slice(0, 4).forEach((r) => { r.dead = true; });
+    c.player.hp = 500;
+    endTurn(c);
+    endTurn(c);
+    expect(v.submerged).toBe(0);
+    expect(v.phase).toBe(2);
+    expect(v.hp).toBe(150 + 2 * 15);
+    expect(c.enemies.filter((e) => e.defId === 'rejeton' && !e.dead).length).toBe(0);
+  });
+
+  it('en phase 2, l\'Éruption frappe de plus en plus fort', () => {
+    const c = vulkhar();
+    const v = c.enemies[0];
+    v.phase = 2;
+    v.intent = { kind: 'attack', dmg: 8, grow: 4 };
+    c.player.hp = 500;
+    endTurn(c);
+    expect(500 - c.player.hp).toBe(8);
+    v.intent = { kind: 'attack', dmg: 8, grow: 4 };
+    // la Zone de feu ajoutée par Vulkhar en phase 2 est dans la main : on la retire pour ne mesurer que l'Éruption
+    expect(c.hand.some((card) => card.id === 'zone_de_feu')).toBe(true);
+    c.hand = c.hand.filter((card) => card.id !== 'zone_de_feu');
+    const before = c.player.hp;
+    c.player.block = 0;
+    endTurn(c);
+    expect(before - c.player.hp).toBe(12);
+  });
+});

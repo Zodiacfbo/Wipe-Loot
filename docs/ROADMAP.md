@@ -39,14 +39,15 @@
 ### 1.1 La run
 - [x] Carte de l'acte à embranchements (10 étages, combats, boss secondaires, « ? », coffre, feux de camp, boss)
 - [x] Ajouter le vendeur gobelin sur la carte (au moins un par run)
-- [ ] Remplacer le boss provisoire (Brannoc) par Vulkhar
+- [x] Remplacer le boss provisoire (Brannoc) par Vulkhar
 - [ ] Bénédiction d'entrée de Brégan le Passeur
 - [ ] Écran de fin de run (score, statistiques)
 
 ### 1.2 Le combat
 - [ ] Tous les ennemis de trash de l'acte 1, et leurs packs
 - [ ] Les 9 boss secondaires de l'acte 1, avec leurs mécaniques (fait : Sœur Cendrine, Héraut Brannoc)
-- [ ] Vulkhar, Souverain des flammes (phases, plongée dans la lave, Marteau des flammes)
+- [x] Vulkhar, Souverain des flammes (phases, plongée dans la lave, Rejetons de flamme, Marteau des flammes, Éruption)
+- [ ] La quête des Gardiens des Sources qui affaiblit Vulkhar
 - [ ] Cartes-statut de l'acte : Bombe vivante, Paniqué, Fardeau, Cendres
 - [ ] Infobulles des mots-clés, des buffs et des débuffs (appui long sur téléphone, survol sur PC)
 - [ ] Prévisualisation des dégâts sur les cartes (en tenant compte de la Puissance, de la posture, de l'Armure fracassée)

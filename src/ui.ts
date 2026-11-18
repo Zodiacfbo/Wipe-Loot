@@ -11,7 +11,7 @@ import {
   previewIntentDamage,
   useSpell,
 } from './engine/combat';
-import { ENEMIES } from './engine/enemies';
+import { ENEMIES, isInterruptible } from './engine/enemies';
 import { EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
@@ -297,10 +297,12 @@ function intentHtml(c: CombatState, e: EnemyState): string {
   if (e.interrupted) return `<div class="intention interrompu">Interrompu</div>`;
   if (i.cast) {
     const effet =
-      i.kind === 'attack' ? `${previewIntentDamage(c, e)} dégâts à la fin de ce tour`
-      : i.kind === 'heal' ? `Soigne un allié de ${i.amount} PV à la fin de ce tour`
-      : 'Prend effet à la fin de ce tour';
-    return `<div class="cast"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>Interruptible</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
+      i.kind === 'attack'
+        ? `${previewIntentDamage(c, e)} dégâts à la fin de ce tour${i.drawPenalty ? `, et tu pioches ${i.drawPenalty} cartes de moins` : ''}`
+        : i.kind === 'heal' ? `Soigne un allié de ${i.amount} PV à la fin de ce tour`
+        : 'Prend effet à la fin de ce tour';
+    const locked = !isInterruptible(i);
+    return `<div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
   }
   switch (i.kind) {
     case 'attack': {
@@ -341,11 +343,11 @@ function combatScreen(run: RunState, c: CombatState): string {
   }).join('');
   const aidePosture = POSTURES.find((po) => po.id === p.posture)?.aide ?? '';
 
-  const enemies = c.enemies.filter((e) => !e.dead).map((e) => {
+  const enemies = c.enemies.filter((e) => !e.dead && !e.submerged).map((e) => {
     const def = ENEMIES[e.defId];
     const big = e.defId === 'seigneur' || e.defId === 'brannoc' || e.defId === 'cendrine';
-    const small = e.defId === 'etincelle';
-    const size = big ? 192 : small ? 96 : 144;
+    const small = e.defId === 'etincelle' || e.defId === 'rejeton';
+    const size = e.defId === 'vulkhar' ? 240 : big ? 192 : small ? 96 : 144;
     const pct = Math.max(0, (e.hp / e.maxHp) * 100);
     const tag = targeting ? 'button' : 'div';
     return `<${tag} ${targeting ? 'type="button"' : ''} class="ennemi ${targeting ? 'ciblable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}, ${e.hp} PV">
@@ -381,7 +383,12 @@ function combatScreen(run: RunState, c: CombatState): string {
   }
 
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
-  const consigne = targeting ? `<div class="consigne">Choisis une cible</div>` : '';
+  const underLava = c.enemies.find((e) => !e.dead && e.submerged);
+  const consigne = targeting
+    ? `<div class="consigne">Choisis une cible</div>`
+    : underLava
+      ? `<div class="consigne lave">${underLava.name} est sous la lave : il refait surface dans ${underLava.submerged} tour${underLava.submerged! > 1 ? 's' : ''}. Chaque Rejeton encore en vie le soignera de 15 PV !</div>`
+      : '';
 
   return `<div class="sol"></div>
     ${topbar(run, p.hp)}
@@ -399,7 +406,7 @@ function combatScreen(run: RunState, c: CombatState): string {
         <div class="aide-posture">${aidePosture}${p.postureChanged ? ' · déjà changée ce tour' : ''}</div>
       </div>
     </div>
-    <div class="ennemis">${enemies}</div>
+    <div class="ennemis ${c.enemies.filter((e) => !e.dead && !e.submerged).length > 4 ? 'nombreux' : ''}">${enemies}</div>
     ${consigne}
     <div class="barre-sorts"><span class="titre">SORTS</span>${spells}</div>
     <div class="energie ${p.energy === 0 ? 'vide' : ''}" aria-label="Énergie">${p.energy}/${p.maxEnergy}</div>
@@ -475,8 +482,8 @@ function wipeScreen(run: RunState): string {
 
 function endScreen(run: RunState, victory: boolean): string {
   return `<div class="ecran">
-    <img class="px sprite-titre" src="${A(victory ? 'guerrier.png' : 'ennemi_brannoc.png')}" alt="">
-    <h1>${victory ? 'Le Héraut est tombé !' : 'Fin de la run'}</h1>
+    <img class="px sprite-titre" src="${A(victory ? 'guerrier.png' : 'ennemi_vulkhar.png')}" alt="">
+    <h1>${victory ? 'Vulkhar est vaincu !' : 'Fin de la run'}</h1>
     <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${MAX_WIPES - run.wipesLeft} wipe${MAX_WIPES - run.wipesLeft > 1 ? 's' : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
     <div class="actions"><button type="button" class="gros-bouton" data-action="nouvelle">Nouvelle partie</button></div>
   </div>`;

@@ -23,7 +23,15 @@ export interface EnemyBuffs {
 }
 
 export type Intent =
-  | { kind: 'attack'; dmg: number; times?: number; addZone?: number; cast?: string }
+  | {
+      kind: 'attack'; dmg: number; times?: number; addZone?: number; cast?: string;
+      /** Incantation impossible à interrompre. */
+      uninterruptible?: boolean;
+      /** Le joueur pioche autant de cartes en moins à son prochain tour. */
+      drawPenalty?: number;
+      /** Les dégâts augmentent de cette valeur à chaque utilisation. */
+      grow?: number;
+    }
   | { kind: 'block'; amount: number; cast?: string }
   | { kind: 'buff'; puissance: number; target: 'allies' | 'self'; cast?: string }
   | { kind: 'heal'; amount: number; cast?: string };
@@ -41,6 +49,12 @@ export interface EnemyState {
   interrupted: boolean; // l'incantation en cours a été interrompue
   delayed: boolean; // l'incantation est retardée d'un tour
   dead: boolean;
+  /** Phase du combat de boss (1 par défaut). */
+  phase?: number;
+  /** Tours restants sous la lave : l'ennemi ne peut pas être ciblé ni blessé. */
+  submerged?: number;
+  /** Compteur d'utilisations (attaques qui grandissent). */
+  counter?: number;
 }
 
 export interface PlayerState {
@@ -56,6 +70,8 @@ export interface PlayerState {
   puissance: number;
   ignorerDouleur: boolean;
   blockedFullAttack: boolean;
+  /** Cartes en moins à piocher au prochain tour (Marteau des flammes). */
+  drawPenalty: number;
 }
 
 export interface SpellState {
@@ -76,7 +92,8 @@ export type FxEvent =
   | { kind: 'buff'; who: FxTarget; label: string }
   | { kind: 'heal'; from: FxTarget; to: FxTarget; amount: number }
   | { kind: 'interrupt'; who: number }
-  | { kind: 'death'; who: number };
+  | { kind: 'death'; who: number }
+  | { kind: 'banner'; text: string };
 
 export interface CombatState {
   turn: number;

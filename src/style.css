@@ -295,3 +295,19 @@ img.px { image-rendering: pixelated; }
 .service span { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #e6c36a; }
 
 .carte .texte.long { font-size: 11px; line-height: 1.1; }
+
+/* ---------- Boss ---------- */
+.cast.bloque { border-color: #e8562a; background: #2a1410; }
+.cast.bloque .tete b { color: #ff8a6a; }
+.cast.bloque .jauge div { background: #e8562a; }
+.consigne.lave { top: 104px; max-width: 760px; text-align: center; background: #3a1a10; border-color: #e8562a; color: #ffc49a; }
+.fx-banniere {
+  position: absolute; left: 50%; top: 250px; z-index: 45; pointer-events: none; white-space: nowrap;
+  font-family: Cinzel, serif; font-size: 40px; font-weight: 700; color: #ffd45e;
+  text-shadow: 0 0 18px #e8562a, 3px 3px 0 #1a0f08;
+}
+
+.ennemis.nombreux { gap: 6px; left: 470px; right: 16px; }
+.ennemis.nombreux .ennemi { padding: 4px 2px; }
+.ennemis.nombreux .barre-pv { width: 100px; }
+.ennemis.nombreux .nom { font-size: 11px; max-width: 104px; }

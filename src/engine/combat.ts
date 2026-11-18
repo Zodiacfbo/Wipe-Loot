@@ -4,6 +4,7 @@ import {
   damageEnemy,
   damagePlayer,
   drawCards,
+  emerge,
   fx,
   gainRage,
   livingEnemies,
@@ -53,7 +54,7 @@ export function createCombat(
     phase: 'player',
     player: {
       hp, maxHp, block: 0, energy: 3, maxEnergy: 3, rage: 0, maxRage: 10, posture: 'combat',
-      postureChanged: false, puissance: 0, ignorerDouleur: false, blockedFullAttack: false,
+      postureChanged: false, puissance: 0, ignorerDouleur: false, blockedFullAttack: false, drawPenalty: 0,
     },
     enemies: [],
     draw: [],
@@ -91,14 +92,15 @@ export function startPlayerTurn(c: CombatState): void {
   if (c.turn > 1) {
     for (const s of c.spells) s.cooldown = Math.max(0, s.cooldown - 1);
   }
-  drawCards(c, 5);
+  drawCards(c, Math.max(0, 5 - (p.drawPenalty ?? 0)));
+  p.drawPenalty = 0;
 }
 
 // --- Actions du joueur ---
 
 export function resolveTarget(c: CombatState, needsTarget: boolean, targetUid?: number): EnemyState | null | 'invalid' {
   if (!needsTarget) return null;
-  const alive = livingEnemies(c);
+  const alive = livingEnemies(c).filter((e) => !e.submerged);
   if (targetUid === undefined) return alive.length === 1 ? alive[0] : 'invalid';
   return alive.find((e) => e.uid === targetUid) ?? 'invalid';
 }
@@ -204,7 +206,7 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number): number {
   let dmg = base + e.buffs.puissance;
   if (e.buffs.demoralise > 0) dmg *= 0.75;
   if (c.player.posture === 'berserker') dmg *= 1.2;
-  if (isEnraged(c) && ENEMIES[e.defId].elite) dmg *= 2;
+  if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
   return Math.max(0, Math.floor(dmg));
 }
 
@@ -216,12 +218,19 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
   switch (intent.kind) {
     case 'attack': {
       const times = intent.times ?? 1;
+      const base = intent.dmg + (intent.grow ?? 0) * (e.counter ?? 0);
+      if (intent.grow) e.counter = (e.counter ?? 0) + 1;
       for (let i = 0; i < times && c.phase === 'player'; i++) {
-        const dmg = enemyDamage(c, e, intent.dmg);
+        const dmg = enemyDamage(c, e, base);
         const blockBefore = c.player.block;
         fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(blockBefore, dmg), ranged: !!intent.cast });
         const lost = damagePlayer(c, dmg, true);
         log(c, `${e.name}${intent.cast ? ` lance ${intent.cast}` : ' attaque'} : ${dmg} dégâts (${lost} PV perdus).`);
+      }
+      if (intent.drawPenalty && c.phase === 'player') {
+        c.player.drawPenalty += intent.drawPenalty;
+        fx(c, { kind: 'buff', who: 'player', label: `Assommé : ${intent.drawPenalty} cartes en moins` });
+        log(c, `Tu es assommé : tu piocheras ${intent.drawPenalty} cartes de moins.`);
       }
       if (intent.addZone) {
         addStatusToHand(c, 'zone_de_feu', intent.addZone);
@@ -265,6 +274,17 @@ function enemyTurn(c: CombatState): void {
     if (e.dead || c.phase !== 'player') continue;
     e.block = 0;
 
+    // Vulkhar sous la lave : il ne fait rien, puis refait surface.
+    if (e.submerged) {
+      e.submerged -= 1;
+      if (e.submerged === 0) emerge(c, e);
+      continue;
+    }
+    // Phase 2 de Vulkhar : la montagne brûle, une Zone de feu à chaque tour.
+    if (e.defId === 'vulkhar' && e.phase === 2) {
+      addStatusToHand(c, 'zone_de_feu', 1);
+    }
+
     // Saignement
     if (e.buffs.saignementTours > 0 && e.buffs.saignement > 0) {
       log(c, `${e.name} saigne : ${e.buffs.saignement} dégâts.`);
@@ -289,7 +309,7 @@ function enemyTurn(c: CombatState): void {
 
     decayBuffs(e);
     e.step += 1;
-    e.intent = intentAt(ENEMIES[e.defId], e.step);
+    e.intent = intentAt(ENEMIES[e.defId], e.step, e.phase ?? 1);
   }
 }
 
@@ -303,5 +323,5 @@ function decayBuffs(e: EnemyState): void {
 /** Les dégâts qu'un ennemi infligera avec son intention actuelle (pour l'affichage). */
 export function previewIntentDamage(c: CombatState, e: EnemyState): number | null {
   if (e.intent.kind !== 'attack') return null;
-  return enemyDamage(c, e, e.intent.dmg);
+  return enemyDamage(c, e, e.intent.dmg + (e.intent.grow ?? 0) * (e.counter ?? 0));
 }

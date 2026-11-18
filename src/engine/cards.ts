@@ -11,6 +11,7 @@ import {
   log,
   playerAttack,
 } from './actions';
+import { isInterruptible } from './enemies';
 import type { CardType, CombatState, EnemyState, Rarity } from './types';
 
 export interface PlayContext {
@@ -98,7 +99,7 @@ export const CARDS: Record<string, CardDef> = {
     play: (ctx) => {
       for (const e of livingEnemies(ctx.c)) {
         if (playerAttack(ctx.c, e, ctx.up ? 7 : 4) > 0) ctx.dealt = true;
-        if (!e.dead) e.buffs.ralenti = Math.max(e.buffs.ralenti, 1);
+        if (!e.dead && !e.submerged) e.buffs.ralenti = Math.max(e.buffs.ralenti, 1);
       }
     },
   },
@@ -116,7 +117,7 @@ export const CARDS: Record<string, CardDef> = {
     needsTarget: false, icon: 'pouvoir',
     text: () => `Tous les ennemis : Démoralisé 2 tours. +1 rage.`,
     play: (ctx) => {
-      for (const e of livingEnemies(ctx.c)) e.buffs.demoralise += 2;
+      for (const e of livingEnemies(ctx.c)) if (!e.submerged) e.buffs.demoralise += 2;
       gainRage(ctx.c, 1);
     },
   },
@@ -126,7 +127,7 @@ export const CARDS: Record<string, CardDef> = {
     text: (up) => `Interruption. Inflige ${up ? 8 : 4} dégâts.`,
     play: (ctx) => {
       if (!ctx.target) return;
-      if (ctx.target.intent.cast && !ctx.target.interrupted) {
+      if (isInterruptible(ctx.target.intent) && !ctx.target.interrupted) {
         ctx.target.interrupted = true;
         fx(ctx.c, { kind: 'interrupt', who: ctx.target.uid });
         log(ctx.c, `${ctx.target.name} est interrompu !`);
@@ -139,7 +140,7 @@ export const CARDS: Record<string, CardDef> = {
     icon: 'epee',
     text: (up) => `${up ? 9 : 6} dégâts. Retarde son incantation d'un tour.`,
     play: (ctx) => {
-      if (ctx.target && ctx.target.intent.cast && !ctx.target.interrupted) {
+      if (ctx.target && isInterruptible(ctx.target.intent) && !ctx.target.interrupted) {
         ctx.target.delayed = true;
         log(ctx.c, `L'incantation de ${ctx.target.name} est retardée.`);
       }

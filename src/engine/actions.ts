@@ -1,5 +1,6 @@
 // Actions élémentaires du combat : dégâts, blocage, rage, débuffs, pioche.
 // Les cartes et les ennemis s'appuient sur ces fonctions.
+import { ENEMIES, intentAt } from './enemies';
 import { shuffle } from './rng';
 import type { CombatState, EnemyState, FxEvent } from './types';
 
@@ -47,7 +48,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
 
 /** Inflige une Attaque du joueur à un ennemi. Renvoie les dégâts infligés (avant blocage). */
 export function playerAttack(c: CombatState, target: EnemyState, base: number, opts: AttackOptions = {}): number {
-  if (target.dead) return 0;
+  if (target.dead || target.submerged) return 0;
   const dmg = attackDamage(c, target, base, opts);
   const blockBefore = target.block;
   fx(c, { kind: 'hit', from: 'player', to: target.uid, amount: dmg, blocked: 0, ranged: false });
@@ -58,7 +59,7 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
 }
 
 export function damageEnemy(c: CombatState, target: EnemyState, amount: number, ignoreBlock = false): void {
-  if (target.dead || amount <= 0) return;
+  if (target.dead || target.submerged || amount <= 0) return;
   let rest = amount;
   if (!ignoreBlock) {
     const absorbed = Math.min(target.block, rest);
@@ -66,7 +67,51 @@ export function damageEnemy(c: CombatState, target: EnemyState, amount: number, 
     rest -= absorbed;
   }
   target.hp -= rest;
+  // Vulkhar plonge dans la lave à 50 % de ses PV.
+  if (target.defId === 'vulkhar' && (target.phase ?? 1) === 1 && target.hp <= target.maxHp / 2) {
+    target.hp = Math.ceil(target.maxHp / 2);
+    submerge(c, target);
+    return;
+  }
   if (target.hp <= 0) killEnemy(c, target);
+}
+
+function submerge(c: CombatState, v: EnemyState): void {
+  v.submerged = 2;
+  v.block = 0;
+  v.interrupted = false;
+  v.delayed = false;
+  v.buffs.saignement = 0;
+  v.buffs.saignementTours = 0;
+  fx(c, { kind: 'banner', text: 'Vulkhar plonge dans la lave !' });
+  log(c, 'Vulkhar plonge dans la lave ! Des Rejetons de flamme surgissent.');
+  for (let i = 0; i < 6; i++) {
+    const def = ENEMIES.rejeton;
+    c.enemies.push({
+      uid: c.nextUid++, defId: def.id, name: def.name, hp: def.hpMax, maxHp: def.hpMax, block: 0,
+      buffs: { puissance: 0, demoralise: 0, ralenti: 0, armureFracassee: 0, saignement: 0, saignementTours: 0 },
+      step: 0, intent: intentAt(def, 0), interrupted: false, delayed: false, dead: false,
+    });
+  }
+}
+
+/** Vulkhar refait surface : il absorbe les Rejetons encore en vie. */
+export function emerge(c: CombatState, v: EnemyState): void {
+  const living = c.enemies.filter((e) => e.defId === 'rejeton' && !e.dead);
+  for (const r of living) {
+    r.dead = true;
+    r.hp = 0;
+    fx(c, { kind: 'death', who: r.uid });
+  }
+  const healed = Math.min(v.maxHp - v.hp, living.length * 15);
+  v.hp += healed;
+  v.submerged = 0;
+  v.phase = 2;
+  v.step = 0;
+  v.counter = 0;
+  v.intent = intentAt(ENEMIES.vulkhar, 0, 2);
+  fx(c, { kind: 'banner', text: healed > 0 ? `Vulkhar refait surface ! (+${healed} PV)` : 'Vulkhar refait surface !' });
+  log(c, `Vulkhar refait surface${healed > 0 ? ` et absorbe ${living.length} Rejeton${living.length > 1 ? 's' : ''} (+${healed} PV)` : ''}.`);
 }
 
 export function killEnemy(c: CombatState, target: EnemyState): void {

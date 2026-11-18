@@ -143,6 +143,25 @@ function fade(who: number): void {
   );
 }
 
+/** Un grand message au centre de l'écran (moments clés d'un combat de boss). */
+async function banner(text: string): Promise<void> {
+  const d = document.createElement('div');
+  d.className = 'fx-banniere';
+  d.textContent = text;
+  stage.appendChild(d);
+  const anim = d.animate(
+    [
+      { transform: 'translate(-50%, 10px) scale(0.85)', opacity: 0 },
+      { transform: 'translate(-50%, 0) scale(1.05)', opacity: 1, offset: 0.15 },
+      { transform: 'translate(-50%, 0) scale(1)', opacity: 1, offset: 0.8 },
+      { transform: 'translate(-50%, -10px) scale(1)', opacity: 0 },
+    ],
+    { duration: ms(1500), easing: 'ease-out' },
+  );
+  await anim.finished.catch(() => undefined);
+  d.remove();
+}
+
 /** Joue une liste d'événements, dans l'ordre. */
 export async function playFx(events: FxEvent[]): Promise<void> {
   let i = 0;
@@ -219,6 +238,9 @@ export async function playFx(events: FxEvent[]): Promise<void> {
       case 'death':
         fade(ev.who);
         await wait(300);
+        break;
+      case 'banner':
+        await banner(ev.text);
         break;
     }
     i++;

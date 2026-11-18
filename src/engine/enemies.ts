@@ -8,8 +8,11 @@ export interface EnemyDef {
   hpMin: number;
   hpMax: number;
   elite?: boolean;
+  boss?: boolean;
   firstIntents?: Intent[];
   cycle: Intent[];
+  /** Cycle de la phase 2 (boss). */
+  cycle2?: Intent[];
 }
 
 export const ENEMIES: Record<string, EnemyDef> = {
@@ -54,6 +57,23 @@ export const ENEMIES: Record<string, EnemyDef> = {
       { kind: 'attack', dmg: 20, cast: 'Embrasement' },
     ],
   },
+  rejeton: {
+    id: 'rejeton', name: 'Rejeton de flamme', hpMin: 12, hpMax: 12,
+    cycle: [{ kind: 'attack', dmg: 4 }],
+  },
+  vulkhar: {
+    id: 'vulkhar', name: 'Vulkhar', hpMin: 300, hpMax: 300, boss: true,
+    cycle: [
+      { kind: 'attack', dmg: 14 },
+      { kind: 'attack', dmg: 6, addZone: 2 },
+      { kind: 'attack', dmg: 10, cast: 'Marteau des flammes', uninterruptible: true, drawPenalty: 2 },
+    ],
+    cycle2: [
+      { kind: 'attack', dmg: 18 },
+      { kind: 'attack', dmg: 8, grow: 4 },
+      { kind: 'attack', dmg: 10, cast: 'Marteau des flammes', uninterruptible: true, drawPenalty: 2 },
+    ],
+  },
   brannoc: {
     id: 'brannoc', name: 'Héraut Brannoc', hpMin: 70, hpMax: 70, elite: true,
     cycle: [
@@ -64,10 +84,16 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
 };
 
-export function intentAt(def: EnemyDef, step: number): Intent {
+export function intentAt(def: EnemyDef, step: number, phase = 1): Intent {
+  if (phase >= 2 && def.cycle2) return def.cycle2[step % def.cycle2.length];
   const first = def.firstIntents ?? [];
   if (step < first.length) return first[step];
   return def.cycle[(step - first.length) % def.cycle.length];
+}
+
+/** Une incantation peut-elle être interrompue ? */
+export function isInterruptible(intent: Intent): boolean {
+  return !!intent.cast && !(intent.kind === 'attack' && intent.uninterruptible);
 }
 
 export interface Encounter {
@@ -96,9 +122,10 @@ export const HARD_ENCOUNTERS: Encounter[] = [
 /** Boss secondaires. */
 export const ELITE_ENCOUNTERS: Encounter[] = [
   { kind: 'combat', name: 'Sœur Cendrine', enemies: ['cendrine'], enrageTurn: 10 },
+  { kind: 'combat', name: 'Le Héraut Brannoc', enemies: ['lieutenant', 'brannoc', 'lieutenant'], enrageTurn: 10 },
 ];
 
-/** Boss de fin d'acte (provisoire : Vulkhar n'est pas encore codé). */
+/** Boss de fin d'acte. */
 export const BOSS_ENCOUNTER: Encounter = {
-  kind: 'combat', name: 'Le Héraut Brannoc', enemies: ['lieutenant', 'brannoc', 'lieutenant'], enrageTurn: 12,
+  kind: 'combat', name: 'Vulkhar, Souverain des flammes', enemies: ['vulkhar'], enrageTurn: 14,
 };

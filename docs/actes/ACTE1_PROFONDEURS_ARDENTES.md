@@ -367,9 +367,11 @@ Chaque run tire **3 à 5 boss secondaires** dans ce pool de 9, répartis sur les
 | Tour | Intention |
 |---|---|
 | Cycle | Poing de lave (14) → **Pluie de lave** (2 Zones de feu dans ta main + 6 dégâts) → **Incantation : Marteau des flammes** (**non interruptible**) |
-| **Marteau des flammes** | Tu **défausses toute ta main**, puis tu subis 10 dégâts. |
+| **Marteau des flammes** | Tu subis 10 dégâts et tu es **assommé** : tu pioches **2 cartes de moins** à ton prochain tour. |
 
-Le Marteau des flammes ne peut pas être interrompu. Le joueur doit **jouer ses meilleures cartes avant qu'il tombe**, et ne rien garder en main ce tour-là.
+Le Marteau des flammes ne peut pas être interrompu. Le joueur doit **se préparer à jouer un tour réduit** (3 cartes au lieu de 5), par exemple en gardant de la rage ou un sort de barre pour ce tour-là.
+
+> *Adaptation : la première version prévoyait de défausser toute la main. Comme la main est déjà défaussée à la fin de chaque tour, l'effet est devenu « tu pioches 2 cartes de moins ».*
 
 ### Transition : Vulkhar plonge dans la lave (à 50 % de PV)
 
@@ -503,7 +505,7 @@ Pour guider l'équilibrage, un joueur « moyen » en fin d'acte 1 a environ :
 - **Acte d'apprentissage :** chaque boss secondaire présente **une** mécanique. Vulkhar les combine.
 - **À surveiller à l'équilibrage :**
   - Zhaal peut être très frustrant pour le Mage et le Démoniste. Si c'est le cas, son Contresort pourrait ne viser que le **4ᵉ** Sort du tour.
-  - Le Marteau des flammes (défausse toute la main) est spectaculaire, mais il punit fort les classes qui gardent des cartes en main (Persistant, Druide). À tester.
+  - Le Marteau des flammes (2 cartes de moins au tour suivant) doit rester dangereux sans rendre le tour suivant injouable. À tester.
   - Gorlok doit rester faisable pour les classes sans contrôle : 5 dégâts par Éclat, c'est 20 dégâts si on tue tout.
   - La Couronne de cendres et la Flamme captive doivent rester des choix tentants malgré leur inconvénient.
 - **Tags Mort-vivant :** seuls les Forgerons spectraux en ont dans cet acte. C'est suffisant pour l'acte 1, mais il faudra en placer davantage dans les actes 2 et 3 pour le Paladin.

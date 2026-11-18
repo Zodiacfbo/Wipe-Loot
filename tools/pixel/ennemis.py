@@ -1,7 +1,7 @@
 """Sprites des ennemis de l'acte 1 utilisés par le prototype.
 Les sprites regardent vers la gauche (vers le héros)."""
 import os
-from sprites import Sprite
+from sprites import Sprite, vulkhar
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
@@ -130,6 +130,17 @@ def cendrine():
     s.ellipse(16, 30, 24, 38, '#C8A27A')  # main
     return s.render()
 
+def rejeton():
+    """Rejeton de flamme : une flamme vivante, plus grande et plus féroce qu'une Étincelle."""
+    s = Sprite(32, 32)
+    s.poly([(16, 1), (20, 7), (24, 4), (25, 14), (28, 20), (24, 29), (8, 29), (4, 20), (7, 14), (8, 4), (12, 7)], '#C23A1E', glow=True)
+    s.poly([(16, 6), (21, 14), (23, 21), (19, 27), (13, 27), (9, 21), (11, 14)], '#F59A2E', glow=True)
+    s.ellipse(11, 16, 21, 26, '#FFE27A', glow=True)
+    s.poly([(11, 18), (15, 20), (15, 21), (11, 20)], '#2A0E05', glow=True)
+    s.poly([(21, 18), (17, 20), (17, 21), (21, 20)], '#2A0E05', glow=True)
+    s.line([(13, 24), (19, 24)], '#2A0E05', glow=True)
+    return s.render()
+
 def gobelin():
     """Le vendeur gobelin (regarde vers la gauche)."""
     s = Sprite(64, 64)
@@ -162,4 +173,7 @@ if __name__ == '__main__':
                      ('seigneur', seigneur), ('lieutenant', lieutenant), ('brannoc', brannoc), ('cendrine', cendrine)):
         fn().save(os.path.join(DEST, f'ennemi_{name}.png'))
     gobelin().save(os.path.join(DEST, 'vendeur_gobelin.png'))
+    rejeton().save(os.path.join(DEST, 'ennemi_rejeton.png'))
+    # Vulkhar est dessiné dans sprites.py ; il regarde vers la gauche en jeu.
+    vulkhar().transpose(0).save(os.path.join(DEST, 'ennemi_vulkhar.png'))
     print('ok')
