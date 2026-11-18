@@ -68,6 +68,20 @@ export interface PlayerDebuffs {
   panic: number;
 }
 
+/** Les contraintes de difficulté appliquées aux ennemis d'un combat. */
+export interface CombatMods {
+  normalHp: number;
+  eliteHp: number;
+  bossHp: number;
+  normalDmg: number;
+  eliteDmg: number;
+  enrageEarlier: number;
+  bossEnrageEarlier: number;
+  normalPuissance: number;
+  elitePuissance: number;
+  bossPuissance: number;
+}
+
 export interface EnemyState {
   uid: number;
   defId: string;
@@ -197,6 +211,8 @@ export interface CombatState {
   cleaving?: boolean;
   /** Or volé par le Gobelin mimique. */
   goldStolen?: number;
+  /** Les contraintes de difficulté qui touchent les ennemis. */
+  mods?: CombatMods;
   bleedDoneThisTurn?: boolean;
   nextUid: number;
   rng: number;
@@ -219,7 +235,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 14;
+  version: 15;
   seed: number;
   rng: number;
   maxHp: number;
@@ -256,6 +272,9 @@ export interface RunState {
   detour: boolean;
   /** L'acte en cours (1 dans le prototype). */
   act: number;
+  /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */
+  difficulty: number;
+  maxWipes: number;
   /** Les talents choisis pour cette run (fixés pendant la run). */
   talents: string[];
   /** Combats et boss secondaires gagnés (pour le score). */

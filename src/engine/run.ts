@@ -8,11 +8,12 @@ import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
 import { BAR_SLOTS, WARRIOR_LOOT_SPELLS } from './spells';
 import { EPIC_CARDS, TALENTS, TREES } from './talents';
+import { difficultyMods } from './difficulty';
 import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 14;
+export const SAVE_VERSION = 15;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -26,11 +27,12 @@ export const SERVICE_PRICE_STEP = 25;
  * `heirloom` : l'objet emporté du coffre de la guilde, équipé dès le départ.
  * `talents` : les talents choisis avant la run (ids, voir talents.ts).
  */
-export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null, talents: string[] = []): RunState {
+export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null, talents: string[] = [], difficulty = 0): RunState {
+  const mods = difficultyMods(difficulty);
   let uid = 1;
   const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 14, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: MAX_WIPES, gold: 99, rewardGold: 0,
+    version: 15, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes,
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
@@ -38,8 +40,10 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
   };
-  run.map = generateMap(run);
+  run.map = generateMap(run, mods.eliteWeight);
   applyTalents(run, talents);
+  if (mods.startCurse) run.deck.push({ uid: run.nextUid++, id: 'malediction', upgraded: false });
+  run.hp = Math.round(run.maxHp * mods.startHpRatio);
   if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
   return run;
 }
@@ -76,6 +80,16 @@ export function runGear(run: RunState): ItemEffects {
     g.attackBonus = (g.attackBonus ?? 0) + 2;
   }
   return g;
+}
+
+/** Les contraintes de difficulté de la run. */
+function mods(run: RunState) {
+  return difficultyMods(run.difficulty ?? 0);
+}
+
+/** Ce que soigne le repos au feu de camp. */
+export function campfireHealAmount(run: RunState): number {
+  return Math.min(run.maxHp - run.hp, Math.floor(run.maxHp * mods(run).campfireHeal));
 }
 
 export function currentNode(run: RunState) {
@@ -154,7 +168,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells);
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0));
   run.screen = 'combat';
 }
 
@@ -195,7 +209,7 @@ export function afterCombatAction(run: RunState): void {
       run.combat = null;
     } else {
       const elite = currentNode(run)?.type === 'elite';
-      const gold = elite ? 25 + Math.floor(random(run) * 11) : 10 + Math.floor(random(run) * 11);
+      const gold = Math.round((elite ? 25 + Math.floor(random(run) * 11) : 10 + Math.floor(random(run) * 11)) * mods(run).goldMult);
       run.gold += gold;
       offerCards(run, 'Victoire !', elite ? 'peu_commune' : 'commune');
       run.rewardGold = gold;
@@ -207,11 +221,11 @@ export function afterCombatAction(run: RunState): void {
         if (roll === table.length && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
         else run.pendingItem = table[roll % table.length];
       }
-      if (random(run) < POTION_DROP_CHANCE) run.pendingPotion = rollPotion(run);
+      if (random(run) < mods(run).potionChance) run.pendingPotion = rollPotion(run);
       const enc = run.encounter;
       if (enc?.goldReward) {
         const [min, max] = enc.goldReward;
-        const extra = min + Math.floor(random(run) * (max - min + 1));
+        const extra = Math.round((min + Math.floor(random(run) * (max - min + 1))) * mods(run).goldMult);
         run.gold += extra;
         run.rewardGold += extra;
       }
@@ -325,6 +339,9 @@ function openShop(run: RunState): void {
     const rare = POTIONS[id].rarity === 'rare';
     potions.push({ id, price: rare ? 80 + Math.floor(random(run) * 21) : 50 + Math.floor(random(run) * 16), sold: false });
   }
+  // Difficulté : le vendeur est plus cher.
+  const m = mods(run).shopMult;
+  if (m !== 1) for (const it of [...cards, ...items, ...potions]) it.price = Math.round(it.price * m);
   run.shop = { cards, items, potions, removeUsed: false, upgradeUsed: false };
   run.screen = 'shop';
 }
@@ -740,7 +757,8 @@ export function campfireReforge(run: RunState): boolean {
 
 /** La facture du prochain wipe à payer. */
 export function repairBill(run: RunState): number {
-  return REPAIR_BILLS[Math.min(MAX_WIPES - run.wipesLeft, REPAIR_BILLS.length - 1)];
+  const used = (run.maxWipes ?? MAX_WIPES) - run.wipesLeft;
+  return Math.round(REPAIR_BILLS[Math.min(used, REPAIR_BILLS.length - 1)] * mods(run).repairMult);
 }
 
 /** Les objets portés qui peuvent encore être brisés. */
@@ -790,7 +808,7 @@ export function abandonRun(run: RunState): void {
 
 export function campfireRest(run: RunState): void {
   if (run.screen !== 'campfire') return;
-  run.hp = Math.min(run.maxHp, run.hp + Math.floor(run.maxHp * 0.3));
+  run.hp = Math.min(run.maxHp, run.hp + campfireHealAmount(run));
   backToMap(run);
 }
 

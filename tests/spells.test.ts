@@ -76,7 +76,7 @@ describe('la barre de sorts du Guerrier', () => {
   it('Dernier rempart : une seule fois par combat', () => {
     const c = fight(['lieutenant'], ['dernier_rempart']);
     useSpell(c, 0);
-    expect(c.player.hp).toBe(60 + 16); // 20 % de 80
+    expect(c.player.hp).toBe(60 + 12); // 15 % de 80
     c.player.hp = 30;
     for (let i = 0; i < 6; i++) { c.player.block = 999; endTurn(c); }
     expect(useSpell(c, 0)).toBe(false);
@@ -133,7 +133,7 @@ describe('trouver des sorts', () => {
     const old = { ...newRun(5), version: 8 } as Record<string, unknown>;
     delete old.spells;
     const run = migrate(old)!;
-    expect(run.version).toBe(14);
+    expect(run.version).toBe(15);
     expect(run.spells).toEqual(['charge']);
   });
 });

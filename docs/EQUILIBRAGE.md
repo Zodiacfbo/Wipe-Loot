@@ -63,8 +63,8 @@ npx vitest run --config tools/balance/vitest.config.ts --root . --silent=false t
 | Garde haute | 10 blocage au départ | **5** | Protection écrasait tout |
 | Bouclier lourd | +2 blocage | **+1** | +13 points de victoire à lui seul |
 | Rempart | 0 énergie | **1 énergie** | +28 points : trop fort pour un palier 3 |
-| Dernier rempart | Soigne 25 % | **20 %** | +22 points |
-| Sanguinaire | 1 + 2 rage, soin 4 | **1 + 3 rage, soin 3** | +34 points |
+| Dernier rempart | Soigne 25 % | **15 %** | +22 points, et c'est lui (avec Sanguinaire) qui rendait le build Protection intouchable en haute difficulté |
+| Sanguinaire | 1 + 2 rage, soin 4 | **1 + 3 rage, soin 2** | +34 points |
 | Frappe mortelle | 2 + 3 rage | **1 + 4 rage** | +0 point : inutile |
 | Heurt de bouclier | Blocage | **Blocage + 4** | +0 point : inutile |
 | Lame aiguisée | +2 | **+3** | L'arbre Armes était loin derrière |
@@ -76,7 +76,23 @@ npx vitest run --config tools/balance/vitest.config.ts --root . --silent=false t
 
 Tous ces réglages sont regroupés pour pouvoir y revenir facilement : les mécaniques spéciales des ennemis sont dans `TUNING` (`src/engine/enemies.ts`).
 
-## 5. À surveiller ensuite
+## 5. Les niveaux de difficulté
+
+Taux de victoire du bot (200 runs par case) :
+
+| Difficulté | Niveau 1 | Niveau 10 (Protection + Fureur) | Niveau 10 (Armes + Fureur) |
+|---|---|---|---|
+| 0 | 16 % | 99 % | 94 % |
+| 5 | 8 % | 96 % | 84 % |
+| 10 | 4 % | 96 % | 78 % |
+| 15 | 2 % | 91 % | 59 % |
+| 20 | 0 % | 23 % | 17 % |
+
+La colonne « Niveau 1 » n'est là que pour comparaison : on ne débloque la difficulté qu'en gagnant. Ce qui compte : **la difficulté 20 est dure pour tous les builds**, et chaque niveau se sent. Le build Protection + Fureur reste très confortable jusqu'à la difficulté 15 : ce sont ses soins (Sanguinaire, Dernier rempart) qui annulent l'usure. À surveiller.
+
+Mesure : `tools/balance/difficulte.sim.ts`.
+
+## 6. À surveiller ensuite
 
 - **Les postures** : le bot ne les utilise pas. Un humain qui joue bien la posture Défensive ou Berserker pourrait trouver le jeu plus facile que prévu.
 - **Krâgg et Saldris** au niveau 1.

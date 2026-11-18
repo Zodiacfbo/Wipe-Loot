@@ -77,7 +77,7 @@ export const TREES: TreeDef[] = [
         t('presence_menacante', 'Présence menaçante', 'Au début de chaque combat, tous les ennemis sont Démoralisés 1 tour.', { fx: { startDemoralise: 1 } })],
       [t('t_rempart', 'Rempart', 'Ajoute ce sort à ta barre (1 énergie) : dégâts subis divisés par deux jusqu\'au prochain tour.', { spell: 'rempart' }),
         t('t_cri_de_defi', 'Cri de défi', 'Ajoute ce sort à ta barre : tous les ennemis t\'attaquent, incantations annulées.', { spell: 'cri_de_defi' })],
-      [t('t_dernier_rempart', 'Dernier rempart', 'Ajoute ce sort à ta barre : soigne 20 % de tes PV max, une fois par combat.', { spell: 'dernier_rempart' }),
+      [t('t_dernier_rempart', 'Dernier rempart', 'Ajoute ce sort à ta barre : soigne 15 % de tes PV max, une fois par combat.', { spell: 'dernier_rempart' }),
         t('quatrieme_emplacement', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
       [t('t_heurt_de_bouclier', 'Heurt de bouclier', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'heurt_de_bouclier' })],
     ],

@@ -89,7 +89,12 @@ export function migrate(raw: unknown): RunState | null {
     run.talents = [];
     run.version = 14;
   }
-  return run.version === 14 ? (run as unknown as RunState) : null;
+  if (run.version === 14) {
+    run.difficulty = 0;
+    run.maxWipes = 3;
+    run.version = 15;
+  }
+  return run.version === 15 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {
@@ -130,7 +135,9 @@ export const localSave: SaveBackend = {
 const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
 
 export interface Profile extends ProgressProfile {
-  version: 5;
+  version: 6;
+  /** Le dernier niveau de difficulté choisi dans le hall. */
+  lastDifficulty: number;
   /** La classe choisie au premier lancement, et les classes débloquées. */
   startClass: string | null;
   unlockedClasses: string[];
@@ -167,12 +174,17 @@ export function loadProfile(): Profile {
         p.unlockedClasses = played ? ['guerrier'] : [];
         p.version = 5;
       }
-      if (p.version === 5 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
+      if (p.version === 5) {
+        p.difficulty = {};
+        p.lastDifficulty = 0;
+        p.version = 6;
+      }
+      if (p.version === 6 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
     }
   } catch {
     // profil illisible : on repart d'un profil vide
   }
-  return { version: 5, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [] };
+  return { version: 6, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0 };
 }
 
 export function saveProfile(profile: Profile): void {

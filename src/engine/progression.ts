@@ -1,5 +1,6 @@
 // La progression entre les runs : le score d'une run, l'expérience et le niveau de chaque classe (1 à 10).
 // Référence : docs/CONCEPT.md (§9.1, §15.2 et §15.3)
+import { MAX_DIFFICULTY } from './difficulty';
 import { MAX_WIPES } from './run';
 import type { RunState } from './types';
 
@@ -15,6 +16,8 @@ export interface ClassProgress {
 export interface ProgressProfile {
   classes: Record<string, ClassProgress>;
   stats: { runs: number; wins: number };
+  /** Le plus haut niveau de difficulté débloqué, par classe (0 au départ). */
+  difficulty?: Record<string, number>;
 }
 
 export interface LevelInfo {
@@ -57,6 +60,8 @@ export interface RunSummary {
   catchup: boolean;
   levelBefore: number;
   levelAfter: number;
+  /** Niveau de difficulté débloqué par cette victoire (null sinon). */
+  newDifficulty: number | null;
   /** Niveau atteint après la run, pour la barre d'expérience. */
   into: number;
   needed: number;
@@ -64,7 +69,7 @@ export interface RunSummary {
 
 export function scoreRun(run: RunState): ScoreLine[] {
   const victory = run.screen === 'victory';
-  const wipes = MAX_WIPES - run.wipesLeft;
+  const wipes = (run.maxWipes ?? MAX_WIPES) - run.wipesLeft;
   const lines: ScoreLine[] = [
     { label: `Étages atteints (${run.path.length})`, points: run.path.length * 10 },
     { label: `Combats gagnés (${run.stats.combats})`, points: run.stats.combats * 5 },
@@ -83,6 +88,9 @@ export function scoreRun(run: RunState): ScoreLine[] {
  */
 export function awardRun(profile: ProgressProfile, run: RunState, classId = 'guerrier'): RunSummary {
   const lines = scoreRun(run);
+  // Difficulté : +5 % de score par niveau.
+  const base = lines.reduce((a, l) => a + l.points, 0);
+  if ((run.difficulty ?? 0) > 0 && base > 0) lines.push({ label: `Difficulté ${run.difficulty} (+${run.difficulty * 5} %)`, points: Math.round(base * 0.05 * run.difficulty) });
   const score = Math.max(10, lines.reduce((a, l) => a + l.points, 0));
   const before = classLevel(profile, classId);
   const catchup = before.level < bestOtherLevel(profile, classId);
@@ -93,8 +101,15 @@ export function awardRun(profile: ProgressProfile, run: RunState, classId = 'gue
   const victory = run.screen === 'victory';
   profile.stats.runs += 1;
   if (victory) profile.stats.wins += 1;
+  // Gagner au niveau de difficulté le plus haut débloque le suivant.
+  let newDifficulty: number | null = null;
+  const unlocked = (profile.difficulty ??= {})[classId] ?? 0;
+  if (victory && (run.difficulty ?? 0) >= unlocked && unlocked < MAX_DIFFICULTY) {
+    newDifficulty = (run.difficulty ?? 0) + 1;
+    profile.difficulty[classId] = newDifficulty;
+  }
   return {
     victory, lines, score, xp, catchup,
-    levelBefore: before.level, levelAfter: after.level, into: after.into, needed: after.needed,
+    levelBefore: before.level, levelAfter: after.level, into: after.into, needed: after.needed, newDifficulty,
   };
 }

@@ -39,13 +39,13 @@ function weighted<T extends string>(s: HasRng, table: [T, number][]): T {
   return table[table.length - 1][0];
 }
 
-function typeForFloor(s: HasRng, floor: number): NodeType {
+function typeForFloor(s: HasRng, floor: number, eliteWeight = 22): NodeType {
   if (floor === 0) return 'combat';
   if (floor === 4) return 'chest';
   if (floor === 8) return 'campfire';
   if (floor === 9) return 'boss';
   if (floor <= 3) return weighted(s, [['combat', 52], ['event', 34], ['shop', 14]]);
-  return weighted(s, [['combat', 36], ['elite', 22], ['event', 22], ['shop', 10], ['campfire', 10]]);
+  return weighted(s, [['combat', 36], ['elite', eliteWeight], ['event', 22], ['shop', 10], ['campfire', 10]]);
 }
 
 /** Deux arêtes entre les mêmes étages se croisent-elles ? */
@@ -53,7 +53,8 @@ function crosses(a1: number, a2: number, b1: number, b2: number): boolean {
   return (a1 < b1 && a2 > b2) || (a1 > b1 && a2 < b2);
 }
 
-export function generateMap(s: HasRng): ActMap {
+/** `eliteWeight` : la fréquence des boss secondaires (plus haut en difficulté 1 et plus). */
+export function generateMap(s: HasRng, eliteWeight = 22): ActMap {
   // edges[f] : liste des arêtes [laneDépart, laneArrivée] entre l'étage f et f+1 (f de 0 à 7)
   const edges: [number, number][][] = Array.from({ length: FLOORS - 2 }, () => []);
   const used: Set<number>[] = Array.from({ length: FLOORS - 1 }, () => new Set());
@@ -82,7 +83,7 @@ export function generateMap(s: HasRng): ActMap {
   for (let f = 0; f < FLOORS - 1; f++) {
     for (const lane of [...used[f]].sort()) {
       const id = nodes.length;
-      nodes.push({ id, floor: f, lane, type: typeForFloor(s, f), next: [] });
+      nodes.push({ id, floor: f, lane, type: typeForFloor(s, f, eliteWeight), next: [] });
       idAt.set(`${f}:${lane}`, id);
     }
   }

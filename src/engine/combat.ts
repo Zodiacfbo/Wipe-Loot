@@ -21,7 +21,7 @@ import { SPELLS } from './spells';
 import { ENEMIES, TUNING, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
-import type { CardInstance, CombatState, EnemyState, Intent, PlayerCurse, Posture } from './types';
+import type { CardInstance, CombatMods, CombatState, EnemyState, Intent, PlayerCurse, Posture } from './types';
 
 // --- Sorts de barre : voir spells.ts ---
 export { SPELLS, type SpellDef } from './spells';
@@ -37,6 +37,7 @@ export function createCombat(
   nextUid: number,
   gear: ItemEffects = {},
   spells: string[] = ['charge'],
+  mods?: CombatMods,
 ): CombatState {
   const c: CombatState = {
     turn: 0,
@@ -65,6 +66,20 @@ export function createCombat(
   const innate = c.draw.filter((card) => card.upgraded && CARDS[card.id].innateUp);
   c.draw = [...innate, ...c.draw.filter((card) => !innate.includes(card))];
   c.enemies = encounter.enemies.map((id) => makeEnemy(c, id));
+  // Difficulté : PV, Puissance de départ et enrage des ennemis.
+  if (mods) {
+    c.mods = mods;
+    for (const e of c.enemies) {
+      const def = ENEMIES[e.defId];
+      const [hp, pu] = def.boss ? [mods.bossHp, mods.bossPuissance] : def.elite ? [mods.eliteHp, mods.elitePuissance] : [mods.normalHp, mods.normalPuissance];
+      e.maxHp = e.hp = Math.round(e.maxHp * hp);
+      e.buffs.puissance += pu;
+    }
+    if (c.enrageTurn !== null) {
+      const boss = c.enemies.some((e) => ENEMIES[e.defId].boss);
+      c.enrageTurn = Math.max(3, c.enrageTurn - mods.enrageEarlier - (boss ? mods.bossEnrageEarlier : 0));
+    }
+  }
   for (const e of c.enemies) if (e.defId === 'saldris') e.shield = 'coups';
   if (gear.startFardeau) addStatusToDraw(c, 'fardeau', gear.startFardeau);
   log(c, `Combat : ${encounter.name}.`);
@@ -391,6 +406,9 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number): number {
   if (c.player.temerite) dmg *= 1.25;
   if ((c.player.fureur ?? 0) > 0) dmg *= 1.25;
   if (e.disarmed) dmg *= 0.7; // un boss désarmé frappe moins fort
+  // Difficulté : les ennemis normaux et les boss secondaires frappent plus fort.
+  const def = ENEMIES[e.defId];
+  if (c.mods && !def.boss) dmg *= def.elite ? c.mods.eliteDmg : c.mods.normalDmg;
   if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
   return Math.max(0, Math.floor(dmg));
 }

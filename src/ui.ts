@@ -47,6 +47,7 @@ import {
   drinkPotion,
   takePotion,
   barCapacity,
+  campfireHealAmount,
   runGear,
   learnSpell,
   breakableSlots,
@@ -56,6 +57,7 @@ import {
 import { POTIONS } from './engine/potions';
 import { TREES, clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { CLASSES, chooseStartClass, nextUnlockAt, totalXp, unlocksAvailable } from './engine/classes';
+import { DIFFICULTY_TEXT } from './engine/difficulty';
 import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
@@ -71,7 +73,7 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 interface UiState {
   run: RunState | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | null;
   /** Objet du coffre choisi dans le hall pour la prochaine expédition (index). */
   heirloom: number | null;
   pileKind: 'draw' | 'discard' | 'exhaust';
@@ -228,7 +230,7 @@ function rememberItems(run: RunState): void {
 // ---------- Barre du haut ----------
 
 function topbar(run: RunState, hp: number): string {
-  const pips = Array.from({ length: MAX_WIPES }, (_, i) => `<i class="pip ${i < run.wipesLeft ? '' : 'vide'}"></i>`).join('');
+  const pips = Array.from({ length: run.maxWipes ?? MAX_WIPES }, (_, i) => `<i class="pip ${i < run.wipesLeft ? '' : 'vide'}"></i>`).join('');
   return `<div class="topbar">
     <div class="groupe">
       <span class="nom-classe">Guerrier</span>
@@ -238,7 +240,7 @@ function topbar(run: RunState, hp: number): string {
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="etape">Les Profondeurs Ardentes · ${etageLabel(run)}</span>
-      <span class="pips">Wipes ${pips} <span>${run.wipesLeft} restant${run.wipesLeft > 1 ? 's' : ''}</span></span>
+      <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Wipes ${pips} <span>${run.wipesLeft} restant${run.wipesLeft > 1 ? 's' : ''}</span></span>
     </div>
     <div class="groupe">
       ${fullscreenButton('bouton')}
@@ -772,6 +774,7 @@ function titleScreen(): string {
       <h2>Les Profondeurs Ardentes</h2>
       <p>10 étages de lave et de cendres, 9 boss secondaires possibles, et Vulkhar, le Souverain des flammes, au bout du chemin.</p>
       ${run}
+      ${difficultyPicker()}
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">${canContinue ? 'Nouvelle expédition' : 'Partir en expédition'}</button>
       <p class="emporte-texte">${chosen ? `Tu emportes : <b>${chosen.name}</b> (perdu si l'expédition échoue).` : chest.length ? 'Tu peux emporter un objet du coffre : touche-le.' : ''}</p>
     </section>
@@ -784,6 +787,24 @@ function titleScreen(): string {
         <span>Expéditions <b>${stats.runs}</b></span><span>Victoires <b>${stats.wins}</b></span><span>Objets découverts <b>${profile.discoveredItems.length}</b></span>
       </div>
     </section>
+  </div>`;
+}
+
+/** Le choix du niveau de difficulté, dans le hall. */
+function difficultyPicker(): string {
+  const max = maxDifficulty();
+  const d = chosenDifficulty();
+  const text = d === 0
+    ? (max === 0 ? 'Gagne une expédition pour débloquer la difficulté 1.' : 'Difficulté normale.')
+    : `${DIFFICULTY_TEXT[d]}${d > 1 ? ` <i>(+ les ${d - 1} contrainte${d > 2 ? 's' : ''} précédente${d > 2 ? 's' : ''})</i>` : ''}`;
+  return `<div class="choix-difficulte">
+    <div class="ligne-difficulte">
+      <button type="button" class="bouton" data-action="difficulte" data-delta="-1" ${d === 0 ? 'disabled' : ''} aria-label="Difficulté plus basse">◀</button>
+      <b>Difficulté ${d}</b><span class="max-difficulte">/ ${max}</span>
+      <button type="button" class="bouton" data-action="difficulte" data-delta="1" ${d >= max ? 'disabled' : ''} aria-label="Difficulté plus haute">▶</button>
+      <button type="button" class="bouton" data-action="voir-difficultes">Les 20 niveaux</button>
+    </div>
+    <p>${text}</p>
   </div>`;
 }
 
@@ -888,7 +909,7 @@ function campfireScreen(run: RunState): string {
       <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
     </div>`;
   }
-  const heal = Math.min(run.maxHp - run.hp, Math.floor(run.maxHp * 0.3));
+  const heal = campfireHealAmount(run);
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>Feu de camp</h2>
     <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
@@ -964,6 +985,7 @@ function summaryHtml(sum: RunSummary): string {
       <div class="niveau">Niveau ${sum.levelAfter}${sum.levelAfter === MAX_LEVEL ? ' (maximum)' : ''}</div>
       <div class="barre-xp"><div style="width:${pct}%"></div><span>${sum.needed ? `${sum.into} / ${sum.needed}` : 'Niveau maximum'}</span></div>
       ${up ? `<p class="niveau-gagne">Niveau supérieur ! +${sum.levelAfter - sum.levelBefore} point${sum.levelAfter - sum.levelBefore > 1 ? 's' : ''} de talent</p>` : ''}
+      ${sum.newDifficulty ? `<p class="niveau-gagne">Difficulté ${sum.newDifficulty} débloquée : ${DIFFICULTY_TEXT[sum.newDifficulty]}</p>` : ''}
     </div>
   </div>`;
 }
@@ -1056,7 +1078,7 @@ function endScreen(run: RunState, victory: boolean): string {
   }
   return `<div class="ecran" style="gap:14px">
     <h1>${victory ? 'Vulkhar est vaincu !' : 'Fin de la run'}</h1>
-    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${MAX_WIPES - run.wipesLeft} wipe${MAX_WIPES - run.wipesLeft > 1 ? 's' : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
+    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} wipe${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
     ${run.summary ? summaryHtml(run.summary) : ''}
     ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
     <div class="actions"><button type="button" class="gros-bouton" data-action="titre">Retour au hall de la guilde</button></div>
@@ -1065,6 +1087,16 @@ function endScreen(run: RunState, victory: boolean): string {
 
 function overlayHtml(run: RunState | null): string {
   if (ui.overlay === 'abandon') return confirmAbandonHtml();
+  if (ui.overlay === 'difficultes') {
+    const max = maxDifficulty();
+    const rows = DIFFICULTY_TEXT.map((t, i) => `<li class="${i <= max ? 'debloque' : ''} ${i === chosenDifficulty() ? 'choisi' : ''}"><b>${i}</b><span>${t}</span>${i > max ? '<em>verrouillé</em>' : ''}</li>`).join('');
+    return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:28px;gap:10px">
+      <h2>Les niveaux de difficulté</h2>
+      <p>Chaque niveau ajoute une contrainte à toutes celles des niveaux précédents. Gagner une expédition débloque le niveau suivant. Chaque niveau donne +5 % de score.</p>
+      <ol class="liste-difficultes">${rows}</ol>
+      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+    </div></div>`;
+  }
   if (ui.overlay === 'coffre') {
     const chest = loadProfile().guildChest;
     return `<div class="overlay"><div class="ecran" style="gap:16px">
@@ -1212,6 +1244,16 @@ function hideCard(index: number): void {
   if (el) el.style.visibility = 'hidden';
 }
 
+/** Le plus haut niveau de difficulté débloqué pour le Guerrier. */
+function maxDifficulty(): number {
+  return loadProfile().difficulty?.guerrier ?? 0;
+}
+
+/** Le niveau de difficulté choisi dans le hall (le dernier utilisé, dans la limite de ce qui est débloqué). */
+function chosenDifficulty(): number {
+  return Math.min(loadProfile().lastDifficulty ?? 0, maxDifficulty());
+}
+
 /** Lance une expédition depuis le hall, avec l'objet du coffre choisi. */
 function launchFromHall(): void {
   let heirloom: string | null = null;
@@ -1226,7 +1268,7 @@ function launchFromHall(): void {
 
 function startNewRun(heirloom: string | null = null): void {
   ui.depositSlot = null;
-  ui.run = newRun(undefined, heirloom, talentIds(myAlloc()));
+  ui.run = newRun(undefined, heirloom, talentIds(myAlloc()), chosenDifficulty());
   offerBlessing(ui.run);
   ui.blessingRemove = false;
   ui.selection = null;
@@ -1311,6 +1353,14 @@ function handleClick(ev: MouseEvent): void {
       return;
     }
     case 'nouvelle-confirmee': ui.overlay = null; launchFromHall(); return;
+    case 'difficulte': {
+      const profile = loadProfile();
+      profile.lastDifficulty = Math.max(0, Math.min(maxDifficulty(), chosenDifficulty() + Number(el.dataset.delta)));
+      saveProfile(profile);
+      render();
+      return;
+    }
+    case 'voir-difficultes': ui.overlay = 'difficultes'; render(); return;
     case 'heritage': {
       const i = Number(el.dataset.index);
       ui.heirloom = ui.heirloom === i ? null : i;

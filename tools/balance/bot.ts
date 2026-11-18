@@ -229,9 +229,9 @@ export interface RunResult {
 }
 
 /** Joue une run entière. */
-export function simulateRun(seed: number, talents: string[]): RunResult {
+export function simulateRun(seed: number, talents: string[], difficulty = 0): RunResult {
   const rnd = chooser(seed * 7919);
-  const run = newRun(seed, null, talents);
+  const run = newRun(seed, null, talents, difficulty);
   offerBlessing(run);
   const blessing = BLESSING_ORDER.find((b) => run.blessings.includes(b))!;
   if (blessing === 'allegement') chooseBlessing(run, blessing, run.deck.find((k) => k.id === 'frappe')!.uid);
@@ -295,7 +295,7 @@ export function simulateRun(seed: number, talents: string[]): RunResult {
       case 'gameover': {
         const floor = run.position === null ? 0 : run.map.nodes[run.position].floor + 1;
         if (current && run.screen === 'gameover') current.wipes++;
-        return { victory: run.screen === 'victory', floor, wipesUsed: 3 - run.wipesLeft, fights };
+        return { victory: run.screen === 'victory', floor, wipesUsed: run.maxWipes - run.wipesLeft, fights };
       }
     }
     // Une potion de soin entre deux combats si besoin.

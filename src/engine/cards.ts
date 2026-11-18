@@ -483,11 +483,11 @@ export const CARDS: Record<string, CardDef> = {
   sanguinaire: {
     id: 'sanguinaire', name: 'Sanguinaire', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 3, needsTarget: true,
     icon: 'epee',
-    text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 5 : 3} PV.`,
+    text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 4 : 2} PV.`,
     play: (ctx) => {
       hit(ctx, ctx.up ? 16 : 12, { rageCard: true });
       const p = ctx.c.player;
-      p.hp = Math.min(p.maxHp, p.hp + (ctx.up ? 5 : 3));
+      p.hp = Math.min(p.maxHp, p.hp + (ctx.up ? 4 : 2));
     },
   },
 

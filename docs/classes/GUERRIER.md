@@ -152,7 +152,7 @@ Ces cartes apparaissent quel que soit l'arbre de talents investi.
 | **Furie croissante** | 1 | Pouvoir | R | Chaque fois que ta rage atteint son maximum, gagne 1 Puissance. | Inné |
 | **Fureur suicidaire** | 1 | Compétence | R | Pendant 3 tours, tes Attaques infligent 50 % de dégâts en plus, et tu subis 25 % de dégâts en plus. **Épuisé.** | 4 tours |
 | **Furie inextinguible** | 2 | Pouvoir | R | Ta rage maximale passe à 15. Gagne 1 rage au début de chaque tour. | Gagne 2 rage par tour |
-| **Sanguinaire** | 1 + 3 rage | Attaque | É | Inflige 12 dégâts. Te soigne de 3 PV. | 16 dégâts, soin 5 |
+| **Sanguinaire** | 1 + 3 rage | Attaque | É | Inflige 12 dégâts. Te soigne de 2 PV. | 16 dégâts, soin 4 |
 
 ### 5.4 Arbre Protection (15 cartes) : blocage et contre-attaque
 
@@ -188,7 +188,7 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 | **Témérité** | 1 | 5 tours | Ce tour-ci, tes Attaques infligent 50 % de dégâts en plus. Tu subis 25 % de dégâts en plus jusqu'à ton prochain tour. | Talent Fureur, palier 4 |
 | **Rempart** | 1 | 5 tours | Jusqu'à ton prochain tour, les dégâts que tu subis sont **réduits de moitié**. | Talent Protection, palier 3 |
 | **Cri de défi** | 1 | 4 tours | L'intention de **tous les ennemis** devient une Attaque. Les Incantations en cours sont annulées. | Talent Protection, palier 3 |
-| **Dernier rempart** | 0 | 1 fois par combat | Soigne 20 % de tes PV max. | Talent Protection, palier 4 |
+| **Dernier rempart** | 0 | 1 fois par combat | Soigne 15 % de tes PV max. | Talent Protection, palier 4 |
 
 **Les sorts de barre qu'on peut trouver dans les tables de loot** : *Cri de commandement* (1 énergie, recharge 4 : tous les ennemis Démoralisés 2 tours et +1 Robustesse), *Vague de choc* (1 énergie, recharge 3 : 6 dégâts à tous et Ralenti 1).
 

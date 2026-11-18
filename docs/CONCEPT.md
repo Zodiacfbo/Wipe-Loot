@@ -690,19 +690,36 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 - **Le rattrapage** : une nouvelle classe ne doit pas donner l'impression de tout recommencer. Tant qu'une classe est en dessous du **meilleur niveau atteint** par une autre classe, elle gagne **le double d'expérience**. Le bonus s'arrête tout seul quand elle a rattrapé. Il ne touche que l'expérience : les talents restent à gagner, et la difficulté se débloque toujours classe par classe.
 - **Niveaux de difficulté** (l'équivalent de l'Ascension de StS) : un défi optionnel pour les joueurs qui ont déjà gagné.
   - Au départ, on joue en **difficulté 0** (normale).
-  - **Gagner une run** (battre le boss de l'acte 3) avec une classe débloque la **difficulté 1** pour cette classe. Gagner en difficulté 1 débloque la 2, et ainsi de suite jusqu'à **20**.
+  - **Gagner une run** (battre le boss de l'acte 3 ; dans le prototype, Vulkhar) avec une classe débloque la **difficulté 1** pour cette classe. Gagner en difficulté 1 débloque la 2, et ainsi de suite jusqu'à **20**.
   - Avant chaque run, le joueur choisit la difficulté qu'il veut, parmi celles qu'il a débloquées.
   - Chaque niveau **ajoute une contrainte, qui s'ajoute à toutes celles des niveaux précédents**. La difficulté 5 contient donc les contraintes des niveaux 1 à 5.
   - Ce n'est jamais obligatoire : c'est la façon de garder le jeu difficile une fois la classe maîtrisée et ses talents au maximum.
-  - Exemples de contraintes :
-    - *Difficulté 1 : les boss secondaires sont plus fréquents sur la carte*
-    - *Difficulté 2 : les ennemis normaux ont plus de PV*
-    - *Difficulté 4 : l'enrage des boss arrive un tour plus tôt*
-    - *Difficulté 5 : le feu de camp soigne moins*
-    - *Difficulté 7 : un wipe autorisé de moins* (ce type de contrainte revient aux niveaux 12 et 17, jusqu'à 0 wipe autorisé)
-    - *Difficulté 10 : le deck de départ contient une carte de malédiction*
-    - *Difficulté 14 : les factures de réparation coûtent plus cher*
-    - *Difficulté 20 : deux boss d'affilée à la fin de l'acte 3*
+  - Chaque niveau donne **+5 % de score**.
+  - **Les 20 contraintes** (prototype, acte 1) :
+
+| Niveau | Contrainte ajoutée |
+|---|---|
+| 1 | Les boss secondaires sont plus fréquents sur la carte. |
+| 2 | Les ennemis normaux ont 10 % de PV en plus. |
+| 3 | Les boss secondaires ont 15 % de PV en plus. |
+| 4 | L'enrage des boss arrive 2 tours plus tôt. |
+| 5 | Le feu de camp soigne 25 % des PV max au lieu de 30 %. |
+| 6 | Tu commences la run avec 80 % de tes PV. |
+| 7 | Un wipe autorisé de moins (2). |
+| 8 | Les ennemis normaux infligent 15 % de dégâts en plus. |
+| 9 | Les boss secondaires infligent 15 % de dégâts en plus. |
+| 10 | Ton deck de départ contient une Malédiction. |
+| 11 | Tu gagnes 25 % d'or en moins. |
+| 12 | Un wipe autorisé de moins (1). |
+| 13 | Le vendeur gobelin est 20 % plus cher. |
+| 14 | Les factures de réparation coûtent 50 % de plus. |
+| 15 | Tu trouves moins de potions après les combats. |
+| 16 | Vulkhar a 20 % de PV en plus. |
+| 17 | Plus aucun wipe autorisé : une défaite met fin à la run. |
+| 18 | Les boss secondaires commencent chaque combat avec 2 Puissance. |
+| 19 | Les ennemis normaux commencent chaque combat avec 1 Puissance. |
+| 20 | Le Souverain enragé : Vulkhar commence avec 2 Puissance, et son enrage arrive 3 tours plus tôt. *(Avec les 3 actes : deux boss d'affilée à la fin de l'acte 3.)* |
+
 - **Archives de la guilde** (compendium) : une encyclopédie qui recense les cartes, objets et monstres découverts, avec un petit texte d'histoire pour chaque entrée.
 
 ### 15.3 Score et fin de run
