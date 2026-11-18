@@ -11,7 +11,7 @@ Un deckbuilder roguelite dans la lignée de *Slay the Spire*, dans un univers de
 ## Le prototype
 
 Le prototype jouable contient :
-- le **Guerrier** : rage, postures, barre de sorts (Charge), deck de départ et une vingtaine de cartes à gagner ;
+- le **Guerrier** : rage, postures, barre de sorts (Charge), deck de départ et ses 52 cartes, 9 sorts de barre ;
 - une **run dans l'acte 1** sur une **carte à embranchements** de 10 étages : combats, les **9 boss secondaires** (Morvax, Croc-de-lave, Cendrine, Gorlok, Vossk, Zhaal, Brannoc, Krâgg, Saldris), chacun avec sa mécanique et sa table de loot, « ? » (événements et embuscades), coffre, feux de camp, puis **Vulkhar, Souverain des flammes** (deux phases, plongée dans la lave) ;
 - l'**or** et le **vendeur gobelin** (cartes, objets, potions, retrait, amélioration) ;
 - les **potions** (3 emplacements), à boire sans dépenser d'énergie ;

@@ -93,6 +93,12 @@ Au premier tour, Charge permet de lancer une Frappe héroïque immédiatement. C
 
 **Nouveau mot-clé :** **Saignement (X)** : un DoT physique. La cible subit X dégâts au début de chacun de ses tours, pendant 3 tours. Appliquer un nouveau Saignement **ajoute** X et remet la durée à 3 tours.
 
+**Précisions (prototype) :**
+- **Peur** : l'ennemi ne fait rien à son prochain tour. « Sauf boss » vaut aussi pour les boss secondaires (même règle pour Désarmement).
+- **Pouvoir** : la carte reste active jusqu'à la fin du combat (elle ne revient pas dans la pioche).
+- **Éphémère** : si la carte est encore en main à la fin du tour, elle disparaît (Frappe de la main gauche).
+- **Les cartes épiques** sont normalement débloquées par le dernier palier de talent de leur arbre. En attendant les talents, elles apparaissent rarement dans les récompenses des boss secondaires.
+
 ### 5.1 Tronc commun (9 cartes)
 
 Ces cartes apparaissent quel que soit l'arbre de talents investi.

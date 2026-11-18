@@ -409,3 +409,5 @@ img.px { image-rendering: pixelated; }
 .info-sort em { font-style: normal; font-size: 12px; color: var(--or); font-weight: 700; }
 .titre-barre { margin: 4px 0 0; font-size: 16px; font-weight: 800; }
 .info-sort small { font-size: 11px; color: var(--texte-2); }
+.chip.pouvoir { background: #2a1f3a; border-color: #8e6ab8; color: #e0ccff; }
+.carte .texte.tres-long { font-size: 10px; line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }

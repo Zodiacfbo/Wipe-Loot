@@ -21,6 +21,8 @@ export interface EnemyBuffs {
   armureFracassee: number; // tours restants : subit 50 % de dégâts en plus
   saignement: number; // dégâts par tour
   saignementTours: number;
+  /** Apeuré (Cri d'intimidation) : ne fait rien à son prochain tour. */
+  peur?: number;
 }
 
 export type Intent =
@@ -90,6 +92,10 @@ export interface EnemyState {
   shield?: 'coups' | 'sorts';
   /** Saldris s'est rendu, ou un Molosse s'est enfui : il n'est plus là. */
   gone?: boolean;
+  /** Désarmement : n'attaque pas à son prochain tour (un boss : −30 % de dégâts). */
+  disarmed?: boolean;
+  /** Frappe mortelle : ne peut plus être soigné. */
+  noHeal?: boolean;
 }
 
 export interface PlayerState {
@@ -115,6 +121,12 @@ export interface PlayerState {
   temerite?: boolean;
   rempart?: boolean;
   fearless?: boolean;
+  /** Fureur suicidaire : tours restants (+50 % aux Attaques, +25 % de dégâts subis). */
+  fureur?: number;
+  /** Parade ripostée : dégâts renvoyés à la prochaine attaque reçue. */
+  riposte?: number;
+  /** Enragé : bonus de dégâts de la prochaine Attaque. */
+  enrageReady?: number;
 }
 
 export interface SpellState {
@@ -169,6 +181,13 @@ export interface CombatState {
   playing?: { cost: number; type: CardType };
   /** Puissance déjà gagnée avec la Pierre de magma. */
   magmaGained?: number;
+  /** Les Pouvoirs joués pendant ce combat (id → valeur cumulée). */
+  powers?: Record<string, number>;
+  /** Attaques jouées ce tour-ci (Frappe frénétique, Rafale). */
+  attacksThisTurn?: number;
+  /** Balayage : Attaques restantes qui touchent aussi un 2e ennemi, et l'Attaque en cours en profite-t-elle ? */
+  cleave?: number;
+  cleaving?: boolean;
   bleedDoneThisTurn?: boolean;
   nextUid: number;
   rng: number;

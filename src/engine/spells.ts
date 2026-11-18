@@ -22,7 +22,7 @@ export interface SpellDef {
 }
 
 /** L'attaque de base d'un ennemi (pour Cri de défi). */
-function basicAttack(e: EnemyState): number {
+export function basicAttack(e: EnemyState): number {
   const def = ENEMIES[e.defId];
   const all = [...(def.firstIntents ?? []), ...def.cycle];
   const hit = all.find((i) => i.kind === 'attack' && !i.cast);

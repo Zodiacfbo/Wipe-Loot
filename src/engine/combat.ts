@@ -14,6 +14,7 @@ import {
   gainRage,
   livingEnemies,
   log,
+  power,
 } from './actions';
 import { CARDS, energyCost, type PlayContext } from './cards';
 import { SPELLS } from './spells';
@@ -60,6 +61,9 @@ export function createCombat(
     rng,
   };
   c.draw = shuffle(c, deck.map((card) => ({ ...card })));
+  // Cartes innées (Furie croissante+) : en haut de la pioche.
+  const innate = c.draw.filter((card) => card.upgraded && CARDS[card.id].innateUp);
+  c.draw = [...innate, ...c.draw.filter((card) => !innate.includes(card))];
   c.enemies = encounter.enemies.map((id) => makeEnemy(c, id));
   for (const e of c.enemies) if (e.defId === 'saldris') e.shield = 'coups';
   if (gear.startFardeau) addStatusToDraw(c, 'fardeau', gear.startFardeau);
@@ -84,7 +88,12 @@ export function createCombat(
 export function startPlayerTurn(c: CombatState): void {
   const p = c.player;
   c.turn += 1;
-  p.block = 0;
+  // Garde de fer : on garde la moitié du blocage.
+  p.block = power(c, 'garde_de_fer') > 0 ? Math.floor(p.block / 2) : 0;
+  p.riposte = 0;
+  p.fureur = Math.max(0, (p.fureur ?? 0) - 1);
+  c.attacksThisTurn = 0;
+  c.cleave = 0;
   p.energy = p.maxEnergy;
   p.postureChanged = false;
   p.ignorerDouleur = false;
@@ -123,6 +132,14 @@ export function startPlayerTurn(c: CombatState): void {
     d.panic = 0;
   }
   p.fearless = false;
+  // Pouvoirs de début de tour
+  if (power(c, 'furie_inextinguible')) gainRage(c, power(c, 'furie_inextinguible'));
+  if (power(c, 'concentration') && p.rage >= 5) {
+    p.energy += power(c, 'concentration');
+    fx(c, { kind: 'buff', who: 'player', label: 'Concentration : +1 énergie' });
+  }
+  if (power(c, 'tenacite')) gainBlock(c, power(c, 'tenacite'), false);
+  if (power(c, 'ambidextrie')) addStatusToHand(c, 'main_gauche', power(c, 'ambidextrie'));
   // Pierre de magma : +1 Puissance tous les 2 tours.
   const magma = c.gear?.magmaPuissance ?? 0;
   if (magma > 0 && c.turn % 2 === 0 && (c.magmaGained ?? 0) < magma) {
@@ -219,9 +236,31 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   }
 
   const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false };
+  const attack = def.type === 'Attaque';
+  c.cleaving = attack && (c.cleave ?? 0) > 0;
+  const blockBefore = p.block;
   c.playing = { cost, type: def.type };
   def.play(ctx);
   c.playing = undefined;
+  if (c.cleaving) c.cleave = (c.cleave ?? 1) - 1;
+  c.cleaving = false;
+  if (attack) {
+    p.enrageReady = 0;
+    c.attacksThisTurn = (c.attacksThisTurn ?? 0) + 1;
+    if (c.attacksThisTurn === 3 && power(c, 'rafale')) drawCards(c, power(c, 'rafale'));
+    // Entaille profonde : les Attaques à rage qui touchent font saigner.
+    if (def.rageCost !== undefined && ctx.dealt && target && !target.dead && power(c, 'entaille_profonde')) {
+      applySaignement(target, power(c, 'entaille_profonde'), c);
+    }
+  }
+  // Bastion : une carte qui donne du blocage blesse tous les ennemis.
+  if (power(c, 'bastion') && p.block > blockBefore && def.type !== 'Pouvoir') {
+    for (const e of livingEnemies(c)) {
+      if (e.submerged) continue;
+      fx(c, { kind: 'tick', who: e.uid, amount: power(c, 'bastion'), label: 'Bastion' });
+      damageEnemy(c, e, power(c, 'bastion'));
+    }
+  }
   log(c, `Tu joues ${def.name}${card.upgraded ? '+' : ''}.`);
 
   if (def.type === 'Attaque' && ctx.dealt) {
@@ -235,7 +274,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   }
   if (def.type === 'Attaque') c.firstAttackDone = true;
   if (card.id === 'zone_de_feu' && c.gear?.zoneBlock) gainBlock(c, c.gear.zoneBlock, false);
-  if (def.type === 'Pouvoir' || def.exhaust) {
+  const exhaust = card.upgraded && def.exhaustUp !== undefined ? def.exhaustUp : def.exhaust;
+  if (def.type === 'Pouvoir' || exhaust) {
     c.exhaust.push(card);
   } else {
     c.discard.push(card);
@@ -300,8 +340,10 @@ export function endTurn(c: CombatState): void {
       damageEnemy(c, e, 5);
     }
   }
-  c.exhaust.push(...zones, ...bombs);
-  c.discard.push(...c.hand.filter((card) => card.id !== 'zone_de_feu' && card.id !== 'bombe_vivante'));
+  // Les cartes Éphémères restées en main disparaissent.
+  const gone = c.hand.filter((card) => CARDS[card.id].ethereal);
+  c.exhaust.push(...gone);
+  c.discard.push(...c.hand.filter((card) => !CARDS[card.id].ethereal));
   c.hand = [];
   c.panicked = [];
   const d = p.debuffs;
@@ -322,6 +364,8 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number): number {
   if (e.buffs.demoralise > 0) dmg *= 0.75;
   if (c.player.posture === 'berserker') dmg *= 1.2;
   if (c.player.temerite) dmg *= 1.25;
+  if ((c.player.fureur ?? 0) > 0) dmg *= 1.25;
+  if (e.disarmed) dmg *= 0.7; // un boss désarmé frappe moins fort
   if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
   return Math.max(0, Math.floor(dmg));
 }
@@ -333,6 +377,11 @@ export function isEnraged(c: CombatState): boolean {
 function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
   switch (intent.kind) {
     case 'attack': {
+      // Désarmement : un ennemi normal n'attaque pas ce tour-ci.
+      if (e.disarmed && !ENEMIES[e.defId].elite && !ENEMIES[e.defId].boss) {
+        log(c, `${e.name} est désarmé : il n'attaque pas.`);
+        break;
+      }
       const times = intent.times ?? 1;
       const base = intent.dmg + (intent.grow ?? 0) * (e.counter ?? 0);
       if (intent.grow) e.counter = (e.counter ?? 0) + 1;
@@ -343,7 +392,13 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         const lost = damagePlayer(c, dmg, true);
         log(c, `${e.name}${intent.cast ? ` lance ${intent.cast}` : ' attaque'} : ${dmg} dégâts (${lost} PV perdus).`);
         // Miroir de l'intendant, Charme d'épines : une attaque entièrement bloquée est renvoyée.
-        const reflect = c.gear?.blockReflect ?? 0;
+        // Parade ripostée : la première attaque reçue est renvoyée.
+        if ((c.player.riposte ?? 0) > 0 && dmg > 0 && c.phase === 'player' && !e.dead) {
+          fx(c, { kind: 'tick', who: e.uid, amount: c.player.riposte!, label: 'Riposte' });
+          damageEnemy(c, e, c.player.riposte!);
+          c.player.riposte = 0;
+        }
+        const reflect = (c.gear?.blockReflect ?? 0) + (lost === 0 ? power(c, 'riposte_bouclier') : 0);
         if (reflect > 0 && dmg > 0 && lost === 0 && c.phase === 'player' && !e.dead) {
           fx(c, { kind: 'tick', who: e.uid, amount: reflect, label: 'Renvoi' });
           damageEnemy(c, e, reflect);
@@ -401,8 +456,12 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
       log(c, `${e.name} se dérobe : il ne peut pas être ciblé jusqu'à son prochain tour.`);
       break;
     case 'heal': {
-      const allies = intent.self ? [] : livingEnemies(c).filter((o) => o !== e && o.hp < o.maxHp);
+      const allies = intent.self ? [] : livingEnemies(c).filter((o) => o !== e && o.hp < o.maxHp && !o.noHeal);
       const pool = allies.length > 0 ? allies : [e];
+      if (pool[0].noHeal) {
+        log(c, `${e.name} tente de se soigner, mais ses blessures ne se referment pas.`);
+        break;
+      }
       const target = pool.reduce((a, b) => (a.hp / a.maxHp <= b.hp / b.maxHp ? a : b));
       const healed = Math.min(intent.amount, target.maxHp - target.hp);
       target.hp += healed;
@@ -472,7 +531,10 @@ function enemyTurn(c: CombatState): void {
       if (e.dead) continue;
     }
 
-    if (e.interrupted) {
+    if ((e.buffs.peur ?? 0) > 0) {
+      e.buffs.peur! -= 1;
+      log(c, `${e.name} est apeuré et ne fait rien.`);
+    } else if (e.interrupted) {
       log(c, `${e.name} ne peut pas agir : son incantation a été interrompue.`);
       e.interrupted = false;
     } else if (e.delayed) {
@@ -490,6 +552,7 @@ function enemyTurn(c: CombatState): void {
     }
 
     decayBuffs(e);
+    e.disarmed = false;
     e.step += 1;
     e.intent = intentAt(ENEMIES[e.defId], e.step, e.phase ?? 1, e.hp < e.maxHp / 2);
   }

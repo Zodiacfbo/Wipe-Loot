@@ -153,7 +153,9 @@ export function afterCombatAction(run: RunState): void {
 
 function rollRarity(run: RunState, min: Rarity): Rarity {
   const roll = random(run);
-  if (min === 'peu_commune') return roll < 0.7 ? 'peu_commune' : 'rare';
+  // Boss secondaire : cartes peu communes et rares ; les épiques (normalement débloquées
+  // par le dernier palier de talent) y apparaissent rarement, en attendant les talents.
+  if (min === 'peu_commune') return roll < 0.65 ? 'peu_commune' : roll < 0.92 ? 'rare' : 'epique';
   return roll < 0.6 ? 'commune' : roll < 0.9 ? 'peu_commune' : 'rare';
 }
 

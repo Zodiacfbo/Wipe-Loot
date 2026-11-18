@@ -54,7 +54,7 @@
 - [ ] Prévisualisation des dégâts sur les cartes (en tenant compte de la Puissance, de la posture, de l'Armure fracassée)
 
 ### 1.3 Le Guerrier complet
-- [ ] Les 52 cartes du Guerrier
+- [x] Les 52 cartes du Guerrier (les épiques apparaissent rarement chez les boss secondaires, en attendant les talents)
 - [x] Les sorts de barre du Guerrier : les 7 de sa fiche + 2 sorts de loot (Cri de commandement, Vague de choc), 3 emplacements
 - [ ] Le 4ᵉ emplacement de la barre (talent Protection, phase 2)
 - [ ] Une illustration en pixel art par carte

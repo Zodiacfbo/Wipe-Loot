@@ -41,9 +41,31 @@ export function livingEnemies(c: CombatState): EnemyState[] {
   return c.enemies.filter((e) => !e.dead);
 }
 
+/** La valeur d'un Pouvoir actif (0 s'il n'a pas été joué). */
+export function power(c: CombatState, id: string): number {
+  return c.powers?.[id] ?? 0;
+}
+
+export function addPower(c: CombatState, id: string, value: number): void {
+  (c.powers ??= {})[id] = power(c, id) + value;
+}
+
 export function gainRage(c: CombatState, amount: number): void {
   const p = c.player;
+  const before = p.rage;
   p.rage = Math.max(0, Math.min(p.maxRage, p.rage + amount));
+  // Furie croissante : atteindre la rage maximale donne de la Puissance.
+  const furie = power(c, 'furie_croissante');
+  if (furie > 0 && before < p.maxRage && p.rage === p.maxRage) {
+    p.puissance += furie;
+    fx(c, { kind: 'buff', who: 'player', label: `Furie croissante : Puissance +${furie}` });
+  }
+}
+
+/** Le joueur vient de perdre des PV (Enragé). */
+export function onHpLost(c: CombatState): void {
+  const bonus = power(c, 'enrage');
+  if (bonus > 0) c.player.enrageReady = (c.player.enrageReady ?? 0) + bonus;
 }
 
 /** `fromCard` : le blocage vient d'une carte (Bâton de l'intendant : +2). */
@@ -71,8 +93,11 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
+  if (opts.rageCard) dmg += power(c, 'maitre_armes');
+  dmg += p.enrageReady ?? 0;
   if (p.posture === 'defensive') dmg *= 0.8;
   if (p.temerite) dmg *= 1.5;
+  if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   return Math.max(0, Math.floor(dmg));
 }
@@ -221,6 +246,7 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
   p.block -= absorbed;
   const hpLoss = amount - absorbed;
   p.hp -= hpLoss;
+  if (hpLoss > 0) onHpLost(c);
   if (isAttack) {
     const blockedRage = p.posture === 'defensive' || p.ignorerDouleur;
     if (hpLoss > 0 || blockedRage) gainRage(c, 1);

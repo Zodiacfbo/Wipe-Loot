@@ -117,7 +117,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}</span>
-    <span class="texte ${def.text(card.upgraded).length > 42 ? 'long' : ''}">${def.text(card.upgraded)}</span>
+    <span class="texte ${def.text(card.upgraded).length > 56 ? 'tres-long' : def.text(card.upgraded).length > 42 ? 'long' : ''}">${def.text(card.upgraded)}</span>
   </button>`;
 }
 
@@ -416,6 +416,9 @@ function enemyChips(e: EnemyState): string {
   if (b.armureFracassee > 0) chips.push(`<span class="chip debuff">Armure fracassée ${b.armureFracassee}</span>`);
   if (b.saignement > 0) chips.push(`<span class="chip saigne">Saignement ${b.saignement}</span>`);
   if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
+  if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
+  if (e.disarmed) chips.push('<span class="chip debuff">Désarmé</span>');
+  if (e.noHeal) chips.push('<span class="chip debuff">Insoignable</span>');
   if (e.defId === 'gardien' && e.block > 0) chips.push('<span class="chip">Renvoie 3 par Attaque</span>');
   if (e.shield) chips.push(`<span class="chip bouclier-saldris">Anti-${e.shield} : renvoie 50 %</span><span class="chip">Ensuite : anti-${e.shield === 'coups' ? 'sorts' : 'coups'}</span>`);
   return chips.join('');
@@ -498,6 +501,22 @@ function needsEnemyTarget(c: CombatState): boolean {
   return SPELLS[c.spells[sel.index].id].needsTarget;
 }
 
+/** Nom court et description des Pouvoirs actifs. */
+const POWER_LABEL: Record<string, [string, string]> = {
+  entaille_profonde: ['Entaille profonde', 'Tes Attaques à rage appliquent Saignement'],
+  concentration: ['Concentration', '+1 énergie si tu as 5 rage ou plus'],
+  maitre_armes: ['Maître d\'armes', 'Attaques à rage : +dégâts'],
+  enrage: ['Enragé', 'Perdre des PV renforce ta prochaine Attaque'],
+  rafale: ['Rafale', '3e Attaque du tour : pioche 1 carte'],
+  ambidextrie: ['Ambidextrie', 'Une Frappe de la main gauche chaque tour'],
+  furie_croissante: ['Furie croissante', 'Rage au maximum : +1 Puissance'],
+  furie_inextinguible: ['Furie inextinguible', 'Rage max 15, rage à chaque tour'],
+  tenacite: ['Ténacité', 'Blocage au début de chaque tour'],
+  riposte_bouclier: ['Riposte au bouclier', 'Attaque bloquée : dégâts à l\'attaquant'],
+  garde_de_fer: ['Garde de fer', 'Tu gardes la moitié de ton blocage'],
+  bastion: ['Bastion', 'Carte de blocage : dégâts à tous'],
+};
+
 function playerChips(c: CombatState): string {
   const p = c.player;
   const d = p.debuffs;
@@ -513,6 +532,13 @@ function playerChips(c: CombatState): string {
   if (p.temerite) chips.push('<span class="chip">Témérité : +50 % / subis +25 %</span>');
   if (p.rempart) chips.push('<span class="chip">Rempart : dégâts ÷ 2</span>');
   if (p.fearless) chips.push('<span class="chip">Sans peur</span>');
+  if (p.fureur) chips.push(`<span class="chip">Fureur ${p.fureur} : +50 % / subis +25 %</span>`);
+  if (p.riposte) chips.push(`<span class="chip">Riposte ${p.riposte}</span>`);
+  if (p.enrageReady) chips.push(`<span class="chip">Enragé : +${p.enrageReady} à la prochaine Attaque</span>`);
+  if (c.cleave) chips.push(`<span class="chip">Balayage : ${c.cleave} Attaque${c.cleave > 1 ? 's' : ''}</span>`);
+  for (const [id, v] of Object.entries(c.powers ?? {})) {
+    if (POWER_LABEL[id]) chips.push(`<span class="chip pouvoir" title="${POWER_LABEL[id][1]}">${POWER_LABEL[id][0]}${v > 1 ? ` ${v}` : ''}</span>`);
+  }
   return chips.join('');
 }
 

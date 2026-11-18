@@ -1,8 +1,10 @@
 // Les cartes du Guerrier disponibles dans le prototype, et la carte-statut Zone de feu.
 // Référence : docs/classes/GUERRIER.md
 import {
+  addPower,
   addStatusToHand,
   fx,
+  onHpLost,
   applySaignement,
   drawCards,
   gainBlock,
@@ -11,7 +13,9 @@ import {
   log,
   playerAttack,
 } from './actions';
-import { isInterruptible } from './enemies';
+import { ENEMIES, isInterruptible } from './enemies';
+import { random } from './rng';
+import { basicAttack } from './spells';
 import type { CardType, CombatState, EnemyState, Rarity } from './types';
 
 export interface PlayContext {
@@ -37,6 +41,8 @@ export interface CardDef {
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
+  /** Commence le combat dans la main (une fois améliorée, pour Furie croissante). */
+  innateUp?: boolean;
   icon: 'epee' | 'bouclier' | 'pouvoir' | 'feu';
   text: (up: boolean) => string;
   play: (ctx: PlayContext) => void;
@@ -46,6 +52,22 @@ function hit(ctx: PlayContext, base: number, opts: { rageCard?: boolean; ignoreB
   if (!ctx.target) return;
   const dmg = playerAttack(ctx.c, ctx.target, base, opts);
   if (dmg > 0) ctx.dealt = true;
+  // Balayage : l'Attaque touche aussi un deuxième ennemi.
+  if (ctx.c.cleaving) {
+    const other = livingEnemies(ctx.c).find((e) => e !== ctx.target && !e.submerged);
+    if (other) playerAttack(ctx.c, other, base, opts);
+  }
+}
+
+/** Un boss ou un boss secondaire (résiste à la Peur et au Désarmement). */
+function isBoss(e: EnemyState): boolean {
+  const def = ENEMIES[e.defId];
+  return !!(def.boss || def.elite);
+}
+
+function powerCard(ctx: PlayContext, id: string, value: number, label: string): void {
+  addPower(ctx.c, id, value);
+  fx(ctx.c, { kind: 'buff', who: 'player', label });
 }
 
 function otherEnemy(ctx: PlayContext): EnemyState | null {
@@ -228,6 +250,7 @@ export const CARDS: Record<string, CardDef> = {
     play: (ctx) => {
       const p = ctx.c.player;
       p.hp = Math.max(1, p.hp - 3);
+      onHpLost(ctx.c);
       gainRage(ctx.c, ctx.up ? 6 : 4);
     },
   },
@@ -263,6 +286,307 @@ export const CARDS: Record<string, CardDef> = {
     icon: 'bouclier',
     text: (up) => `Gagne ${up ? 18 : 14} blocage.`,
     play: (ctx) => gainBlock(ctx.c, ctx.up ? 18 : 14),
+  },
+
+
+  // --- Arbre Armes (suite) ---
+  parade_ripostee: {
+    id: 'parade_ripostee', name: 'Parade ripostée', type: 'Compétence', rarity: 'commune', cost: 1, needsTarget: false,
+    icon: 'bouclier',
+    text: (up) => `${up ? 9 : 6} blocage. La prochaine attaque reçue : ${up ? 9 : 6} dégâts à l'attaquant.`,
+    play: (ctx) => {
+      gainBlock(ctx.c, ctx.up ? 9 : 6);
+      ctx.c.player.riposte = (ctx.c.player.riposte ?? 0) + (ctx.up ? 9 : 6);
+    },
+  },
+  coup_de_grace: {
+    id: 'coup_de_grace', name: 'Coup de grâce', type: 'Attaque', rarity: 'peu_commune', cost: 1, needsTarget: true,
+    icon: 'epee',
+    text: (up) => `${up ? 10 : 7} dégâts. S'il meurt : +1 énergie et 3 rage.`,
+    play: (ctx) => {
+      hit(ctx, ctx.up ? 10 : 7);
+      if (ctx.target?.dead) {
+        ctx.c.player.energy += 1;
+        gainRage(ctx.c, 3);
+        log(ctx.c, 'Coup de grâce : +1 énergie et 3 rage.');
+      }
+    },
+  },
+  balayage: {
+    id: 'balayage', name: 'Balayage', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: false,
+    icon: 'epee',
+    text: (up) => `Tes ${up ? 3 : 2} prochaines Attaques ce tour-ci touchent aussi un 2e ennemi.`,
+    play: (ctx) => {
+      ctx.c.cleave = (ctx.c.cleave ?? 0) + (ctx.up ? 3 : 2);
+    },
+  },
+  entaille_profonde: {
+    id: 'entaille_profonde', name: 'Entaille profonde', type: 'Pouvoir', rarity: 'peu_commune', cost: 1,
+    needsTarget: false, icon: 'pouvoir',
+    text: (up) => `Tes Attaques à rage qui touchent appliquent Saignement ${up ? 3 : 2}.`,
+    play: (ctx) => powerCard(ctx, 'entaille_profonde', ctx.up ? 3 : 2, 'Entaille profonde'),
+  },
+  cri_intimidation: {
+    id: 'cri_intimidation', name: 'Cri d\'intimidation', type: 'Compétence', rarity: 'peu_commune', cost: 1,
+    needsTarget: true, exhaust: true, icon: 'pouvoir',
+    text: (up) => `Peur sur la cible (sauf boss). Les autres : Démoralisé ${up ? 2 : 1}. Épuisé.`,
+    play: (ctx) => {
+      const t = ctx.target;
+      if (t && !isBoss(t)) {
+        t.buffs.peur = 1;
+        fx(ctx.c, { kind: 'buff', who: t.uid, label: 'Apeuré' });
+      }
+      for (const e of livingEnemies(ctx.c)) if (e !== t) e.buffs.demoralise = Math.max(e.buffs.demoralise, ctx.up ? 2 : 1);
+    },
+  },
+  concentration_martiale: {
+    id: 'concentration_martiale', name: 'Concentration martiale', type: 'Pouvoir', rarity: 'rare', cost: 1, costUp: 0,
+    needsTarget: false, icon: 'pouvoir',
+    text: () => `Début de ton tour : si tu as 5 rage ou plus, +1 énergie.`,
+    play: (ctx) => powerCard(ctx, 'concentration', 1, 'Concentration martiale'),
+  },
+  frappe_du_colosse: {
+    id: 'frappe_du_colosse', name: 'Frappe du colosse', type: 'Attaque', rarity: 'rare', cost: 2, needsTarget: true,
+    icon: 'epee',
+    text: (up) => `Retire tout son blocage. ${up ? 14 : 10} dégâts. Armure fracassée 2.`,
+    play: (ctx) => {
+      if (!ctx.target) return;
+      ctx.target.block = 0;
+      hit(ctx, ctx.up ? 14 : 10);
+      if (!ctx.target.dead) ctx.target.buffs.armureFracassee += 2;
+    },
+  },
+  tempete_acier: {
+    id: 'tempete_acier', name: 'Tempête d\'acier', type: 'Attaque', rarity: 'rare', cost: 3, needsTarget: false,
+    icon: 'epee',
+    text: (up) => `${up ? 5 : 4} dégâts à tous les ennemis, 4 fois.`,
+    play: (ctx) => {
+      for (let i = 0; i < 4; i++) {
+        for (const e of livingEnemies(ctx.c)) if (playerAttack(ctx.c, e, ctx.up ? 5 : 4) > 0) ctx.dealt = true;
+      }
+    },
+  },
+  maitre_armes: {
+    id: 'maitre_armes', name: 'Maître d\'armes', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1,
+    needsTarget: false, icon: 'pouvoir',
+    text: () => `Tes Attaques qui coûtent de la rage infligent +4 dégâts.`,
+    play: (ctx) => powerCard(ctx, 'maitre_armes', 4, 'Maître d\'armes'),
+  },
+  frappe_mortelle: {
+    id: 'frappe_mortelle', name: 'Frappe mortelle', type: 'Attaque', rarity: 'epique', cost: 2, rageCost: 3,
+    needsTarget: true, icon: 'epee',
+    text: (up) => `${up ? 24 : 18} dégâts. Ne peut plus être soigné. Armure fracassée 1.`,
+    play: (ctx) => {
+      if (!ctx.target) return;
+      hit(ctx, ctx.up ? 24 : 18, { rageCard: true });
+      if (!ctx.target.dead) {
+        ctx.target.noHeal = true;
+        ctx.target.buffs.armureFracassee += 1;
+      }
+    },
+  },
+
+  // --- Arbre Fureur (suite) ---
+  frappe_frenetique: {
+    id: 'frappe_frenetique', name: 'Frappe frénétique', type: 'Attaque', rarity: 'commune', cost: 1, needsTarget: true,
+    icon: 'epee',
+    text: (up) => `${up ? 7 : 5} dégâts, +${up ? 3 : 2} par Attaque déjà jouée ce tour.`,
+    play: (ctx) => hit(ctx, (ctx.up ? 7 : 5) + (ctx.up ? 3 : 2) * (ctx.c.attacksThisTurn ?? 0)),
+  },
+  hurlement_furieux: {
+    id: 'hurlement_furieux', name: 'Hurlement furieux', type: 'Compétence', rarity: 'commune', cost: 1,
+    needsTarget: false, icon: 'pouvoir',
+    text: (up) => `Gagne 3 rage. Pioche ${up ? 2 : 1} carte${up ? 's' : ''}.`,
+    play: (ctx) => {
+      gainRage(ctx.c, 3);
+      drawCards(ctx.c, ctx.up ? 2 : 1);
+    },
+  },
+  soif_de_bataille: {
+    id: 'soif_de_bataille', name: 'Soif de bataille', type: 'Compétence', rarity: 'commune', cost: 1, costUp: 0,
+    needsTarget: false, icon: 'pouvoir',
+    text: () => `Pioche 2 Attaques depuis ta pioche.`,
+    play: (ctx) => {
+      const c = ctx.c;
+      for (let n = 0; n < 2 && c.hand.length < 10; n++) {
+        const i = c.draw.findIndex((card) => CARDS[card.id].type === 'Attaque');
+        if (i < 0) break;
+        c.hand.push(...c.draw.splice(i, 1));
+      }
+    },
+  },
+  ruee_sanguinaire: {
+    id: 'ruee_sanguinaire', name: 'Ruée sanguinaire', type: 'Attaque', rarity: 'peu_commune', cost: 2,
+    needsTarget: false, icon: 'epee',
+    text: (up) => `3 dégâts ${up ? 7 : 5} fois, sur des ennemis au hasard.`,
+    play: (ctx) => {
+      for (let i = 0; i < (ctx.up ? 7 : 5); i++) {
+        const alive = livingEnemies(ctx.c).filter((e) => !e.submerged);
+        if (alive.length === 0) break;
+        const e = alive[Math.floor(random(ctx.c) * alive.length)];
+        if (playerAttack(ctx.c, e, 3) > 0) ctx.dealt = true;
+      }
+    },
+  },
+  enrage: {
+    id: 'enrage', name: 'Enragé', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false,
+    icon: 'pouvoir',
+    text: (up) => `Quand tu perds des PV, ta prochaine Attaque inflige +${up ? 5 : 3} dégâts.`,
+    play: (ctx) => powerCard(ctx, 'enrage', ctx.up ? 5 : 3, 'Enragé'),
+  },
+  rafale: {
+    id: 'rafale', name: 'Rafale', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, costUp: 0, needsTarget: false,
+    icon: 'pouvoir',
+    text: () => `Quand tu joues ta 3e Attaque d'un tour, pioche 1 carte.`,
+    play: (ctx) => powerCard(ctx, 'rafale', 1, 'Rafale'),
+  },
+  ambidextrie: {
+    id: 'ambidextrie', name: 'Ambidextrie', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false,
+    icon: 'pouvoir',
+    text: () => `Début de ton tour : ajoute une Frappe de la main gauche à ta main.`,
+    play: (ctx) => powerCard(ctx, 'ambidextrie', 1, 'Ambidextrie'),
+  },
+  main_gauche: {
+    id: 'main_gauche', name: 'Frappe de la main gauche', type: 'Attaque', rarity: 'statut', cost: 0,
+    needsTarget: true, ethereal: true, exhaust: true, icon: 'epee',
+    text: () => `Inflige 4 dégâts. Éphémère.`,
+    play: (ctx) => hit(ctx, 4),
+  },
+  furie_croissante: {
+    id: 'furie_croissante', name: 'Furie croissante', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false,
+    innateUp: true, icon: 'pouvoir',
+    text: (up) => `Quand ta rage atteint son maximum, +1 Puissance.${up ? ' Inné.' : ''}`,
+    play: (ctx) => powerCard(ctx, 'furie_croissante', 1, 'Furie croissante'),
+  },
+  fureur_suicidaire: {
+    id: 'fureur_suicidaire', name: 'Fureur suicidaire', type: 'Compétence', rarity: 'rare', cost: 1,
+    needsTarget: false, exhaust: true, icon: 'pouvoir',
+    text: (up) => `${up ? 4 : 3} tours : Attaques +50 %, tu subis +25 %. Épuisé.`,
+    play: (ctx) => {
+      ctx.c.player.fureur = Math.max(ctx.c.player.fureur ?? 0, ctx.up ? 4 : 3);
+      fx(ctx.c, { kind: 'buff', who: 'player', label: 'Fureur suicidaire' });
+    },
+  },
+  furie_inextinguible: {
+    id: 'furie_inextinguible', name: 'Furie inextinguible', type: 'Pouvoir', rarity: 'rare', cost: 2,
+    needsTarget: false, icon: 'pouvoir',
+    text: (up) => `Rage max 15. Gagne ${up ? 2 : 1} rage au début de chaque tour.`,
+    play: (ctx) => {
+      ctx.c.player.maxRage = Math.max(ctx.c.player.maxRage, 15);
+      powerCard(ctx, 'furie_inextinguible', ctx.up ? 2 : 1, 'Rage max 15');
+    },
+  },
+  sanguinaire: {
+    id: 'sanguinaire', name: 'Sanguinaire', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 2, needsTarget: true,
+    icon: 'epee',
+    text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 6 : 4} PV.`,
+    play: (ctx) => {
+      hit(ctx, ctx.up ? 16 : 12, { rageCard: true });
+      const p = ctx.c.player;
+      p.hp = Math.min(p.maxHp, p.hp + (ctx.up ? 6 : 4));
+    },
+  },
+
+  // --- Arbre Protection (suite) ---
+  coup_de_semonce: {
+    id: 'coup_de_semonce', name: 'Coup de semonce', type: 'Attaque', rarity: 'commune', cost: 1, needsTarget: true,
+    icon: 'epee',
+    text: (up) => `${up ? 9 : 6} dégâts. Démoralisé 1 tour.`,
+    play: (ctx) => {
+      hit(ctx, ctx.up ? 9 : 6);
+      if (ctx.target && !ctx.target.dead) ctx.target.buffs.demoralise = Math.max(ctx.target.buffs.demoralise, 1);
+    },
+  },
+  resolution: {
+    id: 'resolution', name: 'Résolution', type: 'Compétence', rarity: 'commune', cost: 0, needsTarget: false,
+    icon: 'bouclier',
+    text: (up) => `Dépense la moitié de ta rage : ${up ? 4 : 3} blocage par point.`,
+    play: (ctx) => {
+      const p = ctx.c.player;
+      const spent = Math.floor(p.rage / 2);
+      p.rage -= spent;
+      if (spent > 0) gainBlock(ctx.c, spent * (ctx.up ? 4 : 3));
+    },
+  },
+  provocation: {
+    id: 'provocation', name: 'Provocation', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: true,
+    exhaust: true, exhaustUp: false, icon: 'pouvoir',
+    text: (up) => `Son intention devient une Attaque (incantation annulée).${up ? '' : ' Épuisé.'}`,
+    play: (ctx) => {
+      const t = ctx.target;
+      if (!t) return;
+      t.intent = { kind: 'attack', dmg: basicAttack(t) };
+      t.interrupted = false;
+      t.delayed = false;
+      fx(ctx.c, { kind: 'buff', who: t.uid, label: 'Provoqué' });
+      log(ctx.c, `${t.name} est provoqué : il va t'attaquer.`);
+    },
+  },
+  desarmement: {
+    id: 'desarmement', name: 'Désarmement', type: 'Compétence', rarity: 'peu_commune', cost: 1, costUp: 0,
+    needsTarget: true, icon: 'bouclier',
+    text: () => `N'attaque pas à son prochain tour (boss : −30 % de dégâts).`,
+    play: (ctx) => {
+      if (!ctx.target) return;
+      ctx.target.disarmed = true;
+      fx(ctx.c, { kind: 'buff', who: ctx.target.uid, label: 'Désarmé' });
+    },
+  },
+  charge_du_bouclier: {
+    id: 'charge_du_bouclier', name: 'Charge du bouclier', type: 'Attaque', rarity: 'peu_commune', cost: 2,
+    needsTarget: true, icon: 'bouclier',
+    text: (up) => `${up ? 13 : 10} dégâts. Gagne ${up ? 13 : 10} blocage.`,
+    play: (ctx) => {
+      hit(ctx, ctx.up ? 13 : 10);
+      gainBlock(ctx.c, ctx.up ? 13 : 10);
+    },
+  },
+  tenacite: {
+    id: 'tenacite', name: 'Ténacité', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false,
+    icon: 'pouvoir',
+    text: (up) => `Début de ton tour : gagne ${up ? 5 : 3} blocage.`,
+    play: (ctx) => powerCard(ctx, 'tenacite', ctx.up ? 5 : 3, 'Ténacité'),
+  },
+  peau_de_fer: {
+    id: 'peau_de_fer', name: 'Peau de fer', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false,
+    icon: 'pouvoir',
+    text: (up) => `Gagne ${up ? 3 : 2} Robustesse.`,
+    play: (ctx) => {
+      ctx.c.player.robustesse += ctx.up ? 3 : 2;
+      fx(ctx.c, { kind: 'buff', who: 'player', label: `Robustesse +${ctx.up ? 3 : 2}` });
+    },
+  },
+  cri_de_ralliement: {
+    id: 'cri_de_ralliement', name: 'Cri de ralliement', type: 'Compétence', rarity: 'peu_commune', cost: 1,
+    needsTarget: false, exhaust: true, icon: 'bouclier',
+    text: (up) => `${up ? 9 : 6} blocage et 1 Robustesse. Épuisé.`,
+    play: (ctx) => {
+      ctx.c.player.robustesse += 1;
+      gainBlock(ctx.c, ctx.up ? 9 : 6);
+    },
+  },
+  riposte_bouclier: {
+    id: 'riposte_bouclier', name: 'Riposte au bouclier', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false,
+    icon: 'pouvoir',
+    text: (up) => `Attaque ennemie entièrement bloquée : ${up ? 8 : 5} dégâts à l'attaquant.`,
+    play: (ctx) => powerCard(ctx, 'riposte_bouclier', ctx.up ? 8 : 5, 'Riposte au bouclier'),
+  },
+  garde_de_fer: {
+    id: 'garde_de_fer', name: 'Garde de fer', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false,
+    icon: 'pouvoir',
+    text: () => `Début de ton tour : tu gardes la moitié de ton blocage.`,
+    play: (ctx) => powerCard(ctx, 'garde_de_fer', 1, 'Garde de fer'),
+  },
+  bastion: {
+    id: 'bastion', name: 'Bastion', type: 'Pouvoir', rarity: 'rare', cost: 2, needsTarget: false, icon: 'pouvoir',
+    text: (up) => `Quand tu joues une carte de blocage : ${up ? 5 : 3} dégâts à tous.`,
+    play: (ctx) => powerCard(ctx, 'bastion', ctx.up ? 5 : 3, 'Bastion'),
+  },
+  heurt_de_bouclier: {
+    id: 'heurt_de_bouclier', name: 'Heurt de bouclier', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 2,
+    needsTarget: true, icon: 'bouclier',
+    text: (up) => `Dégâts égaux à ton blocage${up ? ' + 6' : ''}.`,
+    play: (ctx) => hit(ctx, ctx.c.player.block + (ctx.up ? 6 : 0), { rageCard: true }),
   },
 
   // --- Carte-statut ---
@@ -301,7 +625,7 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
 
 /** Les cartes qui peuvent apparaître en récompense, avec leur rareté. */
 export const REWARD_POOL: string[] = Object.values(CARDS)
-  .filter((d) => d.rarity === 'commune' || d.rarity === 'peu_commune' || d.rarity === 'rare')
+  .filter((d) => d.rarity === 'commune' || d.rarity === 'peu_commune' || d.rarity === 'rare' || d.rarity === 'epique')
   .map((d) => d.id);
 
 export const STARTER_DECK: string[] = [
