@@ -228,7 +228,7 @@ Cet arbre couvre **deux formes**, comme dans les MMO où le druide farouche est 
 **La quête (actes 1 et 2, 3 étapes)** — commune au Mage, au Démoniste et au Druide :
 1. **Vaincre Zhaal le Tisseur d'arcanes** (boss secondaire, acte 1) : il fait tomber le **Fragment du Veilleur**.
 2. **Événement « L'observatoire en ruine »** (acte 2) : l'esprit du Veilleur demande une preuve de sagesse. Le joueur accepte de perdre 8 PV max pour obtenir la **Tête du bâton**.
-3. **Étape du Druide :** au feu de camp suivant, option **« Lier par la nature »**. Le Druide renonce à **une relique** de son choix, qu'il rend à la terre, pour sceller le bâton.
+3. **Étape du Druide :** au feu de camp suivant, option **« Lier par la nature »**. Le Druide renonce à **un objet d'équipement** de son choix, qu'il rend à la terre, pour sceller le bâton.
 
 ---
 

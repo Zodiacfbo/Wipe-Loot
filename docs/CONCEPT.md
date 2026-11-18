@@ -118,7 +118,7 @@ Choix de la classe ─► Bénédiction d'entrée
 - **Durée visée :** environ **45 minutes à 1 heure** pour une run complète.
 - Chaque acte est une **carte à embranchements** : le joueur choisit son chemin d'étage en étage.
 - **Après chaque combat**, le joueur choisit une carte parmi 3 (ou n'en prend aucune).
-- **Après chaque boss**, il récupère un objet de sa **table de loot** et peut **améliorer gratuitement une carte** ou un sort de barre (voir §12.1).
+- **Après chaque boss**, il récupère un objet de sa **table de loot** (voir §12.7).
 - **Les talents sont choisis avant la run** et ne changent pas pendant celle-ci (voir §9).
 - **Un wipe n'est pas forcément la fin** : le joueur peut retenter un combat perdu, dans la limite de 3 wipes par run (voir §6.7).
 - **Quand la run s'arrête**, le joueur gagne quand même de l'expérience pour sa classe (voir §15).
@@ -132,7 +132,7 @@ Choix de la classe ─► Bénédiction d'entrée
 | 🔥 **Feu de camp** | Repos | **Se reposer** (soigne 30 % des PV max) **ou** aller voir le **maître de classe** (améliorer une carte ou un sort). |
 | 💰 **Vendeur gobelin** | Marchand | Achat de cartes, de potions et d'objets, retrait de cartes, réparations (voir §14). |
 | ❓ **Quête** | Événement | Rencontres avec des PNJ, choix narratifs et étapes des quêtes légendaires (voir §13). |
-| 📦 **Coffre** | Trésor | Loot gratuit : équipement ou relique. |
+| 📦 **Coffre** | Trésor | Loot gratuit : un objet d'équipement. |
 | 👑 **Boss de fin d'acte** | Boss | Le boss final du raid. |
 
 ### 4.3 Structure d'un acte (10 étages)
@@ -174,7 +174,7 @@ Choix de la classe ─► Bénédiction d'entrée
 | **Or** | 99 au départ |
 | **Deck de départ** | 10 cartes (voir §7.5) |
 
-Les PV **ne remontent pas** automatiquement entre les combats. On se soigne aux feux de camp, avec des potions, des reliques ou des cartes.
+Les PV **ne remontent pas** automatiquement entre les combats. On se soigne aux feux de camp, avec des potions, de l'équipement ou des cartes.
 
 ### 5.2 Énergie commune + ressource de classe
 
@@ -271,7 +271,7 @@ Le héros dispose de deux sources d'actions :
 - sa **barre de sorts**, qui contient les **gros sorts de classe** : ils sont **toujours visibles et disponibles**, sans pioche, mais ont un **temps de recharge**.
 
 **Les règles :**
-- **3 emplacements** au départ, jusqu'à **4** grâce à un talent ou à une relique.
+- **3 emplacements** au départ, jusqu'à **4** grâce à un talent ou à un objet d'équipement.
 - Chaque classe commence avec **1 sort de départ** dans sa barre.
 - Utiliser un sort coûte de l'**énergie** (de 0 à 2), comme une carte. Le sort passe ensuite en **recharge** pendant X tours (de 2 à 5 selon sa puissance).
 - Certains sorts très puissants sont **« 1 fois par combat »**.
@@ -304,7 +304,7 @@ Dans un raid, quand tout le monde meurt, on paie les réparations et on retente.
 
 **Les règles :**
 - Quand les PV du héros tombent à 0, quel que soit le combat, c'est un **wipe**.
-- Le joueur peut **retenter le combat depuis le début**. Il repart avec le deck, l'équipement, les reliques et les potions qu'il avait en entrant dans le combat. Les potions utilisées pendant l'essai raté sont perdues.
+- Le joueur peut **retenter le combat depuis le début**. Il repart avec le deck, l'équipement et les potions qu'il avait en entrant dans le combat. Les potions utilisées pendant l'essai raté sont perdues.
 - Ses PV sont remis à leur niveau d'entrée dans le combat, avec un **minimum de 50 % des PV max**.
 - **La facture de réparation :** chaque wipe coûte de l'**or** (par exemple 50, puis 100, puis 150). Si le joueur ne peut pas payer, un objet d'équipement au hasard est **brisé** : son effet est désactivé jusqu'à ce qu'il soit réparé chez le vendeur gobelin.
 - **3 wipes autorisés par run.** Un 4ᵉ wipe met fin à la run.
@@ -330,7 +330,7 @@ Dans un raid, quand tout le monde meurt, on paie les réparations et on retente.
 | **Compétence** | Défense et utilitaire : blocage, pioche, interruption, dissipation… |
 | **Pouvoir** | Un effet permanent pour tout le combat (Posture de combat, Forme d'Ombre, Aura de dévotion…). |
 | **Statut** | Une carte négative temporaire ajoutée par un ennemi (Zone de feu, Bombe vivante…). Elle disparaît à la fin du combat. |
-| **Malédiction** | Une carte négative **permanente** dans le deck, obtenue via certains événements ou certaines reliques. Il faut l'enlever chez le vendeur. |
+| **Malédiction** | Une carte négative **permanente** dans le deck, obtenue via certains événements ou certains objets. Il faut l'enlever chez le vendeur. |
 
 La distinction entre **Attaque** et **Sort** permet des mécaniques de raid : un ennemi qui *réduit au silence* bloque les Sorts, un autre qui *désarme* bloque les Attaques.
 
@@ -350,7 +350,10 @@ L'**orange (légendaire)** est réservé aux **armes légendaires** (voir §12.3
 
 - Chaque carte peut être **améliorée une fois** (Frappe héroïque → **Frappe héroïque+**).
 - L'amélioration augmente les chiffres, réduit le coût ou ajoute un effet.
-- On améliore une carte au **feu de camp** (maître de classe), grâce à certains événements ou à certaines reliques.
+- On améliore une carte de deux façons :
+  - au **feu de camp**, avec le maître de classe, **à la place du repos**. C'est un vrai dilemme : se soigner ou devenir plus fort ;
+  - chez le **vendeur gobelin**, contre de l'or.
+- Quelques événements peuvent aussi proposer une amélioration.
 
 ### 7.4 Les cartes neutres : les professions
 
@@ -516,9 +519,6 @@ Chaque raid est un acte, avec ses monstres de trash, un pool de boss secondaires
 
 ### 12.1 Les cartes
 Après chaque combat, le joueur choisit une carte parmi 3, ou n'en prend aucune. Les cartes proposées dépendent de la classe et des talents investis (voir §9). Après un boss secondaire, les chances d'obtenir une carte rare sont plus élevées.
-
-**Après chaque boss** (secondaire ou de fin d'acte), le joueur peut aussi **améliorer gratuitement une carte ou un sort de barre** de son choix.
-
 ### 12.2 L'équipement (volontairement simple)
 
 **6 emplacements :**
@@ -564,15 +564,18 @@ Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.
 - **un seul légendaire par run** ;
 - *Exemple (Voleur, Sillon d'orage)* : récupérer le Fermoir gauche de l'orage sur **Gorlok le Fragmenté**, le Fermoir droit sur le **Baron Vossk**, puis trouver l'événement **Ventor, Prince des tempêtes**, qui forge l'arme.
 
-### 12.4 Les reliques
-Des **objets passifs** sans emplacement, qui s'accumulent comme dans StS. Trois sources :
-- **Reliques communes** : dans les coffres et sur les tables de loot des boss.
-- **Butin de boss** : après chaque boss de fin d'acte, choix parmi 3 reliques puissantes, souvent avec un inconvénient (voir §15.1).
-- **Reliques de boutique** : chez le vendeur gobelin.
+### 12.4 Pas de reliques : tout passe par l'équipement
 
-Exemples d'inspiration :
-- **Objets d'histoire** : Pierre de retour, Sceau de l'Aire, Cœur de Vulkhar, Croc de la Matriarche…
-- **Buffs de raid** (actifs pour quelques combats seulement) : Fleur des fées, Cri du Héraut, Cri du Tueur de dragons.
+Pour simplifier, le jeu **n'a pas de reliques** comme dans StS. Tous les effets passifs viennent des **6 emplacements d'équipement**.
+
+**Ce que ça change :**
+- Le joueur porte **6 objets au maximum**, au lieu d'accumuler des dizaines de reliques. Chaque objet compte, et chaque nouveau loot est une vraie décision de remplacement.
+- Les objets peuvent donc être **plus puissants** qu'une relique de StS, surtout les **Bijoux**, qui portent les effets spéciaux qui changent un build.
+- **Le butin de boss de fin d'acte** devient un **choix parmi 3 objets d'équipement épiques**, souvent avec un inconvénient (« +1 énergie par tour, mais tes soins sont réduits de moitié »).
+
+**Ce que deviennent les anciennes idées de reliques :**
+- **Les objets d'histoire** deviennent des **Bijoux** : Pierre de retour, Sceau de l'Aire, Cœur de Vulkhar, Croc de la Matriarche…
+- **Les buffs de raid** deviennent des **bénédictions temporaires** données par les événements, actives pour quelques combats seulement : Fleur des fées, Cri du Héraut, Cri du Tueur de dragons.
 
 ### 12.5 Les potions (consommables)
 - **3 emplacements** au départ.
@@ -589,7 +592,7 @@ L'or se gagne après chaque combat (plus sur les boss secondaires) et dans certa
 Chaque **boss secondaire** et chaque **boss de fin d'acte** a sa propre **table de loot**.
 
 **Les règles :**
-- Une table contient **4 à 6 objets** propres à ce boss : de l'équipement, des reliques et des sorts de barre, adaptés à la classe du joueur.
+- Une table contient **4 à 6 objets** propres à ce boss : de l'équipement et des sorts de barre, adaptés à la classe du joueur.
 - Après la victoire, le boss fait tomber **1 objet tiré de sa table**, en plus des récompenses habituelles (carte, or).
 - Sur la carte de l'acte, les nœuds de boss secondaire indiquent **quel boss s'y trouve**. Le joueur peut consulter sa table de loot avant de choisir son chemin.
 
@@ -606,6 +609,18 @@ Chaque **boss secondaire** et chaque **boss de fin d'acte** a sa propre **table 
 
 Les nœuds « ? » proposent une petite scène narrative avec **2 ou 3 choix**, souvent avec un risque ou une contrepartie. Ils font vivre l'**univers** et portent les **quêtes légendaires**.
 
+**Un « ? » ne dit pas ce qu'il cache.** Comme dans StS, un nœud « ? » peut se révéler être :
+- un **événement** narratif (le cas le plus fréquent) ;
+- un **combat caché** : une embuscade de trash, ou parfois un ennemi rare avec un meilleur butin ;
+- plus rarement, un **vendeur** ou un **coffre**.
+
+Les chances de tomber sur un combat augmentent à chaque « ? » qui n'en était pas un, puis retombent après un combat caché. Un chemin plein de « ? » reste donc risqué.
+
+**Exemples de combats cachés :**
+- **L'embuscade cendreuse** (acte 1) : des Éclaireurs cendreux surgissent de la lave.
+- **Le gobelin mimique** (tous les actes) : le « coffre » est un monstre. Il est dangereux, mais il fait tomber beaucoup d'or.
+- **La patrouille d'élite** (actes 2 et 3) : un groupe renforcé, avec un objet d'équipement à la clé.
+
 **Exemples :**
 
 | Événement | Acte | Choix (idée) |
@@ -616,7 +631,7 @@ Les nœuds « ? » proposent une petite scène narrative avec **2 ou 3 choix**, 
 | **Le joueur qui fonce** | Tous | Un aventurier fonce dans le pack en hurlant son propre nom. L'aider (combat difficile, grosse récompense) / Le laisser (rien ne se passe). |
 | **Ventor, Prince des tempêtes** | 1 | Étape de la quête de Sillon d'orage. |
 | **Les œufs de dragon** | 2 | Détruire les œufs (combat contre des dragonnets, puis récompense) / Les laisser (Vhaeryx aura un add de plus). |
-| **Le gong des Sables** | 3 | Frapper le gong (une relique puissante, mais le prochain combat est plus dur) / Passer son chemin. |
+| **Le gong des Sables** | 3 | Frapper le gong (un objet d'équipement puissant, mais le prochain combat est plus dur) / Passer son chemin. |
 | **Les Veilleurs de l'Aurore** | 3 | Recevoir une bénédiction contre les morts-vivants / Obtenir un indice sur un éclat de clé. |
 | **Le fantôme du raideur** | Tous | Un aventurier mort lors d'un wipe précédent. Récupérer son équipement (un objet, plus une malédiction) / Le laisser reposer (soin). |
 
@@ -630,9 +645,9 @@ Le vendeur propose à chaque visite :
 |---|---|---|
 | **Cartes de classe** | 5 cartes | 50 à 150 or selon la rareté |
 | **Cartes de profession** | 2 cartes neutres | 80 à 180 or |
-| **Équipement** | 1 ou 2 objets | 120 à 200 or |
-| **Reliques** | 2 reliques | 150 à 300 or |
+| **Équipement** | 3 objets | 120 à 300 or selon la puissance |
 | **Potions** | 3 potions | 50 à 100 or |
+| **Service : améliorer une carte** | Une carte ou un sort de barre, 1 fois par visite | 75 or, puis +25 à chaque utilisation pendant la run |
 | **Service : retirer une carte** | 1 fois par visite | 75 or, puis +25 à chaque utilisation pendant la run |
 | **Service : réparation** | Répare un objet brisé (voir §6.7) | 50 à 100 or |
 
@@ -642,17 +657,17 @@ Le prix d'une des cartes est réduit de moitié (« promo du jour »).
 
 ## 15. Progression (inspirée de Slay the Spire, avec des talents permanents)
 
-La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque du **contenu** (nouvelles cartes, reliques, classes) et de la **difficulté**, comme dans StS. **En plus**, chaque classe gagne des **niveaux** qui donnent des **points de talent permanents** (voir §9) : le joueur devient plus fort au fil des runs, jusqu'au niveau 10.
+La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque du **contenu** (nouvelles cartes, nouveaux objets, nouvelles classes) et de la **difficulté**, comme dans StS. **En plus**, chaque classe gagne des **niveaux** qui donnent des **points de talent permanents** (voir §9) : le joueur devient plus fort au fil des runs, jusqu'au niveau 10.
 
 ### 15.1 Pendant la run
 
 | Élément StS | Version Wipe & Loot |
 |---|---|
-| **Bénédiction** en début de run | **Bénédiction d'entrée** : **Brégan le Passeur**, qui guide les expéditions jusqu'aux Profondeurs Ardentes, propose un choix parmi 4 bonus de départ, dont certains avec une contrepartie (« Perds 10 PV max, obtiens une relique rare »). |
+| **Bénédiction** en début de run | **Bénédiction d'entrée** : **Brégan le Passeur**, qui guide les expéditions jusqu'aux Profondeurs Ardentes, propose un choix parmi 4 bonus de départ, dont certains avec une contrepartie (« Perds 10 PV max, obtiens un objet rare »). |
 | Deck de départ basique | **Deck de départ de la classe** : 10 cartes (voir §7.5). |
 | Récompenses de cartes après combat | Inchangé : 1 carte parmi 3, influencée par les talents (§9). |
-| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte ou un sort de barre. **En plus**, chaque boss vaincu donne une amélioration gratuite. |
-| **Relique de boss** après chaque boss de fin d'acte | **Butin de boss** : choix parmi 3 reliques puissantes, souvent avec un inconvénient. |
+| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte ou un sort de barre, **à la place du repos**. On peut aussi acheter une amélioration chez le vendeur gobelin. |
+| **Relique de boss** après chaque boss de fin d'acte | **Butin de boss** : choix parmi 3 objets d'équipement épiques, souvent avec un inconvénient (il n'y a pas de reliques, voir §12.4). |
 | Ordre fixe des actes | **Ordre fixe des raids** : Profondeurs Ardentes → Aire de Vhaeryx → Irem. |
 | **Acte 4** débloqué par 3 clés | **La Nécropole céleste**, débloquée par **3 éclats de clé** récupérés pendant la run (voir ci-dessous). |
 
@@ -665,29 +680,89 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 
 - **Niveau de classe (1 à 10)** : à la fin de chaque run, victoire ou défaite, le joueur gagne de l'expérience selon son **score** (voir §15.3). Chaque niveau donne :
   - **1 point de talent permanent** (voir §9) ;
-  - **un lot de nouvelles cartes ou de nouvelles reliques** pour cette classe.
+  - **un lot de nouvelles cartes ou de nouveaux objets** pour cette classe.
 - **Après le niveau 10**, l'expérience continue de débloquer du contenu cosmétique et des entrées dans les archives, mais plus de points de talent.
 - **Déblocage des classes** : au départ, 1 classe est disponible. Les autres se débloquent en accumulant de l'expérience au total (comme les personnages de StS).
-- **Niveaux de difficulté** (l'équivalent de l'Ascension) : **20 niveaux par classe**, débloqués un par un en gagnant une run au niveau précédent. Chaque niveau ajoute un modificateur cumulable, par exemple :
-  - *Les ennemis ont plus de PV*
-  - *Les boss secondaires sont plus dangereux*
-  - *L'enrage arrive un tour plus tôt*
-  - *Le feu de camp soigne moins*
-  - *Le deck de départ contient une carte de malédiction*
-  - *Un wipe autorisé de moins* (ce modificateur revient à plusieurs niveaux, jusqu'à 0 wipe autorisé)
-  - *Les factures de réparation coûtent plus cher*
-  - *Niveau 20 : deux boss d'affilée à la fin de l'acte 3*
-- **Archives de la guilde** (compendium) : une encyclopédie qui recense les cartes, reliques, objets et monstres découverts, avec un petit texte d'histoire pour chaque entrée.
+- **Niveaux de difficulté** (l'équivalent de l'Ascension de StS) : un défi optionnel pour les joueurs qui ont déjà gagné.
+  - Au départ, on joue en **difficulté 0** (normale).
+  - **Gagner une run** (battre le boss de l'acte 3) avec une classe débloque la **difficulté 1** pour cette classe. Gagner en difficulté 1 débloque la 2, et ainsi de suite jusqu'à **20**.
+  - Avant chaque run, le joueur choisit la difficulté qu'il veut, parmi celles qu'il a débloquées.
+  - Chaque niveau **ajoute une contrainte, qui s'ajoute à toutes celles des niveaux précédents**. La difficulté 5 contient donc les contraintes des niveaux 1 à 5.
+  - Ce n'est jamais obligatoire : c'est la façon de garder le jeu difficile une fois la classe maîtrisée et ses talents au maximum.
+  - Exemples de contraintes :
+    - *Difficulté 1 : les boss secondaires sont plus fréquents sur la carte*
+    - *Difficulté 2 : les ennemis normaux ont plus de PV*
+    - *Difficulté 4 : l'enrage des boss arrive un tour plus tôt*
+    - *Difficulté 5 : le feu de camp soigne moins*
+    - *Difficulté 7 : un wipe autorisé de moins* (ce type de contrainte revient aux niveaux 12 et 17, jusqu'à 0 wipe autorisé)
+    - *Difficulté 10 : le deck de départ contient une carte de malédiction*
+    - *Difficulté 14 : les factures de réparation coûtent plus cher*
+    - *Difficulté 20 : deux boss d'affilée à la fin de l'acte 3*
+- **Archives de la guilde** (compendium) : une encyclopédie qui recense les cartes, objets et monstres découverts, avec un petit texte d'histoire pour chaque entrée.
 
 ### 15.3 Score et fin de run
 
 À la fin de chaque run, un écran récapitule :
 - les étages atteints, les boss vaincus et les boss secondaires tués ;
-- le deck final, l'équipement, la barre de sorts et les reliques ;
+- le deck final, l'équipement et la barre de sorts ;
 - des **bonus de score** (« Aucun dégât sur un boss », « Légendaire forgé », « Speedrun », « Aucun wipe »…) ;
 - un **malus pour chaque wipe**.
 
 Le score détermine l'expérience gagnée. Il servira aussi de base au futur **mode infini**.
+
+
+### 15.4 Récapitulatif des progressions
+
+#### 🔁 Pendant la run (tout repart à zéro à la fin de la run)
+
+**Au départ de la run :**
+- le **deck de départ** de la classe (10 cartes), plus la **carte épique** de chaque arbre de talents complété ;
+- la **barre de sorts** : le sort de départ, plus les sorts donnés par les talents ;
+- la **bénédiction d'entrée** de Brégan le Passeur (1 bonus au choix parmi 4).
+
+**Ce que le joueur gagne en avançant :**
+
+| Moment | Ce qu'il gagne |
+|---|---|
+| **Après chaque combat** | 1 carte parmi 3 (orientée par les talents), de l'or, parfois une potion |
+| **Après chaque boss** | 1 objet de sa **table de loot** |
+| **Après un boss de fin d'acte** | En plus : 1 objet épique au choix parmi 3 (le butin de boss) |
+| **Feu de camp** | Se soigner **ou** améliorer une carte ou un sort de barre (le dilemme) |
+| **Vendeur gobelin** | Cartes, équipement, potions, amélioration, retrait de carte, réparation |
+| **Coffre** | Un objet d'équipement |
+| **Nœud « ? »** | Un événement (récompenses, étapes du légendaire, bénédictions temporaires)… ou un **combat caché** |
+
+**Ce qui se construit pendant la run :**
+- le **deck** : on ajoute, on améliore et on retire des cartes ;
+- l'**équipement** : 6 emplacements, chaque nouvel objet remplace l'ancien ;
+- les **sorts de barre** trouvés en chemin ;
+- le **légendaire** de la classe (un par run, via sa quête) ;
+- les **3 éclats de clé** qui ouvrent la Nécropole céleste.
+
+**Les limites :**
+- **3 wipes autorisés** : on paie la réparation et on retente le combat. Le 4ᵉ wipe met fin à la run.
+- **Les talents ne changent pas** pendant la run.
+
+#### ♾️ Hors run (permanent)
+
+| Progression | Comment ça marche |
+|---|---|
+| **Niveau de classe (1 à 10)** | Chaque run, même perdue, rapporte de l'expérience selon le score. |
+| **Points de talent** | 1 par niveau de classe, 10 au maximum. On les répartit dans le hall de la guilde, avec un respec gratuit entre deux runs. |
+| **Nouvelles cartes et nouveaux objets** | Chaque niveau de classe ajoute un lot de nouvelles cartes ou de nouveaux objets aux récompenses possibles. |
+| **Nouvelles classes** | On commence avec le Guerrier. L'expérience totale débloque les 8 autres. |
+| **Niveaux de difficulté** | Gagner une run débloque la difficulté suivante pour cette classe, jusqu'à 20. C'est un défi optionnel. |
+| **Tables de loot** | Un objet obtenu une fois reste visible pour toujours dans la table de son boss. |
+| **Archives de la guilde** | L'encyclopédie des cartes, objets et monstres découverts. |
+
+#### 📈 La courbe d'ensemble
+
+```
+Runs 1 à ~5         Niveau 1-4 : peu de talents. On apprend la classe et les boss.
+Runs ~5 à ~15       Niveau 5-10 : premières cartes épiques, la spécialisation prend forme.
+Après le niveau 10  Plus de nouveaux points. Le défi vient des niveaux de difficulté,
+                    des tables de loot à compléter et des autres classes.
+```
 
 ---
 
@@ -715,7 +790,7 @@ Le score détermine l'expérience gagnée. Il servira aussi de base au futur **m
 3. **Carte de l'acte** : les étages, les chemins et les tables de loot des boss.
 4. **Combat**.
 5. **Récompenses** : choix de carte, or, objet.
-6. **Fiche du héros** : deck, barre de sorts, équipement (6 emplacements), reliques, talents (consultables, non modifiables pendant la run).
+6. **Fiche du héros** : deck, barre de sorts, équipement (6 emplacements), talents (consultables, non modifiables pendant la run).
 7. **Arbre de talents** : dans le hall de la guilde, avant la run.
 8. **Feu de camp**, **vendeur**, **événement**.
 9. **Wipe** : réessayer (avec le coût de réparation affiché) ou renoncer.
@@ -729,7 +804,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 
 | Sauvegarde | Contenu |
 |---|---|
-| **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, barre de sorts, équipement, reliques, potions, talents choisis pour cette run, wipes restants, étapes de quête légendaire, éclats de clé. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, temps de recharge, ennemis, buffs et débuffs). |
+| **La run en cours** | Classe, acte et étage, carte de l'acte et chemin parcouru, PV, or, deck, barre de sorts, équipement, potions, talents choisis pour cette run, wipes restants, étapes de quête légendaire, éclats de clé. **En combat :** l'état exact du combat (main, pioche, défausse, énergie, ressource de classe, temps de recharge, ennemis, buffs et débuffs). |
 | **Le profil du joueur** | Expérience et niveaux de chaque classe, **talents de chaque classe**, classes et cartes débloquées, niveaux de difficulté atteints, **objets découverts dans les tables de loot**, archives de la guilde, statistiques, options. |
 
 **Les règles :**
@@ -769,7 +844,10 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | **Énergie** | **3 par tour, commune à toutes les classes**, plus une **ressource de classe** propre à chacune |
 | **Structure** | **3 actes de 10 étages**, plus un acte bonus (la Nécropole céleste) |
 | **Spécialisation** | **Talents permanents** choisis avant la run : 3 arbres de 5 paliers, 1 point par niveau de classe, 10 points maximum, respec gratuit entre les runs |
-| **Récompense de boss** | Un objet de la table de loot + une amélioration de carte gratuite |
+| **Récompense de boss** | Un objet de la table de loot (et, pour un boss de fin d'acte, un choix parmi 3 objets épiques) |
+| **Reliques** | **Aucune** : tous les effets passifs passent par l'équipement |
+| **Amélioration de cartes** | Au feu de camp (à la place du repos) ou contre de l'or chez le vendeur |
+| **Événements « ? »** | Peuvent cacher un combat, comme dans StS |
 | **Barre de sorts** | 3 à 4 emplacements de gros sorts à temps de recharge, en plus du deck |
 | **Wipe** | 3 wipes autorisés par run : on paie la réparation et on retente le combat |
 | **Tables de loot** | Chaque boss a sa table. Un objet reste caché (« ??? ») tant qu'il n'a pas été obtenu une fois. |

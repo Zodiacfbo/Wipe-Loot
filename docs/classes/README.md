@@ -31,7 +31,7 @@ Toutes les classes sont construites sur le **même modèle** :
 | **PV max** | — | De 65 (Mage) à 80 (Guerrier, Paladin) |
 | **Ressource de classe** | — | Rage, combo, Foi, totems, formes… |
 | **Deck de départ** | 10 cartes : 4 attaques basiques, 4 défenses basiques, 2 cartes de classe | Le nom et l'effet des 2 cartes de classe |
-| **Barre de sorts** | 3 emplacements (4 avec un talent ou une relique) | Le sort de départ et les sorts à débloquer |
+| **Barre de sorts** | 3 emplacements (4 avec un talent ou un objet d'équipement) | Le sort de départ et les sorts à débloquer |
 | **Cartes** | Environ 50 : un tronc commun (9 à 10 cartes) + 3 arbres (14 cartes chacun) | Le contenu |
 | **Talents** | 3 arbres de 5 paliers | Le contenu |
 | **Légendaire** | 1 arme, obtenue par une quête de 3 étapes | L'arme et la quête |
