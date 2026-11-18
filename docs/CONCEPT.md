@@ -890,4 +890,6 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 4. **Concevoir l'acte 1 (les Profondeurs Ardentes)** en détail : trash, boss secondaires, Vulkhar, tables de loot, événements, chiffres.
    - [Acte 1 : les Profondeurs Ardentes](actes/ACTE1_PROFONDEURS_ARDENTES.md) ✅ (version 0.1)
    - [Acte 2 : l'Aire de Vhaeryx](actes/ACTE2_AIRE_DE_VHAERYX.md) ✅ (version 0.1)
+   - [Acte 3 : Irem, la cité ensevelie](actes/ACTE3_IREM.md) ✅ (version 0.1)
+   - [Acte bonus : la Nécropole céleste](actes/ACTE_BONUS_NECROPOLE.md) ✅ (version 0.1)
 5. **Prototyper le combat** (sur papier ou en code) avec 1 classe et quelques ennemis.
