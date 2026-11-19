@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre et le Voleur sont jouables dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur et le Paladin sont jouables dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -40,7 +40,9 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Geler un boss sur place, ou le regarder brûler derrière une Carapace de glace.',
   },
   {
-    id: 'paladin', name: 'Paladin', color: '#E6B84A', playable: false, difficulty: 1, hp: 80,
+    id: 'paladin', name: 'Paladin', color: '#E6B84A', playable: true, difficulty: 1, hp: 80,
+    starterDeck: ['frappe_pal', 'frappe_pal', 'frappe_pal', 'frappe_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'sceau_droiture', 'lumiere_bienfaisante'],
+    startSpell: 'jugement', sprite: 'paladin.png',
     quote: 'Par la lumière, je juge. Par l\'acier, j\'exécute la sentence.',
     role: 'Hybride : dégâts, tank ou survie', resource: 'Sceaux, Jugements et auras',
     fantasy: 'Un chevalier presque indestructible qui frappe les morts-vivants à coups de Jugements.',

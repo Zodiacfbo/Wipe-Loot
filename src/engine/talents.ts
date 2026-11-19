@@ -295,8 +295,60 @@ export const VOLEUR_TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Paladin. */
+export const PALADIN_TREES: TreeDef[] = [
+  {
+    id: 'sacre_pal', name: 'Sacré', theme: 'Soins et lumière',
+    tiers: [
+      [t('lumiere_amelioree', 'Lumière améliorée', 'Tes cartes de soin rendent +2 PV.', { fx: { healBonus: 2 } }),
+        t('esprit_divin', 'Esprit divin', '+6 PV max.', { maxHp: 6 })],
+      [t('purification_rapide', 'Purification rapide', 'Lumière purificatrice coûte 0.', { fx: { purifyFree: 1 } }),
+        t('sagesse_accrue', 'Sagesse accrue', 'Le Jugement du Sceau de sagesse donne 1 énergie de plus.', { fx: { wisdomBonus: 1 } })],
+      [t('t_imposition_mains', 'Imposition des mains', 'Ajoute ce sort à ta barre : sous 30 % de tes PV, soigne 30 % de tes PV max, une fois par combat.', { spell: 'imposition_mains' }),
+        t('t_purification_pal', 'Purification', 'Ajoute ce sort à ta barre : Dissipation (Magie, Poison, Maladie).', { spell: 'purification_pal' })],
+      [t('pa_lumiere_benie', 'Lumière bénie', 'Chaque soin te donne aussi un quart de son montant en blocage.', { fx: { blessedHealBlock: 1 } }),
+        t('pa_quatrieme_emplacement_s', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_avatar_lumiere', 'Avatar de lumière', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'avatar_lumiere' })],
+    ],
+    cards: ['lumiere_sacree', 'onde_sacree', 'main_sacree', 'lueur_protectrice', 'eclair_foi', 'sceau_sagesse', 'faveur_divine',
+      'lumiere_purificatrice', 'rayonnement', 'grace_croise', 'illumination', 'benediction_royale', 'aube_purificatrice', 'avatar_lumiere'],
+  },
+  {
+    id: 'protection_pal', name: 'Protection', theme: 'Le bouclier',
+    tiers: [
+      [t('bouclier_ameliore', 'Bouclier amélioré', 'Tes cartes de blocage donnent +1 blocage.', { fx: { blockBonus: 1 } }),
+        t('pa_robustesse', 'Robustesse', '+8 PV max.', { maxHp: 8 })],
+      [t('devotion_accrue', 'Dévotion accrue', 'L\'Aura de dévotion donne 1 Robustesse de plus.', { fx: { devotionBonus: 1 } }),
+        t('garde_sacree', 'Garde sacrée', 'Commence chaque combat avec 8 blocage.', { fx: { startBlock: 8 } })],
+      [t('t_bouclier_divin', 'Bouclier divin', 'Ajoute ce sort à ta barre (1 énergie) : immunisé à tous les dégâts jusqu\'à ton prochain tour.', { spell: 'bouclier_divin' }),
+        t('t_marteau_jugement', 'Marteau du jugement', 'Ajoute ce sort à ta barre : Interruption, 6 dégâts, la cible est Contrôlée 1 tour.', { spell: 'marteau_jugement' })],
+      [t('consecration_durable', 'Consécration durable', 'Consécration dure 1 tour de plus.', { fx: { consecrationLong: 1 } }),
+        t('retribution', 'Rétribution', 'Juste châtiment coûte 0.', { fx: { retributionFree: 1 } })],
+      [t('t_bouclier_croise', 'Bouclier du croisé', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'bouclier_croise' })],
+    ],
+    cards: ['bouclier_beni', 'pavois_sacre', 'marteau_piete', 'resolution_sacree', 'garde_vigilante', 'consecration', 'bouclier_lance',
+      'sceau_rempart', 'sanctuaire', 'fervent', 'aura_epines', 'dernier_serment', 'juste_chatiment', 'bouclier_croise'],
+  },
+  {
+    id: 'vindicte', name: 'Vindicte', theme: 'La croisade',
+    tiers: [
+      [t('jugements_rapides', 'Jugements rapides', 'La recharge de Jugement passe à 1 tour.', { fx: { judgeCd: 1 } }),
+        t('pa_precision', 'Précision', 'Commence chaque combat avec 1 Puissance.', { fx: { startPuissance: 1 } })],
+      [t('sceaux_benis', 'Sceaux bénis', 'Tous les Sceaux coûtent 0.', { fx: { sealsFree: 1 } }),
+        t('conviction', 'Conviction', 'Tes Attaques infligent +3 dégâts aux Morts-vivants et aux Démons.', { fx: { holyBonus: 3 } })],
+      [t('t_ailes_justice', 'Ailes de justice', 'Ajoute ce sort à ta barre : +2 Puissance pendant 3 tours.', { spell: 'ailes_justice' }),
+        t('t_marteau_jugement_v', 'Marteau du jugement', 'Ajoute ce sort à ta barre (si tu ne l\'as pas déjà) : Interruption, 6 dégâts, Contrôle 1 tour.', { spell: 'marteau_jugement' })],
+      [t('vengeance_divine', 'Vengeance divine', 'Après un Jugement, ta prochaine Attaque inflige +4 dégâts.', { fx: { vengeanceDivine: 4 } }),
+        t('double_sceau', 'Double sceau', 'Tu peux avoir 2 Sceaux actifs en même temps. Jugement les consomme tous les deux.', { fx: { doubleSeal: 1 } })],
+      [t('t_verdict_cieux', 'Verdict des cieux', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'verdict_cieux' })],
+    ],
+    cards: ['lame_justice', 'ferveur', 'frappe_divine', 'inquisition', 'tourbillon_sacre', 'sceau_vengeance', 'marteau_chatiment',
+      'zele', 'science_combat', 'exaltation', 'repentance', 'vengeance_pal', 'croisade', 'verdict_cieux'],
+  },
+];
+
 /** Les arbres de chaque classe jouable. */
-export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES };
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES, paladin: PALADIN_TREES };
 
 /** Les arbres d'une classe (ceux du Guerrier par défaut). */
 export function treesFor(classId: string | undefined): TreeDef[] {

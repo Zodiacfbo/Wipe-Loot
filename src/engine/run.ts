@@ -15,7 +15,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 21;
+export const SAVE_VERSION = 22;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -36,14 +36,14 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 21, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 22, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
-    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin', equinoxe: null, sillon: null, tenebres: false,
+    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin', equinoxe: null, sillon: null, tenebres: false, aurore: null,
   };
   run.map = mapFor(run, 1);
   applyTalents(run, talents);
@@ -220,7 +220,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
       // Un « ? » cache parfois un combat.
       const pool = Object.values(EVENTS).filter((e) => (e.act ?? 1) === run.act && !run.seenEvents.includes(e.id) && (e.available?.(run) ?? true));
       // Un événement de quête légendaire passe en premier (Ventor).
-      const quest = pool.find((e) => e.quest);
+      const quest = pool.find((e) => (typeof e.quest === 'function' ? e.quest(run) : e.quest));
       if (quest) {
         run.eventId = quest.id;
         run.seenEvents.push(quest.id);
@@ -355,6 +355,11 @@ export function afterCombatAction(run: RunState): void {
       if (enc?.loot === 'ysolde' && run.classId === 'pretre' && run.equinoxe === 'baton') {
         run.equinoxe = 'larme';
         run.questNote = 'Larme d\'Ysolde : libérée, la dragonne laisse une pierre qui contient la lumière et l\'ombre. Au prochain feu de camp, tu pourras forger Équinoxe.';
+      }
+      // L'Aurore ardente (Paladin) : la mort d'Ossyrax purifie la Lame ternie.
+      if (enc?.loot === 'ossyrax' && run.classId === 'paladin' && run.aurore === 'lame') {
+        run.aurore = 'purifiee';
+        run.questNote = 'La Lame ternie : quand Ossyrax s\'effondre pour de bon, la nécromancie quitte la lame, qui se met à luire. Au prochain feu de camp, tu pourras rallumer l\'Aurore ardente.';
       }
       if (enc?.loot === 'zhaal' && (run.classId === 'mage' || run.classId === 'demoniste') && !run.veilleur) {
         run.veilleur = 'fragment';
@@ -834,6 +839,9 @@ export function resolveEvent(run: RunState, choice: number): void {
       if (i >= 0) run.deck.splice(i, 1);
       return outcome(run, 'Tu rends les reliques à leurs autels. Une Malédiction quitte ton deck.');
     }
+    case 'reliquaire:2':
+      run.aurore = 'lame';
+      return outcome(run, 'Au fond de la crypte, une épée dort sur un autel brisé, noircie par la nécromancie : la Lame ternie des Veilleurs de l\'Aurore. Elle frémit dans ta main. Pour la purifier, il faudra abattre le mort-vivant qui l\'a souillée : Ossyrax, le Drake ressuscité.');
     case 'reliquaire:1':
       run.gold += 100;
       addCurse(run);
@@ -1046,6 +1054,21 @@ export function campfireEquinoxe(run: RunState): boolean {
   if (!canForgeEquinoxe(run)) return false;
   putOn(run, 'equinoxe', 'arme');
   run.equinoxe = 'forged';
+  backToMap(run);
+  return true;
+}
+
+// --- Feu de camp : l'Aurore ardente (Paladin) ---
+
+export function canForgeAurore(run: RunState): boolean {
+  return run.screen === 'campfire' && run.aurore === 'purifiee' && run.act >= LEGENDARY_MIN_ACT;
+}
+
+/** Le Paladin rallume la flamme de la lame purifiée : l'Aurore ardente est équipée. */
+export function campfireAurore(run: RunState): boolean {
+  if (!canForgeAurore(run)) return false;
+  putOn(run, 'aurore_ardente', 'arme');
+  run.aurore = 'forged';
   backToMap(run);
   return true;
 }

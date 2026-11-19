@@ -3,7 +3,7 @@
 
 /** Ce que la guilde a consigné sur chaque monstre. */
 export const LORE: Record<string, string> = {
-  molosse: 'Des chiens de lave nés des fissures de la montagne. Ils chassent en meute et crachent des braises en mourant d\'envie de mordre.',
+  molosse: 'Des chiens démoniaques nés des fissures de la montagne, liés à Vulkhar par le même pacte que Morvax. Ils chassent en meute et crachent des braises en mourant d\'envie de mordre.',
   eclaireur: 'Les yeux des Profondeurs. Ils frappent toujours les premiers, depuis l\'ombre des coulées refroidies.',
   etincelle: 'Une flammèche qui a appris à vouloir. Elle ne vit que pour se jeter sur vous, et elle meurt en explosant.',
   seigneur: 'Un élémentaire de cendres qui commande aux flammes mineures. Sa Boule de lave a mis fin à bien des expéditions.',
@@ -12,7 +12,7 @@ export const LORE: Record<string, string> = {
   pretre: 'Les fidèles de la flamme. Ils soignent leurs alliés et les bénissent de la colère du Souverain.',
   mimique: 'Un gobelin qui s\'est trop longtemps caché dans un coffre. Il a fini par en devenir un, avec les dents en plus.',
   morvax: 'Un démon mineur, lié à Vulkhar par un pacte de feu. Il ne frappe pas fort, mais ses malédictions rongent ceux qui l\'approchent.',
-  croc: 'Le premier des molosses de lave, aussi vieux que la montagne. Son hurlement glace le sang, même au cœur du brasier.',
+  croc: 'Le premier des molosses démoniaques, aussi vieux que la montagne. Son hurlement glace le sang, même au cœur du brasier.',
   cendrine: 'Elle fut la première à entendre l\'appel de Vulkhar. Depuis, elle répand ses cendres sur chaque intrus.',
   gorlok: 'Un élémentaire de roche brisé par la chute des forges. Ses éclats gravitent autour de lui, et chacun d\'eux est une bombe.',
   eclat: 'Un morceau de Gorlok, instable et brûlant. Le briser, c\'est le faire exploser.',
@@ -20,7 +20,7 @@ export const LORE: Record<string, string> = {
   zhaal: 'Un mage élémentaire qui tisse la flamme et l\'arcane. Il a volé un fragment du bâton du Veilleur, et sa puissance le rend insaisissable.',
   brannoc: 'Le porte-voix de Vulkhar. Il ne combat presque jamais seul : il soigne et galvanise ses lieutenants.',
   kragg: 'Un géant de roche qui se nourrit de la montagne elle-même. Ses deux molosses ne le quittent jamais.',
-  molosse_enrage: 'Les molosses de Krâgg, nourris de magma. Tant que leur maître vit, ils se relèvent.',
+  molosse_enrage: 'Les molosses démoniaques de Krâgg, nourris de magma. Tant que leur maître vit, ils se relèvent.',
   saldris: 'L\'intendant des forges, au service de Vulkhar depuis des siècles. Il protège ses gardes derrière des boucliers magiques qui renvoient les coups.',
   rejeton: 'Des flammes arrachées à Vulkhar lui-même. S\'il refait surface, il les rappelle à lui.',
   // Acte 2 : l'Aire de Vhaeryx

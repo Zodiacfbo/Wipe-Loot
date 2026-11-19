@@ -47,7 +47,13 @@ export interface EnemyBuffs {
   gel?: number;
   /** Voleur — Poison : dégâts en plus à chaque Attaque qui le touche, puis −1 à la fin de son tour. */
   poison?: number;
+  /** Paladin — Censure : dégâts égaux aux cumuls au début de son tour (consommée par le Jugement du Sceau de vengeance). */
+  censure?: number;
 }
+
+/** Paladin : les Sceaux et les Auras. */
+export type SealId = 'droiture' | 'croise' | 'lumiere' | 'sagesse' | 'rempart' | 'vengeance';
+export type AuraId = 'devotion' | 'resistance' | 'epines';
 
 export type Intent =
   | {
@@ -259,6 +265,8 @@ export interface PlayerState {
   fireShield?: number;
   /** Voleur — Évasion : les Attaques ennemies infligent 50 % de dégâts en moins jusqu'au prochain tour. */
   evasion?: boolean;
+  /** Paladin — Bouclier divin : tes Attaques infligent 50 % de dégâts en moins ce tour-ci. */
+  divineShield?: boolean;
 }
 
 export interface SpellState {
@@ -405,6 +413,38 @@ export interface CombatState {
   tenebres?: boolean;
   /** Sillon d'orage : Attaques jouées pendant le combat. */
   stormCount?: number;
+  /** Paladin — les Sceaux actifs (un seul, deux avec Double sceau) ; leur présence marque un combat de Paladin. */
+  seals?: SealId[];
+  /** Le dernier Sceau consommé par un Jugement (Inquisition). */
+  lastJudged?: SealId;
+  /** L'Aura active et sa valeur (Robustesse donnée par l'Aura de dévotion, dégâts de l'Aura d'épines). */
+  aura?: { id: AuraId; value: number } | null;
+  /** Consécration : dégâts à tous les ennemis à la fin de tes tours. */
+  consecration?: { dmg: number; turns: number };
+  /** Pavois sacré : chaque attaque bloquée jusqu'à ton prochain tour blesse l'attaquant. */
+  pavois?: number;
+  /** Bouclier du croisé : chaque attaque bloquée jusqu'à ton prochain tour blesse l'attaquant et te soigne. */
+  crusaderShield?: { dmg: number; heal: number };
+  /** Faveur divine : ta prochaine carte de soin ou ton prochain Sort a son effet doublé. */
+  favor?: boolean;
+  /** Dégâts bloqués depuis ton dernier tour (Juste châtiment). */
+  blockedSince?: number;
+  /** Illumination déjà déclenchée ce tour-ci ; Fervent : +1 énergie au prochain tour. */
+  illumUsed?: boolean;
+  ferventNext?: boolean;
+  ferventUsed?: boolean;
+  /** Dernier serment : déjà utilisé. */
+  oathUsed?: boolean;
+  /** Science du combat : ta prochaine carte de soin coûte 0 ce tour-ci. */
+  healFree?: boolean;
+  /** Vengeance divine : bonus de la prochaine Attaque après un Jugement. */
+  judgeBonus?: number;
+  /** Zèle : Puissance déjà gagnée. */
+  zealGained?: number;
+  /** Ailes de justice : tours restants (+2 Puissance). */
+  wings?: number;
+  /** La carte jouée a soigné (Faveur divine, Science du combat). */
+  palHealed?: boolean;
   /** Œil de l'abîme : tu vois les intentions suivantes. */
   seeAll?: boolean;
   /** Le familier est en train d'agir (Éclat partagé). */
@@ -442,7 +482,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 21;
+  version: 22;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -503,6 +543,8 @@ export interface RunState {
   sillon: 'gauche' | 'droit' | 'deux' | 'forged' | null;
   /** Voleur : Ténèbres a été joué, le Camouflage de début de combat dure 2 tours jusqu'à la fin de la run. */
   tenebres: boolean;
+  /** Quête légendaire du Paladin : l'Aurore ardente (la Lame ternie, purifiée par la mort d'Ossyrax, puis forgée). */
+  aurore: 'lame' | 'purifiee' | 'forged' | null;
   /** Les monstres vaincus pendant la run (pour les archives de la guilde). */
   kills: Record<string, number>;
   /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */

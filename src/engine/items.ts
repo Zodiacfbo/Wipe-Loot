@@ -113,6 +113,19 @@ export interface ItemEffects {
   evadeBonus?: number; // Esquive et Esquive agile +X blocage
   longStealth?: number; // le Camouflage de début de combat dure 2 tours
   stormblade?: number; // le légendaire du Voleur
+  // Talents du Paladin
+  wisdomBonus?: number; // le Jugement du Sceau de sagesse donne +X énergie
+  purifyFree?: number; // Lumière purificatrice coûte 0
+  blessedHealBlock?: number; // chaque soin donne la moitié de son montant en blocage
+  devotionBonus?: number; // Aura de dévotion +X Robustesse
+  consecrationLong?: number; // Consécration dure X tour de plus
+  retributionFree?: number; // Juste châtiment coûte 0
+  judgeCd?: number; // la recharge de Jugement baisse de X
+  sealsFree?: number; // les Sceaux coûtent 0
+  holyBonus?: number; // tes Attaques +X dégâts aux Morts-vivants et aux Démons
+  vengeanceDivine?: number; // après un Jugement, la prochaine Attaque +X dégâts
+  doubleSeal?: number; // deux Sceaux actifs à la fois
+  aurore?: number; // le légendaire du Paladin
   gelKeep?: number; // le Gel ne diminue plus
   freezeEarly?: number; // Gelé à 5 − X cumuls
   shatterBonus?: number; // Fracasser +X dégâts
@@ -322,6 +335,7 @@ Object.assign(ITEMS, Object.fromEntries([
   // Légendaire du Mage
   item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
   item('equinoxe', 'Équinoxe', 'arme', 'legendaire', 'Dans la Lumière : tes soins rendent +3 PV et chaque soin te donne 1 Foi. En Forme d\'Ombre : tes DoT infligent +2 dégâts et chacun de leurs ticks te soigne de 1 PV.', { equinoxe: 1 }),
+  item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Jugements infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
   item('sillon_orage', 'Sillon d\'orage', 'arme', 'legendaire', 'Toutes les 3 Attaques que tu joues, un éclair inflige 6 dégâts à tous les ennemis.', { stormblade: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));
@@ -344,12 +358,14 @@ export const COMMON_POOL: string[] = [
 /** Les effets qui ne servent qu'à certaines classes (les Attaques et la rage au Guerrier, les Sorts au Mage et au Démoniste…). */
 const KEY_CLASSES: Partial<Record<keyof ItemEffects, string[]>> = {};
 for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage'] as const) KEY_CLASSES[k] = ['guerrier'];
-// Les bonus aux Attaques servent au Guerrier et au Voleur.
-for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur'];
+// Les bonus aux Attaques servent au Guerrier, au Voleur et au Paladin.
+for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin'];
+for (const k of ['wisdomBonus', 'purifyFree', 'blessedHealBlock', 'devotionBonus', 'consecrationLong', 'retributionFree', 'judgeCd', 'sealsFree', 'holyBonus', 'vengeanceDivine', 'doubleSeal', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
 for (const k of ['sinisterBonus', 'poisonBonus', 'evisBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
 for (const k of ['startCharges', 'burnBonus', 'firstSpellFree'] as const) KEY_CLASSES[k] = ['mage'];
-KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre'];
-for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'healBonus', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
+KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin'];
+for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
+KEY_CLASSES.healBonus = ['pretre', 'paladin'];
 KEY_CLASSES.allyBonus = ['demoniste'];
 KEY_CLASSES.freePact = ['demoniste'];
 KEY_CLASSES.dotDuration = ['demoniste', 'pretre'];

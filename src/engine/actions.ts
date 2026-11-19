@@ -5,6 +5,7 @@ import { random, shuffle } from './rng';
 import { demonOnDeath, soulstoneRise } from './demoniste';
 import { absorbAegis, gainAegis, gainFaith } from './pretre';
 import { onRogueHit, rogueOnDeath } from './voleur';
+import { isPaladin, lastOath, onPaladinHit, paladinAttackBonus, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
 export function emptyDebuffs(): PlayerDebuffs {
@@ -71,6 +72,8 @@ export function healPlayer(c: CombatState, amount: number): number {
   const d = p.debuffs;
   const priest = c.aegis !== undefined;
   let heal = amount;
+  const paladin = isPaladin(c) && heal > 0;
+  if (paladin) heal = paladinHealAmount(c, heal);
   if (priest && heal > 0) {
     heal += c.gear?.healBonus ?? 0; // Soins améliorés
     if (c.gear?.equinoxe && !c.shadowForm) heal += 3; // Équinoxe (Lumière)
@@ -86,6 +89,7 @@ export function healPlayer(c: CombatState, amount: number): number {
   if ((d?.peste ?? 0) > 0 || d?.afflictions?.includes('verte')) heal = Math.floor(heal / 2);
   const healed = Math.max(0, Math.min(heal, p.maxHp - p.hp));
   p.hp += healed;
+  if (paladin) paladinOnHeal(c, healed);
   if (priest && heal > 0) {
     c.healedFlag = true;
     // Rien n'est perdu : le soin en trop devient de l'Égide (la moitié, ou tout avec Esprit de guérison).
@@ -167,6 +171,9 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
     if (c.playing!.opener) dmg += g.openerBonus ?? 0;
     if ((target.stun ?? 0) > 0 || (target.sap ?? 0) > 0 || (target.buffs.peur ?? 0) > 0 || (target.mouton ?? 0) > 0) dmg += power(c, 'opportuniste');
   }
+  // Paladin : les Sceaux, Croisade, Conviction, Vengeance divine.
+  const paladinAttack = isPaladin(c) && c.playing?.type === 'Attaque';
+  if (paladinAttack) dmg += paladinAttackBonus(c, target);
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
@@ -183,6 +190,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (rogueAttack && target.vendetta) dmg *= 1.5;
   if (rogueAttack && c.coldBlood) dmg *= 2;
+  if (paladinAttack && p.divineShield) dmg *= 0.5; // Bouclier divin
+  if (spell && c.favor && isPaladin(c)) dmg *= 2; // Faveur divine
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   return Math.max(0, Math.floor(dmg));
 }
@@ -204,6 +213,8 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
   if (spell && dmg >= 10 && power(c, 'embrasement') && !target.dead) applyBrulure(c, target, power(c, 'embrasement'));
   // Voleur : le Poison de la cible, puis le Poison d'arme.
   if (c.combo !== undefined && c.playing?.type === 'Attaque') onRogueHit(c, target);
+  // Paladin : le Sceau de vengeance applique la Censure.
+  if (isPaladin(c) && c.playing?.type === 'Attaque') onPaladinHit(c, target);
   return dmg;
 }
 
@@ -338,6 +349,7 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
   onEnemyDeath(c, target);
   demonOnDeath(c, target, !!c.petActing);
   rogueOnDeath(c, target);
+  paladinOnDeath(c);
   // Implacable : tuer un ennemi rend de la rage et pioche (pendant ton tour).
   if (!c.enemyActing && c.phase === 'player') {
     if (c.gear?.killRage) gainRage(c, c.gear.killRage);
@@ -392,6 +404,8 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
   p.hp -= hpLoss;
   // Égide des anciens : les PV ne descendent pas sous 1.
   if ((c.undying ?? 0) > 0 && p.hp < 1) p.hp = 1;
+  // Dernier serment (Paladin) : sous 20 % des PV max, une fois par combat.
+  if (hpLoss > 0) lastOath(c);
   // Ange gardien : une fois par combat, on reste à 1 PV et on est soigné.
   if (p.hp <= 0 && power(c, 'ange_gardien') && !c.angelUsed) {
     c.angelUsed = true;

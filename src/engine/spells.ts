@@ -3,7 +3,8 @@
 import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, healPlayer, isBossEnemy, livingEnemies, log, playerAttack, power } from './actions';
 import { loseHp, petAct } from './demoniste';
 import { dispelMagic, dispelPoison, gainAegis } from './pretre';
-import { applyPoison, enterStealth } from './voleur';
+import { applyPoison, enterStealth, stun } from './voleur';
+import { activateSeal, dispelAll, judge, palHeal } from './paladin';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -29,6 +30,8 @@ export interface SpellDef {
   shardCost?: number;
   /** La classe du sort (guerrier par défaut). */
   classId?: string;
+  /** Une condition en plus pour pouvoir lancer le sort (Imposition des mains). */
+  usable?: (c: CombatState) => boolean;
   text: string;
   cast: (c: CombatState, target: EnemyState | null) => void;
 }
@@ -485,6 +488,90 @@ const VOLEUR_SPELLS: SpellDef[] = [
 ];
 for (const d of VOLEUR_SPELLS) SPELLS[d.id] = { ...d, classId: 'voleur' };
 
+/** Les sorts de barre du Paladin. Référence : docs/classes/PALADIN.md (§6) */
+const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
+  {
+    id: 'jugement', name: 'Jugement', cost: 0, cooldown: 3, needsTarget: true, icon: 'etoile',
+    text: 'Consomme ton Sceau actif et déclenche son effet de Jugement. Sans Sceau actif, inflige 6 dégâts.',
+    cast: (c, target) => judge(c, target),
+  },
+  {
+    id: 'imposition_mains', name: 'Imposition des mains', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'coeur',
+    text: 'Seulement sous 30 % de tes PV : soigne 30 % de tes PV max. Une fois par combat.',
+    usable: (c) => c.player.hp < c.player.maxHp * 0.3,
+    cast: (c) => {
+      palHeal(c, Math.floor(c.player.maxHp * 0.3));
+    },
+  },
+  {
+    id: 'purification_pal', name: 'Purification', cost: 0, cooldown: 3, needsTarget: false, icon: 'etoile',
+    text: 'Dissipation (Magie, Poison, Maladie).',
+    cast: (c) => {
+      dispelMagic(c);
+      dispelPoison(c);
+      fx(c, { kind: 'buff', who: 'player', label: 'Purification' });
+    },
+  },
+  {
+    id: 'bouclier_divin', name: 'Bouclier divin', cost: 1, cooldown: 7, needsTarget: false, icon: 'bouclier',
+    text: 'Tu es immunisé à tous les dégâts jusqu\'à ton prochain tour. Tes Attaques infligent 50 % de dégâts en moins ce tour-ci.',
+    cast: (c) => {
+      c.player.iceBlock = true;
+      c.player.divineShield = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Bouclier divin' });
+    },
+  },
+  {
+    id: 'marteau_jugement', name: 'Marteau du jugement', cost: 1, cooldown: 4, needsTarget: true, icon: 'epee',
+    text: 'Interruption. Inflige 6 dégâts. La cible (sauf boss) est Contrôlée 1 tour.',
+    cast: (c, target) => {
+      if (!target) return;
+      if (isInterruptible(target.intent) && !target.interrupted) {
+        target.interrupted = true;
+        fx(c, { kind: 'interrupt', who: target.uid });
+        log(c, `${target.name} est interrompu !`);
+      }
+      playerAttack(c, target, 6);
+      if (!target.dead) stun(c, target, 1);
+    },
+  },
+  {
+    id: 'ailes_justice', name: 'Ailes de justice', cost: 0, cooldown: 6, needsTarget: false, icon: 'hausse',
+    text: 'Gagne 2 Puissance pendant 3 tours.',
+    cast: (c) => {
+      if ((c.wings ?? 0) === 0) c.player.puissance += 2;
+      c.wings = 3;
+      fx(c, { kind: 'buff', who: 'player', label: 'Ailes de justice' });
+    },
+  },
+  // Sorts de loot
+  {
+    id: 'benediction_sauvegarde', name: 'Bénédiction de sauvegarde', cost: 0, cooldown: 4, needsTarget: false, icon: 'bouclier',
+    text: 'Gagne 12 blocage. Dissipation (Poison).',
+    cast: (c) => {
+      gainBlock(c, 12, false);
+      dispelPoison(c);
+    },
+  },
+  {
+    id: 'charge_sacree', name: 'Charge sacrée', cost: 0, cooldown: 3, needsTarget: true, icon: 'charge',
+    text: 'Inflige 8 dégâts et active le Sceau du croisé.',
+    cast: (c, target) => {
+      if (target) playerAttack(c, target, 8);
+      activateSeal(c, 'croise');
+    },
+  },
+  {
+    id: 'lumiere_aube', name: 'Lumière de l\'aube', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'etoile',
+    text: 'Dissipation de tous les types. Soigne 6 PV. Une fois par combat.',
+    cast: (c) => {
+      dispelAll(c);
+      palHeal(c, 6);
+    },
+  },
+];
+for (const d of PALADIN_SPELLS) SPELLS[d.id] = { ...d, classId: 'paladin' };
+
 /** La classe d'un sort de barre. */
 export function spellClass(id: string): string {
   return SPELLS[id]?.classId ?? 'guerrier';
@@ -495,12 +582,13 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
   let cd = def.cooldown;
   if (def.id === 'combustion' || def.id === 'souffle_ardent') cd -= g?.fireSpellCd ?? 0;
   if (def.id === 'carapace_de_glace') cd -= g?.iceBlockCd ?? 0;
+  if (def.id === 'jugement') cd -= g?.judgeCd ?? 0; // Jugements rapides
   return Math.max(1, cd);
 }
 
 /** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
-  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint']);
+  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
 }
 

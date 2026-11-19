@@ -26,6 +26,7 @@ import { CARDS, energyCost, isEthereal, shardCost, type PlayContext } from './ca
 import { decayCurses, felhunterLock, felhunterStart, petAct, triggerDots } from './demoniste';
 import { BASE_AEGIS, BASE_FAITH, gainAegis, gainFaith } from './pretre';
 import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStrike } from './voleur';
+import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
@@ -65,6 +66,8 @@ export function createCombat(
     ...(classId === 'pretre' ? { aegis: 0, maxAegis: gear.maxAegis ?? BASE_AEGIS, faith: 0, maxFaith: gear.maxFaith ?? BASE_FAITH } : {}),
     // Le Voleur commence chaque combat Camouflé (2 tours avec Ombres profondes ou Ténèbres).
     ...(classId === 'voleur' ? { combo: Math.min(5, gear.startCombo ?? 0), stealth: true, stealthTurns: gear.longStealth ? 2 : 1, stormCount: 0 } : {}),
+    // Le Paladin commence sans Sceau ni Aura.
+    ...(classId === 'paladin' ? { seals: [], aura: null, blockedSince: 0, zealGained: 0 } : {}),
     enemies: [],
     draw: [],
     hand: [],
@@ -235,6 +238,8 @@ export function startPlayerTurn(c: CombatState): void {
     c.openersFree = false;
     p.evasion = false;
   }
+  // Paladin : Fervent, Ailes de justice, Grâce du croisé ; le Sceau de sagesse fait piocher.
+  const wisdomDraw = isPaladin(c) ? paladinStartTurn(c) : 0;
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
@@ -258,7 +263,7 @@ export function startPlayerTurn(c: CombatState): void {
     p.energy += 1;
     p.distortion = false;
   }
-  drawCards(c, Math.max(0, 5 + manaDraw + distortion + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
+  drawCards(c, Math.max(0, 5 + manaDraw + distortion + wisdomDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
   const d = (p.debuffs ??= emptyDebuffs());
   startTurnAct2(c);
@@ -495,6 +500,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
       applySaignement(target, power(c, 'entaille_profonde'), c);
     }
   }
+  // Paladin : Sceau de lumière et du rempart, Faveur divine, Science du combat.
+  if (isPaladin(c)) afterPaladinCard(c, def, attack);
   // Voix de stentor : les Cris donnent plus de rage et démoralisent plus longtemps.
   if (c.gear?.shoutBonus && SHOUTS.has(card.id)) {
     gainRage(c, c.gear.shoutBonus);
@@ -534,6 +541,7 @@ export function canUseSpell(c: CombatState, index: number): boolean {
   const s = c.spells[index];
   if (!s || c.phase !== 'player') return false;
   const def = SPELLS[s.id];
+  if (def.usable && !def.usable(c)) return false;
   return s.cooldown === 0 && def.cost <= c.player.energy && (def.shardCost ?? 0) <= (c.shards ?? 0);
 }
 
@@ -548,7 +556,7 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   if (target) c.lastTarget = target.uid;
   // Les sorts de barre du Mage et du Démoniste sont des Sorts (bonus aux Sorts, Malédiction des éléments).
   const spellClass = def.classId ?? 'guerrier';
-  if (spellClass !== 'guerrier' && spellClass !== 'voleur') c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
+  if (spellClass !== 'guerrier' && spellClass !== 'voleur' && spellClass !== 'paladin') c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
   def.cast(c, target);
   c.playing = undefined;
   s.cooldown = def.once ? 999 : spellCooldown(def, c.gear);
@@ -576,7 +584,9 @@ export function endTurn(c: CombatState): void {
 
   // Les Zones de feu encore en main brûlent le joueur.
   const zones = c.hand.filter((card) => card.id === 'zone_de_feu');
-  const zoneDmg = c.fireProof ? 0 : Math.round(6 * (1 - Math.min(100, c.gear?.zoneReduce ?? 0) / 100));
+  // Aura de résistance (Paladin) : les Zones de feu font moitié moins mal.
+  const zoneCut = (c.gear?.zoneReduce ?? 0) + (c.aura?.id === 'resistance' ? 50 : 0);
+  const zoneDmg = c.fireProof ? 0 : Math.round(6 * (1 - Math.min(100, zoneCut) / 100));
   for (let i = 0; i < zones.length; i++) {
     log(c, `Tu restes dans le feu : ${zoneDmg} dégâts.`);
     if (zoneDmg > 0) {
@@ -646,6 +656,9 @@ export function endTurn(c: CombatState): void {
     if (c.stealthTurns <= 0) breakStealth(c);
   }
   c.shadowStep = false;
+  // Paladin : la Consécration brûle le sol.
+  if (isPaladin(c)) paladinEndTurn(c);
+  if (c.phase !== 'player') return;
   // Le familier agit, puis le Seigneur infernal ; le Molosse guette les incantations.
   petAct(c);
   if (c.infernal && c.phase === 'player') {
@@ -663,7 +676,8 @@ export function endTurn(c: CombatState): void {
 
 function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent = e.intent): number {
   const d = c.player.debuffs;
-  let dmg = base + e.buffs.puissance + (e.giant ? 5 : 0) + 2 * (d?.ombre ?? 0) + (c.gear?.extraHurt ?? 0) - (e.fatigue ?? 0);
+  // Sanctuaire (Paladin) : chaque attaque ennemie inflige moins de dégâts.
+  let dmg = base + e.buffs.puissance + (e.giant ? 5 : 0) + 2 * (d?.ombre ?? 0) + (c.gear?.extraHurt ?? 0) - (e.fatigue ?? 0) - power(c, 'sanctuaire');
   if ((d?.fracasse ?? 0) > 0) dmg *= 1.5;
   if (d?.afflictions?.includes('noire')) dmg *= 1.2;
   if (intent.kind === 'attack' && intent.breath && c.gear?.breathReduce) dmg *= 1 - c.gear.breathReduce / 100;
@@ -715,6 +729,8 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         const blockBefore = c.player.block;
         fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(blockBefore, dmg), ranged: !!intent.cast });
         const lost = damagePlayer(c, dmg, true);
+        // Paladin : épines sacrées, Pavois, Bouclier du croisé, Fervent, Juste châtiment.
+        paladinOnAttacked(c, e, dmg, blockBefore - c.player.block, lost);
         if (intent.stealGold && lost > 0) {
           c.goldStolen = (c.goldStolen ?? 0) + intent.stealGold;
           fx(c, { kind: 'buff', who: e.uid, label: `Avale ${intent.stealGold} or !` });
@@ -914,6 +930,11 @@ function enemyTurnInner(c: CombatState): void {
       e.buffs.saignementTours -= 1;
       if (e.buffs.saignementTours === 0) e.buffs.saignement = 0;
       if (e.dead) continue;
+    }
+    // La Censure du Paladin
+    if ((e.buffs.censure ?? 0) > 0) {
+      censureTick(c, e);
+      if (e.dead || c.phase !== 'player') continue;
     }
     // Les DoT du Démoniste
     if (e.dots?.length) {
@@ -1129,6 +1150,9 @@ function lineageCurse(c: CombatState): void {
     log(c, 'Malédiction de lignée : tes points de combo s\'envolent, et tu n\'en gagnes plus pendant 2 tours.');
   } else if (c.classId === 'pretre') {
     log(c, 'Malédiction de lignée : pendant 2 tours, tes soins te blessent au lieu de te soigner.');
+  } else if (c.classId === 'paladin') {
+    c.seals = [];
+    log(c, 'Malédiction de lignée : ton Sceau se brise, et tu ne peux plus en activer pendant 2 tours.');
   } else if (c.classId === 'demoniste') {
     log(c, 'Malédiction de lignée : pendant 2 tours, ton familier se retourne contre toi.');
   } else {
@@ -1145,15 +1169,17 @@ function startTurnAct2(c: CombatState): void {
     fx(c, { kind: 'tick', who: 'player', amount: c.gear.turnSelfDamage, label: 'Magma' });
     damagePlayer(c, c.gear.turnSelfDamage, false);
   }
+  // Aura de résistance (Paladin) : les DoT ennemis font moitié moins mal.
+  const dot = c.aura?.id === 'resistance' ? 1 : 2;
   if ((d.toxine ?? 0) > 0) {
     d.toxine! -= 1;
-    fx(c, { kind: 'tick', who: 'player', amount: 2, label: 'Toxine' });
-    log(c, 'La Toxine te ronge : 2 dégâts.');
-    damagePlayer(c, 2, false);
+    fx(c, { kind: 'tick', who: 'player', amount: dot, label: 'Toxine' });
+    log(c, `La Toxine te ronge : ${dot} dégât${dot > 1 ? 's' : ''}.`);
+    damagePlayer(c, dot, false);
   }
   if (d.afflictions?.includes('rouge')) {
-    fx(c, { kind: 'tick', who: 'player', amount: 2, label: 'Sang rouge' });
-    damagePlayer(c, 2, false);
+    fx(c, { kind: 'tick', who: 'player', amount: dot, label: 'Sang rouge' });
+    damagePlayer(c, dot, false);
   }
   // Malédiction de lignée du Guerrier : forcé en Berserker.
   if ((d.lignee ?? 0) > 0 && (c.classId ?? 'guerrier') === 'guerrier') p.posture = 'berserker';

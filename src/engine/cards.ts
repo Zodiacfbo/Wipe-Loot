@@ -25,6 +25,7 @@ import { MAGE_CARDS } from './cards_mage';
 import { DEMONISTE_CARDS } from './cards_demoniste';
 import { PRETRE_CARDS } from './cards_pretre';
 import { VOLEUR_CARDS } from './cards_voleur';
+import { PALADIN_CARDS } from './cards_paladin';
 
 export interface PlayContext {
   c: CombatState;
@@ -66,6 +67,9 @@ export interface CardDef {
   /** Voleur : Ouverture (jouable seulement en Camouflage) et finisher (consomme tous les points de combo). */
   opener?: boolean;
   finisher?: boolean;
+  /** Paladin : une carte Sceau, une carte de soin (Science du combat). */
+  seal?: boolean;
+  healCard?: boolean;
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
@@ -697,7 +701,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   },
 };
 
-export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS, ...VOLEUR_CARDS };
+export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS, ...VOLEUR_CARDS, ...PALADIN_CARDS };
 
 /** La classe d'une carte. */
 export function cardClass(id: string): string {
@@ -732,6 +736,9 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   if (c.gear?.firstCardFree && !c.firstCardDone && !def.unplayable) return 0;
   // Plan parfait : les Ouvertures coûtent 0 ce tour-ci.
   if (def.opener && c.openersFree) return 0;
+  // Paladin : Sceaux bénis, Science du combat, Purification rapide, Rétribution.
+  const g = c.gear ?? {};
+  if ((def.seal && g.sealsFree) || (def.healCard && c.healFree) || (id === 'lumiere_purificatrice' && g.purifyFree) || (id === 'juste_chatiment' && g.retributionFree)) return 0;
   let cost = up && def.costUp !== undefined ? def.costUp : def.cost;
   const d = c.player.debuffs;
   if (d && (d.impie > 0 || d.afflictions?.includes('bleue')) && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie, Affliction bleue

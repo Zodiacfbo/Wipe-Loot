@@ -18,8 +18,8 @@ export interface EnemyDef {
   cycleLow?: Intent[];
   /** Ce que l'ennemi fait en permanence, affiché sous son nom. */
   passive?: string;
-  /** Dragon, Mort-vivant, Humanoïde, Expérience (acte 2). */
-  tags?: ('dragon' | 'mortvivant' | 'humanoide' | 'experience')[];
+  /** Dragon, Mort-vivant, Humanoïde, Expérience (acte 2), Démon. */
+  tags?: ('dragon' | 'mortvivant' | 'humanoide' | 'experience' | 'demon')[];
   /** Mutation : tirée au hasard au début du combat, active sous 50 % de PV. */
   mutation?: boolean;
   /** Commence le combat avec cette part de ses PV (Ysolde). */
@@ -36,7 +36,7 @@ export const TUNING = {
 
 const ENEMIES_ACTE1: Record<string, EnemyDef> = {
   molosse: {
-    id: 'molosse', name: 'Molosse de braise', hpMin: 18, hpMax: 22,
+    id: 'molosse', name: 'Molosse de braise', hpMin: 18, hpMax: 22, tags: ['demon'],
     cycle: [
       { kind: 'attack', dmg: 6 },
       { kind: 'attack', dmg: 6 },
@@ -98,7 +98,7 @@ const ENEMIES_ACTE1: Record<string, EnemyDef> = {
     ],
   },
   morvax: {
-    id: 'morvax', name: 'Morvax le Maudisseur', hpMin: 85, hpMax: 85, elite: true,
+    id: 'morvax', name: 'Morvax le Maudisseur', hpMin: 85, hpMax: 85, elite: true, tags: ['demon'],
     passive: 'Sous 50 % de PV : ajoute la Malédiction de l\'impie à son cycle.',
     cycle: [
       { kind: 'curse', label: 'Malédiction de faiblesse', demoralise: 4 },
@@ -115,7 +115,7 @@ const ENEMIES_ACTE1: Record<string, EnemyDef> = {
     ],
   },
   croc: {
-    id: 'croc', name: 'Croc-de-lave', hpMin: 90, hpMax: 90, elite: true,
+    id: 'croc', name: 'Croc-de-lave', hpMin: 90, hpMax: 90, elite: true, tags: ['demon'],
     passive: 'Sous 50 % de PV : ses Morsures frappent deux fois.',
     cycle: [
       { kind: 'attack', dmg: 10 },
@@ -177,7 +177,7 @@ const ENEMIES_ACTE1: Record<string, EnemyDef> = {
   },
   molosse_enrage: {
     // Tant que Krâgg est en vie, se relève 2 tours après sa mort avec la moitié de ses PV.
-    id: 'molosse_enrage', name: 'Molosse enragé', hpMin: 24, hpMax: 24,
+    id: 'molosse_enrage', name: 'Molosse enragé', hpMin: 24, hpMax: 24, tags: ['demon'],
     passive: 'Se relève 2 tours après sa mort, tant que Krâgg est en vie.',
     cycle: [{ kind: 'attack', dmg: 5 }],
   },

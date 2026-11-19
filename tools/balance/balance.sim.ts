@@ -33,6 +33,10 @@ const PROFILES_ALL: { name: string; talents: string[]; cls?: string }[] = [
   { name: 'Prêtre niveau 5 (Discipline 3, Sacré 2)', talents: alloc({ discipline: ['A', 'A', 'A'], sacre: ['A', 'B'] }, 'pretre'), cls: 'pretre' },
   { name: 'Prêtre niveau 10 (Discipline 5, Sacré 5)', talents: alloc({ discipline: ['A', 'A', 'A', 'A', 'A'], sacre: ['A', 'B', 'A', 'B', 'A'] }, 'pretre'), cls: 'pretre' },
   { name: 'Prêtre niveau 10 (Ombre 5, Sacré 5)', talents: alloc({ ombre: ['A', 'A', 'B', 'A', 'A'], sacre: ['A', 'B', 'A', 'B', 'A'] }, 'pretre'), cls: 'pretre' },
+  { name: 'Paladin niveau 1 (aucun talent)', talents: [], cls: 'paladin' },
+  { name: 'Paladin niveau 5 (Vindicte 3, Sacré 2)', talents: alloc({ vindicte: ['A', 'A', 'A'], sacre_pal: ['A', 'B'] }, 'paladin'), cls: 'paladin' },
+  { name: 'Paladin niveau 10 (Vindicte 5, Sacré 5)', talents: alloc({ vindicte: ['A', 'A', 'A', 'A', 'A'], sacre_pal: ['A', 'B', 'A', 'A', 'A'] }, 'paladin'), cls: 'paladin' },
+  { name: 'Paladin niveau 10 (Protection 5, Sacré 5)', talents: alloc({ protection_pal: ['A', 'A', 'A', 'B', 'A'], sacre_pal: ['A', 'B', 'A', 'A', 'A'] }, 'paladin'), cls: 'paladin' },
   { name: 'Mage niveau 10 (Arcane 5, Feu 5)', talents: mage({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }), cls: 'mage' },
 ];
 

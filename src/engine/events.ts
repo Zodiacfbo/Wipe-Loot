@@ -22,8 +22,8 @@ export interface EventDef {
   available?: (run: RunState) => boolean;
   /** L'acte où il se trouve (1 par défaut). */
   act?: number;
-  /** Une étape de quête légendaire : il passe avant les autres événements. */
-  quest?: boolean;
+  /** Une étape de quête légendaire : il passe avant les autres événements (ou seulement pour certaines runs). */
+  quest?: boolean | ((run: RunState) => boolean);
 }
 
 const hasCurse = (run: RunState) => run.deck.some((c) => c.id === 'malediction');
@@ -166,11 +166,14 @@ export const EVENTS: Record<string, EventDef> = {
   },
   reliquaire: {
     id: 'reliquaire', act: 2,
+    // Pour le Paladin, la crypte cache la Lame ternie : elle passe avant les autres événements.
+    quest: (run) => run.classId === 'paladin' && !run.aurore,
     title: 'Le reliquaire profané',
     text: 'Une crypte où Vhaeryx entasse les reliques volées aux temples de la vallée. L\'air y est lourd de prières oubliées.',
     choices: [
       { label: 'Purifier le reliquaire', detail: 'Retire une Malédiction de ton deck.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
       { label: 'Le piller', detail: 'Gagne 100 or, mais une Malédiction rejoint ton deck.' },
+      { label: 'Descendre au fond de la crypte', detail: 'Tu trouves la Lame ternie : quête légendaire l\'Aurore ardente, étape 1 sur 3.', locked: (run) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore ? 'Tu l\'as déjà' : null) },
     ],
   },
   laboratoire: {
