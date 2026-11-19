@@ -12,6 +12,9 @@ import {
   useSpell,
 } from './engine/combat';
 import { ENEMIES, TUNING, intentAt, isInterruptible } from './engine/enemies';
+import { AFFLICTIONS, GRIZZIK_POTIONS } from './engine/enemies_acte2';
+import { MUTATION_LABEL } from './engine/actions';
+import { ACTS, actDef } from './engine/acts';
 import { BLESSINGS, EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
@@ -38,6 +41,10 @@ import {
   chooseBlessing,
   campfireReforge,
   canReforge,
+  canBindStaff,
+  campfireBindStaff,
+  canRest,
+  startNextAct,
   LEGENDARY_MIN_ACT,
   retryAfterWipe,
   servicePrice,
@@ -85,6 +92,8 @@ interface UiState {
   potionSlot: number | null;
   shopPotion: number | null;
   campfireUpgrade: boolean;
+  /** Feu de camp : choisir la carte rare à sacrifier pour le Bâton du Veilleur. */
+  bindStaff?: boolean;
   shopMode: 'remove' | 'upgrade' | null;
   shopItem: number | null;
   /** Brégan : choix de la carte à retirer (Allègement). */
@@ -262,7 +271,7 @@ function topbar(run: RunState, hp: number): string {
       <span class="potions">${run.potions.map((id, i) => `<button type="button" class="potion-slot ${id ? '' : 'vide'}" ${id ? `data-action="potion" data-slot="${i}" aria-label="${POTIONS[id].name}" title="${POTIONS[id].name}"` : 'disabled aria-label="Emplacement de potion vide"'}>${potionIcon(id)}</button>`).join('')}</span>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-      <span class="etape">Les Profondeurs Ardentes · ${etageLabel(run)}</span>
+      <span class="etape">Acte ${run.act} · ${actDef(run.act).name} · ${etageLabel(run)}</span>
       <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Wipes ${pips} <span>${run.wipesLeft} restant${run.wipesLeft > 1 ? 's' : ''}</span></span>
     </div>
     <div class="groupe">
@@ -308,7 +317,12 @@ function questTracker(run: RunState): string {
   if (run.sourcesQuest === 'active') lines.push('<b>Gardiens des Sources</b> : bats le prochain boss secondaire, il portera la rune.');
   if (run.sourcesQuest === 'rune') lines.push('<b>Gardiens des Sources</b> : bats le boss qui porte la rune.');
   if (run.sourcesQuest === 'done') lines.push('<b>Eau des profondeurs</b> : Vulkhar commencera affaibli.');
-  if (run.brisemonts === 'lame') lines.push(run.map.nodes.some((n) => n.type === 'elite' && n.elite === KRAGG_INDEX)
+  if (run.veilleur === 'fragment') lines.push(run.act >= 2 ? '<b>Bâton du Veilleur</b> : trouve l\'observatoire en ruine (un « ? » de l\'acte 2).' : '<b>Bâton du Veilleur</b> : garde le Fragment. L\'esprit du Veilleur t\'attend à l\'acte 2.');
+  if (run.veilleur === 'tete') lines.push('<b>Bâton du Veilleur</b> : lie les fragments au prochain feu de camp (une carte rare à sacrifier).');
+  if (run.eggsLeft && run.act === 2) lines.push('<b>Les œufs de dragon</b> : Vhaeryx aura un add de plus à chaque vague.');
+  if ((run.stargazing ?? 0) > 0) lines.push(`<b>Les étoiles</b> : tu vois les intentions suivantes pendant ${run.stargazing} combat${run.stargazing > 1 ? 's' : ''}.`);
+  if (run.brisemonts === 'lame' && run.act > 1) lines.push('<b>Brisemonts</b> : Krâgg n\'a pas été vaincu. La quête ne pourra pas être terminée cette fois.');
+  else if (run.brisemonts === 'lame') lines.push(run.map.nodes.some((n) => n.type === 'elite' && n.elite === KRAGG_INDEX)
     ? '<b>Brisemonts</b> : bats Krâgg le Mange-roche pour obtenir le Cœur de la montagne.'
     : '<b>Brisemonts</b> : Krâgg n\'est pas sur cette carte. La quête ne pourra pas être terminée cette fois.');
   if (run.brisemonts === 'coeur') lines.push(run.act >= LEGENDARY_MIN_ACT ? '<b>Brisemonts</b> : reforge l\'épée au prochain feu de camp.' : `<b>Brisemonts</b> : garde la Lame et le Cœur. Tu pourras reforger l'épée à un feu de camp de l'acte ${LEGENDARY_MIN_ACT}.`);
@@ -528,6 +542,13 @@ function enemyChips(e: EnemyState): string {
   if (e.gele) chips.push(`<span class="chip gel" title="${e.gele === 'skip' ? 'Perd son prochain tour' : 'Prochaine attaque réduite de moitié'}">Gelé${e.gele === 'half' ? ' : attaque ÷ 2' : ''}</span>`);
   if (e.mouton) chips.push(`<span class="chip debuff" title="Ne fait rien ; reprend forme s'il est blessé">Mouton ${e.mouton}</span>`);
   if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
+  if (e.flying) chips.push('<span class="chip" title="Tes Attaques à cible unique ne peuvent pas le viser (les Sorts et les zones, si)">En vol</span>');
+  if (e.mutations?.length) chips.push(`<span class="chip ${e.mutated ? 'debuff' : ''}" title="${e.mutated ? 'Mutation active' : 'Sous 50 % de PV'}">${e.mutated ? 'Muté' : 'Mutation à 50 %'} : ${e.mutations.map((m) => MUTATION_LABEL[m]).join(', ')}</span>`);
+  if (e.breaths) chips.push(`<span class="chip">Souffles : ${e.breaths.map((b) => ({ brulant: 'brûlant', corrosif: 'corrosif', glacial: 'glacial', foudre: 'de foudre', chair: 'de chair' } as Record<string, string>)[b]).join(' et ')}</span>`);
+  if (e.giant) chips.push(`<span class="chip">Géant : +5 dégâts (${e.giant} tours)</span>`);
+  if (e.haste) chips.push('<span class="chip">Vitesse : agit deux fois</span>');
+  if (e.defId === 'ossyrax' && !e.revived) chips.push('<span class="chip">Deux vies</span>');
+  if (e.defId === 'skarn' && (e.phase ?? 1) === 1) chips.push('<span class="chip">Immunisé (Œufs)</span>');
   if (ui.run?.encounter?.rune && ENEMIES[e.defId].elite) chips.push('<span class="chip rune">Rune des Sources</span>');
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
   if (e.disarmed) chips.push('<span class="chip debuff">Désarmé</span>');
@@ -546,7 +567,10 @@ function intentShort(i: Intent): string {
     case 'heal': return `Soin ${i.amount}`;
     case 'curse': return i.label;
     case 'summon': return i.label;
-    case 'blink': return 'Clignement';
+    case 'blink': return i.flight ? 'Envol' : 'Clignement';
+    case 'idle': return i.label;
+    case 'hatch': return i.label;
+    case 'potion': return i.label;
   }
 }
 
@@ -560,6 +584,7 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   if (i.panic) parts.push(`${i.panic} cartes Paniquées au prochain tour`);
   if (i.fardeau) parts.push(`${i.fardeau} Fardeaux dans ta pioche`);
   if (i.bomb) parts.push('une Bombe vivante dans ta main');
+  if (i.lignee) parts.push(ui.run?.classId === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes' : 'Malédiction de lignée : forcé en posture Berserker 2 tours');
   const text = parts.join(', ');
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -579,6 +604,9 @@ function intentNow(c: CombatState, e: EnemyState): string {
       i.kind === 'attack'
         ? `${previewIntentDamage(c, e)} dégâts à la fin de ce tour${i.drawPenalty ? `, et tu pioches ${i.drawPenalty} cartes de moins` : ''}`
         : i.kind === 'heal' ? `Soigne un allié de ${i.amount} PV à la fin de ce tour`
+        : i.kind === 'potion' ? `${GRIZZIK_POTIONS[i.potion].split(' : ')[1]}, à la fin de ce tour`
+        : i.kind === 'hatch' ? 'Tous les Œufs éclosent à la fin de ce tour'
+        : i.kind === 'curse' ? curseText(i)
         : 'Prend effet à la fin de ce tour';
     const locked = !isInterruptible(i);
     return `<div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
@@ -588,7 +616,8 @@ function intentNow(c: CombatState, e: EnemyState): string {
       const dmg = previewIntentDamage(c, e) ?? 0;
       const times = i.times && i.times > 1 ? ` × ${i.times}` : '';
       const zone = i.addZone ? ' + Zone de feu' : i.stealGold ? ` + vole ${i.stealGold} or` : '';
-      return `<div class="intention">${ICON.epee}<span>${dmg}${times}${zone}</span></div>`;
+      const extra = i.effect ? ` + ${i.effect.label}` : '';
+      return `<div class="intention">${ICON.epee}<span>${dmg}${times}${zone}${extra}</span></div>`;
     }
     case 'block':
       return `<div class="intention defense">${ICON.bouclier}<span>+${i.amount}</span></div>`;
@@ -601,7 +630,14 @@ function intentNow(c: CombatState, e: EnemyState): string {
     case 'summon':
       return `<div class="intention soutien">${ICON.hausse}<span>${i.label}</span></div>`;
     case 'blink':
+      if (i.flight) return `<div class="intention malediction">${ICON.charge}<span>Va s'envoler</span></div><div class="effet-intention">Pendant ton prochain tour, tes Attaques à cible unique ne pourront pas le viser (les Sorts et les zones, si)</div>`;
       return `<div class="intention malediction">${ICON.charge}<span>Va se dérober</span></div><div class="effet-intention">À la fin de ce tour, il Cligne : pendant ton prochain tour, tu ne pourras pas le cibler (les attaques de zone le touchent)</div>`;
+    case 'idle':
+      return `<div class="intention soutien"><span>${i.label}</span></div>`;
+    case 'hatch':
+      return `<div class="intention malediction">${ICON.hausse}<span>${i.label}</span></div><div class="effet-intention">${i.self ? 'Il éclôt en Dragonnet noir' : i.count === 'all' ? 'Tous les Œufs éclosent' : `${i.count} Œufs éclosent`}</div>`;
+    case 'potion':
+      return `<div class="intention soutien">${ICON.hausse}<span>${i.label}</span></div><div class="effet-intention">${GRIZZIK_POTIONS[i.potion].split(' : ')[1] ?? ''}</div>`;
   }
 }
 
@@ -655,6 +691,15 @@ function playerChips(c: CombatState): string {
   if (d?.manaBurn) chips.push(`<span class="chip debuff">Mana brûlé : −${d.manaBurn} énergie au prochain tour</span>`);
   if (d?.panic) chips.push(`<span class="chip debuff">Terreur : ${d.panic} cartes Paniquées au prochain tour</span>`);
   if (c.fireProof) chips.push('<span class="chip">Protégé du feu</span>');
+  if (d?.toxine) chips.push(`<span class="chip debuff" title="2 dégâts au début de tes prochains tours">Toxine ${d.toxine}</span>`);
+  if (d?.peste) chips.push(`<span class="chip debuff" title="Tes soins sont réduits de moitié">Peste ${d.peste}</span>`);
+  if (d?.ralenti) chips.push(`<span class="chip debuff" title="Tu gagnes 25 % de blocage en moins">Ralenti ${d.ralenti}</span>`);
+  if (d?.fracasse) chips.push(`<span class="chip debuff" title="Tu subis 50 % de dégâts en plus">Armure fracassée ${d.fracasse}</span>`);
+  if (d?.ombre) chips.push(`<span class="chip debuff" title="+2 dégâts par attaque reçue et par cumul, jusqu'à la fin du combat">Ombre rongeuse ${d.ombre}</span>`);
+  if (d?.lignee) chips.push(`<span class="chip debuff" title="Vhaeryx vise ta classe">Malédiction de lignée ${d.lignee}</span>`);
+  if (d?.discard) chips.push(`<span class="chip debuff">${d.discard} carte${d.discard > 1 ? 's' : ''} défaussée${d.discard > 1 ? 's' : ''} au prochain tour</span>`);
+  for (const a of d?.afflictions ?? []) chips.push(`<span class="chip debuff affliction-${a}" title="${AFFLICTIONS[a]}">Sang ${a}</span>`);
+  if (c.adrenaline && c.enemies.some((e) => e.defId === 'ysolde' && !e.dead)) chips.push(`<span class="chip brule" title="+3 énergie par tour">Adrénaline : −${c.adrenaline} PV en fin de tour</span>`);
   if (p.temerite) chips.push('<span class="chip">Témérité : +50 % / subis +25 %</span>');
   if (p.rempart) chips.push('<span class="chip">Rempart : dégâts ÷ 2</span>');
   if (p.fearless) chips.push('<span class="chip">Sans peur</span>');
@@ -700,14 +745,15 @@ function combatScreen(run: RunState, c: CombatState): string {
   const enemies = c.enemies.filter((e) => !e.dead && !e.submerged).map((e) => {
     const def = ENEMIES[e.defId];
     const big = e.defId === 'seigneur' || (def.elite && e.defId !== 'croc');
-    const small = e.defId === 'etincelle' || e.defId === 'rejeton' || e.defId === 'eclat';
-    const size = e.defId === 'vulkhar' ? 240 : big ? 192 : small ? 96 : 144;
+    const small = ['etincelle', 'rejeton', 'eclat', 'dragonnet', 'oeuf', 'oeuf_skarn', 'oeuf_vashka', 'serviteur_os'].includes(e.defId);
+    const size = e.defId === 'vulkhar' ? 240 : e.defId === 'vhaeryx' ? 208 : big ? 192 : small ? 96 : 144;
+    const sprite = e.defId === 'vhaeryx' && (e.phase ?? 1) >= 2 ? 'ennemi_vhaeryx_dragon.png' : `ennemi_${e.defId}.png`;
     const pct = Math.max(0, (e.hp / e.maxHp) * 100);
     const canTarget = targeting && !e.untargetable;
     const tag = canTarget ? 'button' : 'div';
     return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}, ${e.hp} PV">
       ${intentHtml(c, e)}
-      <img class="px" data-fx="${e.uid}" src="${A(`ennemi_${e.defId}.png`)}" alt="" style="width:${size}px;height:${size}px">
+      <img class="px" data-fx="${e.uid}" src="${A(sprite)}" alt="" style="width:${size}px;height:${size}px">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${e.hp} / ${e.maxHp}</span></div>
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${enemyChips(e)}</div>
@@ -817,7 +863,7 @@ function titleScreen(): string {
   const chosen = ui.heirloom !== null ? ITEMS[chest[ui.heirloom]] : null;
   const run = canContinue && saved ? `<div class="run-en-cours">
       <span class="butin-titre">Expédition en cours · ${classInfo(saved.classId).name}</span>
-      <p>${saved.position === null ? 'Entrée des Profondeurs' : `Étage ${saved.map.nodes[saved.position].floor + 1}/${FLOORS}`} · ${ICON.coeur} ${saved.hp}/${saved.maxHp} · ${ICON.piece} ${saved.gold} · ${saved.wipesLeft} wipe${saved.wipesLeft > 1 ? 's' : ''} restant${saved.wipesLeft > 1 ? 's' : ''}</p>
+      <p>Acte ${saved.act ?? 1} · ${saved.position === null ? 'Entrée' : `Étage ${saved.map.nodes[saved.position].floor + 1}/${FLOORS}`} · ${ICON.coeur} ${saved.hp}/${saved.maxHp} · ${ICON.piece} ${saved.gold} · ${saved.wipesLeft} wipe${saved.wipesLeft > 1 ? 's' : ''} restant${saved.wipesLeft > 1 ? 's' : ''}</p>
       <button type="button" class="gros-bouton" data-action="continuer">Continuer</button>
     </div>` : '';
   const stats = profile.stats;
@@ -834,9 +880,9 @@ function titleScreen(): string {
       <button type="button" class="bouton" data-action="classes">Classes${unlocks > 0 ? ` · ${unlocks} à débloquer` : ''}</button>
     </section>
     <section class="hall-expedition">
-      <span class="butin-titre">Acte 1</span>
-      <h2>Les Profondeurs Ardentes</h2>
-      <p>10 étages de lave et de cendres, 9 boss secondaires possibles, et Vulkhar, le Souverain des flammes, au bout du chemin.</p>
+      <span class="butin-titre">L'expédition · ${Object.keys(ACTS).length} actes</span>
+      <h2>${ACTS[1].name} → ${ACTS[2].name}</h2>
+      <p>Les Profondeurs Ardentes et Vulkhar, puis l'Aire de Vhaeryx au sommet du mont Durgal. 10 étages par acte, des boss secondaires différents à chaque expédition.</p>
       ${run}
       ${difficultyPicker()}
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">${canContinue ? 'Nouvelle expédition' : 'Partir en expédition'}</button>
@@ -1026,6 +1072,18 @@ function upgradePreview(run: RunState, uid: number, label: string, confirm: stri
   </div>`;
 }
 
+/** Entre deux actes : le boss est vaincu, on entre dans l'acte suivant. */
+function actScreen(run: RunState): string {
+  const next = actDef(run.act + 1);
+  return `${topbar(run, run.hp)}<div class="ecran ecran-acte">
+    <span class="butin-titre">Acte ${run.act} terminé</span>
+    <h1>${next.name}</h1>
+    <p class="texte-evenement">${next.intro}</p>
+    <p>Avant de repartir, la guilde panse tes blessures : <b>tes PV remontent au maximum</b>.</p>
+    <button type="button" class="gros-bouton" data-action="acte-suivant">Entrer dans l'acte ${run.act + 1}</button>
+  </div>`;
+}
+
 function campfireScreen(run: RunState): string {
   if (ui.campfireUpgrade && ui.upgradeUid !== null) {
     return `${topbar(run, run.hp)}${upgradePreview(run, ui.upgradeUid, 'Améliorer cette carte', 'data-action="ameliorer"')}`;
@@ -1042,14 +1100,28 @@ function campfireScreen(run: RunState): string {
       <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
     </div>`;
   }
+  if (ui.bindStaff) {
+    const cards = run.deck.map((card) => {
+      const ok = CARDS[card.id].rarity === 'rare';
+      return cardHtml(card, { action: ok ? `data-action="lier-baton" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
+    }).join('');
+    return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
+      <h2>Lier les fragments</h2>
+      <p>Le bâton exige un sacrifice : choisis une carte rare de ton deck. Elle disparaît, et le Bâton du Veilleur remplace ton arme.</p>
+      <div class="liste-deck">${cards}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
+    </div>`;
+  }
   const heal = campfireHealAmount(run);
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>Feu de camp</h2>
     <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
     ${canReforge(run) ? `<p class="texte-evenement classe">Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d'entraînement. L'épée remplacera ton arme actuelle.</p>${itemHtml('brisemonts')}` : ''}
+    ${canBindStaff(run) ? `<p class="texte-evenement classe">Tu poses le Fragment et la Tête du bâton près du feu. Les runes s'éveillent : le Veilleur attend un dernier sacrifice.</p>${itemHtml('baton_veilleur')}` : ''}
     <div class="actions">
       ${canReforge(run) ? '<button type="button" class="gros-bouton legendaire" data-action="reforger">Reforger Brisemonts</button>' : ''}
-      <button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>
+      ${canBindStaff(run) ? '<button type="button" class="gros-bouton legendaire" data-action="lier-fragments">Lier les fragments</button>' : ''}
+      ${canRest(run) ? `<button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>` : '<button type="button" class="gros-bouton" disabled>Repos impossible (Flamme captive)</button>'}
       <button type="button" class="gros-bouton secondaire" data-action="feu-ameliorer">Améliorer une carte</button>
     </div>
   </div>`;
@@ -1218,13 +1290,13 @@ function talentScreen(): string {
 function endScreen(run: RunState, victory: boolean): string {
   if (victory && !run.chestDone) {
     return `<div class="ecran" style="gap:14px">
-      <h1>Vulkhar est vaincu !</h1>
+      <h1>Vhaeryx est vaincu !</h1>
       ${chestPanel(run)}
     </div>`;
   }
   return `<div class="ecran" style="gap:14px">
-    <h1>${victory ? 'Vulkhar est vaincu !' : 'Fin de la run'}</h1>
-    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} wipe${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
+    <h1>${victory ? 'Vhaeryx est vaincu !' : 'Fin de la run'}</h1>
+    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes et l'Aire de Vhaeryx avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} wipe${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : `${actDef(run.act).name} ${run.act === 1 ? 'ont' : 'a'} eu raison de toi. La guilde enverra un autre champion.`}</p>
     ${run.summary ? summaryHtml(run.summary, run.classId) : ''}
     ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
     <div class="actions"><button type="button" class="gros-bouton" data-action="titre">Retour au hall de la guilde</button></div>
@@ -1338,11 +1410,14 @@ function overlayHtml(run: RunState | null): string {
 export function render(): void {
   const run = ui.run;
   if (!run) {
+    stage.dataset.acte = '1';
     stage.innerHTML = ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null);
     return;
   }
+  stage.dataset.acte = String(run.act ?? 1);
   let html = '';
   switch (run.screen) {
+    case 'act': html = actScreen(run); break;
     case 'map': html = mapScreen(run); break;
     case 'event': html = eventScreen(run); break;
     case 'blessing': html = blessingScreen(run); break;
@@ -1608,6 +1683,9 @@ function handleClick(ev: MouseEvent): void {
     case 'benediction-carte': chooseBlessing(run, 'allegement', Number(el.dataset.uid)); ui.blessingRemove = false; commit(); break;
     case 'benediction-retour': ui.blessingRemove = false; render(); break;
     case 'reforger': campfireReforge(run); commit(); break;
+    case 'lier-fragments': ui.bindStaff = true; render(); break;
+    case 'lier-baton': ui.bindStaff = false; campfireBindStaff(run, Number(el.dataset.uid)); commit(); break;
+    case 'acte-suivant': startNextAct(run); commit(); break;
     case 'acheter': buyCard(run, Number(el.dataset.index)); commit(); break;
     case 'service': ui.shopMode = el.dataset.service as 'remove' | 'upgrade'; render(); break;
     case 'service-carte':
@@ -1654,7 +1732,7 @@ function handleClick(ev: MouseEvent): void {
     case 'reparer': repairItem(run, el.dataset.slot as SlotKey); commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
-    case 'feu-retour': ui.campfireUpgrade = false; ui.upgradeUid = null; render(); break;
+    case 'feu-retour': ui.campfireUpgrade = false; ui.upgradeUid = null; ui.bindStaff = false; render(); break;
     case 'ameliorer': campfireUpgrade(run, Number(el.dataset.uid)); ui.campfireUpgrade = false; ui.upgradeUid = null; commit(); break;
     case 'retenter': retryAfterWipe(run); render(); commit(); break; // on affiche le combat avant la bannière « Objet brisé »
     case 'abandonner': abandonRun(run); commit(); break;
@@ -1674,7 +1752,7 @@ function fit(): void {
 const PRELOAD = [
   'guerrier.png', 'mage.png', 'vendeur_gobelin.png', 'bregan.png',
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
-  ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`),
+  ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),
 ];
 

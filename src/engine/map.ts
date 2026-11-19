@@ -1,6 +1,5 @@
 // La carte d'un acte : 10 étages, des chemins qui se croisent, un boss au bout.
 // Référence : docs/actes/ACTE1_PROFONDEURS_ARDENTES.md (§2)
-import { ELITE_ENCOUNTERS } from './enemies';
 import { random } from './rng';
 import type { HasRng } from './rng';
 
@@ -12,7 +11,7 @@ export interface MapNode {
   lane: number; // 0 à 3 (position verticale à l'écran)
   type: NodeType;
   next: number[]; // ids des nœuds de l'étage suivant
-  /** Boss secondaire de ce nœud (index dans ELITE_ENCOUNTERS), choisi dès la création de la carte. */
+  /** Boss secondaire de ce nœud (index dans la liste des boss secondaires de l'acte), choisi dès la création de la carte. */
   elite?: number;
 }
 
@@ -39,13 +38,27 @@ function weighted<T extends string>(s: HasRng, table: [T, number][]): T {
   return table[table.length - 1][0];
 }
 
-function typeForFloor(s: HasRng, floor: number, eliteWeight = 22): NodeType {
+/** La forme de la carte d'un acte : la part de chaque type de nœud, et le nombre de boss secondaires possibles. */
+export interface MapShape {
+  early: [NodeType, number][];
+  late: [NodeType, number][];
+  elites: number;
+}
+
+const DEFAULT_SHAPE: MapShape = {
+  early: [['combat', 52], ['event', 34], ['shop', 14]],
+  late: [['combat', 36], ['event', 22], ['shop', 10], ['campfire', 10]],
+  elites: 9,
+};
+
+function typeForFloor(s: HasRng, floor: number, eliteWeight: number, shape: MapShape): NodeType {
   if (floor === 0) return 'combat';
   if (floor === 4) return 'chest';
   if (floor === 8) return 'campfire';
   if (floor === 9) return 'boss';
-  if (floor <= 3) return weighted(s, [['combat', 52], ['event', 34], ['shop', 14]]);
-  return weighted(s, [['combat', 36], ['elite', eliteWeight], ['event', 22], ['shop', 10], ['campfire', 10]]);
+  if (floor <= 3) return weighted(s, shape.early);
+  // Les boss secondaires juste après les combats (même ordre de tirage qu'avant).
+  return weighted(s, [shape.late[0], ['elite', eliteWeight], ...shape.late.slice(1)]);
 }
 
 /** Deux arêtes entre les mêmes étages se croisent-elles ? */
@@ -54,7 +67,7 @@ function crosses(a1: number, a2: number, b1: number, b2: number): boolean {
 }
 
 /** `eliteWeight` : la fréquence des boss secondaires (plus haut en difficulté 1 et plus). */
-export function generateMap(s: HasRng, eliteWeight = 22): ActMap {
+export function generateMap(s: HasRng, eliteWeight = 22, shape: MapShape = DEFAULT_SHAPE): ActMap {
   // edges[f] : liste des arêtes [laneDépart, laneArrivée] entre l'étage f et f+1 (f de 0 à 7)
   const edges: [number, number][][] = Array.from({ length: FLOORS - 2 }, () => []);
   const used: Set<number>[] = Array.from({ length: FLOORS - 1 }, () => new Set());
@@ -83,7 +96,7 @@ export function generateMap(s: HasRng, eliteWeight = 22): ActMap {
   for (let f = 0; f < FLOORS - 1; f++) {
     for (const lane of [...used[f]].sort()) {
       const id = nodes.length;
-      nodes.push({ id, floor: f, lane, type: typeForFloor(s, f, eliteWeight), next: [] });
+      nodes.push({ id, floor: f, lane, type: typeForFloor(s, f, eliteWeight, shape), next: [] });
       idAt.set(`${f}:${lane}`, id);
     }
   }
@@ -105,7 +118,7 @@ export function generateMap(s: HasRng, eliteWeight = 22): ActMap {
       n.type = 'combat';
     }
   }
-  for (const n of nodes) if (n.type === 'elite') n.elite = Math.floor(random(s) * ELITE_ENCOUNTERS.length);
+  for (const n of nodes) if (n.type === 'elite') n.elite = Math.floor(random(s) * shape.elites);
 
   // Au moins un vendeur par run : si le hasard n'en a pas mis, un « ? » ou un combat en devient un.
   if (!nodes.some((n) => n.type === 'shop')) {

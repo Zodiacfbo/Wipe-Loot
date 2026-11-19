@@ -2,9 +2,10 @@
 import { CARDS, rewardPool } from './cards';
 import { classInfo } from './classes';
 import { createCombat } from './combat';
-import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, type Encounter } from './enemies';
+import { type Encounter } from './enemies';
+import { LAST_ACT, actDef } from './acts';
 import { BLESSINGS, EVENTS, HIDDEN_FIGHTS } from './events';
-import { COMMON_POOL, ITEMS, uselessFor, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
+import { BOSS_LOOT, COMMON_POOL, ITEMS, uselessFor, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
 import { BAR_SLOTS, lootSpells } from './spells';
@@ -14,7 +15,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 17;
+export const SAVE_VERSION = 18;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -35,20 +36,76 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 17, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 18, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
+    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null,
   };
-  run.map = generateMap(run, mods.eliteWeight);
+  run.map = mapFor(run, 1);
   applyTalents(run, talents);
   if (mods.startCurse) run.deck.push({ uid: run.nextUid++, id: 'malediction', upgraded: false });
   run.hp = Math.round(run.maxHp * mods.startHpRatio);
   if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
   return run;
+}
+
+/** La carte d'un acte. */
+function mapFor(run: RunState, act: number) {
+  const def = actDef(act);
+  return generateMap(run, difficultyMods(run.difficulty ?? 0).eliteWeight, { early: def.earlyNodes, late: def.lateNodes, elites: def.elites.length });
+}
+
+/** Le boss de fin d'acte est vaincu : sa table de loot, puis le butin de boss, puis l'acte suivant. */
+function bossDefeated(run: RunState): void {
+  const loot = BOSS_LOOT[run.act];
+  run.bossStage = 'loot';
+  offerCards(run, `${actDef(run.act).boss.name.split(',')[0]} est vaincu !`, 'rare');
+  const gold = Math.round((70 + Math.floor(random(run) * 31)) * mods(run).goldMult);
+  run.gold += gold;
+  run.rewardGold = gold;
+  // Sa table : 4 objets et un sort de barre de ta classe.
+  const roll = Math.floor(random(run) * (loot.table.length + 1));
+  const spells = lootSpells(run.classId).filter((id) => !run.spells.includes(id));
+  if (roll === loot.table.length && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
+  else run.pendingItem = loot.table[roll % loot.table.length];
+}
+
+/** Le butin de boss : un objet épique au choix parmi 3 (utile à ta classe). */
+function offerEpics(run: RunState): void {
+  const pool = BOSS_LOOT[run.act].epics.filter((id) => !uselessFor(id, run.classId));
+  const picks: string[] = [];
+  while (picks.length < 3 && picks.length < pool.length) {
+    const id = pool[Math.floor(random(run) * pool.length)];
+    if (!picks.includes(id)) picks.push(id);
+  }
+  run.rewardChoices = [];
+  run.rewardTitle = 'Le butin de boss';
+  run.rewardGold = 0;
+  run.questNote = null;
+  run.pendingItem = picks[0] ?? null;
+  run.pendingAlts = picks.slice(1);
+  run.bossStage = 'epic';
+  run.screen = 'reward';
+}
+
+/** On entre dans l'acte suivant : nouvelle carte, PV au maximum, les bonus de l'acte précédent s'arrêtent. */
+export function startNextAct(run: RunState): boolean {
+  if (run.screen !== 'act' || run.act >= LAST_ACT) return false;
+  run.floorsDone += run.path.length;
+  run.act += 1;
+  run.map = mapFor(run, run.act);
+  run.position = null;
+  run.path = [];
+  run.hp = run.maxHp;
+  run.actBuffs = {};
+  run.detour = false;
+  run.bossStage = null;
+  run.screen = 'map';
+  return true;
 }
 
 /** Les talents au début de la run : PV max, sorts de barre, carte épique dans le deck. */
@@ -79,6 +136,9 @@ export function runGear(run: RunState): ItemEffects {
   for (const id of run.talents ?? []) {
     for (const [k, v] of Object.entries(TALENTS[id]?.fx ?? {}) as [keyof ItemEffects, number][]) g[k] = (g[k] ?? 0) + v;
   }
+  // Les bonus de l'acte en cours (Autel chromatique, sérum) et l'Observatoire.
+  for (const [k, v] of Object.entries(run.actBuffs ?? {}) as [keyof ItemEffects, number][]) g[k] = (g[k] ?? 0) + v;
+  if ((run.stargazing ?? 0) > 0) g.seeTwoIntents = 1;
   if (run.weaponUpgrade && run.equipment.arme === run.weaponUpgrade && !run.broken.includes('arme')) {
     // Le renfort profite aux Attaques du Guerrier, ou aux Sorts du Mage.
     if (run.classId === 'mage') g.spellBonus = (g.spellBonus ?? 0) + 2;
@@ -114,17 +174,18 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
   run.path.push(nodeId);
   const node = run.map.nodes[nodeId];
   // La rivière de lave : le détour mène droit dans un pack difficile.
+  const act = actDef(run.act);
   if (run.detour && node.type !== 'boss') {
     run.detour = false;
-    startEncounter(run, { ...pick(run, HARD_ENCOUNTERS), name: 'Le détour' });
+    startEncounter(run, { ...pick(run, act.hard), name: 'Le détour' });
     return true;
   }
   switch (node.type) {
     case 'combat':
-      startEncounter(run, pick(run, node.floor <= 3 ? EASY_ENCOUNTERS : HARD_ENCOUNTERS));
+      startEncounter(run, pick(run, node.floor <= 3 ? act.easy : act.hard));
       break;
     case 'elite': {
-      const enc = ELITE_ENCOUNTERS[node.elite ?? Math.floor(random(run) * ELITE_ENCOUNTERS.length)];
+      const enc = act.elites[(node.elite ?? Math.floor(random(run) * act.elites.length)) % act.elites.length];
       // Quête des Gardiens des Sources : le premier boss secondaire affronté porte la rune.
       if (run.sourcesQuest === 'active') {
         run.sourcesQuest = 'rune';
@@ -135,7 +196,9 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
       break;
     }
     case 'boss':
-      startEncounter(run, run.sourcesQuest === 'done' ? { ...BOSS_ENCOUNTER, weakened: true } : BOSS_ENCOUNTER);
+      if (run.act === 1 && run.sourcesQuest === 'done') startEncounter(run, { ...act.boss, weakened: true });
+      else if (run.act === 2 && run.eggsLeft) startEncounter(run, { ...act.boss, extraAdds: 1 });
+      else startEncounter(run, act.boss);
       break;
     case 'campfire':
       run.screen = 'campfire';
@@ -154,9 +217,9 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
       break;
     case 'event': {
       // Un « ? » cache parfois un combat.
-      const pool = Object.values(EVENTS).filter((e) => !run.seenEvents.includes(e.id) && (e.available?.(run) ?? true));
+      const pool = Object.values(EVENTS).filter((e) => (e.act ?? 1) === run.act && !run.seenEvents.includes(e.id) && (e.available?.(run) ?? true));
       if (random(run) < 0.2 || pool.length === 0) {
-        startEncounter(run, pick(run, HIDDEN_FIGHTS));
+        startEncounter(run, pick(run, act.hidden ?? HIDDEN_FIGHTS));
       } else {
         const ev = pick(run, pool);
         run.eventId = ev.id;
@@ -178,6 +241,22 @@ function startEncounter(run: RunState, encounter: Encounter): void {
 }
 
 function backToMap(run: RunState): void {
+  // Après le boss de fin d'acte : le butin de boss, puis l'entrée dans l'acte suivant.
+  if (run.bossStage === 'loot') {
+    run.combat = null;
+    run.pendingPotion = null;
+    run.pendingSpell = null;
+    offerEpics(run);
+    return;
+  }
+  if (run.bossStage === 'epic') {
+    run.pendingItem = null;
+    run.pendingAlts = [];
+    run.rewardChoices = [];
+    run.bossStage = null;
+    run.screen = 'act';
+    return;
+  }
   run.combat = null;
   run.shop = null;
   run.rewardGold = 0;
@@ -211,9 +290,16 @@ export function afterCombatAction(run: RunState): void {
     for (const e of c.enemies) if (e.dead && !e.gone) run.kills[e.defId] = (run.kills[e.defId] ?? 0) + 1;
     if (currentNode(run)?.type === 'elite') run.stats.elites += 1;
     else run.stats.combats += 1;
+    // L'Observatoire : un combat de moins à voir les intentions. La fiole du laboratoire ne dure qu'un combat.
+    if ((run.stargazing ?? 0) > 0) run.stargazing -= 1;
+    delete run.actBuffs.startToxine;
     if (currentNode(run)?.type === 'boss') {
-      run.screen = 'victory';
-      run.combat = null;
+      if (run.act < LAST_ACT) {
+        bossDefeated(run);
+      } else {
+        run.screen = 'victory';
+        run.combat = null;
+      }
     } else {
       const elite = currentNode(run)?.type === 'elite';
       const gold = Math.round((elite ? 25 + Math.floor(random(run) * 11) : 10 + Math.floor(random(run) * 11)) * mods(run).goldMult);
@@ -242,6 +328,10 @@ export function afterCombatAction(run: RunState): void {
         run.sourcesQuest = 'done';
         run.questNote = 'Eau des profondeurs : les Gardiens des Sources sont libres. Vulkhar commencera le combat affaibli.';
       }
+      if (enc?.loot === 'zhaal' && run.classId === 'mage' && !run.veilleur) {
+        run.veilleur = 'fragment';
+        run.questNote = 'Fragment du Veilleur : un éclat du bâton du premier gardien des arcanes. L\'esprit du Veilleur t\'attend dans un observatoire en ruine, à l\'acte 2.';
+      }
       if (enc?.loot === 'kragg' && run.brisemonts === 'lame') {
         run.brisemonts = 'coeur';
         run.questNote = `Cœur de la montagne : la pierre en fusion de Krâgg. Au premier feu de camp de l'acte ${LEGENDARY_MIN_ACT}, tu pourras reforger Brisemonts.`;
@@ -258,6 +348,7 @@ function rollRarity(run: RunState, min: Rarity): Rarity {
   const roll = random(run);
   // Boss secondaire : cartes peu communes et rares ; les épiques (normalement débloquées
   // par le dernier palier de talent) y apparaissent rarement, en attendant les talents.
+  if (min === 'rare') return roll < 0.85 ? 'rare' : 'epique';
   if (min === 'peu_commune') return roll < 0.65 ? 'peu_commune' : roll < 0.92 ? 'rare' : 'epique';
   return roll < 0.6 ? 'commune' : roll < 0.9 ? 'peu_commune' : 'rare';
 }
@@ -285,7 +376,9 @@ function weightedCard(run: RunState, pool: string[]): string {
 function offerCards(run: RunState, title: string, min: Rarity): void {
   const choices: string[] = [];
   let guard = 0;
-  while (choices.length < 3 && guard++ < 100) {
+  // Couronne de cendres : une carte de moins.
+  const count = 3 - (runGear(run).fewerCards ?? 0);
+  while (choices.length < count && guard++ < 100) {
     const rarity = rollRarity(run, min);
     const pool = rewardPool(run.classId).filter((id) => CARDS[id].rarity === rarity && !choices.includes(id) && cardUnlocked(run, id));
     if (pool.length === 0) continue;
@@ -660,7 +753,7 @@ export function resolveEvent(run: RunState, choice: number): void {
       return outcome(run, 'Tu repars avec le coffre sous le bras : 120 or. Les jurons du gobelin te suivent : une Malédiction rejoint ton deck.');
     case 'fonceur:0':
       run.eventId = null;
-      startEncounter(run, { ...pick(run, HARD_ENCOUNTERS), name: 'Le joueur qui fonce', bonusItem: 'rare' });
+      startEncounter(run, { ...pick(run, actDef(run.act).hard), name: 'Le joueur qui fonce', bonusItem: 'rare' });
       return;
     case 'source_chaude:0':
       return outcome(run, `L'eau brûlante te revigore. Tu récupères ${heal(15)} PV.`);
@@ -668,6 +761,112 @@ export function resolveEvent(run: RunState, choice: number): void {
       hurt(6);
       run.eventId = null;
       offerCards(run, 'Le sac du raideur', 'commune');
+      return;
+    // --- Acte 2 ---
+    case 'oeufs:0':
+      run.eventId = null;
+      startEncounter(run, { kind: 'combat', name: 'Les œufs de dragon', enemies: ['dragonnet', 'dragonnet', 'dragonnet', 'dragonnet'], bonusItem: 'commun' });
+      return;
+    case 'oeufs:1':
+      run.eggsLeft = true;
+      return outcome(run, 'Tu refermes doucement la porte. Derrière toi, une coquille craque.');
+    case 'observatoire:0':
+      run.maxHp = Math.max(1, run.maxHp - 8);
+      run.hp = Math.min(run.hp, run.maxHp);
+      run.veilleur = 'tete';
+      return outcome(run, '« Tu as su renoncer. C\'est le premier pas de la sagesse. » Le Veilleur te confie la Tête du bâton. Au prochain feu de camp, tu pourras lier les fragments. −8 PV max.');
+    case 'observatoire:1':
+      run.stargazing = 3;
+      return outcome(run, 'Les étoiles s\'alignent. Pendant les 3 prochains combats, tu verras venir les coups de tes ennemis.');
+    case 'observatoire:2':
+      run.gold += 60;
+      return outcome(run, 'Dans un tiroir du bureau de l\'astronome : 60 or.');
+    case 'reliquaire:0': {
+      const i = run.deck.findIndex((c) => c.id === 'malediction');
+      if (i >= 0) run.deck.splice(i, 1);
+      return outcome(run, 'Tu rends les reliques à leurs autels. Une Malédiction quitte ton deck.');
+    }
+    case 'reliquaire:1':
+      run.gold += 100;
+      addCurse(run);
+      return outcome(run, 'Tu remplis ton sac : 100 or. Les prières oubliées te maudissent : une Malédiction rejoint ton deck.');
+    case 'laboratoire:0': {
+      const roll = Math.floor(random(run) * 4);
+      if (roll === 0) {
+        run.maxHp += 6;
+        run.hp += 6;
+        return outcome(run, 'Une chaleur agréable : +6 PV max.');
+      }
+      if (roll === 1) return outcome(run, `Ton esprit s'éclaircit. Carte améliorée : ${upgradeRandom(run, 1).join(', ') || 'aucune'}.`);
+      if (roll === 2) {
+        hurt(8);
+        return outcome(run, 'Ça brûle ! Tu perds 8 PV.');
+      }
+      run.actBuffs.startToxine = 3;
+      return outcome(run, 'Un goût de métal… Tu auras la Toxine au début de ton prochain combat.');
+    }
+    case 'laboratoire:1': {
+      let got = 0;
+      for (let i = 0; i < 2; i++) {
+        const slot = run.potions.findIndex((p) => !p);
+        if (slot < 0) break;
+        run.potions[slot] = rollPotion(run);
+        got++;
+      }
+      return outcome(run, got > 0 ? `Tu glisses ${got} fiole${got > 1 ? 's' : ''} dans ta ceinture.` : 'Ta ceinture est pleine : tu ne peux rien emporter.');
+    }
+    case 'dragonnet_cage:0':
+      backToMap(run);
+      run.rewardChoices = [];
+      run.rewardTitle = 'Le dragonnet libéré';
+      run.rewardGold = 0;
+      run.pendingItem = 'dragonnet_compagnie';
+      run.screen = 'reward';
+      return;
+    case 'dragonnet_cage:1':
+      run.gold += 90;
+      return outcome(run, 'Le gobelin repart avec la cage sous le bras. Tu as 90 or, et un pincement au cœur.');
+    case 'cobayes:0':
+      run.maxHp = Math.max(1, run.maxHp - 6);
+      run.hp = Math.min(run.hp, run.maxHp);
+      run.gold += 100;
+      return outcome(run, 'Le gobelin remplit ses fioles avec un sourire gourmand. −6 PV max, +100 or.');
+    case 'cobayes:1':
+      run.gold -= 60;
+      run.actBuffs.startPuissance = (run.actBuffs.startPuissance ?? 0) + 1;
+      return outcome(run, 'Le sérum pique. Jusqu\'à la fin de l\'acte, tu commences chaque combat avec 1 Puissance.');
+    case 'autel:0':
+      run.actBuffs.startPuissance = (run.actBuffs.startPuissance ?? 0) + 1;
+      run.maxHp = Math.max(1, run.maxHp - 5);
+      run.hp = Math.min(run.hp, run.maxHp);
+      return outcome(run, 'Le sang rouge te brûle les veines. +1 Puissance au début de chaque combat de l\'acte, −5 PV max.');
+    case 'autel:1':
+      run.actBuffs.firstTurnDraw = (run.actBuffs.firstTurnDraw ?? 0) + 1;
+      run.actBuffs.potionSlots = (run.actBuffs.potionSlots ?? 0) - 1;
+      syncPotionSlots(run);
+      return outcome(run, 'Le sang bleu t\'éclaircit l\'esprit. Pioche 1 carte de plus au premier tour, mais un emplacement de potion de moins, jusqu\'à la fin de l\'acte.');
+    case 'autel:2':
+      run.actBuffs.healAfterCombat = (run.actBuffs.healAfterCombat ?? 0) + 3;
+      return outcome(run, 'Le sang vert apaise tes blessures : 3 PV après chaque combat gagné, jusqu\'à la fin de l\'acte.');
+    case 'autel:3':
+      run.actBuffs.attackBonus = (run.actBuffs.attackBonus ?? 0) + 2;
+      run.actBuffs.spellBonus = (run.actBuffs.spellBonus ?? 0) + 2;
+      run.actBuffs.extraHurt = (run.actBuffs.extraHurt ?? 0) + 2;
+      return outcome(run, 'Le sang noir te rend féroce : +2 dégâts, mais tu subis 2 dégâts de plus par attaque, jusqu\'à la fin de l\'acte.');
+    case 'fantome_raideur:0':
+      addCurse(run);
+      backToMap(run);
+      run.rewardChoices = [];
+      run.rewardTitle = 'L\'équipement du raideur';
+      run.rewardGold = 0;
+      run.pendingItem = rollItem(run);
+      run.screen = 'reward';
+      return;
+    case 'fantome_raideur:1':
+      return outcome(run, `Le fantôme s'apaise et disparaît. Tu récupères ${heal(12)} PV.`);
+    case 'fonceur2:0':
+      run.eventId = null;
+      startEncounter(run, { ...pick(run, actDef(run.act).hard), name: 'Le joueur qui fonce', bonusItem: 'rare' });
       return;
   }
   backToMap(run);
@@ -761,6 +960,26 @@ export function campfireReforge(run: RunState): boolean {
   return true;
 }
 
+// --- Feu de camp : lier les fragments du Bâton du Veilleur (Mage) ---
+
+/** Peut-on lier les fragments ici ? Il faut la Tête du bâton et une carte rare à sacrifier. */
+export function canBindStaff(run: RunState): boolean {
+  return run.screen === 'campfire' && run.veilleur === 'tete' && run.act >= LEGENDARY_MIN_ACT
+    && run.deck.some((c) => CARDS[c.id].rarity === 'rare');
+}
+
+/** Retire une carte rare du deck pour sceller le Bâton du Veilleur, qui est équipé. */
+export function campfireBindStaff(run: RunState, uid: number): boolean {
+  if (!canBindStaff(run)) return false;
+  const i = run.deck.findIndex((c) => c.uid === uid && CARDS[c.id].rarity === 'rare');
+  if (i < 0) return false;
+  run.deck.splice(i, 1);
+  putOn(run, 'baton_veilleur', 'arme');
+  run.veilleur = 'forged';
+  backToMap(run);
+  return true;
+}
+
 // --- Wipe ---
 
 /** La facture du prochain wipe à payer. */
@@ -814,8 +1033,13 @@ export function abandonRun(run: RunState): void {
 
 // --- Feu de camp ---
 
+/** Flamme captive : on ne peut plus se reposer. */
+export function canRest(run: RunState): boolean {
+  return run.screen === 'campfire' && !runGear(run).noRest;
+}
+
 export function campfireRest(run: RunState): void {
-  if (run.screen !== 'campfire') return;
+  if (!canRest(run)) return;
   run.hp = Math.min(run.maxHp, run.hp + campfireHealAmount(run));
   backToMap(run);
 }

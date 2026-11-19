@@ -109,7 +109,7 @@
 ## Phase 3 — Le contenu
 
 ### 3.1 Les actes
-- [ ] Acte 2 : l'Aire de Vhaeryx (Souffles, mutations, Malédiction de lignée)
+- [x] Acte 2 : l'Aire de Vhaeryx (Souffles, Envol, mutations, morts-vivants, 8 boss secondaires, Vhaeryx en 3 phases, Malédiction de lignée, 9 événements). La run enchaîne désormais les actes 1 et 2, avec les récompenses et le butin de boss de Vulkhar entre les deux
 - [ ] Acte 3 : Irem (Folie, Hallucinations, ensevelissement, immunités)
 - [ ] Acte bonus : la Nécropole céleste (éclats de clé, Gruthak, Sarvok)
 
@@ -128,7 +128,9 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 
 ### 3.3 Les légendaires
 - [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter en plus d'un objet du coffre (si on prend le légendaire, l'objet du coffre ne peut pas être une arme)
-- [ ] Les 7 légendaires restants et leurs quêtes (Bâton du Veilleur, Sillon d'orage, Équinoxe, l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres)
+- [x] Brisemonts (Guerrier) et le Bâton du Veilleur (Mage) se forgent à l'acte 2
+- [ ] Les légendaires restants et leurs quêtes (Sillon d'orage, Équinoxe, l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres), avec leurs classes
+- [ ] Refaire la passe sur les niveaux de difficulté : ils ont été réglés pour un acte, une victoire demande maintenant les deux
 
 ---
 

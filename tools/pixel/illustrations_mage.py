@@ -581,7 +581,39 @@ def reflet():
     return s.render()
 
 
+# ---------- Cartes-statut de l'acte 2 ----------
+
+def sceptre_domination():
+    s = nouveau()
+    s.line([(6, 28), (20, 10)], CUIR, width=2)
+    s.ellipse(17, 3, 29, 15, '#8E3A6E', glow=True)
+    s.ellipse(20, 6, 26, 12, '#E85AE8', glow=True)
+    s.poly([(2, 10), (8, 4), (12, 8), (8, 12)], '#2A2430')  # petit dragonnet
+    s.rect(5, 7, 6, 8, JAUNE, glow=True)
+    return s.render()
+
+
+def fiole_instable():
+    s = nouveau()
+    s.rect(13, 3, 19, 9, '#C9D2DE')
+    s.ellipse(7, 8, 25, 28, '#C9D2DE')
+    s.ellipse(9, 13, 23, 26, '#7ED84A', glow=True)
+    s.dots([(13, 16), (18, 19), (15, 22)], '#C8FF8A', glow=True)
+    s.dots([(4, 6), (27, 8), (26, 3)], '#7ED84A', glow=True)
+    return s.render()
+
+
+def cendres():
+    s = nouveau()
+    s.ellipse(4, 18, 28, 30, '#5A5450')
+    s.ellipse(8, 14, 24, 24, '#6E6A66')
+    s.dots([(8, 8), (14, 5), (20, 9), (25, 6), (11, 12), (22, 13)], '#A8A098')
+    s.dots([(15, 20), (19, 22)], LAVE, glow=True)
+    return s.render()
+
+
 ILLUSTRATIONS_MAGE = {
+    'sceptre_domination': sceptre_domination, 'fiole_instable': fiole_instable, 'cendres': cendres,
     'trait_de_magie': trait_de_magie, 'barriere': barriere,
     'explosion_des_arcanes': explosion_des_arcanes, 'nova_de_givre': nova_de_givre, 'lenteur': lenteur,
     'siphon_de_mana': siphon_de_mana, 'delivrance': delivrance, 'bouclier_de_mana': bouclier_de_mana,

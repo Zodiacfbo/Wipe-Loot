@@ -43,6 +43,10 @@ export type Intent =
       grow?: number;
       /** Vole cet or si l'attaque fait perdre des PV (Gobelin mimique). */
       stealGold?: number;
+      /** Un Souffle de dragon (acte 2) : non interruptible, réduit par l'Écaille d'Ysolde. */
+      breath?: boolean;
+      /** Un effet en plus des dégâts (Toxine, Peste, Ralenti…). */
+      effect?: PlayerCurse & { label: string };
     }
   | { kind: 'block'; amount: number; cast?: string }
   | { kind: 'buff'; puissance: number; target: 'allies' | 'self'; cast?: string }
@@ -50,9 +54,15 @@ export type Intent =
   /** Une malédiction ou un effet sur le joueur, sans dégâts. */
   | { kind: 'curse'; label: string; cast?: string } & PlayerCurse
   /** Rappelle un add (jusqu'à `max` en vie). */
-  | { kind: 'summon'; id: string; max: number; label: string; cast?: string }
-  /** L'ennemi ne peut plus être ciblé jusqu'à son prochain tour. */
-  | { kind: 'blink'; cast?: string };
+  | { kind: 'summon'; id: string; max: number; label: string; cast?: string; count?: number }
+  /** L'ennemi ne peut plus être ciblé jusqu'à son prochain tour (Envol : seulement par les Attaques à cible unique). */
+  | { kind: 'blink'; cast?: string; flight?: boolean }
+  /** L'ennemi ne fait rien (Œuf de dragon). */
+  | { kind: 'idle'; label: string; cast?: string }
+  /** Des Œufs éclosent : l'ennemi lui-même (`self`), ou `count` Œufs du combat (`all` : tous). */
+  | { kind: 'hatch'; label: string; self?: boolean; count?: number | 'all'; cast?: string }
+  /** Grizzik : une potion tirée au hasard (annoncée un tour à l'avance). */
+  | { kind: 'potion'; potion: string; label: string; cast?: string };
 
 /** Ce qu'une malédiction ennemie fait au joueur. */
 export interface PlayerCurse {
@@ -63,6 +73,17 @@ export interface PlayerCurse {
   panic?: number; // cartes Paniquées au prochain tour
   fardeau?: number; // Fardeaux ajoutés à la pioche
   bomb?: number; // Bombes vivantes ajoutées à la main
+  // Acte 2
+  toxine?: number; // tours : 2 dégâts au début de ton tour
+  peste?: number; // tours : tes soins sont réduits de moitié
+  ralenti?: number; // tours : tu gagnes 25 % de blocage en moins
+  fracasse?: number; // tours : tu subis 50 % de dégâts en plus
+  ombre?: number; // cumuls d'Ombre rongeuse : +2 dégâts par attaque reçue, jusqu'à la fin du combat
+  discard?: number; // cartes défaussées au hasard au début de ton prochain tour
+  cendres?: number; // cartes Cendres ajoutées à la main
+  energyLoss?: number; // énergie en moins au prochain tour
+  affliction?: boolean; // une Affliction de sang au hasard (Prismagor)
+  lignee?: boolean; // Malédiction de lignée (Vhaeryx), selon la classe
 }
 
 /** Les malédictions actives sur le joueur. */
@@ -72,6 +93,20 @@ export interface PlayerDebuffs {
   arcane: number;
   manaBurn: number;
   panic: number;
+  toxine?: number;
+  peste?: number;
+  ralenti?: number;
+  fracasse?: number;
+  ombre?: number;
+  discard?: number;
+  /** Afflictions de sang portées (rouge, bleue, verte, noire, bronze). */
+  afflictions?: string[];
+  /** Transformé (les 5 Afflictions) : tu perds ton prochain tour. */
+  transformed?: boolean;
+  /** Malédiction de lignée : tours restants. */
+  lignee?: number;
+  /** Potion de transmutation de Grizzik : cartes de la prochaine main changées en Fioles instables. */
+  transmute?: number;
 }
 
 /** Les contraintes de difficulté appliquées aux ennemis d'un combat. */
@@ -121,6 +156,18 @@ export interface EnemyState {
   disarmed?: boolean;
   /** Frappe mortelle : ne peut plus être soigné. */
   noHeal?: boolean;
+  /** Acte 2 — Envol : ne peut pas être ciblé par une Attaque à cible unique jusqu'à son prochain tour. */
+  flying?: boolean;
+  /** Mutation (Chimère d'essai) : tirée au début du combat, active sous 50 % de PV. */
+  mutations?: string[];
+  mutated?: boolean;
+  /** Serviteur rapiécé, Ossyrax : s'est déjà relevé une fois. */
+  revived?: boolean;
+  /** Prismagor : ses deux Souffles, tirés au début du combat. */
+  breaths?: string[];
+  /** Grizzik : effets de potion en cours. */
+  giant?: number;
+  haste?: boolean;
   /** Gelé : un ennemi normal perd son prochain tour ('skip'), un boss voit sa prochaine attaque réduite de moitié ('half'). */
   gele?: 'skip' | 'half';
   /** Métamorphose : transformé en mouton (ne fait rien) pendant ce nombre de tours, ou jusqu'à ce qu'il subisse des dégâts. */
@@ -222,7 +269,7 @@ export interface CombatState {
   /** L'Orbe de distorsion a déjà servi pendant ce combat. */
   orbUsed?: boolean;
   /** La carte en train d'être jouée (pour les bonus qui dépendent de son coût ou de son type). */
-  playing?: { cost: number; type: CardType; id: string; school?: School };
+  playing?: { cost: number; type: CardType; id: string; school?: School; aoe?: boolean };
   /** Les ennemis sont en train de jouer leur tour. */
   enemyActing?: boolean;
   /** Puissance déjà gagnée avec la Pierre de magma. */
@@ -238,6 +285,18 @@ export interface CombatState {
   goldStolen?: number;
   /** Les contraintes de difficulté qui touchent les ennemis. */
   mods?: CombatMods;
+  /** Ysolde : Adrénaline ardente (PV perdus à la fin de ton prochain tour). */
+  adrenaline?: number;
+  /** Phylactère brisé : déjà utilisé pendant ce combat. */
+  cheatedDeath?: boolean;
+  /** Vhaeryx : les adds morts pendant le combat (pour la phase 3). */
+  fallen?: number;
+  /** Les œufs de l'événement ont été laissés : Vhaeryx appelle un add de plus. */
+  extraAdds?: number;
+  /** Sceptre du gardien : l'énergie de ce tour a déjà été gagnée. */
+  killEnergyUsed?: boolean;
+  /** Croc des trois souffles : l'effet de la prochaine Attaque (0, 1, 2). */
+  fangStep?: number;
   bleedDoneThisTurn?: boolean;
   /** La classe jouée (guerrier par défaut). */
   classId?: string;
@@ -252,7 +311,7 @@ export interface CombatState {
   rng: number;
 }
 
-export type Screen = 'blessing' | 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'shop' | 'wipe' | 'victory' | 'gameover';
+export type Screen = 'act' | 'blessing' | 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'shop' | 'wipe' | 'victory' | 'gameover';
 
 export interface ShopCard {
   id: string;
@@ -269,7 +328,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 17;
+  version: 18;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -306,8 +365,20 @@ export interface RunState {
   weaponUpgrade: string | null;
   /** La rivière de lave : le prochain nœud devient un combat difficile. */
   detour: boolean;
-  /** L'acte en cours (1 dans le prototype). */
+  /** L'acte en cours (1 ou 2). */
   act: number;
+  /** Étages franchis dans les actes précédents (pour le score). */
+  floorsDone: number;
+  /** Le boss de fin d'acte vient d'être vaincu : 'loot' (sa table), 'epic' (le butin de boss), puis l'écran de l'acte suivant. */
+  bossStage: 'loot' | 'epic' | null;
+  /** Bonus valables jusqu'à la fin de l'acte (Autel chromatique, sérum du marchand de cobayes). */
+  actBuffs: ItemEffects;
+  /** Les œufs de dragon ont été laissés (Vhaeryx aura un add de plus par vague). */
+  eggsLeft: boolean;
+  /** Observatoire : tu vois les intentions suivantes pendant ce nombre de combats. */
+  stargazing: number;
+  /** Quête légendaire du Mage : le Bâton du Veilleur. */
+  veilleur: 'fragment' | 'tete' | 'forged' | null;
   /** Les monstres vaincus pendant la run (pour les archives de la guilde). */
   kills: Record<string, number>;
   /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */

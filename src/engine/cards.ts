@@ -8,7 +8,10 @@ import {
   applySaignement,
   drawCards,
   gainBlock,
+  damageEnemy,
+  damagePlayer,
   gainRage,
+  healPlayer,
   livingEnemies,
   log,
   playerAttack,
@@ -493,8 +496,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
     text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 4 : 2} PV.`,
     play: (ctx) => {
       hit(ctx, ctx.up ? 16 : 12, { rageCard: true });
-      const p = ctx.c.player;
-      p.hp = Math.min(p.maxHp, p.hp + (ctx.up ? 4 : 2));
+      healPlayer(ctx.c, ctx.up ? 4 : 2);
     },
   },
 
@@ -619,6 +621,57 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
     text: () => `Malédiction permanente. Injouable.`,
     play: () => {},
   },
+  // --- Cartes-statut de l'acte 2 ---
+  sceptre_domination: {
+    id: 'sceptre_domination', name: 'Sceptre de domination', type: 'Statut', rarity: 'statut', cost: 1, needsTarget: true,
+    ethereal: true, exhaust: true, icon: 'pouvoir',
+    text: () => `Un Dragonnet t'obéit : il détruit un Œuf, ou inflige 8 dégâts.`,
+    play: (ctx) => {
+      const c = ctx.c;
+      const t = ctx.target;
+      if (!t) return;
+      // Un Dragonnet ennemi change de camp (il quitte le combat).
+      const pet = livingEnemies(c).find((e) => e.defId === 'dragonnet');
+      if (pet) {
+        pet.dead = true;
+        pet.gone = true;
+        fx(c, { kind: 'death', who: pet.uid });
+      }
+      if (t.defId.startsWith('oeuf')) {
+        fx(c, { kind: 'tick', who: t.uid, amount: t.hp, label: 'Dragonnet' });
+        damageEnemy(c, t, t.hp + t.block);
+      } else {
+        fx(c, { kind: 'tick', who: t.uid, amount: 8, label: 'Dragonnet' });
+        damageEnemy(c, t, 8);
+      }
+      ctx.dealt = true;
+    },
+  },
+  fiole_instable: {
+    id: 'fiole_instable', name: 'Fiole instable', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
+    ethereal: true, exhaust: true, icon: 'pouvoir',
+    text: () => `Boire : au hasard +1 énergie, soigne 5 PV ou perds 5 PV.`,
+    play: (ctx) => {
+      const c = ctx.c;
+      const roll = c.gear?.luck && random(c) < 0.5 ? 0 : Math.floor(random(c) * 3);
+      if (roll === 0) {
+        c.player.energy += 1;
+        fx(c, { kind: 'buff', who: 'player', label: '+1 énergie' });
+      } else if (roll === 1) {
+        const healed = healPlayer(c, 5);
+        fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+      } else {
+        fx(c, { kind: 'tick', who: 'player', amount: 5, label: 'Fiole' });
+        damagePlayer(c, 5, false);
+      }
+    },
+  },
+  cendres: {
+    id: 'cendres', name: 'Cendres', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
+    unplayable: true, ethereal: true, icon: 'feu',
+    text: () => `Injouable. Disparaît à la fin du tour.`,
+    play: () => {},
+  },
   fardeau: {
     id: 'fardeau', name: 'Fardeau', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
     unplayable: true, icon: 'pouvoir',
@@ -650,7 +703,10 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   if (c.gear?.firstCardFree && !c.firstCardDone && !def.unplayable) return 0;
   let cost = up && def.costUp !== undefined ? def.costUp : def.cost;
   const d = c.player.debuffs;
-  if (d && d.impie > 0 && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie
+  if (d && (d.impie > 0 || d.afflictions?.includes('bleue')) && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie, Affliction bleue
+  if (def.type === 'Compétence') cost += c.gear?.skillCost ?? 0; // Marteau des profondeurs
+  // Bâton du Veilleur : le premier Sort de chaque tour coûte 0.
+  if (def.type === 'Sort' && c.gear?.firstSpellFree && (c.mageSpellsThisTurn ?? 0) === 0) return 0;
   if (d && d.arcane > 0 && def.type === 'Sort') cost += 1; // Malédiction arcanique
   return cost;
 }

@@ -588,3 +588,13 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .fiche-monstre.inconnu span { color: var(--texte-2); }
 .contenu-archives .objet { width: auto; }
 .contenu-archives .liste-objets { width: 100%; }
+
+/* --- Acte 2 : l'Aire de Vhaeryx (noir et pourpre) --- */
+[data-acte="2"] { --fond: #1a1122; --fond-bas: #251a31; }
+[data-acte="2"] .sol { border-top-color: #3a2a48; }
+.ecran-acte h1 { font-size: 44px; }
+.chip.affliction-rouge { border-color: #d8403a; color: #ffb0a8; }
+.chip.affliction-bleue { border-color: #4c8fe0; color: #bcd8ff; }
+.chip.affliction-verte { border-color: #5fb86b; color: #c4f0c8; }
+.chip.affliction-noire { border-color: #8a8a94; color: #e0e0e8; background: #141418; }
+.chip.affliction-bronze { border-color: #c08a3a; color: #f0d0a0; }

@@ -12,6 +12,7 @@ import {
   afterCombatAction, barCapacity, buyCard, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
   canDrink, chooseBlessing, chooseNode, chooseReward, drinkPotion, equipPending, eventChoiceLock, leaveEvent, leavePending,
   leaveShop, learnSpell, newRun, offerBlessing, resolveEvent, retryAfterWipe, takePotion,
+  campfireBindStaff, canBindStaff, canRest, startNextAct,
 } from '../../src/engine/run';
 import { previewIntentDamage } from '../../src/engine/combat';
 import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
@@ -187,6 +188,16 @@ const EVENT_CHOICE: Record<string, (run: RunState) => number> = {
   fonceur: (r) => (r.hp > r.maxHp * 0.6 ? 0 : 1),
   source_chaude: () => 0,
   cadavre: (r) => (r.hp > 30 ? 0 : 1),
+  // Acte 2
+  oeufs: (r) => (r.hp > r.maxHp * 0.5 ? 0 : 1),
+  observatoire: (r) => (eventChoiceLock(r, 0) ? 1 : 0),
+  reliquaire: (r) => (eventChoiceLock(r, 0) ? 1 : 0),
+  laboratoire: () => 1,
+  dragonnet_cage: () => 0,
+  cobayes: (r) => (r.gold >= 60 ? 1 : 2),
+  autel: () => 0,
+  fantome_raideur: (r) => (r.hp < r.maxHp * 0.6 ? 1 : 0),
+  fonceur2: (r) => (r.hp > r.maxHp * 0.6 ? 0 : 1),
 };
 
 const BLESSING_ORDER = ['pari', 'entrainement', 'provisions', 'potions', 'pret', 'bourse', 'allegement', 'marche'];
@@ -220,6 +231,8 @@ export interface FightLog {
   name: string;
   kind: 'combat' | 'elite' | 'boss';
   floor: number;
+  /** L'acte du combat (1 par défaut). */
+  act?: number;
   wipes: number;
   hpLost: number;
   won: boolean;
@@ -250,7 +263,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
         chooseNode(run, chooseNextNode(run, rnd));
         if (run.screen === 'combat') {
           const node = run.map.nodes[run.position!];
-          current = { name: run.encounter!.name, kind: node.type === 'elite' ? 'elite' : node.type === 'boss' ? 'boss' : 'combat', floor: node.floor + 1, wipes: 0, hpLost: run.hp, won: false };
+          current = { name: run.encounter!.name, kind: node.type === 'elite' ? 'elite' : node.type === 'boss' ? 'boss' : 'combat', floor: node.floor + 1, act: run.act, wipes: 0, hpLost: run.hp, won: false };
           fights.push(current);
         }
         break;
@@ -279,11 +292,17 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
       case 'shop': handleShop(run); break;
       case 'campfire': {
         if (campfireReforge(run)) break;
+        if (canBindStaff(run)) {
+          const rare = run.deck.find((k) => CARDS[k.id].rarity === 'rare');
+          if (rare && campfireBindStaff(run, rare.uid)) break;
+        }
         const up = upgradeTarget(run);
-        if (run.hp < run.maxHp * 0.7 || up === null) campfireRest(run);
-        else campfireUpgrade(run, up);
+        if ((run.hp < run.maxHp * 0.7 || up === null) && canRest(run)) campfireRest(run);
+        else if (up !== null) campfireUpgrade(run, up);
+        else run.screen = 'map';
         break;
       }
+      case 'act': startNextAct(run); break;
       case 'event': {
         if (run.eventOutcome) { leaveEvent(run); break; }
         const ev = EVENTS[run.eventId!];
@@ -299,7 +318,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
       case 'blessing': chooseBlessing(run, run.blessings[0]); break;
       case 'victory':
       case 'gameover': {
-        const floor = run.position === null ? 0 : run.map.nodes[run.position].floor + 1;
+        const floor = run.floorsDone + (run.position === null ? 0 : run.map.nodes[run.position].floor + 1);
         if (current && run.screen === 'gameover') current.wipes++;
         return { victory: run.screen === 'victory', floor, wipesUsed: run.maxWipes - run.wipesLeft, fights };
       }

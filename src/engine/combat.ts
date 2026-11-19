@@ -16,13 +16,15 @@ import {
   fx,
   gainBlock,
   gainRage,
+  healPlayer,
   livingEnemies,
   log,
   power,
 } from './actions';
+import { AFFLICTIONS, GRIZZIK_POTIONS, PRISMAGOR_BREATHS } from './enemies_acte2';
 import { CARDS, energyCost, isEthereal, type PlayContext } from './cards';
 import { SPELLS, spellCooldown } from './spells';
-import { ENEMIES, TUNING, intentAt, type Encounter } from './enemies';
+import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
 import type { CardInstance, CombatMods, CombatState, EnemyState, Intent, PlayerCurse, Posture } from './types';
@@ -88,6 +90,31 @@ export function createCombat(
     }
   }
   for (const e of c.enemies) if (e.defId === 'saldris') e.shield = 'coups';
+  // Acte 2 : Ysolde blessée, les Mutations et les Souffles tirés au hasard (affichés dès le début).
+  for (const e of c.enemies) {
+    const def = ENEMIES[e.defId];
+    if (def.startHpRatio) e.hp = Math.round(e.maxHp * def.startHpRatio);
+    if (def.mutation) {
+      const all = ['carapace', 'frenesie', 'regeneration'];
+      const first = all[Math.floor(random(c) * all.length)];
+      e.mutations = [first];
+      if (encounter.doubleMutation) {
+        const rest = all.filter((m) => m !== first);
+        e.mutations.push(rest[Math.floor(random(c) * rest.length)]);
+      }
+    }
+    if (e.defId === 'prismagor') {
+      const keys = Object.keys(PRISMAGOR_BREATHS);
+      const a = keys.splice(Math.floor(random(c) * keys.length), 1)[0];
+      const b = keys[Math.floor(random(c) * keys.length)];
+      e.breaths = [a, b];
+    }
+    fixIntent(c, e);
+  }
+  if (c.enemies.some((e) => e.defId === 'ysolde')) c.adrenaline = 3;
+  c.extraAdds = encounter.extraAdds ?? 0;
+  // Sablier brisé : l'enrage arrive plus tard.
+  if (c.enrageTurn !== null && gear.enrageDelay) c.enrageTurn += gear.enrageDelay;
   if (gear.startFardeau) addStatusToDraw(c, 'fardeau', gear.startFardeau);
   log(c, `Combat : ${encounter.name}.`);
   // L'Eau des profondeurs affaiblit Vulkhar.
@@ -111,6 +138,22 @@ export function createCombat(
   if (gear.startDemoralise) for (const e of c.enemies) e.buffs.demoralise = Math.max(e.buffs.demoralise, gear.startDemoralise);
   if (gear.startAoe) {
     for (const e of livingEnemies(c)) damageEnemy(c, e, gear.startAoe, false);
+  }
+  // Butin de l'acte 2
+  if (gear.startBlockPerEnemy) p.block += gear.startBlockPerEnemy * livingEnemies(c).length;
+  if (gear.startDragonFracture) for (const e of livingEnemies(c)) if (hasTag(e.defId, 'dragon')) e.buffs.armureFracassee = Math.max(e.buffs.armureFracassee, gear.startDragonFracture);
+  if (gear.startZone) addStatusToHand(c, 'zone_de_feu', gear.startZone);
+  if (gear.startToxine) p.debuffs!.toxine = gear.startToxine;
+  if (gear.startFiole) addStatusToHand(c, 'fiole_instable', gear.startFiole);
+  if (gear.startRandomBonus) {
+    for (let i = 0; i < gear.startRandomBonus; i++) {
+      const roll = gear.luck && random(c) < 0.5 ? 2 : Math.floor(random(c) * 4);
+      if (roll === 0) p.puissance += 1;
+      else if (roll === 1) p.robustesse += 1;
+      else if (roll === 2) p.energy += 1;
+      else p.block += 10;
+      log(c, `Bonus chromatique : ${['+1 Puissance', '+1 Robustesse', '+1 énergie', '10 blocage'][roll]}.`);
+    }
   }
   c.fx = [];
   if (encounter.rune) c.fx.push({ kind: 'banner', text: 'Ce boss porte la rune des Sources !' });
@@ -138,7 +181,10 @@ export function startPlayerTurn(c: CombatState): void {
   p.fureur = Math.max(0, (p.fureur ?? 0) - 1);
   c.attacksThisTurn = 0;
   c.cleave = 0;
-  p.energy = p.maxEnergy;
+  p.energy = p.maxEnergy + (c.gear?.turnEnergy ?? 0);
+  // Adrénaline ardente (Ysolde) : +3 énergie à chaque tour.
+  if (c.adrenaline) p.energy += 3;
+  c.killEnergyUsed = false;
   p.postureChanged = false;
   p.ignorerDouleur = false;
   c.bleedDoneThisTurn = false;
@@ -161,9 +207,10 @@ export function startPlayerTurn(c: CombatState): void {
     p.energy += 1;
     p.distortion = false;
   }
-  drawCards(c, Math.max(0, 5 + manaDraw + distortion + power(c, 'erudition') - (p.drawPenalty ?? 0)));
+  drawCards(c, Math.max(0, 5 + manaDraw + distortion + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
   const d = (p.debuffs ??= emptyDebuffs());
+  startTurnAct2(c);
   // Embrasement de mana (Baron Vossk)
   if (d.manaBurn > 0) {
     p.energy = Math.max(0, p.energy - d.manaBurn);
@@ -217,11 +264,19 @@ function purifyOne(c: CombatState): void {
     return;
   }
   const d = c.player.debuffs!;
-  const keys = (['demoralise', 'impie', 'arcane'] as const).filter((k) => d[k] > 0);
-  if (keys.length === 0) return;
-  const k = keys.reduce((a, b) => (d[a] >= d[b] ? a : b));
+  const keys = (['demoralise', 'impie', 'arcane', 'toxine', 'peste', 'fracasse', 'lignee'] as const).filter((k) => (d[k] ?? 0) > 0);
+  if (keys.length === 0) {
+    // Sinon, une Affliction de sang (la bronze ne se dissipe pas).
+    const i = d.afflictions?.findIndex((a) => a !== 'bronze') ?? -1;
+    if (i >= 0) {
+      d.afflictions!.splice(i, 1);
+      log(c, 'Une Affliction de sang est dissipée.');
+    }
+    return;
+  }
+  const k = keys.reduce((a, b) => ((d[a] ?? 0) >= (d[b] ?? 0) ? a : b));
   d[k] = 0;
-  log(c, 'L\'Amulette de purification dissipe une malédiction.');
+  log(c, 'Une malédiction est dissipée.');
 }
 
 /** Applique une malédiction ennemie au joueur. */
@@ -236,15 +291,41 @@ function applyCurse(c: CombatState, e: EnemyState, curse: PlayerCurse & { label:
   if (curse.panic) d.panic += curse.panic;
   if (curse.fardeau) addStatusToDraw(c, 'fardeau', curse.fardeau);
   if (curse.bomb) addStatusToHand(c, 'bombe_vivante', curse.bomb);
+  // Acte 2
+  if (curse.toxine) d.toxine = Math.max(d.toxine ?? 0, turns(curse.toxine));
+  if (curse.peste && !c.gear?.pesteImmune) d.peste = Math.max(d.peste ?? 0, turns(curse.peste));
+  if (curse.ralenti) d.ralenti = Math.max(d.ralenti ?? 0, turns(curse.ralenti) + 1);
+  if (curse.fracasse) d.fracasse = Math.max(d.fracasse ?? 0, turns(curse.fracasse) + 1);
+  if (curse.ombre) d.ombre = Math.min(c.gear?.stackCap ?? 99, (d.ombre ?? 0) + curse.ombre);
+  if (curse.discard) d.discard = (d.discard ?? 0) + curse.discard;
+  if (curse.cendres) addStatusToHand(c, 'cendres', curse.cendres);
+  if (curse.energyLoss) d.manaBurn += curse.energyLoss;
+  if (curse.affliction && !c.gear?.afflictionImmune) {
+    const have = (d.afflictions ??= []);
+    const free = Object.keys(AFFLICTIONS).filter((a) => !have.includes(a));
+    if (free.length > 0) {
+      const a = free[Math.floor(random(c) * free.length)];
+      have.push(a);
+      fx(c, { kind: 'buff', who: 'player', label: `Affliction ${a}` });
+      log(c, `Affliction de sang : ${AFFLICTIONS[a]}.`);
+    }
+    if (have.length >= 5) {
+      d.transformed = true;
+      fx(c, { kind: 'banner', text: 'Tu es Transformé !' });
+      log(c, 'Les cinq sangs se mêlent en toi : tu es Transformé, tu perds ton prochain tour.');
+    }
+  }
+  if (curse.lignee && !c.gear?.lineageImmune) lineageCurse(c);
   fx(c, { kind: 'buff', who: 'player', label: curse.label });
   log(c, `${e.name} : ${curse.label}.`);
 }
 
 // --- Actions du joueur ---
 
-export function resolveTarget(c: CombatState, needsTarget: boolean, targetUid?: number): EnemyState | null | 'invalid' {
+export function resolveTarget(c: CombatState, needsTarget: boolean, targetUid?: number, attack = false): EnemyState | null | 'invalid' {
   if (!needsTarget) return null;
-  const alive = livingEnemies(c).filter((e) => !e.submerged && !e.untargetable);
+  // Envol : les Attaques à cible unique ne peuvent pas viser un ennemi en vol (les Sorts, si).
+  const alive = livingEnemies(c).filter((e) => !e.submerged && !e.untargetable && !(attack && e.flying));
   if (targetUid === undefined) return alive.length === 1 ? alive[0] : 'invalid';
   return alive.find((e) => e.uid === targetUid) ?? 'invalid';
 }
@@ -265,7 +346,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   if (!canPlayCard(c, handIndex)) return false;
   const card = c.hand[handIndex];
   const def = CARDS[card.id];
-  const target = resolveTarget(c, def.needsTarget, targetUid);
+  const target = resolveTarget(c, def.needsTarget, targetUid, def.type === 'Attaque');
   if (target === 'invalid') return false;
 
   const p = c.player;
@@ -301,9 +382,12 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
   const blockBefore = p.block;
-  c.playing = { cost, type: def.type, id: card.id, school: def.school };
+  c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort') };
   def.play(ctx);
   c.playing = undefined;
+  // Butin : Masse des flammes, Croc des trois souffles, Croc de Prismagor.
+  if (ctx.dealt && target && !target.dead && !target.submerged) onHitItems(c, target, def.type);
+  if (def.type === 'Sort' && ctx.dealt) p.enrageReady = 0;
   if (c.cleaving) c.cleave = (c.cleave ?? 1) - 1;
   // Concentration arcanique : le 3e Sort du tour rend de l'énergie.
   if (def.type === 'Sort') {
@@ -349,7 +433,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
       applySaignement(target, g.bleedFirstAttack, c);
       c.bleedDoneThisTurn = true;
     }
-    if (g.healOnAttack) p.hp = Math.min(p.maxHp, p.hp + g.healOnAttack);
+    if (g.healOnAttack) healPlayer(c, g.healOnAttack);
   }
   if (def.type === 'Attaque') c.firstAttackDone = true;
   if (card.id === 'zone_de_feu' && c.gear?.zoneBlock) gainBlock(c, c.gear.zoneBlock, false);
@@ -372,7 +456,7 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   if (!canUseSpell(c, index)) return false;
   const s = c.spells[index];
   const def = SPELLS[s.id];
-  const target = resolveTarget(c, def.needsTarget, targetUid);
+  const target = resolveTarget(c, def.needsTarget, targetUid, (def.classId ?? 'guerrier') === 'guerrier');
   if (target === 'invalid') return false;
   c.player.energy -= def.cost;
   def.cast(c, target);
@@ -385,6 +469,7 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
 export function changePosture(c: CombatState, posture: Posture): boolean {
   const p = c.player;
   if (c.phase !== 'player' || p.postureChanged || p.posture === posture) return false;
+  if ((p.debuffs?.lignee ?? 0) > 0) return false; // Malédiction de lignée : forcé en Berserker
   p.posture = posture;
   p.postureChanged = true;
   p.rage = Math.min(p.rage, c.gear?.postureRage ?? 3);
@@ -431,6 +516,28 @@ export function endTurn(c: CombatState): void {
     d.demoralise = Math.max(0, d.demoralise - 1);
     d.impie = Math.max(0, d.impie - 1);
     d.arcane = Math.max(0, d.arcane - 1);
+    d.peste = Math.max(0, (d.peste ?? 0) - 1);
+    d.ralenti = Math.max(0, (d.ralenti ?? 0) - 1);
+    d.fracasse = Math.max(0, (d.fracasse ?? 0) - 1);
+    d.lignee = Math.max(0, (d.lignee ?? 0) - 1);
+  }
+  // Dragonnet de compagnie
+  if (c.gear?.petDamage && c.phase === 'player') {
+    const pool = livingEnemies(c).filter((e) => !e.submerged);
+    if (pool.length > 0) {
+      const t = pool[Math.floor(random(c) * pool.length)];
+      fx(c, { kind: 'tick', who: t.uid, amount: c.gear.petDamage, label: 'Dragonnet' });
+      damageEnemy(c, t, c.gear.petDamage);
+    }
+  }
+  // Adrénaline ardente : 3, puis 5, puis 7… PV perdus.
+  if (c.adrenaline && c.phase === 'player' && c.enemies.some((e) => e.defId === 'ysolde' && !e.dead)) {
+    const loss = c.adrenaline;
+    p.hp = Math.max(0, p.hp - loss);
+    fx(c, { kind: 'tick', who: 'player', amount: loss, label: 'Adrénaline' });
+    log(c, `L'Adrénaline ardente te consume : ${loss} PV.`);
+    c.adrenaline += 2;
+    if (p.hp <= 0) c.phase = 'defeat';
   }
   // Surcharge : à 4 charges arcaniques ou plus, le Mage perd 2 PV.
   if ((p.charges ?? 0) >= 4 && !c.gear?.noOverload && c.phase === 'player') {
@@ -446,8 +553,12 @@ export function endTurn(c: CombatState): void {
   if (c.phase === 'player') startPlayerTurn(c);
 }
 
-function enemyDamage(c: CombatState, e: EnemyState, base: number): number {
-  let dmg = base + e.buffs.puissance;
+function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent = e.intent): number {
+  const d = c.player.debuffs;
+  let dmg = base + e.buffs.puissance + (e.giant ? 5 : 0) + 2 * (d?.ombre ?? 0) + (c.gear?.extraHurt ?? 0);
+  if ((d?.fracasse ?? 0) > 0) dmg *= 1.5;
+  if (d?.afflictions?.includes('noire')) dmg *= 1.2;
+  if (intent.kind === 'attack' && intent.breath && c.gear?.breathReduce) dmg *= 1 - c.gear.breathReduce / 100;
   if (e.buffs.demoralise > 0) dmg *= 0.75;
   if (c.player.posture === 'berserker') dmg *= 1.2;
   if (c.player.temerite) dmg *= 1.25;
@@ -473,11 +584,12 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         log(c, `${e.name} est désarmé : il n'attaque pas.`);
         break;
       }
-      const times = intent.times ?? 1;
+      // Mutation Frénésie : attaque deux fois.
+      const times = (intent.times ?? 1) * (e.mutated && e.mutations?.includes('frenesie') ? 2 : 1);
       const base = intent.dmg + (intent.grow ?? 0) * (e.counter ?? 0);
       if (intent.grow) e.counter = (e.counter ?? 0) + 1;
       for (let i = 0; i < times && c.phase === 'player'; i++) {
-        const dmg = enemyDamage(c, e, base);
+        const dmg = enemyDamage(c, e, base, intent);
         const blockBefore = c.player.block;
         fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(blockBefore, dmg), ranged: !!intent.cast });
         const lost = damagePlayer(c, dmg, true);
@@ -503,9 +615,11 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
       }
       // Gelé (boss) : seule la prochaine attaque est réduite.
       if (e.gele === 'half') e.gele = undefined;
+      // L'effet de l'attaque : Toxine, Peste, Ralenti, Ombre rongeuse, Affliction…
+      if (intent.effect && c.phase === 'player') applyCurse(c, e, intent.effect);
       // Réflexion des sorts : une incantation renvoie la moitié de ses dégâts.
       if (c.player.spellReflect && intent.cast && !e.dead && c.phase === 'player') {
-        const back = Math.floor(enemyDamage(c, e, base) * times / 2);
+        const back = Math.floor(enemyDamage(c, e, base, intent) * times / 2);
         if (back > 0) {
           fx(c, { kind: 'tick', who: e.uid, amount: back, label: 'Réflexion' });
           damageEnemy(c, e, back);
@@ -552,20 +666,39 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
     case 'summon': {
       const alive = livingEnemies(c).filter((o) => o.defId === intent.id).length;
       if (alive < intent.max) {
-        const add = makeEnemy(c, intent.id);
-        // Le nouvel add se place à côté de son maître.
-        c.enemies.splice(c.enemies.indexOf(e), 0, add);
+        const n = Math.min(intent.count ?? 1, intent.max - alive);
+        let add = null;
+        for (let i = 0; i < n; i++) {
+          add = makeEnemy(c, intent.id);
+          // Le nouvel add se place à côté de son maître.
+          c.enemies.splice(c.enemies.indexOf(e), 0, add);
+        }
         fx(c, { kind: 'buff', who: e.uid, label: intent.label });
-        log(c, `${e.name} : ${intent.label}. Un ${add.name} revient.`);
+        log(c, `${e.name} : ${intent.label}. ${n > 1 ? `${n} ${add!.name}s arrivent` : `Un ${add!.name} arrive`}.`);
       } else {
         log(c, `${e.name} tente un ${intent.label}, mais tous ses éclats sont là.`);
       }
       break;
     }
     case 'blink':
+      if (intent.flight) {
+        e.flying = true;
+        fx(c, { kind: 'buff', who: e.uid, label: 'Envol' });
+        log(c, `${e.name} s'envole : tes Attaques ne peuvent plus le viser jusqu'à son prochain tour.`);
+        break;
+      }
       e.untargetable = true;
       fx(c, { kind: 'buff', who: e.uid, label: 'Clignement' });
       log(c, `${e.name} se dérobe : il ne peut pas être ciblé jusqu'à son prochain tour.`);
+      break;
+    case 'idle':
+      log(c, `${e.name} : ${intent.label.toLowerCase()}.`);
+      break;
+    case 'hatch':
+      hatch(c, e, intent);
+      break;
+    case 'potion':
+      drinkGrizzik(c, e, intent.potion);
       break;
     case 'heal': {
       const allies = intent.self ? [] : livingEnemies(c).filter((o) => o !== e && o.hp < o.maxHp && !o.noHeal);
@@ -616,6 +749,9 @@ function enemyTurnInner(c: CombatState): void {
     if (e.dead) continue;
     e.block = 0;
     e.untargetable = false;
+    e.flying = false;
+    enemyPassivesAct2(c, e);
+    if (e.dead) continue;
     // Passifs de début de tour
     if (e.defId === 'gardien') {
       e.block += TUNING.gardienBlock;
@@ -690,6 +826,12 @@ function enemyTurnInner(c: CombatState): void {
       log(c, `L'Orbe de distorsion annule ${e.intent.cast} !`);
     } else {
       resolveIntent(c, e, e.intent);
+      // Potion de vitesse : Grizzik agit une deuxième fois.
+      if (e.haste && !e.dead && c.phase === 'player') {
+        e.haste = false;
+        log(c, `${e.name}, survolté, agit encore !`);
+        resolveIntent(c, e, { kind: 'attack', dmg: 9 });
+      }
     }
 
     decayBuffs(e);
@@ -697,6 +839,7 @@ function enemyTurnInner(c: CombatState): void {
     e.disarmed = false;
     e.step += 1;
     e.intent = intentAt(ENEMIES[e.defId], e.step, e.phase ?? 1, e.hp < e.maxHp / 2);
+    fixIntent(c, e);
     // Vulkhar affaibli : son premier Marteau des flammes arrive un tour plus tard.
     if (e.delayHammer && e.intent.cast === 'Marteau des flammes') {
       e.delayHammer = false;
@@ -730,4 +873,193 @@ function decayBuffs(e: EnemyState): void {
 export function previewIntentDamage(c: CombatState, e: EnemyState): number | null {
   if (e.intent.kind !== 'attack') return null;
   return enemyDamage(c, e, e.intent.dmg + (e.intent.grow ?? 0) * (e.counter ?? 0));
+}
+
+// --- Acte 2 ---
+
+/** Les intentions qui dépendent du combat : les Souffles de Prismagor, les potions de Grizzik. */
+function fixIntent(c: CombatState, e: EnemyState): void {
+  const i = e.intent;
+  if (e.defId === 'prismagor') {
+    if (i.kind === 'attack' && i.breath && e.breaths) {
+      const b = PRISMAGOR_BREATHS[e.breaths[Math.floor(e.step / 3) % 2]];
+      e.intent = { kind: 'attack', dmg: b.dmg, cast: b.name, uninterruptible: true, breath: true, addZone: b.addZone, effect: b.effect as never };
+    } else if (i.kind === 'attack' && e.hp < e.maxHp * 0.2) {
+      e.intent = { ...i, times: 2 };
+    }
+  }
+  if (e.defId === 'grizzik' && i.kind === 'potion') {
+    const keys = Object.keys(GRIZZIK_POTIONS);
+    const potion = keys[Math.floor(random(c) * keys.length)];
+    const label = GRIZZIK_POTIONS[potion].split(' :')[0];
+    e.intent = potion === 'explosive'
+      ? { kind: 'potion', potion, label, cast: 'Potion explosive' }
+      : { kind: 'potion', potion, label };
+  }
+}
+
+/** Ce que font certains ennemis de l'acte 2 au début de leur tour. */
+function enemyPassivesAct2(c: CombatState, e: EnemyState): void {
+  if (e.giant) e.giant -= 1;
+  // Mutations actives
+  if (e.mutated && e.mutations?.includes('carapace')) {
+    e.block += 10;
+    fx(c, { kind: 'block', who: e.uid, amount: 10 });
+  }
+  if (e.mutated && e.mutations?.includes('regeneration') && !e.noHeal) {
+    const healed = Math.min(6, e.maxHp - e.hp);
+    e.hp += healed;
+    if (healed > 0) fx(c, { kind: 'heal', from: e.uid, to: e.uid, amount: healed });
+  }
+  // Vashka protège ses Œufs, et en fait éclore deux tous les deux tours.
+  if (e.defId === 'vashka') {
+    const eggs = livingEnemies(c).filter((o) => o.defId === 'oeuf_vashka');
+    for (const egg of eggs.slice(0, 2)) {
+      egg.block += 6;
+      fx(c, { kind: 'block', who: egg.uid, amount: 6 });
+    }
+    if (c.turn % 2 === 0) hatch(c, e, { kind: 'hatch', label: 'Éclosion', count: 2 });
+  }
+  // Vhaeryx (phase 1) : des Drakônides chromatiques tous les 3 tours.
+  if (e.defId === 'vhaeryx' && (e.phase ?? 1) === 1 && c.turn % 3 === 0) {
+    const n = 2 + (c.extraAdds ?? 0);
+    for (let i = 0; i < n; i++) c.enemies.push(makeEnemy(c, 'drakonide_chroma'));
+    fx(c, { kind: 'buff', who: e.uid, label: `${n} Drakônides chromatiques !` });
+    log(c, `Vhaeryx appelle ${n} Drakônides chromatiques.`);
+  }
+}
+
+/** Des Œufs éclosent en Dragonnets noirs. */
+function hatch(c: CombatState, e: EnemyState, intent: Extract<Intent, { kind: 'hatch' }>): void {
+  const eggs = intent.self ? [e] : livingEnemies(c).filter((o) => o.defId.startsWith('oeuf'));
+  const n = intent.self ? 1 : intent.count === 'all' ? eggs.length : Math.min(intent.count ?? 1, eggs.length);
+  for (const egg of eggs.slice(0, n)) {
+    egg.dead = true;
+    egg.gone = true;
+    fx(c, { kind: 'death', who: egg.uid });
+    const d = makeEnemy(c, 'dragonnet');
+    c.enemies.splice(c.enemies.indexOf(egg) + 1, 0, d);
+  }
+  if (n > 0) log(c, `${intent.label} : ${n} Dragonnet${n > 1 ? 's noirs éclosent' : ' noir éclôt'}.`);
+}
+
+/** Grizzik boit (ou lance) sa potion. */
+function drinkGrizzik(c: CombatState, e: EnemyState, potion: string): void {
+  log(c, `${e.name} : ${GRIZZIK_POTIONS[potion]}.`);
+  fx(c, { kind: 'buff', who: e.uid, label: GRIZZIK_POTIONS[potion].split(' :')[0] });
+  switch (potion) {
+    case 'croissance':
+      e.maxHp += 20;
+      e.hp += 20;
+      e.giant = 3;
+      break;
+    case 'explosive': {
+      const dmg = enemyDamage(c, e, 16);
+      fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(c.player.block, dmg), ranged: true });
+      damagePlayer(c, dmg, true);
+      damageEnemy(c, e, 8, true);
+      break;
+    }
+    case 'transmutation':
+      (c.player.debuffs ??= emptyDebuffs()).transmute = 2;
+      break;
+    case 'soins':
+      e.hp = Math.min(e.maxHp, e.hp + 20);
+      break;
+    case 'vitesse':
+      e.haste = true;
+      break;
+  }
+}
+
+/** La Malédiction de lignée de Vhaeryx vise la classe du joueur. */
+function lineageCurse(c: CombatState): void {
+  const d = (c.player.debuffs ??= emptyDebuffs());
+  d.lignee = 2;
+  if ((c.classId ?? 'guerrier') === 'mage') {
+    c.player.drawPenalty += 2;
+    log(c, 'Malédiction de lignée : tu es métamorphosé, ta prochaine main n\'aura que 3 cartes.');
+  } else {
+    c.player.posture = 'berserker';
+    log(c, 'Malédiction de lignée : tu es forcé en posture Berserker pendant 2 tours.');
+  }
+}
+
+/** Le début du tour du joueur, côté acte 2 : poisons, Afflictions, Transformation, Sceptre de domination. */
+function startTurnAct2(c: CombatState): void {
+  const p = c.player;
+  const d = p.debuffs!;
+  if (c.gear?.turnSelfDamage) {
+    fx(c, { kind: 'tick', who: 'player', amount: c.gear.turnSelfDamage, label: 'Magma' });
+    damagePlayer(c, c.gear.turnSelfDamage, false);
+  }
+  if ((d.toxine ?? 0) > 0) {
+    d.toxine! -= 1;
+    fx(c, { kind: 'tick', who: 'player', amount: 2, label: 'Toxine' });
+    log(c, 'La Toxine te ronge : 2 dégâts.');
+    damagePlayer(c, 2, false);
+  }
+  if (d.afflictions?.includes('rouge')) {
+    fx(c, { kind: 'tick', who: 'player', amount: 2, label: 'Sang rouge' });
+    damagePlayer(c, 2, false);
+  }
+  // Malédiction de lignée du Guerrier : forcé en Berserker.
+  if ((d.lignee ?? 0) > 0 && (c.classId ?? 'guerrier') === 'guerrier') p.posture = 'berserker';
+  // Amulette de sang pur : un débuff dissipé tous les 2 tours.
+  if (c.gear?.purifyEvery2 && c.turn % 2 === 0) purifyOne(c);
+  // Transformé : tu perds ce tour, puis les Afflictions disparaissent.
+  if (d.transformed) {
+    d.transformed = false;
+    d.afflictions = [];
+    p.energy = 0;
+    c.discard.push(...c.hand);
+    c.hand = [];
+    fx(c, { kind: 'banner', text: 'Transformé : tu perds ce tour' });
+    log(c, 'Tu es Transformé : tu perds ce tour. Les Afflictions de sang se dissipent.');
+    return;
+  }
+  // Coup de queue, Projection : des cartes défaussées au hasard.
+  if ((d.discard ?? 0) > 0) {
+    for (let i = 0; i < d.discard! && c.hand.length > 0; i++) {
+      const [card] = c.hand.splice(Math.floor(random(c) * c.hand.length), 1);
+      c.discard.push(card);
+      log(c, `Tu lâches ${CARDS[card.id].name}.`);
+    }
+    d.discard = 0;
+  }
+  // Potion de transmutation : 2 cartes deviennent des Fioles instables (pour ce combat).
+  if ((d.transmute ?? 0) > 0) {
+    const pool = c.hand.filter((card) => CARDS[card.id].type !== 'Statut');
+    for (let i = 0; i < d.transmute! && pool.length > 0; i++) {
+      const [card] = pool.splice(Math.floor(random(c) * pool.length), 1);
+      card.id = 'fiole_instable';
+      card.upgraded = false;
+    }
+    d.transmute = 0;
+    log(c, 'La potion de Grizzik transforme tes cartes en Fioles instables.');
+  }
+  // Skarn : un Sceptre de domination à chaque tour, tant qu'il reste des Œufs.
+  if (c.enemies.some((e) => e.defId === 'oeuf_skarn' && !e.dead)) addStatusToHand(c, 'sceptre_domination', 1);
+}
+
+/** Le butin qui agit quand une Attaque ou un Sort touche. */
+function onHitItems(c: CombatState, target: EnemyState, type: string): void {
+  const g = c.gear ?? {};
+  if (type !== 'Attaque' && type !== 'Sort') return;
+  if (g.attackBurn && type === 'Attaque') {
+    target.buffs.brulure = (target.buffs.brulure ?? 0) + g.attackBurn;
+  }
+  if (g.attackCycle) {
+    const step = (c.fangStep ?? 0) % 3;
+    if (step === 0) target.buffs.brulure = (target.buffs.brulure ?? 0) + 2;
+    else if (step === 1) target.buffs.ralenti = Math.max(target.buffs.ralenti, 1);
+    else target.buffs.demoralise = Math.max(target.buffs.demoralise, 1);
+    c.fangStep = step + 1;
+  }
+  if (g.attackDebuff) {
+    const roll = Math.floor(random(c) * 3);
+    if (roll === 0) target.buffs.ralenti = Math.max(target.buffs.ralenti, 1);
+    else if (roll === 1) target.buffs.demoralise = Math.max(target.buffs.demoralise, 1);
+    else target.buffs.armureFracassee = Math.max(target.buffs.armureFracassee, 1);
+  }
 }

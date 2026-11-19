@@ -32,19 +32,22 @@ it('équilibrage', () => {
   const lines: string[] = [];
   for (const prof of PROFILES) {
     let wins = 0;
+    let act2 = 0;
     let floors = 0;
     const fights = new Map<string, FightLog[]>();
     for (let seed = 1; seed <= RUNS; seed++) {
       const r = simulateRun(seed * 104729, prof.talents, 0, prof.cls);
       if (r.victory) wins++;
+      if (r.floor > 10) act2++;
       floors += r.floor;
       for (const f of r.fights) {
-        const key = f.kind === 'combat' && f.floor <= 4 ? 'Combats étages 1-4' : f.kind === 'combat' ? `(5-9) ${f.name}` : f.name;
+        const pre = (f.act ?? 1) > 1 ? `A${f.act} ` : '';
+        const key = pre + (f.kind === 'combat' && f.floor <= 4 ? 'Combats étages 1-4' : f.kind === 'combat' ? `(5-9) ${f.name}` : f.name);
         fights.set(key, [...(fights.get(key) ?? []), f]);
       }
     }
     lines.push(`\n=== ${prof.name} : ${RUNS} runs ===`);
-    lines.push(`Victoire : ${pct(wins, RUNS)} · étage moyen atteint : ${(floors / RUNS).toFixed(1)}`);
+    lines.push(`Victoire : ${pct(wins, RUNS)} · Vulkhar vaincu (acte 2 atteint) : ${pct(act2, RUNS)} · étage moyen atteint : ${(floors / RUNS).toFixed(1)}`);
     lines.push('Combat                                    | joués | wipe au 1er essai | PV perdus (moy.)');
     const rows = [...fights.entries()].sort((a, b) => b[1].length - a[1].length);
     for (const [name, list] of rows) {

@@ -483,9 +483,10 @@ function dispelCurse(ctx: PlayContext): void {
   }
   const d = c.player.debuffs;
   if (!d) return;
-  const keys = (['demoralise', 'impie', 'arcane'] as const).filter((k) => d[k] > 0);
+  // Délivrance dissipe les Malédictions (dont la Malédiction de lignée), pas les poisons.
+  const keys = (['demoralise', 'impie', 'arcane', 'lignee'] as const).filter((k) => (d[k] ?? 0) > 0);
   if (keys.length > 0) {
-    const k = keys.reduce((a, b) => (d[a] >= d[b] ? a : b));
+    const k = keys.reduce((a, b) => ((d[a] ?? 0) >= (d[b] ?? 0) ? a : b));
     d[k] = 0;
     log(c, 'Délivrance dissipe une malédiction.');
   } else if (d.panic > 0 || d.manaBurn > 0) {

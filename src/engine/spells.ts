@@ -1,6 +1,6 @@
 // La barre de sorts : des sorts toujours disponibles, sans pioche, mais avec un temps de recharge.
 // Référence : docs/classes/GUERRIER.md (§4.2 et §6) et docs/classes/MAGE.md (§4.2 et §6)
-import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, livingEnemies, log, playerAttack } from './actions';
+import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, healPlayer, livingEnemies, log, playerAttack } from './actions';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -103,8 +103,7 @@ export const SPELLS: Record<string, SpellDef> = {
     text: 'Soigne 15 % de tes PV max. Une fois par combat.',
     cast: (c) => {
       const p = c.player;
-      const healed = Math.min(p.maxHp - p.hp, Math.floor(p.maxHp * 0.15));
-      p.hp += healed;
+      const healed = healPlayer(c, Math.floor(p.maxHp * 0.15));
       fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
       log(c, `Dernier rempart : tu récupères ${healed} PV.`);
     },

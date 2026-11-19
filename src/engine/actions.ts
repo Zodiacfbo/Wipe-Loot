@@ -1,6 +1,6 @@
 // Actions élémentaires du combat : dégâts, blocage, rage, débuffs, pioche.
 // Les cartes et les ennemis s'appuient sur ces fonctions.
-import { ENEMIES, TUNING, intentAt } from './enemies';
+import { ENEMIES, TUNING, hasTag, intentAt } from './enemies';
 import { random, shuffle } from './rng';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
@@ -62,11 +62,23 @@ export function gainRage(c: CombatState, amount: number): void {
   }
 }
 
+/** Soigne le joueur (la Peste et l'Affliction verte réduisent les soins de moitié). Renvoie les PV rendus. */
+export function healPlayer(c: CombatState, amount: number): number {
+  const p = c.player;
+  const d = p.debuffs;
+  let heal = amount;
+  if ((d?.peste ?? 0) > 0 || d?.afflictions?.includes('verte')) heal = Math.floor(heal / 2);
+  const healed = Math.max(0, Math.min(heal, p.maxHp - p.hp));
+  p.hp += healed;
+  return healed;
+}
+
 /** Le joueur vient de perdre des PV (Enragé). */
 export function onHpLost(c: CombatState): void {
   const bonus = power(c, 'enrage');
   if (bonus > 0) c.player.enrageReady = (c.player.enrageReady ?? 0) + bonus;
   if (c.gear?.rageOnHpLoss) gainRage(c, c.gear.rageOnHpLoss); // Brisemonts
+  if (c.gear?.hurtBonus) c.player.enrageReady = (c.player.enrageReady ?? 0) + c.gear.hurtBonus; // Bague de la rage
 }
 
 /** `fromCard` : le blocage vient d'une carte (Bâton de l'intendant : +2). */
@@ -74,6 +86,9 @@ export function gainBlock(c: CombatState, amount: number, fromCard = true): void
   const p = c.player;
   let total = amount + (p.robustesse ?? 0) + (fromCard ? c.gear?.blockBonus ?? 0 : 0);
   if (p.posture === 'defensive') total += 3;
+  // Ralenti (Garde draconique, Souffle de foudre, Affliction bronze) : 25 % de blocage en moins.
+  const d = p.debuffs;
+  if ((d?.ralenti ?? 0) > 0 || d?.afflictions?.includes('bronze')) total = Math.floor(total * 0.75);
   p.block += Math.max(0, total);
   if (total > 0) fx(c, { kind: 'block', who: 'player', amount: total });
 }
@@ -96,6 +111,11 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (c.playing?.school === 'arcane') dmg += 2 * (p.charges ?? 0);
   if (c.playing?.school === 'feu' && c.playing.cost >= 2) dmg += power(c, 'pyromanie');
   if (c.playing?.id === 'boule_de_feu') dmg += g.fireballBonus ?? 0;
+  // Acte 2 : Fouet du contremaître, armes contre les Dragons et les Morts-vivants, Bague de la mère.
+  if (c.playing && (c.playing.type === 'Attaque' || spell)) dmg += (g.comboBonus ?? 0) * ((c.attacksThisTurn ?? 0) + (c.mageSpellsThisTurn ?? 0));
+  if (!spell && hasTag(target.defId, 'mortvivant')) dmg += g.undeadBonus ?? 0;
+  if (!spell && hasTag(target.defId, 'dragon')) dmg += g.dragonBonus ?? 0;
+  if (c.playing?.aoe) dmg += g.aoeBonus ?? 0;
   if (c.playing && (c.playing.id === 'frappe' || c.playing.id === 'frappe_heroique')) dmg += g.strikeBonus ?? 0;
   if (c.playing?.type === 'Attaque' && c.playing.cost === 0) dmg += g.zeroCostBonus ?? 0;
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
@@ -131,6 +151,11 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
 
 export function damageEnemy(c: CombatState, target: EnemyState, amount: number, ignoreBlock = false): void {
   if (target.dead || target.submerged || amount <= 0) return;
+  // Skarn est intouchable tant qu'il reste des Œufs de la couvée.
+  if (target.defId === 'skarn' && (target.phase ?? 1) === 1 && c.enemies.some((e) => e.defId === 'oeuf_skarn' && !e.dead)) {
+    log(c, 'Skarn est protégé par la magie de ses Œufs.');
+    return;
+  }
   let rest = amount;
   if (!ignoreBlock) {
     const absorbed = Math.min(target.block, rest);
@@ -143,6 +168,13 @@ export function damageEnemy(c: CombatState, target: EnemyState, amount: number, 
     target.mouton = 0;
     log(c, `${target.name} reprend sa forme.`);
   }
+  // Mutation : sous 50 % de PV, la Chimère mute.
+  if (target.mutations?.length && !target.mutated && target.hp > 0 && target.hp < target.maxHp / 2) {
+    target.mutated = true;
+    fx(c, { kind: 'banner', text: `${target.name} mute : ${target.mutations.map((m) => MUTATION_LABEL[m]).join(' et ')} !` });
+  }
+  // Vhaeryx : l'élixir à 60 %, puis les cobayes se relèvent sous 20 %.
+  if (target.defId === 'vhaeryx' && target.hp > 0) vhaeryxPhase(c, target);
   // Vulkhar plonge dans la lave à 50 % de ses PV.
   if (target.defId === 'vulkhar' && (target.phase ?? 1) === 1 && target.hp <= target.maxHp / 2) {
     target.hp = Math.ceil(target.maxHp / 2);
@@ -217,17 +249,36 @@ export function emerge(c: CombatState, v: EnemyState): void {
 
 export function killEnemy(c: CombatState, target: EnemyState): void {
   if (target.dead) return;
+  // Ossyrax a deux vies ; un Serviteur rapiécé se relève si un Alchimiste vit encore.
+  if (target.defId === 'ossyrax' && !target.revived) {
+    target.revived = true;
+    target.hp = 45;
+    target.buffs.puissance += 3;
+    target.buffs.saignement = 0;
+    target.buffs.brulure = 0;
+    fx(c, { kind: 'banner', text: 'Ossyrax se relève !' });
+    log(c, 'Ossyrax refuse de rester mort : il se relève avec 45 PV, plus fort.');
+    return;
+  }
+  if (target.defId === 'serviteur' && !target.revived && c.enemies.some((e) => e.defId === 'alchimiste' && !e.dead)) {
+    target.revived = true;
+    target.hp = 10;
+    fx(c, { kind: 'buff', who: target.uid, label: 'Se relève !' });
+    log(c, `L'alchimiste relève ${target.name} (10 PV).`);
+    return;
+  }
   target.hp = 0;
   target.dead = true;
   target.block = 0;
   fx(c, { kind: 'death', who: target.uid });
   log(c, `${target.name} est vaincu.`);
+  onEnemyDeath(c, target);
   // Implacable : tuer un ennemi rend de la rage et pioche (pendant ton tour).
   if (!c.enemyActing && c.phase === 'player') {
     if (c.gear?.killRage) gainRage(c, c.gear.killRage);
     if (c.gear?.killDraw) drawCards(c, c.gear.killDraw);
   }
-  if (c.gear?.healOnKill && c.player.hp > 0) c.player.hp = Math.min(c.player.maxHp, c.player.hp + c.gear.healOnKill);
+  if (c.gear?.healOnKill && c.player.hp > 0) healPlayer(c, c.gear.healOnKill);
   // Krâgg tombe : ses Molosses s'enfuient. Un Molosse tué pendant que Krâgg vit se relèvera.
   if (target.defId === 'kragg') {
     for (const m of c.enemies.filter((e) => e.defId === 'molosse_enrage')) {
@@ -279,6 +330,12 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
     if (hpLoss > 0 || blockedRage) gainRage(c, 1);
     if (hpLoss === 0) p.blockedFullAttack = true;
   }
+  if (p.hp <= 0 && c.gear?.cheatDeath && !c.cheatedDeath) {
+    // Phylactère brisé
+    c.cheatedDeath = true;
+    p.hp = 1;
+    fx(c, { kind: 'banner', text: 'Le Phylactère brisé te retient !' });
+  }
   if (p.hp <= 0) {
     p.hp = 0;
     c.phase = 'defeat';
@@ -323,6 +380,8 @@ export function addStatusToDraw(c: CombatState, id: string, count: number): void
 }
 
 export function addStatusToHand(c: CombatState, id: string, count: number): void {
+  // Amulette de cendre : une carte-statut qui arrive en main fait piocher.
+  if (c.gear?.statusDraw && count > 0) drawCards(c, c.gear.statusDraw * count);
   for (let i = 0; i < count; i++) {
     if (c.hand.length >= 10) {
       c.discard.push({ uid: c.nextUid++, id, upgraded: false });
@@ -402,4 +461,68 @@ export function spendCharges(c: CombatState): number {
   const n = c.player.charges ?? 0;
   c.player.charges = 0;
   return n;
+}
+
+// --- Acte 2 ---
+
+export const MUTATION_LABEL: Record<string, string> = {
+  carapace: 'Carapace (+10 blocage par tour)',
+  frenesie: 'Frénésie (attaque deux fois)',
+  regeneration: 'Régénération (+6 PV par tour)',
+};
+
+/** Ce qui se passe quand un ennemi meurt (acte 2). */
+function onEnemyDeath(c: CombatState, target: EnemyState): void {
+  // Fureur de la meute : les autres drakes gagnent 3 Puissance.
+  if (target.defId.startsWith('drake_') && target.defId !== 'drake_os') {
+    for (const o of livingEnemies(c)) {
+      if (o.defId.startsWith('drake_') && o.defId !== 'drake_os') {
+        o.buffs.puissance += 3;
+        fx(c, { kind: 'buff', who: o.uid, label: 'Fureur de la meute : Puissance +3' });
+      }
+    }
+  }
+  // Skarn : le dernier Œuf détruit, il n'est plus protégé, et ses dragonnets s'enfuient.
+  if (target.defId === 'oeuf_skarn' && !c.enemies.some((e) => e.defId === 'oeuf_skarn' && !e.dead)) {
+    const skarn = c.enemies.find((e) => e.defId === 'skarn' && !e.dead);
+    if (skarn) {
+      skarn.phase = 2;
+      skarn.step = 0;
+      skarn.intent = intentAt(ENEMIES.skarn, 0, 2);
+      for (const d of c.enemies.filter((e) => e.defId === 'dragonnet' && !e.dead)) {
+        d.dead = true;
+        d.gone = true;
+        fx(c, { kind: 'death', who: d.uid });
+      }
+      fx(c, { kind: 'banner', text: 'Les Œufs sont détruits : Skarn est vulnérable !' });
+    }
+  }
+  // Vhaeryx : les adds tombés pourront se relever.
+  if (target.defId !== 'vhaeryx' && c.enemies.some((e) => e.defId === 'vhaeryx' && !e.dead)) c.fallen = (c.fallen ?? 0) + 1;
+  // Sceptre du gardien, Bague de la meute.
+  if (!c.enemyActing && c.phase === 'player' && c.gear?.killEnergy && !c.killEnergyUsed) {
+    c.player.energy += c.gear.killEnergy;
+    c.killEnergyUsed = true;
+  }
+  if (c.gear?.killPuissance) c.player.puissance += c.gear.killPuissance;
+}
+
+/** Vhaeryx boit son élixir à 60 %, puis relève les cobayes sous 20 %. */
+function vhaeryxPhase(c: CombatState, v: EnemyState): void {
+  const phase = v.phase ?? 1;
+  if (phase === 1 && v.hp <= v.maxHp * 0.6) {
+    v.phase = 2;
+    v.step = 0;
+    v.intent = intentAt(ENEMIES.vhaeryx, 0, 2);
+    v.interrupted = false;
+    v.delayed = false;
+    fx(c, { kind: 'banner', text: 'Vhaeryx boit son élixir et devient dragon !' });
+    log(c, '« Assez joué ! » Vhaeryx avale son dernier élixir et se transforme en dragon chromatique.');
+  }
+  if ((v.phase ?? 1) === 2 && v.hp <= v.maxHp * 0.2) {
+    v.phase = 3;
+    const n = Math.min(6, c.fallen ?? 0);
+    for (let i = 0; i < n; i++) c.enemies.push(makeEnemy(c, 'serviteur_os'));
+    fx(c, { kind: 'banner', text: n > 0 ? `Les cobayes se relèvent ! (${n})` : 'Vhaeryx appelle ses cobayes… mais aucun ne se relève.' });
+  }
 }

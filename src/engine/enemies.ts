@@ -1,5 +1,6 @@
-// Les ennemis de l'acte 1 utilisés par le prototype.
+// Les ennemis de l'acte 1 (et, dans enemies_acte2.ts, ceux de l'acte 2).
 // Référence : docs/actes/ACTE1_PROFONDEURS_ARDENTES.md
+import { ENEMIES_ACTE2 } from './enemies_acte2';
 import type { Intent } from './types';
 
 export interface EnemyDef {
@@ -17,6 +18,12 @@ export interface EnemyDef {
   cycleLow?: Intent[];
   /** Ce que l'ennemi fait en permanence, affiché sous son nom. */
   passive?: string;
+  /** Dragon, Mort-vivant, Humanoïde, Expérience (acte 2). */
+  tags?: ('dragon' | 'mortvivant' | 'humanoide' | 'experience')[];
+  /** Mutation : tirée au hasard au début du combat, active sous 50 % de PV. */
+  mutation?: boolean;
+  /** Commence le combat avec cette part de ses PV (Ysolde). */
+  startHpRatio?: number;
 }
 
 /** Les réglages d'équilibrage des mécaniques spéciales (voir tools/balance/). */
@@ -27,7 +34,7 @@ export const TUNING = {
   gorlokBlockPerShard: 3, // blocage de Gorlok par Éclat en vie
 };
 
-export const ENEMIES: Record<string, EnemyDef> = {
+const ENEMIES_ACTE1: Record<string, EnemyDef> = {
   molosse: {
     id: 'molosse', name: 'Molosse de braise', hpMin: 18, hpMax: 22,
     cycle: [
@@ -216,6 +223,13 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
 };
 
+export const ENEMIES: Record<string, EnemyDef> = { ...ENEMIES_ACTE1, ...ENEMIES_ACTE2 };
+
+/** L'ennemi porte-t-il ce tag (Dragon, Mort-vivant…) ? */
+export function hasTag(id: string, tag: NonNullable<EnemyDef['tags']>[number]): boolean {
+  return !!ENEMIES[id]?.tags?.includes(tag);
+}
+
 export function intentAt(def: EnemyDef, step: number, phase = 1, low = false): Intent {
   if (phase >= 2 && def.cycle2) return def.cycle2[step % def.cycle2.length];
   if (low && def.cycleLow) return def.cycleLow[step % def.cycleLow.length];
@@ -246,6 +260,10 @@ export interface Encounter {
   rune?: boolean;
   /** Vulkhar est affaibli par l'Eau des profondeurs (−15 % de PV, Marteau des flammes retardé). */
   weakened?: boolean;
+  /** La Chimère de la cage ouverte porte deux mutations. */
+  doubleMutation?: boolean;
+  /** Les œufs laissés : Vhaeryx appelle ce nombre d'adds en plus par vague. */
+  extraAdds?: number;
 }
 
 /** Packs faciles (étages 1 à 4). */

@@ -103,7 +103,16 @@ export function migrate(raw: unknown): RunState | null {
     run.classId = 'guerrier';
     run.version = 17;
   }
-  return run.version === 17 ? (run as unknown as RunState) : null;
+  if (run.version === 17) {
+    run.floorsDone = 0;
+    run.bossStage = null;
+    run.actBuffs = {};
+    run.eggsLeft = false;
+    run.stargazing = 0;
+    run.veilleur = null;
+    run.version = 18;
+  }
+  return run.version === 18 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

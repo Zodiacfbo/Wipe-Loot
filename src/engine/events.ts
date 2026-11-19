@@ -20,6 +20,8 @@ export interface EventDef {
   choices: EventChoice[];
   /** L'événement peut-il apparaître ? */
   available?: (run: RunState) => boolean;
+  /** L'acte où il se trouve (1 par défaut). */
+  act?: number;
 }
 
 const hasCurse = (run: RunState) => run.deck.some((c) => c.id === 'malediction');
@@ -126,6 +128,96 @@ export const EVENTS: Record<string, EventDef> = {
     choices: [
       { label: 'Fouiller le sac', detail: 'Perds 6 PV. Choisis une carte parmi 3.' },
       { label: 'Le laisser reposer', detail: 'Rien ne se passe.' },
+    ],
+  },
+
+  // --- Acte 2 : l'Aire de Vhaeryx ---
+  oeufs: {
+    id: 'oeufs', act: 2,
+    title: 'Les œufs de dragon',
+    text: 'Une salle chaude et humide, remplie d\'œufs noirs qui palpitent doucement. Certains commencent déjà à se fendre.',
+    choices: [
+      { label: 'Les détruire', detail: 'Un combat contre 4 Dragonnets noirs, puis un objet d\'équipement.' },
+      { label: 'Les laisser', detail: 'Rien sur le moment… mais Vhaeryx aura un add de plus à chaque vague.' },
+    ],
+  },
+  observatoire: {
+    id: 'observatoire', act: 2,
+    title: 'L\'observatoire en ruine',
+    text: 'Une tour d\'astronome à moitié effondrée, ouverte sur le ciel. Au centre, l\'esprit d\'un vieil homme flotte au-dessus d\'un télescope brisé : le Veilleur.',
+    choices: [
+      { label: 'Prouver ta sagesse au Veilleur', detail: 'Perds 8 PV max. Obtiens la Tête du bâton (quête du Bâton du Veilleur, étape 2).', locked: (run) => (run.classId !== 'mage' ? 'Réservé au Mage' : run.veilleur !== 'fragment' ? 'Il te faut le Fragment du Veilleur (Zhaal)' : null) },
+      { label: 'Regarder les étoiles', detail: 'Pendant les 3 prochains combats, tu vois les deux prochaines intentions des ennemis.' },
+      { label: 'Fouiller la tour', detail: 'Gagne 60 or.' },
+    ],
+  },
+  reliquaire: {
+    id: 'reliquaire', act: 2,
+    title: 'Le reliquaire profané',
+    text: 'Une crypte où Vhaeryx entasse les reliques volées aux temples de la vallée. L\'air y est lourd de prières oubliées.',
+    choices: [
+      { label: 'Purifier le reliquaire', detail: 'Retire une Malédiction de ton deck.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
+      { label: 'Le piller', detail: 'Gagne 100 or, mais une Malédiction rejoint ton deck.' },
+    ],
+  },
+  laboratoire: {
+    id: 'laboratoire', act: 2,
+    title: 'Le laboratoire abandonné',
+    text: 'Des alambics encore tièdes, et des fioles intactes alignées sur une table. Les étiquettes sont écrites dans une langue que personne ne parle plus.',
+    choices: [
+      { label: 'Boire une fiole inconnue', detail: 'Au hasard : +6 PV max, une carte améliorée, perds 8 PV, ou Toxine au prochain combat.' },
+      { label: 'Tout emporter', detail: 'Gagne 2 potions au hasard (si tu as de la place).' },
+      { label: 'Partir', detail: 'Rien ne se passe.' },
+    ],
+  },
+  dragonnet_cage: {
+    id: 'dragonnet_cage', act: 2,
+    title: 'Le dragonnet en cage',
+    text: 'Dans une cage rouillée, un tout petit dragonnet noir te regarde avec de grands yeux. Il crache une flammèche, plein d\'espoir.',
+    choices: [
+      { label: 'Le libérer', detail: 'Il te suit : objet Dragonnet de compagnie (3 dégâts à un ennemi à la fin de chacun de tes tours).' },
+      { label: 'Le vendre au gobelin du coin', detail: 'Gagne 90 or.' },
+      { label: 'Le laisser', detail: 'Rien ne se passe.' },
+    ],
+  },
+  cobayes: {
+    id: 'cobayes', act: 2,
+    title: 'Le marchand de cobayes',
+    text: 'Un gobelin en blouse tachée t\'accoste : « Des échantillons ! J\'achète, je vends, je ne pose pas de questions. »',
+    choices: [
+      { label: 'Vendre ton sang', detail: 'Perds 6 PV max. Gagne 100 or.' },
+      { label: 'Acheter un sérum (60 or)', detail: '+1 Puissance au début de chaque combat de cet acte.', locked: (run) => (run.gold >= 60 ? null : 'Il te faut 60 or') },
+      { label: 'Partir', detail: 'Rien ne se passe.' },
+    ],
+  },
+  autel: {
+    id: 'autel', act: 2,
+    title: 'L\'autel chromatique',
+    text: 'Cinq vasques de sang de dragon, chacune d\'une couleur. Boire l\'une d\'elles te marquera jusqu\'à la fin de l\'acte.',
+    choices: [
+      { label: 'Rouge', detail: '+1 Puissance au début de chaque combat. −5 PV max.' },
+      { label: 'Bleue', detail: 'Pioche 1 carte de plus au premier tour de chaque combat. −1 emplacement de potion.' },
+      { label: 'Verte', detail: 'Soigne 3 PV après chaque combat gagné.' },
+      { label: 'Noire', detail: 'Tes Attaques et tes Sorts infligent +2 dégâts. Tu subis 2 dégâts de plus par attaque reçue.' },
+      { label: 'Ne rien boire', detail: 'Rien ne se passe.' },
+    ],
+  },
+  fantome_raideur: {
+    id: 'fantome_raideur', act: 2,
+    title: 'Le fantôme du raideur',
+    text: 'Le fantôme d\'un aventurier mort lors d\'un wipe précédent erre près de son équipement. Il ne semble pas vouloir le garder.',
+    choices: [
+      { label: 'Récupérer son équipement', detail: 'Un objet d\'équipement au hasard, mais une Malédiction rejoint ton deck.' },
+      { label: 'Le laisser reposer', detail: 'Soigne 12 PV.' },
+    ],
+  },
+  fonceur2: {
+    id: 'fonceur2', act: 2,
+    title: 'Le joueur qui fonce (le retour)',
+    text: 'L\'aventurier de l\'acte 1 a survécu. Et il recommence : il fonce seul sur une patrouille draconique, en hurlant son propre nom.',
+    choices: [
+      { label: 'L\'aider', detail: 'Un combat difficile, puis il te donne un objet rare.' },
+      { label: 'Le laisser', detail: 'Rien ne se passe. On entend un wipe au loin. Encore.' },
     ],
   },
 };

@@ -1,7 +1,7 @@
 # Acte 2 : l'Aire de Vhaeryx
 
 > Wipe & Loot · Fiche d'acte · Version 0.1
-> Les chiffres sont **indicatifs** : ils serviront de base aux premiers tests d'équilibrage.
+> Les chiffres ont été réglés par une première passe d'équilibrage : les valeurs retenues sont au §11 (elles priment sur les tableaux ci-dessus).
 
 ---
 
@@ -478,3 +478,28 @@ Un joueur « moyen » en fin d'acte 2 a environ :
   - **Les Souffles** à 25 dégâts frappent fort pour un joueur à 80-95 PV. C'est voulu, mais il faut que chaque classe ait au moins une réponse défensive.
 - **Morts-vivants :** Serviteurs rapiécés, Drakes d'os, Ossyrax et la phase 3 de Vhaeryx. Le Paladin est enfin à l'honneur.
 - **Les PV de Vhaeryx (420)** sont un premier jet, à ajuster avec ceux de Vulkhar (300).
+
+---
+
+## 11. Ce qui est en jeu dans le prototype
+
+### 11.1 Les chiffres retenus après l'équilibrage
+
+| Élément | Fiche | En jeu | Pourquoi |
+|---|---|---|---|
+| **Vhaeryx** | 420 PV, Concoction 20, Souffle 25 | **320 PV**, Concoction **18**, Souffle **22** | C'était un mur : le bot mourait au tour 10 avec encore 185 PV à lui retirer. |
+| **Drakônides chromatiques** | 25 PV, Coup de griffe 8 | **20 PV, 6** | Deux par vague, tous les 3 tours : ce sont eux qui usaient le joueur. |
+| **Trash** | — | PV et dégâts relevés d'environ 20 % (Drakônide 40 PV / 11, Garde draconique 60 PV / 14, Chimère 55 PV / 13…) | Le joueur arrive plus fort de l'acte 1 : le trash ne faisait plus peur. |
+| **Boss secondaires** | 80 à 130 PV | **100 à 160 PV** (Ysolde commence à 50 % au lieu de 40 %) | Ils tombaient en 3 ou 4 tours, loin des 6 à 8 visés. |
+
+### 11.2 Les simplifications
+
+- **Ossyrax** : sa faiblesse aux dégâts sacrés viendra avec le Paladin et le Prêtre.
+- **L'appel des éléments** (Chaman) viendra avec le Chaman.
+- **Le butin de boss de Vhaeryx** (objets épiques) viendra avec l'acte 3 : pour l'instant, Vhaeryx termine la run.
+- **Le Sceptre de domination** de Skarn : un Dragonnet ennemi change de camp, détruit un Œuf ou inflige 8 dégâts, puis quitte le combat.
+- **La Malédiction de lignée** : seules celles du Guerrier et du Mage existent (les autres classes ne sont pas encore jouables).
+
+### 11.3 Entre les deux actes
+
+Après Vulkhar : sa table de loot, puis le **butin de boss** (un objet épique au choix parmi 3, utile à ta classe), puis l'entrée dans l'acte 2. **Les PV remontent au maximum**, les bonus de l'acte 1 s'arrêtent, et les wipes restants sont gardés : il y en a 3 pour toute la run.

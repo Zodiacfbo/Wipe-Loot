@@ -1,6 +1,6 @@
 # L'équilibrage
 
-> Wipe & Loot · Document vivant · Dernière passe : l'arrivée du Mage
+> Wipe & Loot · Document vivant · Dernière passe : l'acte 2
 
 ## 1. La méthode
 
@@ -131,3 +131,29 @@ Mesuré avec les mêmes objectifs que le Guerrier (200 runs par profil, difficul
 **À surveiller :** le Mage de niveau 1 reste un peu en dessous de l'objectif (11 % contre 15 à 25 %). C'est cohérent avec sa difficulté (⭐⭐), et le bot joue mal le contrôle (Métamorphose, Contresort au bon moment, Carapace de glace avant le Marteau) : un humain fera mieux. Vulkhar reste son mur : à revoir avec les premiers retours.
 
 Mesures : `PROFIL="Mage" npm run balance` et `CLASSE=mage npx vitest run --config tools/balance/vitest.config.ts --root . --silent=false tools/balance/talents.sim.ts`.
+
+## 8. Les deux actes
+
+Depuis l'acte 2, **gagner une expédition, c'est vaincre Vulkhar puis Vhaeryx**, avec 3 wipes pour toute la run. Les chiffres ne sont donc plus comparables à ceux des sections précédentes (qui mesuraient l'acte 1 seul).
+
+Taux de victoire du bot (150 runs par profil, difficulté 0) :
+
+| Profil | Vulkhar vaincu (acte 2 atteint) | Run gagnée | Wipe au 1er essai contre Vhaeryx |
+|---|---|---|---|
+| Guerrier niveau 1 | 19 % | 3 % | 89 % |
+| Guerrier niveau 5 | 72 % | 30 % | 68 % |
+| Guerrier niveau 10 (Protection + Fureur) | 99 % | 73 % | 40 % |
+| Guerrier niveau 10 (Armes + Fureur) | 93 % | 74 % | 35 % |
+| Mage niveau 1 | 9 % | 0 % | — |
+| Mage niveau 5 | 71 % | 27 % | 64 % |
+| Mage niveau 10 (Givre + Feu) | 83 % | 64 % | 37 % |
+| Mage niveau 10 (Arcane + Feu) | 92 % | 73 % | 42 % |
+
+**Les réglages de l'acte 2** sont détaillés dans sa fiche (§11) : Vhaeryx allégé (420 → 320 PV), le trash et les boss secondaires renforcés.
+
+**À surveiller :**
+- **Vhaeryx** reste le gros verrou de la run. C'est voulu (boss de fin d'acte), mais à revoir avec les premiers joueurs.
+- **Les boss secondaires de l'acte 2** restent plus faciles que ceux de l'acte 1 pour un personnage de niveau 10 : le joueur arrive avec tout son butin.
+- **Les niveaux de difficulté** ont été réglés pour un acte : à refaire pour deux.
+
+Mesures : `npm run balance` et `tools/balance/vhaeryx.sim.ts` (les morts contre Vhaeryx).

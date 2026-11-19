@@ -86,6 +86,44 @@ export interface ItemEffects {
   frenzyEnergy?: number; // 3e Attaque du tour : +X énergie
   maxHp?: number; // +X PV max
   healAfterCombat?: number; // soigne X PV à la fin de chaque combat gagné
+  // Butin de Vulkhar et de l'acte 2
+  attackBurn?: number; // tes Attaques appliquent Brûlure X
+  turnEnergy?: number; // +X énergie à chaque tour
+  turnDraw?: number; // pioche X cartes de plus à chaque tour
+  turnSelfDamage?: number; // tu subis X dégâts au début de chacun de tes tours
+  noRest?: number; // tu ne peux plus te reposer aux feux de camp
+  startZone?: number; // chaque combat commence avec X Zones de feu en main
+  skillCost?: number; // tes Compétences coûtent X de plus
+  fewerCards?: number; // les récompenses proposent X carte de moins
+  killEnergy?: number; // tuer un ennemi : +X énergie (1 fois par tour)
+  startBlockPerEnemy?: number; // X blocage par ennemi au début du combat
+  breathReduce?: number; // les Souffles infligent X % de dégâts en moins
+  comboBonus?: number; // +X dégâts par Attaque déjà jouée ce tour-ci
+  hurtBonus?: number; // perdre des PV : ta prochaine Attaque +X
+  enrageDelay?: number; // l'enrage des boss arrive X tours plus tard
+  attackCycle?: number; // tes Attaques alternent Brûlure, Ralenti et Démoralisé
+  stackCap?: number; // les débuffs cumulables que tu subis sont plafonnés à X
+  statusDraw?: number; // quand une carte-statut arrive dans ta main, pioche X carte
+  killPuissance?: number; // quand un ennemi meurt : +X Puissance pour le combat
+  startRandomBonus?: number; // un bonus au hasard au début de chaque combat
+  attackDebuff?: number; // tes Attaques appliquent un débuff au hasard (1 tour)
+  purifyEvery2?: number; // dissipe 1 débuff tous les 2 tours
+  afflictionImmune?: number; // les Afflictions de sang n'ont pas d'effet
+  startFiole?: number; // X Fioles instables en main au début du combat
+  potionBoost?: number; // tes potions sont X % plus fortes
+  luck?: number; // les effets au hasard choisissent le meilleur résultat 1 fois sur 2
+  undeadBonus?: number; // +X dégâts contre les Morts-vivants
+  dragonBonus?: number; // +X dégâts contre les Dragons
+  cheatDeath?: number; // une fois par combat, tu restes à 1 PV au lieu de mourir
+  pesteImmune?: number; // immunisé à la Peste
+  aoeBonus?: number; // tes effets de zone infligent +X dégâts
+  petDamage?: number; // fin de ton tour : X dégâts à un ennemi au hasard
+  lineageImmune?: number; // immunisé à la Malédiction de lignée
+  firstSpellFree?: number; // le premier Sort de chaque tour coûte 0 (Bâton du Veilleur)
+  // Effets d'événements de l'acte 2 (bonus valables jusqu'à la fin de l'acte)
+  startToxine?: number; // Toxine au début du prochain combat (fiole du laboratoire)
+  extraHurt?: number; // tu subis X dégâts de plus par attaque (sang noir de l'autel)
+  startDragonFracture?: number; // les Dragons commencent avec Armure fracassée X tours
 }
 
 export interface ItemDef {
@@ -175,6 +213,77 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
   item('amulette_intendant', 'Amulette de l\'intendant', 'amulette', 'rare', 'Tu as 1 emplacement de potion de plus.', { potionSlots: 1 }),
 ].map((d) => [d.id, d]));
 
+// --- Butin de Vulkhar et de l'acte 2 (docs/actes/ACTE1_PROFONDEURS_ARDENTES.md §6, ACTE2_AIRE_DE_VHAERYX.md §5 et §6) ---
+Object.assign(ITEMS, Object.fromEntries([
+  // Vulkhar
+  item('coeur_vulkhar', 'Cœur de Vulkhar', 'bijou', 'rare', 'Au début de chaque combat, applique Brûlure 5 à tous les ennemis.', { startBurn: 5 }),
+  item('masse_flammes', 'Masse des flammes', 'arme', 'rare', 'Tes Attaques infligent +3 dégâts et appliquent Brûlure 1.', { attackBonus: 3, attackBurn: 1 }),
+  item('collier_souverain', 'Collier du Souverain', 'amulette', 'rare', '+8 PV max. Les Zones de feu ne t\'infligent plus de dégâts.', { maxHp: 8, zoneReduce: 100 }),
+  item('anneau_lave', 'Anneau de lave éternelle', 'bague', 'rare', 'Commence chaque combat avec 1 Puissance et 1 Robustesse.', { startPuissance: 1, startRobustesse: 1 }),
+  // Butin de boss de Vulkhar (épique)
+  item('coeur_magma', 'Cœur de magma', 'bijou', 'epique', '+1 énergie par tour. Tu subis 3 dégâts au début de chacun de tes tours.', { turnEnergy: 1, turnSelfDamage: 3 }),
+  item('flamme_captive', 'Flamme captive', 'bijou', 'epique', '+1 énergie par tour. Tu ne peux plus te reposer aux feux de camp.', { turnEnergy: 1, noRest: 1 }),
+  item('sceau_souverain', 'Sceau du Souverain', 'amulette', 'epique', 'Pioche 1 carte de plus par tour. −10 PV max.', { turnDraw: 1, maxHp: -10 }),
+  item('oeil_brasier', 'Œil du brasier', 'bijou', 'epique', 'Tu vois les deux prochaines intentions des ennemis. Chaque combat commence avec 1 Zone de feu dans ta main.', { seeTwoIntents: 1, startZone: 1 }),
+  item('marteau_profondeurs', 'Marteau des profondeurs', 'arme', 'epique', 'Tes Attaques infligent +5 dégâts. Tes Compétences coûtent 1 de plus.', { attackBonus: 5, skillCost: 1 }),
+  item('couronne_cendres', 'Couronne de cendres', 'amulette', 'epique', '+1 énergie par tour. Les récompenses ne proposent plus que 2 cartes.', { turnEnergy: 1, fewerCards: 1 }),
+  // Skarn
+  item('sceptre_gardien', 'Sceptre du gardien', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Quand tu tues un ennemi, gagne 1 énergie (1 fois par tour).', { attackBonus: 2, killEnergy: 1 }),
+  item('oeuf_petrifie', 'Œuf pétrifié', 'bijou', 'rare', 'Au début de chaque combat, gagne 6 blocage par ennemi.', { startBlockPerEnemy: 6 }),
+  item('bague_dompteur', 'Bague du dompteur', 'bague', 'rare', 'Tes alliés (familier, compagnon, totems, invocations) infligent +3 dégâts.', { allyBonus: 3 }),
+  item('amulette_couvoirs', 'Amulette des couvoirs', 'amulette', 'rare', '+8 PV max.', { maxHp: 8 }),
+  // Ysolde
+  item('ecaille_ysolde', 'Écaille d\'Ysolde', 'amulette', 'rare', 'Les Souffles t\'infligent 30 % de dégâts en moins.', { breathReduce: 30 }),
+  item('griffe_rouge', 'Griffe rouge', 'arme', 'rare', 'Tes Attaques infligent +3 dégâts.', { attackBonus: 3 }),
+  item('coeur_ardent', 'Cœur ardent', 'bijou', 'rare', 'Au premier tour de chaque combat, gagne 2 énergie de plus.', { firstTurnEnergy: 2 }),
+  item('bague_delivrance', 'Bague de la délivrance', 'bague', 'rare', 'Les débuffs que tu subis durent 1 tour de moins.', { debuffReduce: 1 }),
+  // Draksis
+  item('fouet_contremaitre', 'Fouet du contremaître', 'arme', 'rare', 'Tes Attaques et tes Sorts infligent +1 dégât par Attaque ou Sort déjà joué ce tour-ci.', { comboBonus: 1 }),
+  item('medaille_endurance', 'Médaille de l\'endurance', 'amulette', 'rare', '+12 PV max.', { maxHp: 12 }),
+  item('bague_rage', 'Bague de la rage', 'bague', 'rare', 'Chaque fois que tu perds des PV, ta prochaine Attaque ou ton prochain Sort inflige +3 dégâts.', { hurtBonus: 3 }),
+  item('sablier_brise', 'Sablier brisé', 'bijou', 'rare', 'L\'enrage des boss arrive 2 tours plus tard.', { enrageDelay: 2 }),
+  // Les Trois Souffles
+  item('croc_trois_souffles', 'Croc des trois souffles', 'arme', 'rare', 'Tes Attaques et tes Sorts appliquent, à tour de rôle : Brûlure 2, Ralenti 1, Démoralisé 1.', { attackCycle: 1 }),
+  item('ecaille_ombre', 'Écaille d\'ombre', 'bijou', 'rare', 'Les débuffs cumulables que tu subis (Ombre rongeuse) sont plafonnés à 3.', { stackCap: 3 }),
+  item('amulette_cendre', 'Amulette de cendre', 'amulette', 'rare', 'Quand une carte-statut arrive dans ta main, pioche 1 carte.', { statusDraw: 1 }),
+  item('bague_meute', 'Bague de la meute', 'bague', 'rare', 'Quand un ennemi meurt, gagne 1 Puissance pour ce combat.', { killPuissance: 1 }),
+  // Prismagor
+  item('coeur_chromatique', 'Cœur chromatique', 'bijou', 'rare', 'Au début de chaque combat, un bonus au hasard : +1 Puissance, +1 Robustesse, +1 énergie au premier tour, ou 10 blocage.', { startRandomBonus: 1 }),
+  item('croc_prismagor', 'Croc de Prismagor', 'arme', 'rare', 'Tes Attaques et tes Sorts appliquent un débuff au hasard (1 tour) : Ralenti, Démoralisé ou Armure fracassée.', { attackDebuff: 1 }),
+  item('amulette_sang_pur', 'Amulette de sang pur', 'amulette', 'rare', 'Tous les 2 tours, au début de ton tour, dissipe automatiquement un débuff.', { purifyEvery2: 1 }),
+  item('bague_cinq_tetes', 'Bague des cinq têtes', 'bague', 'rare', '+5 PV max. Les Afflictions de sang n\'ont pas d\'effet sur toi.', { maxHp: 5, afflictionImmune: 1 }),
+  // Grizzik
+  item('cle_grizzik', 'Clé à molette de Grizzik', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Au début de chaque combat, une Fiole instable arrive dans ta main.', { attackBonus: 2, startFiole: 1 }),
+  item('ceinture_fioles', 'Ceinture à fioles', 'amulette', 'rare', 'Tu as 2 emplacements de potion de plus.', { potionSlots: 2 }),
+  item('lunettes_alchimiste', 'Lunettes de l\'alchimiste', 'bijou', 'rare', 'Tes potions ont un effet 50 % plus fort.', { potionBoost: 50 }),
+  item('bague_chance', 'Bague de la chance', 'bague', 'rare', 'Les effets au hasard (Fioles instables, Cœur chromatique…) choisissent le meilleur résultat 1 fois sur 2.', { luck: 1 }),
+  // Ossyrax
+  item('os_dragon', 'Os de dragon taillé', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts, et +5 contre les Morts-vivants.', { attackBonus: 2, undeadBonus: 5 }),
+  item('phylactere_brise', 'Phylactère brisé', 'bijou', 'rare', 'La première fois de chaque combat que tu tomberais à 0 PV, tu restes à 1 PV.', { cheatDeath: 1 }),
+  item('amulette_outre_tombe', 'Amulette de l\'outre-tombe', 'amulette', 'rare', 'Tu es immunisé à la Peste et aux cartes Paniquées.', { pesteImmune: 1, panicImmune: 1 }),
+  item('bague_necromancien', 'Bague du nécromancien', 'bague', 'rare', 'Quand un ennemi meurt, soigne 3 PV.', { healOnKill: 3 }),
+  // Vashka
+  item('lance_couvee', 'Lance de la couvée', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts, et +4 contre les Dragons.', { attackBonus: 2, dragonBonus: 4 }),
+  item('coquille_vashka', 'Coquille de Vashka', 'amulette', 'rare', 'Commence chaque combat avec 10 blocage.', { startBlock: 10 }),
+  item('bague_mere', 'Bague de la mère', 'bague', 'rare', 'Tes effets de zone infligent +2 dégâts.', { aoeBonus: 2 }),
+  item('dragonnet_compagnie', 'Dragonnet de compagnie', 'bijou', 'rare', 'À la fin de chacun de tes tours, un petit dragonnet inflige 3 dégâts à un ennemi au hasard.', { petDamage: 3 }),
+  // Vhaeryx
+  item('sceau_aire', 'Sceau de l\'Aire', 'bijou', 'rare', 'Au début de chaque combat, les ennemis Dragons reçoivent Armure fracassée 2 tours.', { startDragonFracture: 2 }),
+  item('lame_alchimiste', 'Lame du Dragon-Alchimiste', 'arme', 'rare', 'Tes Attaques et tes Sorts infligent +3 dégâts.', { attackBonus: 3, spellBonus: 3 }),
+  item('elixir_chromatique', 'Élixir chromatique', 'amulette', 'rare', '+10 PV max. Au début de chaque combat, un bonus au hasard.', { maxHp: 10, startRandomBonus: 1 }),
+  item('bague_lignee', 'Bague de lignée', 'bague', 'rare', 'La Malédiction de lignée est sans effet sur toi.', { lineageImmune: 1 }),
+  // Légendaire du Mage
+  item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
+].map((d) => [d.id, d])));
+
+/** La table de loot de chaque boss de fin d'acte, et son butin épique (un au choix parmi 3). */
+export const BOSS_LOOT: Record<number, { table: string[]; epics: string[] }> = {
+  1: {
+    table: ['coeur_vulkhar', 'masse_flammes', 'collier_souverain', 'anneau_lave'],
+    epics: ['coeur_magma', 'flamme_captive', 'sceau_souverain', 'oeil_brasier', 'marteau_profondeurs', 'couronne_cendres'],
+  },
+};
+
 /** Les objets que l'on trouve dans les coffres et chez le vendeur. */
 export const COMMON_POOL: string[] = [
   'epee_longue', 'hache_de_guerre', 'amulette_vigueur', 'amulette_rempart', 'amulette_sang', 'anneau_force',
@@ -184,8 +293,8 @@ export const COMMON_POOL: string[] = [
 
 /** Les effets qui ne servent qu'à une classe (les Attaques et la rage au Guerrier, les Sorts au Mage). */
 const CLASS_KEYS: Record<string, (keyof ItemEffects)[]> = {
-  guerrier: ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage'],
-  mage: ['spellBonus', 'startCharges', 'burnBonus'],
+  guerrier: ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage', 'attackBurn', 'undeadBonus', 'dragonBonus'],
+  mage: ['spellBonus', 'startCharges', 'burnBonus', 'firstSpellFree'],
 };
 
 /** Les effets d'un objet qui ne servent pas à cette classe. */
@@ -211,6 +320,16 @@ export const LOOT_TABLES: Record<string, string[]> = {
   brannoc: ['etendard_heraut', 'marteau_brannoc', 'bague_commandement', 'amulette_heraut'],
   kragg: ['poing_kragg', 'collier_mange_roche', 'pierre_magma', 'bague_molosses'],
   saldris: ['baton_intendant', 'miroir_intendant', 'trousseau_intendant', 'amulette_intendant'],
+  // Acte 2
+  skarn: ['sceptre_gardien', 'oeuf_petrifie', 'bague_dompteur', 'amulette_couvoirs'],
+  ysolde: ['ecaille_ysolde', 'griffe_rouge', 'coeur_ardent', 'bague_delivrance'],
+  draksis: ['fouet_contremaitre', 'medaille_endurance', 'bague_rage', 'sablier_brise'],
+  trois_souffles: ['croc_trois_souffles', 'ecaille_ombre', 'amulette_cendre', 'bague_meute'],
+  prismagor: ['coeur_chromatique', 'croc_prismagor', 'amulette_sang_pur', 'bague_cinq_tetes'],
+  grizzik: ['cle_grizzik', 'ceinture_fioles', 'lunettes_alchimiste', 'bague_chance'],
+  ossyrax: ['os_dragon', 'phylactere_brise', 'amulette_outre_tombe', 'bague_necromancien'],
+  vashka: ['lance_couvee', 'coquille_vashka', 'bague_mere', 'dragonnet_compagnie'],
+  vhaeryx: ['sceau_aire', 'lame_alchimiste', 'elixir_chromatique', 'bague_lignee'],
 };
 
 export type Equipment = Record<SlotKey, string | null>;
