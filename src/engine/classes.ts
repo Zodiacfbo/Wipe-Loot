@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste et le Prêtre sont jouables dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre et le Voleur sont jouables dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -46,7 +46,9 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Un chevalier presque indestructible qui frappe les morts-vivants à coups de Jugements.',
   },
   {
-    id: 'voleur', name: 'Voleur', color: '#E8D84A', playable: false, difficulty: 2, hp: 70,
+    id: 'voleur', name: 'Voleur', color: '#E8D84A', playable: true, difficulty: 2, hp: 70,
+    starterDeck: ['attaque_sinistre', 'attaque_sinistre', 'attaque_sinistre', 'attaque_sinistre', 'esquive', 'esquive', 'esquive', 'esquive', 'evisceration', 'embuscade'],
+    startSpell: 'sprint', sprite: 'voleur.png',
     quote: 'Tu ne m\'as pas vu arriver. Tu ne me verras pas repartir.',
     role: 'Dégâts physiques rapides, contrôle', resource: 'Points de combo (0 à 5) et Camouflage',
     fantasy: 'Un premier tour parfait depuis l\'ombre, cinq points de combo, et une Éviscération qui achève le boss.',

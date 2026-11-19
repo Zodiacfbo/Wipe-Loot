@@ -243,8 +243,60 @@ export const PRETRE_TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Voleur. */
+export const VOLEUR_TREES: TreeDef[] = [
+  {
+    id: 'assassinat', name: 'Assassinat', theme: 'Poisons et coups mortels',
+    tiers: [
+      [t('lames_malicieuses', 'Lames malicieuses', 'Attaque sinistre inflige +2 dégâts.', { fx: { sinisterBonus: 2 } }),
+        t('poison_renforce', 'Poison renforcé', 'Tes applications de Poison sont augmentées de 1.', { fx: { poisonBonus: 1 } })],
+      [t('finesse_meurtriere', 'Finesse meurtrière', 'Éviscération inflige +2 dégâts par point de combo.', { fx: { evisBonus: 2 } }),
+        t('reflexes', 'Réflexes', 'Coup aux reins retarde aussi l\'Incantation en cours d\'un boss.', { fx: { kidneyDelay: 1 } })],
+      [t('t_coup_de_pied', 'Coup de pied', 'Ajoute ce sort à ta barre : Interruption, 3 dégâts.', { spell: 'coup_de_pied' }),
+        t('t_voile_obscur', 'Voile de l\'ombre', 'Ajoute ce sort à ta barre : retire tous tes débuffs, une fois par combat.', { spell: 'voile_obscur' })],
+      [t('impitoyable', 'Impitoyable', 'Tes finishers comptent comme s\'ils avaient 1 point de combo de plus.', { fx: { ruthless: 1 } }),
+        t('v_quatrieme_emplacement_a', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_vendetta', 'Vendetta', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'vendetta' })],
+    ],
+    cards: ['mutiler', 'frappe_gorge', 'fiole_venin', 'rupture', 'poison_affaiblissant', 'poison_engourdissant', 'envenimer',
+      'garrot', 'sang_froid', 'toxines_virulentes', 'lames_empoisonnees', 'opportunite', 'coup_au_coeur', 'vendetta'],
+  },
+  {
+    id: 'combat', name: 'Combat', theme: 'Attaques en série',
+    tiers: [
+      [t('precision', 'Précision', 'Tes Attaques infligent +1 dégât.', { fx: { attackBonus: 1 } }),
+        t('v_endurance', 'Endurance', '+6 PV max.', { maxHp: 6 })],
+      [t('agression', 'Agression', 'Commence chaque combat avec 2 points de combo.', { fx: { startCombo: 2 } }),
+        t('lames_sanglantes', 'Lames sanglantes', 'Tes Attaques qui coûtent 0 infligent +2 dégâts.', { fx: { zeroCostBonus: 2 } })],
+      [t('t_poussee_adrenaline', 'Poussée d\'adrénaline', 'Ajoute ce sort à ta barre : +2 énergie.', { spell: 'poussee_adrenaline' }),
+        t('t_evasion', 'Évasion', 'Ajoute ce sort à ta barre : les Attaques ennemies infligent 50 % de moins jusqu\'à ton prochain tour.', { spell: 'evasion' })],
+      [t('t_coup_de_pied_combat', 'Coup de pied', 'Ajoute ce sort à ta barre (si tu ne l\'as pas déjà) : Interruption, 3 dégâts.', { spell: 'coup_de_pied' }),
+        t('maitre_d_armes', 'Maître d\'armes', 'Double frappe et Valse des lames frappent une fois de plus.', { fx: { weaponMaster: 1 } })],
+      [t('t_frenesie_meurtriere', 'Frénésie meurtrière', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'frenesie_meurtriere' })],
+    ],
+    cards: ['double_frappe', 'tir_pistolet', 'riposte_voleur', 'esquive_agile', 'remise_en_garde', 'bagarreur', 'frappe_elan',
+      'coup_bas', 'tourbillon_lames', 'second_souffle', 'valse_lames', 'embrocher', 'ambidextrie_experte', 'frenesie_meurtriere'],
+  },
+  {
+    id: 'finesse', name: 'Finesse', theme: 'Ombres et ouvertures',
+    tiers: [
+      [t('maitre_discretion', 'Maître de la discrétion', 'Tes Ouvertures infligent +3 dégâts.', { fx: { openerBonus: 3 } }),
+        t('pas_de_velours', 'Pas de velours', 'La première carte que tu joues dans chaque combat coûte 0.', { fx: { firstCardFree: 1 } })],
+      [t('prepare', 'Préparé', 'Tes Ouvertures donnent +1 combo.', { fx: { openerCombo: 1 } }),
+        t('insaisissable', 'Insaisissable', 'Esquive et Esquive agile donnent +2 blocage.', { fx: { evadeBonus: 2 } })],
+      [t('t_disparition', 'Disparition', 'Ajoute ce sort à ta barre : 10 blocage, tu redeviens Camouflé.', { spell: 'disparition' }),
+        t('t_preparation', 'Préparation', 'Ajoute ce sort à ta barre : remet à zéro tes autres sorts, une fois par combat.', { spell: 'preparation' })],
+      [t('ombres_profondes', 'Ombres profondes', 'Ton Camouflage de début de combat dure 2 tours.', { fx: { longStealth: 1 } }),
+        t('v_quatrieme_emplacement_f', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_seigneur_ombres', 'Seigneur des ombres', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'seigneur_ombres' })],
+    ],
+    cards: ['coup_dans_le_dos', 'hemorragie', 'premeditation', 'lame_ombre', 'plan_parfait', 'bond_ombre', 'fumigene',
+      'initiative', 'marque_mort', 'coup_fourre', 'egorgement', 'opportuniste', 'tenebres_voleur', 'seigneur_ombres'],
+  },
+];
+
 /** Les arbres de chaque classe jouable. */
-export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES };
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES };
 
 /** Les arbres d'une classe (ceux du Guerrier par défaut). */
 export function treesFor(classId: string | undefined): TreeDef[] {

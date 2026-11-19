@@ -4,9 +4,9 @@ import { CLASSES, CLASS_UNLOCK_XP, chooseStartClass, nextUnlockAt, totalXp, unlo
 const fresh = (): ClassProfile => ({ classes: {}, startClass: null, unlockedClasses: [] });
 
 describe('les classes', () => {
-  it('9 classes, le Guerrier, le Mage, le Démoniste et le Prêtre jouables dans le prototype', () => {
+  it('9 classes, le Guerrier, le Mage, le Démoniste, le Prêtre et le Voleur jouables dans le prototype', () => {
     expect(CLASSES).toHaveLength(9);
-    expect(CLASSES.filter((c) => c.playable).map((c) => c.id)).toEqual(['guerrier', 'mage', 'pretre', 'demoniste']);
+    expect(CLASSES.filter((c) => c.playable).map((c) => c.id)).toEqual(['guerrier', 'mage', 'voleur', 'pretre', 'demoniste']);
   });
 
   it('premier lancement : on choisit une classe jouable, une seule fois', () => {

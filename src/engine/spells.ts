@@ -2,7 +2,8 @@
 // Référence : docs/classes/GUERRIER.md (§4.2 et §6) et docs/classes/MAGE.md (§4.2 et §6)
 import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, healPlayer, isBossEnemy, livingEnemies, log, playerAttack, power } from './actions';
 import { loseHp, petAct } from './demoniste';
-import { gainAegis } from './pretre';
+import { dispelMagic, dispelPoison, gainAegis } from './pretre';
+import { applyPoison, enterStealth } from './voleur';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -402,6 +403,88 @@ const PRETRE_SPELLS: SpellDef[] = [
 ];
 for (const d of PRETRE_SPELLS) SPELLS[d.id] = { ...d, classId: 'pretre' };
 
+/** Les sorts de barre du Voleur. */
+const VOLEUR_SPELLS: SpellDef[] = [
+  {
+    id: 'sprint', name: 'Sprint', cost: 0, cooldown: 3, needsTarget: false, icon: 'charge',
+    text: 'Pioche 2 cartes.',
+    cast: (c) => drawCards(c, 2),
+  },
+  {
+    id: 'coup_de_pied', name: 'Coup de pied', cost: 0, cooldown: 3, needsTarget: true, icon: 'epee',
+    text: 'Interruption. Inflige 3 dégâts.',
+    cast: (c, target) => {
+      if (!target) return;
+      if (isInterruptible(target.intent) && !target.interrupted) {
+        target.interrupted = true;
+        fx(c, { kind: 'interrupt', who: target.uid });
+        log(c, `${target.name} est interrompu !`);
+      }
+      playerAttack(c, target, 3);
+    },
+  },
+  {
+    id: 'voile_obscur', name: 'Voile de l\'ombre', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'etoile',
+    text: 'Retire tous tes débuffs. Une fois par combat.',
+    cast: (c) => {
+      dispelMagic(c);
+      dispelPoison(c);
+      const d = c.player.debuffs;
+      if (d) Object.assign(d, { ralenti: 0, ombre: 0, discard: 0, transmute: 0, afflictions: [] });
+      fx(c, { kind: 'buff', who: 'player', label: 'Voile de l\'ombre' });
+    },
+  },
+  {
+    id: 'poussee_adrenaline', name: 'Poussée d\'adrénaline', cost: 0, cooldown: 5, needsTarget: false, icon: 'hausse',
+    text: 'Gagne 2 énergie.',
+    cast: (c) => {
+      c.player.energy += 2;
+      fx(c, { kind: 'buff', who: 'player', label: '+2 énergie' });
+    },
+  },
+  {
+    id: 'evasion', name: 'Évasion', cost: 0, cooldown: 4, needsTarget: false, icon: 'bouclier',
+    text: 'Jusqu\'à ton prochain tour, les Attaques ennemies t\'infligent 50 % de dégâts en moins.',
+    cast: (c) => {
+      c.player.evasion = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Évasion' });
+    },
+  },
+  {
+    id: 'disparition', name: 'Disparition', cost: 1, cooldown: 5, needsTarget: false, icon: 'etoile',
+    text: 'Gagne 10 blocage. Tu redeviens Camouflé.',
+    cast: (c) => {
+      gainBlock(c, 10, false);
+      enterStealth(c, 1);
+    },
+  },
+  {
+    id: 'preparation', name: 'Préparation', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'hausse',
+    text: 'Les temps de recharge de tes autres sorts sont remis à zéro. Une fois par combat.',
+    cast: (c) => {
+      for (const s of c.spells) if (s.id !== 'preparation' && !SPELLS[s.id].once) s.cooldown = 0;
+    },
+  },
+  {
+    id: 'lancer_poison', name: 'Lancer de poison', cost: 1, cooldown: 4, needsTarget: false, icon: 'crane',
+    text: 'Applique Poison 4 à tous les ennemis.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) applyPoison(c, e, 4);
+    },
+  },
+  {
+    id: 'pas_de_cote', name: 'Pas de côté', cost: 0, cooldown: 3, needsTarget: false, icon: 'charge',
+    text: 'Retire toutes les cartes-statut de ta main.',
+    cast: (c) => {
+      const statuses = c.hand.filter((k) => CARDS[k.id].type === 'Statut');
+      c.hand = c.hand.filter((k) => CARDS[k.id].type !== 'Statut');
+      c.exhaust.push(...statuses);
+      if (statuses.length) log(c, `Tu esquives ${statuses.length} carte${statuses.length > 1 ? 's' : ''}-statut.`);
+    },
+  },
+];
+for (const d of VOLEUR_SPELLS) SPELLS[d.id] = { ...d, classId: 'voleur' };
+
 /** La classe d'un sort de barre. */
 export function spellClass(id: string): string {
   return SPELLS[id]?.classId ?? 'guerrier';
@@ -417,7 +500,7 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
 
 /** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
-  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree']);
+  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
 }
 
