@@ -21,6 +21,10 @@ const PROFILES_ALL: { name: string; talents: string[]; cls?: string }[] = [
   { name: 'Mage niveau 1 (aucun talent)', talents: [], cls: 'mage' },
   { name: 'Mage niveau 5 (Givre 3, Feu 2)', talents: mage({ givre: ['A', 'A', 'A'], feu: ['A', 'B'] }), cls: 'mage' },
   { name: 'Mage niveau 10 (Givre 5, Feu 5)', talents: mage({ givre: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }), cls: 'mage' },
+  { name: 'Démoniste niveau 1 (aucun talent)', talents: [], cls: 'demoniste' },
+  { name: 'Démoniste niveau 5 (Affliction 3, Destruction 2)', talents: alloc({ affliction: ['A', 'A', 'B'], destruction: ['A', 'B'] }, 'demoniste'), cls: 'demoniste' },
+  { name: 'Démoniste niveau 10 (Affliction 5, Destruction 5)', talents: alloc({ affliction: ['A', 'A', 'B', 'A', 'A'], destruction: ['A', 'B', 'A', 'A', 'A'] }, 'demoniste'), cls: 'demoniste' },
+  { name: 'Démoniste niveau 10 (Démonologie 5, Destruction 5)', talents: alloc({ demonologie: ['A', 'B', 'B', 'A', 'A'], destruction: ['A', 'B', 'A', 'A', 'A'] }, 'demoniste'), cls: 'demoniste' },
   { name: 'Mage niveau 10 (Arcane 5, Feu 5)', talents: mage({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }), cls: 'mage' },
 ];
 

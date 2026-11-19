@@ -66,6 +66,24 @@ export interface ItemEffects {
   fireSpellCd?: number; // recharge de Combustion et Souffle ardent −X
   bossBurnKeep?: number; // la Brûlure des boss ne diminue plus
   gelBonus?: number; // +X à chaque application de Gel
+  // Talents du Démoniste
+  corruptionBonus?: number; // Corruption inflige +X par tour
+  curseDuration?: number; // tes Malédictions durent X tours de plus
+  harvestShard?: number; // +X éclat quand un ennemi meurt avec un de tes DoT
+  doubleCurse?: number; // chaque ennemi peut porter 2 de tes Malédictions
+  naturalContagion?: number; // à la mort d'un ennemi, ses DoT passent à un autre
+  petBonus?: number; // ton familier inflige +X dégâts et donne +X blocage
+  quickSummon?: number; // les Invocations (sauf le Seigneur infernal) ne coûtent plus d'éclat
+  petBlock?: number; // +X blocage chaque fois que ton familier agit
+  petOpening?: number; // ton familier agit au début de chaque combat
+  shadowBoltBonus?: number; // Trait de l'ombre +X dégâts
+  immolationBonus?: number; // Immolation +X dégâts par tour
+  pyroclasm?: number; // Pluie de feu et Déflagration d'ombre démoralisent
+  bloodPactCost?: number; // Pacte de sang coûte X PV de moins
+  soulFireFree?: number; // Feu de l'âme coûte 0 énergie
+  keepImmolation?: number; // Conflagration ne consomme plus l'Immolation
+  dotDuration?: number; // tes DoT durent X tours de plus (Bâton du Veilleur)
+  freePact?: number; // une fois par tour, Pacte de sang ne coûte pas de PV
   gelKeep?: number; // le Gel ne diminue plus
   freezeEarly?: number; // Gelé à 5 − X cumuls
   shatterBonus?: number; // Fracasser +X dégâts
@@ -274,6 +292,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('bague_lignee', 'Bague de lignée', 'bague', 'rare', 'La Malédiction de lignée est sans effet sur toi.', { lineageImmune: 1 }),
   // Légendaire du Mage
   item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
+  item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));
 
 /** La table de loot de chaque boss de fin d'acte, et son butin épique (un au choix parmi 3). */
@@ -291,16 +310,18 @@ export const COMMON_POOL: string[] = [
   'baguette_apprenti', 'baton_braises', 'pierre_arcanique',
 ];
 
-/** Les effets qui ne servent qu'à une classe (les Attaques et la rage au Guerrier, les Sorts au Mage). */
-const CLASS_KEYS: Record<string, (keyof ItemEffects)[]> = {
-  guerrier: ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage', 'attackBurn', 'undeadBonus', 'dragonBonus'],
-  mage: ['spellBonus', 'startCharges', 'burnBonus', 'firstSpellFree'],
-};
+/** Les effets qui ne servent qu'à certaines classes (les Attaques et la rage au Guerrier, les Sorts au Mage et au Démoniste…). */
+const KEY_CLASSES: Partial<Record<keyof ItemEffects, string[]>> = {};
+for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier'];
+for (const k of ['startCharges', 'burnBonus', 'firstSpellFree'] as const) KEY_CLASSES[k] = ['mage'];
+KEY_CLASSES.spellBonus = ['mage', 'demoniste'];
+KEY_CLASSES.allyBonus = ['demoniste'];
+for (const k of ['freePact', 'dotDuration'] as const) KEY_CLASSES[k] = ['demoniste'];
 
 /** Les effets d'un objet qui ne servent pas à cette classe. */
 export function uselessFx(id: string, classId = 'guerrier'): (keyof ItemEffects)[] {
   const keys = Object.keys(ITEMS[id]?.fx ?? {}) as (keyof ItemEffects)[];
-  return keys.filter((k) => k === 'allyBonus' || Object.entries(CLASS_KEYS).some(([cls, list]) => cls !== classId && list.includes(k)));
+  return keys.filter((k) => KEY_CLASSES[k] && !KEY_CLASSES[k]!.includes(classId));
 }
 
 /** L'objet ne sert à rien à cette classe. */

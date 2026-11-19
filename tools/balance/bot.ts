@@ -2,7 +2,7 @@
 // En combat, il essaie chaque action possible sur une copie de l'état et garde la meilleure
 // (une évaluation simple : dégâts infligés, dégâts qu'il va encaisser, ressources, ennemis vaincus).
 import { CARDS } from '../../src/engine/cards';
-import { canPlayCard, canUseSpell, endTurn, playCard, useSpell } from '../../src/engine/combat';
+import { canPlayCard, canUseSpell, choosePet, endTurn, playCard, useSpell } from '../../src/engine/combat';
 import { ENEMIES } from '../../src/engine/enemies';
 import { EVENTS } from '../../src/engine/events';
 import { ITEMS, slotsFor } from '../../src/engine/items';
@@ -21,7 +21,7 @@ import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
 
 /** Les dégâts qu'un ennemi va infliger à son prochain tour. */
 function incomingFrom(c: CombatState, e: EnemyState): number {
-  if (e.dead || e.submerged || e.interrupted || (e.buffs.peur ?? 0) > 0 || (e.mouton ?? 0) > 0 || e.gele === 'skip') return 0;
+  if (e.dead || e.submerged || e.interrupted || (e.buffs.peur ?? 0) > 0 || (e.mouton ?? 0) > 0 || e.gele === 'skip' || (e.enslaved ?? 0) > 0) return 0;
   if (c.player.iceBlock) return 0;
   const def = ENEMIES[e.defId];
   if (e.disarmed && !def.elite && !def.boss) return 0;
@@ -53,6 +53,9 @@ function evaluate(c: CombatState): number {
     const burn = e.buffs.brulure ?? 0;
     enemyHp -= (burn * (burn + 1)) / 2 * 0.6;
     enemyHp -= (e.buffs.gel ?? 0) * 1.5;
+    // Démoniste : les DoT à venir et les Malédictions.
+    for (const d of e.dots ?? []) enemyHp -= d.dmg * Math.min(4, d.turns) * 0.7;
+    enemyHp -= (e.curses?.length ?? 0) * 3;
   }
   // Ce qui brûlera en fin de tour : Zones de feu et Bombes vivantes gardées en main.
   const burn = c.hand.filter((k) => k.id === 'zone_de_feu').length * (c.fireProof ? 0 : 6)
@@ -60,7 +63,10 @@ function evaluate(c: CombatState): number {
   const unblocked = Math.max(0, incoming - p.block) * (p.rempart ? 0.5 : 1) + burn;
   const powers = Object.values(c.powers ?? {}).length;
   const charges = (p.charges ?? 0) >= 4 && !c.gear?.noOverload ? 4 * 1.5 - 3 : (p.charges ?? 0) * 1.5;
-  return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
+  // La Pierre d'âme ne vaut le coup (1 éclat) que contre un boss.
+  const big = c.enemies.some((e) => !e.dead && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss));
+  const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0);
+  return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
 }
 
 const clone = (c: CombatState): CombatState => JSON.parse(JSON.stringify(c));
@@ -98,6 +104,8 @@ export function playTurn(run: RunState): void {
     const heal = POTIONS[id].heal;
     if ((heal && c.player.hp < c.player.maxHp * 0.4) || (!heal && big && c.turn <= 2)) drinkPotion(run, slot);
   });
+  // Démoniste : le Rôdeur du néant contre les boss, le Diablotin ailleurs.
+  if (c.turn === 1 && c.pet) choosePet(c, big ? 'rodeur' : 'diablotin');
   for (let guard = 0; guard < 25 && c.phase === 'player'; guard++) {
     const base = evaluate(c);
     let best: Action | null = null;
@@ -108,7 +116,17 @@ export function playTurn(run: RunState): void {
       const gain = evaluate(copy) - base;
       if (gain > bestScore) { bestScore = gain; best = a; }
     }
-    if (!best) break;
+    if (!best) {
+      // Pacte de sang (Démoniste) : le bot ne voit qu'une action à l'avance, il ne verrait jamais son intérêt.
+      // On le lance comme un joueur le ferait : plus d'énergie, une carte jouable en main, et assez de PV.
+      const pact = c.spells.findIndex((s) => s.id === 'pacte_de_sang');
+      const playable = c.hand.some((k) => CARDS[k.id].type !== 'Statut' && CARDS[k.id].type !== 'Pouvoir' && CARDS[k.id].cost === 1);
+      if (pact >= 0 && c.player.energy === 0 && playable && c.player.hp > c.player.maxHp * 0.45 && canUseSpell(c, pact)) {
+        useSpell(c, pact);
+        continue;
+      }
+      break;
+    }
     apply(c, best);
   }
   c.fx = [];
@@ -233,11 +251,13 @@ export interface FightLog {
   floor: number;
   /** L'acte du combat (1 par défaut). */
   act?: number;
+  /** PV à l'entrée du combat. */
+  hpIn?: number;
   wipes: number;
   hpLost: number;
   won: boolean;
   /** À chaque wipe : PV restants des ennemis, tour atteint, et taille du deck. */
-  deaths?: { enemyHp: number; turn: number; deck: number; maxHp: number }[];
+  deaths?: { enemyHp: number; turn: number; deck: number; maxHp: number; log?: string[] }[];
 }
 
 export interface RunResult {
@@ -263,7 +283,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
         chooseNode(run, chooseNextNode(run, rnd));
         if (run.screen === 'combat') {
           const node = run.map.nodes[run.position!];
-          current = { name: run.encounter!.name, kind: node.type === 'elite' ? 'elite' : node.type === 'boss' ? 'boss' : 'combat', floor: node.floor + 1, act: run.act, wipes: 0, hpLost: run.hp, won: false };
+          current = { name: run.encounter!.name, kind: node.type === 'elite' ? 'elite' : node.type === 'boss' ? 'boss' : 'combat', floor: node.floor + 1, act: run.act, wipes: 0, hpLost: run.hp, hpIn: run.hp, won: false };
           fights.push(current);
         }
         break;
@@ -284,7 +304,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
         if (current) {
           current.wipes++;
           const c = run.combat!;
-          (current.deaths ??= []).push({ enemyHp: c.enemies.filter((e) => !e.dead).reduce((a, e) => a + e.hp, 0), turn: c.turn, deck: run.deck.length, maxHp: run.maxHp });
+          (current.deaths ??= []).push({ enemyHp: c.enemies.filter((e) => !e.dead).reduce((a, e) => a + e.hp, 0), turn: c.turn, deck: run.deck.length, maxHp: run.maxHp, log: c.log.slice(-14) });
         }
         retryAfterWipe(run);
         break;

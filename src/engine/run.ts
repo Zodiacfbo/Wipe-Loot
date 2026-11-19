@@ -15,7 +15,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 18;
+export const SAVE_VERSION = 19;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -36,14 +36,14 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 18, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 19, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
-    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null,
+    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin',
   };
   run.map = mapFor(run, 1);
   applyTalents(run, talents);
@@ -236,7 +236,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId);
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' });
   run.screen = 'combat';
 }
 
@@ -279,6 +279,14 @@ export function afterCombatAction(run: RunState): void {
   if (!c || run.screen !== 'combat') return;
   run.rng = c.rng;
   run.nextUid = c.nextUid;
+  // Démoniste : les éclats d'âme se gardent d'un combat à l'autre ; les Pierres de vie vont dans la ceinture.
+  if (c.shards !== undefined) run.shards = c.shards;
+  if (c.pet === 'diablotin' || c.pet === 'rodeur') run.pet = c.pet;
+  for (const id of c.newPotions ?? []) {
+    const slot = run.potions.findIndex((p) => !p);
+    if (slot >= 0) run.potions[slot] = id;
+  }
+  c.newPotions = [];
   if (c.phase === 'victory' || c.phase === 'defeat') {
     // Le Gobelin mimique a avalé de l'or.
     run.gold = Math.max(0, run.gold - (c.goldStolen ?? 0));
@@ -328,7 +336,7 @@ export function afterCombatAction(run: RunState): void {
         run.sourcesQuest = 'done';
         run.questNote = 'Eau des profondeurs : les Gardiens des Sources sont libres. Vulkhar commencera le combat affaibli.';
       }
-      if (enc?.loot === 'zhaal' && run.classId === 'mage' && !run.veilleur) {
+      if (enc?.loot === 'zhaal' && (run.classId === 'mage' || run.classId === 'demoniste') && !run.veilleur) {
         run.veilleur = 'fragment';
         run.questNote = 'Fragment du Veilleur : un éclat du bâton du premier gardien des arcanes. L\'esprit du Veilleur t\'attend dans un observatoire en ruine, à l\'acte 2.';
       }
@@ -593,7 +601,7 @@ export function learnSpell(run: RunState, replace?: number): boolean {
 /** Une potion au hasard (75 % communes, 25 % rares). */
 function rollPotion(run: RunState): string {
   const rarity = random(run) < 0.75 ? 'commun' : 'rare';
-  const pool = POTION_IDS.filter((id) => POTIONS[id].rarity === rarity);
+  const pool = POTION_IDS.filter((id) => POTIONS[id].rarity === rarity && !POTIONS[id].noDrop);
   return pool[Math.floor(random(run) * pool.length)];
 }
 
@@ -962,15 +970,22 @@ export function campfireReforge(run: RunState): boolean {
 
 // --- Feu de camp : lier les fragments du Bâton du Veilleur (Mage) ---
 
-/** Peut-on lier les fragments ici ? Il faut la Tête du bâton et une carte rare à sacrifier. */
+/** Peut-on lier les fragments ici ? Il faut la Tête du bâton, et une carte rare à sacrifier (Mage) ou 3 éclats d'âme (Démoniste). */
 export function canBindStaff(run: RunState): boolean {
-  return run.screen === 'campfire' && run.veilleur === 'tete' && run.act >= LEGENDARY_MIN_ACT
-    && run.deck.some((c) => CARDS[c.id].rarity === 'rare');
+  if (run.screen !== 'campfire' || run.veilleur !== 'tete' || run.act < LEGENDARY_MIN_ACT) return false;
+  return run.classId === 'demoniste' ? run.shards >= 3 : run.deck.some((c) => CARDS[c.id].rarity === 'rare');
 }
 
-/** Retire une carte rare du deck pour sceller le Bâton du Veilleur, qui est équipé. */
-export function campfireBindStaff(run: RunState, uid: number): boolean {
+/** Scelle le Bâton du Veilleur, qui est équipé : le Mage sacrifie une carte rare, le Démoniste 3 éclats d'âme. */
+export function campfireBindStaff(run: RunState, uid?: number): boolean {
   if (!canBindStaff(run)) return false;
+  if (run.classId === 'demoniste') {
+    run.shards -= 3;
+    putOn(run, 'baton_veilleur_demo', 'arme');
+    run.veilleur = 'forged';
+    backToMap(run);
+    return true;
+  }
   const i = run.deck.findIndex((c) => c.uid === uid && CARDS[c.id].rarity === 'rare');
   if (i < 0) return false;
   run.deck.splice(i, 1);

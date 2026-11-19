@@ -14,6 +14,8 @@ export interface PotionDef {
   color: string;
   /** Soin : ces potions se boivent aussi hors combat. */
   heal?: number;
+  /** Ne se trouve pas après les combats ni chez le vendeur (Pierre de vie du Démoniste). */
+  noDrop?: boolean;
   /** Effet en combat (en plus du soin éventuel). */
   use?: (c: CombatState, m: number) => void;
 }
@@ -22,6 +24,10 @@ export const POTIONS: Record<string, PotionDef> = {
   potion_soins: {
     id: 'potion_soins', name: 'Potion de soins', rarity: 'commun', color: '#e0503c', heal: 20,
     text: 'Soigne 20 PV. Se boit aussi hors combat.',
+  },
+  pierre_de_vie: {
+    id: 'pierre_de_vie', name: 'Pierre de vie', rarity: 'commun', color: '#6fd86a', heal: 15, noDrop: true,
+    text: 'Soigne 15 PV. Créée par le Démoniste. Se boit aussi hors combat.',
   },
   potion_soins_majeure: {
     id: 'potion_soins_majeure', name: 'Potion de soins majeure', rarity: 'rare', color: '#ff7a8a', heal: 35,

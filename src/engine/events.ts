@@ -146,7 +146,7 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'L\'observatoire en ruine',
     text: 'Une tour d\'astronome à moitié effondrée, ouverte sur le ciel. Au centre, l\'esprit d\'un vieil homme flotte au-dessus d\'un télescope brisé : le Veilleur.',
     choices: [
-      { label: 'Prouver ta sagesse au Veilleur', detail: 'Perds 8 PV max. Obtiens la Tête du bâton (quête du Bâton du Veilleur, étape 2).', locked: (run) => (run.classId !== 'mage' ? 'Réservé au Mage' : run.veilleur !== 'fragment' ? 'Il te faut le Fragment du Veilleur (Zhaal)' : null) },
+      { label: 'Prouver ta sagesse au Veilleur', detail: 'Perds 8 PV max. Obtiens la Tête du bâton (quête du Bâton du Veilleur, étape 2).', locked: (run) => (run.classId !== 'mage' && run.classId !== 'demoniste' ? 'Réservé au Mage et au Démoniste' : run.veilleur !== 'fragment' ? 'Il te faut le Fragment du Veilleur (Zhaal)' : null) },
       { label: 'Regarder les étoiles', detail: 'Pendant les 3 prochains combats, tu vois les deux prochaines intentions des ennemis.' },
       { label: 'Fouiller la tour', detail: 'Gagne 60 or.' },
     ],

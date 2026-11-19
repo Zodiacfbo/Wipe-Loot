@@ -22,12 +22,13 @@ import {
   power,
 } from './actions';
 import { AFFLICTIONS, GRIZZIK_POTIONS, PRISMAGOR_BREATHS } from './enemies_acte2';
-import { CARDS, energyCost, isEthereal, type PlayContext } from './cards';
+import { CARDS, energyCost, isEthereal, shardCost, type PlayContext } from './cards';
+import { decayCurses, felhunterLock, felhunterStart, petAct, triggerDots } from './demoniste';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
-import type { CardInstance, CombatMods, CombatState, EnemyState, Intent, PlayerCurse, Posture } from './types';
+import type { CardInstance, CombatMods, CombatState, EnemyState, Intent, PetId, PlayerCurse, Posture } from './types';
 
 // --- Sorts de barre : voir spells.ts ---
 export { SPELLS, type SpellDef } from './spells';
@@ -45,6 +46,8 @@ export function createCombat(
   spells: string[] = ['charge'],
   mods?: CombatMods,
   classId = 'guerrier',
+  /** Démoniste : les éclats d'âme de la run et le familier choisi. */
+  demon?: { shards: number; pet: PetId },
 ): CombatState {
   const c: CombatState = {
     turn: 0,
@@ -56,6 +59,7 @@ export function createCombat(
       ...(classId === 'mage' ? { charges: 0, maxCharges: 4 } : {}),
     },
     classId,
+    ...(classId === 'demoniste' ? { shards: demon?.shards ?? 0, pet: demon?.pet ?? 'diablotin', soulSiphon: {} } : {}),
     enemies: [],
     draw: [],
     hand: [],
@@ -144,6 +148,8 @@ export function createCombat(
   if (gear.startDragonFracture) for (const e of livingEnemies(c)) if (hasTag(e.defId, 'dragon')) e.buffs.armureFracassee = Math.max(e.buffs.armureFracassee, gear.startDragonFracture);
   if (gear.startZone) addStatusToHand(c, 'zone_de_feu', gear.startZone);
   if (gear.startToxine) p.debuffs!.toxine = gear.startToxine;
+  // Maître invocateur : le familier agit dès le début du combat.
+  if (gear.petOpening) petAct(c, gear.petOpening);
   if (gear.startFiole) addStatusToHand(c, 'fiole_instable', gear.startFiole);
   if (gear.startRandomBonus) {
     for (let i = 0; i < gear.startRandomBonus; i++) {
@@ -185,6 +191,12 @@ export function startPlayerTurn(c: CombatState): void {
   // Adrénaline ardente (Ysolde) : +3 énergie à chaque tour.
   if (c.adrenaline) p.energy += 3;
   c.killEnergyUsed = false;
+  // Démoniste : Sacrifice démoniaque, Armure démoniaque, Siphon d'âme, Molosse infernal.
+  if (c.petSacrificed) p.energy += 1;
+  c.soulSiphon = c.shards !== undefined ? {} : undefined;
+  c.freePactUsed = false;
+  if (power(c, 'armure_demoniaque')) healPlayer(c, 1);
+  felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
   c.bleedDoneThisTurn = false;
@@ -339,6 +351,8 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   if (energyCost(c, card.id, card.upgraded) > c.player.energy) return false;
   if (typeof def.rageCost === 'number' && def.rageCost > c.player.rage) return false;
   if (def.rageCost === 'all' && c.player.rage === 0) return false;
+  const shards = shardCost(c, card.id, card.upgraded);
+  if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return false;
   return true;
 }
 
@@ -352,6 +366,12 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const p = c.player;
   const cost = energyCost(c, card.id, card.upgraded);
   p.energy -= cost;
+  // Les éclats d'âme ; la cible retenue par le familier ; Contrecoup.
+  const shards = shardCost(c, card.id, card.upgraded);
+  const shardsSpent = shards === 'all' ? c.shards ?? 0 : shards;
+  if (c.shards !== undefined) c.shards -= shardsSpent;
+  if (target) c.lastTarget = target.uid;
+  if (card.id === 'trait_ombre' && c.shadowFree) c.shadowFree = false;
   // Inspiration et Présence d'esprit ne servent qu'une fois.
   if (c.freeNext) c.freeNext = false;
   else if (c.freeNextSpell && def.type === 'Sort') c.freeNextSpell = false;
@@ -378,7 +398,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     }
   }
 
-  const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false };
+  const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent };
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
   const blockBefore = p.block;
@@ -388,6 +408,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   // Butin : Masse des flammes, Croc des trois souffles, Croc de Prismagor.
   if (ctx.dealt && target && !target.dead && !target.submerged) onHitItems(c, target, def.type);
   if (def.type === 'Sort' && ctx.dealt) p.enrageReady = 0;
+  // Pacte de destruction : seul le prochain Sort qui fait des dégâts est doublé.
+  if (def.type === 'Sort' && ctx.dealt && card.id !== 'pacte_destruction') c.doubleNext = false;
   if (c.cleaving) c.cleave = (c.cleave ?? 1) - 1;
   // Concentration arcanique : le 3e Sort du tour rend de l'énergie.
   if (def.type === 'Sort') {
@@ -449,7 +471,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
 export function canUseSpell(c: CombatState, index: number): boolean {
   const s = c.spells[index];
   if (!s || c.phase !== 'player') return false;
-  return s.cooldown === 0 && SPELLS[s.id].cost <= c.player.energy;
+  const def = SPELLS[s.id];
+  return s.cooldown === 0 && def.cost <= c.player.energy && (def.shardCost ?? 0) <= (c.shards ?? 0);
 }
 
 export function useSpell(c: CombatState, index: number, targetUid?: number): boolean {
@@ -459,7 +482,13 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   const target = resolveTarget(c, def.needsTarget, targetUid, (def.classId ?? 'guerrier') === 'guerrier');
   if (target === 'invalid') return false;
   c.player.energy -= def.cost;
+  if (def.shardCost && c.shards !== undefined) c.shards -= def.shardCost;
+  if (target) c.lastTarget = target.uid;
+  // Les sorts de barre du Mage et du Démoniste sont des Sorts (bonus aux Sorts, Malédiction des éléments).
+  const spellClass = def.classId ?? 'guerrier';
+  if (spellClass !== 'guerrier') c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
   def.cast(c, target);
+  c.playing = undefined;
   s.cooldown = def.once ? 999 : spellCooldown(def, c.gear);
   log(c, `Tu lances ${def.name}.`);
   if (def.endsTurn && c.phase === 'player') endTurn(c);
@@ -549,13 +578,24 @@ export function endTurn(c: CombatState): void {
   if (c.phase !== 'player') return;
 
   p.blockedFullAttack = false;
+  // Le familier agit, puis le Seigneur infernal ; le Molosse guette les incantations.
+  petAct(c);
+  if (c.infernal && c.phase === 'player') {
+    for (const e of livingEnemies(c)) {
+      if (e.submerged || c.phase !== 'player') continue;
+      fx(c, { kind: 'tick', who: e.uid, amount: c.infernal, label: 'Seigneur infernal' });
+      damageEnemy(c, e, c.infernal);
+    }
+  }
+  if (c.phase !== 'player') return;
+  felhunterLock(c);
   enemyTurn(c);
   if (c.phase === 'player') startPlayerTurn(c);
 }
 
 function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent = e.intent): number {
   const d = c.player.debuffs;
-  let dmg = base + e.buffs.puissance + (e.giant ? 5 : 0) + 2 * (d?.ombre ?? 0) + (c.gear?.extraHurt ?? 0);
+  let dmg = base + e.buffs.puissance + (e.giant ? 5 : 0) + 2 * (d?.ombre ?? 0) + (c.gear?.extraHurt ?? 0) - (e.fatigue ?? 0);
   if ((d?.fracasse ?? 0) > 0) dmg *= 1.5;
   if (d?.afflictions?.includes('noire')) dmg *= 1.2;
   if (intent.kind === 'attack' && intent.breath && c.gear?.breathReduce) dmg *= 1 - c.gear.breathReduce / 100;
@@ -579,6 +619,19 @@ export function isEnraged(c: CombatState): boolean {
 function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
   switch (intent.kind) {
     case 'attack': {
+      // Asservissement : il frappe ses alliés à ta place.
+      if ((e.enslaved ?? 0) > 0) {
+        const victim = livingEnemies(c).find((o) => o !== e && !o.submerged);
+        if (victim) {
+          const dmg = Math.max(0, intent.dmg + e.buffs.puissance) * (intent.times ?? 1);
+          fx(c, { kind: 'tick', who: victim.uid, amount: dmg, label: 'Asservi' });
+          damageEnemy(c, victim, dmg);
+          log(c, `${e.name}, asservi, frappe ${victim.name} (${dmg} dégâts).`);
+        } else {
+          log(c, `${e.name}, asservi, n'a personne à frapper.`);
+        }
+        break;
+      }
       // Désarmement : un ennemi normal n'attaque pas ce tour-ci.
       if (e.disarmed && !ENEMIES[e.defId].elite && !ENEMIES[e.defId].boss) {
         log(c, `${e.name} est désarmé : il n'attaque pas.`);
@@ -791,6 +844,11 @@ function enemyTurnInner(c: CombatState): void {
       if (e.buffs.saignementTours === 0) e.buffs.saignement = 0;
       if (e.dead) continue;
     }
+    // Les DoT du Démoniste
+    if (e.dots?.length) {
+      triggerDots(c, e, true);
+      if (e.dead || c.phase !== 'player') continue;
+    }
     // Brûlure (Chaleur intense l'attise d'abord)
     if ((e.buffs.brulure ?? 0) > 0) {
       e.buffs.brulure! += power(c, 'chaleur_intense');
@@ -802,6 +860,12 @@ function enemyTurnInner(c: CombatState): void {
       if (e.dead || c.phase !== 'player') continue;
     }
 
+    // Malédiction des langages : l'Incantation prend un tour de plus.
+    if (e.intent.cast && (e.tongues ?? 0) > 0 && !e.delayed && !e.interrupted) {
+      e.tongues! -= 1;
+      e.delayed = true;
+      log(c, `${e.name} bafouille : son incantation prend un tour de plus.`);
+    }
     if ((e.buffs.peur ?? 0) > 0) {
       e.buffs.peur! -= 1;
       log(c, `${e.name} est apeuré et ne fait rien.`);
@@ -836,6 +900,8 @@ function enemyTurnInner(c: CombatState): void {
 
     decayBuffs(e);
     if ((e.buffs.gel ?? 0) > 0 && !c.gear?.gelKeep) e.buffs.gel! -= 1;
+    decayCurses(e);
+    if ((e.enslaved ?? 0) > 0) e.enslaved! -= 1;
     e.disarmed = false;
     e.step += 1;
     e.intent = intentAt(ENEMIES[e.defId], e.step, e.phase ?? 1, e.hp < e.maxHp / 2);
@@ -979,6 +1045,8 @@ function lineageCurse(c: CombatState): void {
   if ((c.classId ?? 'guerrier') === 'mage') {
     c.player.drawPenalty += 2;
     log(c, 'Malédiction de lignée : tu es métamorphosé, ta prochaine main n\'aura que 3 cartes.');
+  } else if (c.classId === 'demoniste') {
+    log(c, 'Malédiction de lignée : pendant 2 tours, ton familier se retourne contre toi.');
   } else {
     c.player.posture = 'berserker';
     log(c, 'Malédiction de lignée : tu es forcé en posture Berserker pendant 2 tours.');
@@ -1062,4 +1130,14 @@ function onHitItems(c: CombatState, target: EnemyState, type: string): void {
     else if (roll === 1) target.buffs.demoralise = Math.max(target.buffs.demoralise, 1);
     else target.buffs.armureFracassee = Math.max(target.buffs.armureFracassee, 1);
   }
+}
+
+// --- Démoniste ---
+
+/** Au début du combat (avant de jouer la moindre carte), on choisit son familier de base. */
+export function choosePet(c: CombatState, pet: PetId): boolean {
+  if (c.pet === undefined || (pet !== 'diablotin' && pet !== 'rodeur')) return false;
+  if (c.turn !== 1 || (c.cardsThisTurn ?? 0) > 0 || c.pet === pet) return false;
+  c.pet = pet;
+  return true;
 }

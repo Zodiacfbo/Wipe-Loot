@@ -1,10 +1,12 @@
 // L'interface : affiche l'état de la run et transmet les actions du joueur au moteur.
-import { CARDS, energyCost, rewardPool, starterCards } from './engine/cards';
+import { CARDS, energyCost, rewardPool, shardCost, starterCards } from './engine/cards';
+import { DOT_LABEL, MAX_SHARDS, PETS } from './engine/demoniste';
 import {
   SPELLS,
   canPlayCard,
   canUseSpell,
   changePosture,
+  choosePet,
   endTurn,
   isEnraged,
   playCard,
@@ -160,6 +162,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
     ${opts.panicked ? '<span class="tampon-panique">Paniquée</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
+    ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}</span>
     <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}">${text}</span>
@@ -214,7 +217,7 @@ function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false)
   const useless = uselessFx(id, cls);
   const note = useless.length === 0 ? '' : useless.length === keys.length
     ? `<i class="note-objet">Sans effet pour le ${name}.</i>`
-    : `<i class="note-objet">${cls === 'mage' ? 'Le bonus aux Attaques' : 'Le bonus aux Sorts'} ne sert pas au ${name}.</i>`;
+    : `<i class="note-objet">${cls === 'guerrier' ? 'Le bonus aux Sorts' : 'Le bonus aux Attaques'} ne sert pas au ${name}.</i>`;
   return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
 }
 
@@ -268,6 +271,7 @@ function topbar(run: RunState, hp: number): string {
       <span class="nom-classe">${classInfo(run.classId).name}</span>
       <span class="stat pv">${ICON.coeur}<span>${hp} / ${run.maxHp}</span></span>
       <span class="stat or">${ICON.piece}<span>${run.gold}</span></span>
+      ${run.classId === 'demoniste' ? `<span class="stat eclats" title="Éclats d'âme (conservés d'un combat à l'autre)">◆ <span>${run.combat?.shards ?? run.shards}/${MAX_SHARDS}</span></span>` : ''}
       <span class="potions">${run.potions.map((id, i) => `<button type="button" class="potion-slot ${id ? '' : 'vide'}" ${id ? `data-action="potion" data-slot="${i}" aria-label="${POTIONS[id].name}" title="${POTIONS[id].name}"` : 'disabled aria-label="Emplacement de potion vide"'}>${potionIcon(id)}</button>`).join('')}</span>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
@@ -542,6 +546,13 @@ function enemyChips(e: EnemyState): string {
   if (e.gele) chips.push(`<span class="chip gel" title="${e.gele === 'skip' ? 'Perd son prochain tour' : 'Prochaine attaque réduite de moitié'}">Gelé${e.gele === 'half' ? ' : attaque ÷ 2' : ''}</span>`);
   if (e.mouton) chips.push(`<span class="chip debuff" title="Ne fait rien ; reprend forme s'il est blessé">Mouton ${e.mouton}</span>`);
   if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
+  for (const d of e.dots ?? []) chips.push(`<span class="chip ombre" title="${d.dmg} dégâts au début de son tour${d.grow ? `, +${d.grow} à chaque fois` : ''}, encore ${d.turns} tours">${DOT_LABEL[d.id] ?? 'DoT'} ${d.dmg} · ${d.turns}t</span>`);
+  if (e.curses?.includes('fatigue')) chips.push(`<span class="chip ombre">Fatigue : −${e.fatigue} dégâts (${e.fatigueTurns}t)</span>`);
+  if (e.curses?.includes('elements')) chips.push(`<span class="chip ombre">Éléments : Sorts +${e.elements} % (${e.elementsTurns}t)</span>`);
+  if (e.tongues) chips.push(`<span class="chip ombre" title="Ses prochaines Incantations prennent un tour de plus">Langages ${e.tongues}</span>`);
+  if (e.curses?.includes('faiblesse')) chips.push('<span class="chip ombre">Malédiction de faiblesse</span>');
+  if (e.haunted) chips.push(`<span class="chip ombre">Hanté : DoT +50 % (${e.haunted}t)</span>`);
+  if (e.enslaved) chips.push(`<span class="chip">Asservi ${e.enslaved} : frappe ses alliés</span>`);
   if (e.flying) chips.push('<span class="chip" title="Tes Attaques à cible unique ne peuvent pas le viser (les Sorts et les zones, si)">En vol</span>');
   if (e.mutations?.length) chips.push(`<span class="chip ${e.mutated ? 'debuff' : ''}" title="${e.mutated ? 'Mutation active' : 'Sous 50 % de PV'}">${e.mutated ? 'Muté' : 'Mutation à 50 %'} : ${e.mutations.map((m) => MUTATION_LABEL[m]).join(', ')}</span>`);
   if (e.breaths) chips.push(`<span class="chip">Souffles : ${e.breaths.map((b) => ({ brulant: 'brûlant', corrosif: 'corrosif', glacial: 'glacial', foudre: 'de foudre', chair: 'de chair' } as Record<string, string>)[b]).join(' et ')}</span>`);
@@ -584,13 +595,18 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   if (i.panic) parts.push(`${i.panic} cartes Paniquées au prochain tour`);
   if (i.fardeau) parts.push(`${i.fardeau} Fardeaux dans ta pioche`);
   if (i.bomb) parts.push('une Bombe vivante dans ta main');
-  if (i.lignee) parts.push(ui.run?.classId === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes' : 'Malédiction de lignée : forcé en posture Berserker 2 tours');
+  if (i.lignee) {
+    const cls = ui.run?.classId;
+    parts.push(cls === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes'
+      : cls === 'demoniste' ? 'Malédiction de lignée : ton familier se retourne contre toi 2 tours'
+      : 'Malédiction de lignée : forcé en posture Berserker 2 tours');
+  }
   const text = parts.join(', ');
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function intentHtml(c: CombatState, e: EnemyState): string {
-  const next = c.gear?.seeTwoIntents ? `<div class="intention-suivante">Ensuite : ${intentShort(intentAt(ENEMIES[e.defId], e.step + 1, e.phase ?? 1, e.hp < e.maxHp / 2))}</div>` : '';
+  const next = c.gear?.seeTwoIntents || c.seeAll ? `<div class="intention-suivante">Ensuite : ${intentShort(intentAt(ENEMIES[e.defId], e.step + 1, e.phase ?? 1, e.hp < e.maxHp / 2))}</div>` : '';
   return intentNow(c, e) + next;
 }
 
@@ -677,6 +693,16 @@ const POWER_LABEL: Record<string, [string, string]> = {
   morsure_du_froid: ['Morsure du froid', 'Un ennemi Gelé subit des dégâts'],
   fragmentation: ['Fragmentation', 'Fracasser : triple dégâts'],
   coeur_de_glace: ['Cœur de glace', 'Gel 1 à tous au début de ton tour'],
+  armure_demoniaque: ['Armure démoniaque', 'Soigne 1 PV au début de ton tour'],
+  etreinte: ['Étreinte de l\'ombre', 'Tes DoT : +dégâts'],
+  tourment: ['Tourment', 'Chaque tick de DoT te soigne'],
+  liens_demoniaques: ['Liens démoniaques', 'Familier : effets +50 %'],
+  eclat_partage: ['Éclat partagé', 'Ton familier tue : +1 éclat'],
+  lien_ame: ['Lien de l\'âme', 'Dégâts du familier → blocage'],
+  maitre_pactes: ['Maître des pactes', 'Pactes : moins de PV'],
+  ombre_et_flammes: ['Ombre et flammes', 'Trait de l\'ombre, Incinérer, Immolation : +dégâts'],
+  contrecoup: ['Contrecoup', 'Perdre des PV : Trait de l\'ombre gratuit'],
+  ruine: ['Ruine', 'Sorts à 2 énergie : +dégâts'],
 };
 
 function playerChips(c: CombatState): string {
@@ -714,12 +740,32 @@ function playerChips(c: CombatState): string {
   if (p.spellReflect) chips.push('<span class="chip">Réflexion des sorts</span>');
   if (p.fireShield) chips.push(`<span class="chip brule">Bouclier de feu : Brûlure ${p.fireShield} aux attaquants</span>`);
   if (c.freeNext) chips.push('<span class="chip">Inspiration : prochaine carte gratuite</span>');
+  if (c.soulstone) chips.push('<span class="chip ombre" title="Si tu tombes à 0 PV, tu reviens à 30 %">Pierre d\'âme</span>');
+  if (c.amplify) chips.push('<span class="chip ombre">Prochaine Malédiction ×2</span>');
+  if (c.doubleNext) chips.push('<span class="chip ombre">Prochain Sort ×2</span>');
+  if (c.shadowFree) chips.push('<span class="chip ombre">Trait de l\'ombre gratuit</span>');
+  if (c.petDouble) chips.push('<span class="chip ombre">Familier : action doublée</span>');
+  if (c.petBonus) chips.push(`<span class="chip ombre">Familier +${c.petBonus} dégâts</span>`);
   if (c.freeNextSpell) chips.push('<span class="chip">Présence d\'esprit : prochain Sort gratuit</span>');
   if (c.shatterReady) chips.push('<span class="chip gel">Toucher glacial : prochain Fracasser</span>');
   for (const [id, v] of Object.entries(c.powers ?? {})) {
     if (POWER_LABEL[id]) chips.push(`<span class="chip pouvoir" title="${POWER_LABEL[id][1]}">${POWER_LABEL[id][0]}${v > 1 ? ` ${v}` : ''}</span>`);
   }
   return chips.join('');
+}
+
+/** Les éclats d'âme et le familier du Démoniste. */
+function demonResource(c: CombatState): string {
+  const n = c.shards ?? 0;
+  const pips = Array.from({ length: MAX_SHARDS }, (_, i) => `<i class="${i < n ? 'plein' : ''}"></i>`).join('');
+  const pet = c.pet && !c.petSacrificed ? PETS[c.pet] : null;
+  const canSwap = c.turn === 1 && (c.cardsThisTurn ?? 0) === 0 && (c.pet === 'diablotin' || c.pet === 'rodeur');
+  const swap = canSwap
+    ? `<div class="postures" role="group" aria-label="Familier">${(['diablotin', 'rodeur'] as const).map((id) => `<button type="button" class="${c.pet === id ? 'actif' : ''}" data-action="familier" data-pet="${id}" aria-pressed="${c.pet === id}">${PETS[id].name}</button>`).join('')}</div>`
+    : '';
+  return `<div class="ligne"><span class="rage-label eclats-label">ÉCLATS</span><div class="rage eclats">${pips}</div><span class="rage-label" style="width:auto">${n}</span></div>
+    ${swap}
+    <div class="aide-posture">${pet ? `<b>${pet.name}</b> : ${pet.text.replace('À la fin de ton tour : ', '')}` : c.petSacrificed ? 'Familier sacrifié : +1 énergie par tour.' : ''}${canSwap ? ' · choisis ton familier avant de jouer' : ''}</div>`;
 }
 
 function combatScreen(run: RunState, c: CombatState): string {
@@ -734,7 +780,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const resource = mage
     ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
         <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
-    : '';
+    : run.classId === 'demoniste' ? demonResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
@@ -811,12 +857,14 @@ function combatScreen(run: RunState, c: CombatState): string {
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
       <img class="px" data-fx="player" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:192px;height:192px">
+      ${c.pet && !c.petSacrificed ? `<img class="px familier" src="${A(`familier_${c.pet}.png`)}" alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
+      ${c.infernal ? `<img class="px seigneur-infernal" src="${A('familier_seigneur.png')}" alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
       <div class="jauges">
         <div class="ligne">
           <div class="bouclier-badge" title="Blocage"><svg width="32" height="32" viewBox="0 0 24 24" fill="#1d2633" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span>${p.block}</span></div>
           <div class="barre-pv"><div style="width:${hpPct}%"></div><span>${p.hp} / ${p.maxHp}</span></div>
         </div>
-        ${mage ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
+        ${resource ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
         <div class="postures" role="group" aria-label="Posture">${postures}</div>
         <div class="aide-posture">${aidePosture}${p.postureChanged ? ' · déjà changée ce tour' : ''}</div>`}
       </div>
@@ -1217,7 +1265,7 @@ function classScreen(): string {
   }).join('');
   const next = nextUnlockAt(profile);
   const intro = first
-    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier et le Mage sont jouables : les autres classes sont en préparation.'
+    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage et le Démoniste sont jouables : les autres classes sont en préparation.'
     : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> : touche celle que tu veux.` : ''} Touche une classe débloquée pour la jouer.`;
   return `<div class="ecran ecran-classes">
     <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
@@ -1663,6 +1711,9 @@ function handleClick(ev: MouseEvent): void {
     case 'carte': onCard(Number(el.dataset.index)); break;
     case 'sort': onSpell(Number(el.dataset.index)); break;
     case 'cible': onTarget(Number(el.dataset.uid)); break;
+    case 'familier':
+      if (run.combat && choosePet(run.combat, el.dataset.pet as 'diablotin' | 'rodeur')) commit();
+      break;
     case 'posture':
       if (run.combat) changePosture(run.combat, el.dataset.posture as Posture);
       ui.selection = null;
@@ -1683,7 +1734,9 @@ function handleClick(ev: MouseEvent): void {
     case 'benediction-carte': chooseBlessing(run, 'allegement', Number(el.dataset.uid)); ui.blessingRemove = false; commit(); break;
     case 'benediction-retour': ui.blessingRemove = false; render(); break;
     case 'reforger': campfireReforge(run); commit(); break;
-    case 'lier-fragments': ui.bindStaff = true; render(); break;
+    case 'lier-fragments':
+      if (run.classId === 'demoniste') { campfireBindStaff(run); commit(); } else { ui.bindStaff = true; render(); }
+      break;
     case 'lier-baton': ui.bindStaff = false; campfireBindStaff(run, Number(el.dataset.uid)); commit(); break;
     case 'acte-suivant': startNextAct(run); commit(); break;
     case 'acheter': buyCard(run, Number(el.dataset.index)); commit(); break;
@@ -1750,7 +1803,8 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'mage.png', 'vendeur_gobelin.png', 'bregan.png',
+  'guerrier.png', 'mage.png', 'demoniste.png', 'vendeur_gobelin.png', 'bregan.png',
+  ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),

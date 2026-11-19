@@ -6,7 +6,19 @@ import type { ActMap } from './map';
 import type { RunSummary } from './progression';
 
 export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
-export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Sort' | 'Statut';
+export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Sort' | 'Malédiction' | 'Statut';
+
+/** Les familiers du Démoniste. */
+export type PetId = 'diablotin' | 'rodeur' | 'succube' | 'molosse';
+
+/** Un effet de dégâts sur la durée du Démoniste (Corruption, Immolation, Malédiction de souffrance…). */
+export interface Dot {
+  id: string;
+  dmg: number;
+  turns: number;
+  /** Dégâts en plus à chaque tick (Malédiction de souffrance). */
+  grow?: number;
+}
 /** L'école de magie d'une carte du Mage. */
 export type School = 'arcane' | 'feu' | 'givre';
 export type Posture = 'combat' | 'berserker' | 'defensive';
@@ -28,6 +40,7 @@ export interface EnemyBuffs {
   peur?: number;
   /** Mage — Brûlure : dégâts au début du tour de l'ennemi, puis −1. */
   brulure?: number;
+  /** Démoniste — Démoralisé est aussi utilisé par la Malédiction de faiblesse ; Ralenti par la Malédiction de fatigue. */
   /** Mage — Gel : à 5 cumuls, l'ennemi devient Gelé. */
   gel?: number;
 }
@@ -159,6 +172,21 @@ export interface EnemyState {
   noHeal?: boolean;
   /** Acte 2 — Envol : ne peut pas être ciblé par une Attaque à cible unique jusqu'à son prochain tour. */
   flying?: boolean;
+  /** Démoniste : ses DoT, ses Malédictions (ids) et leurs effets. */
+  dots?: Dot[];
+  curses?: string[];
+  /** Malédiction de fatigue : ses attaques infligent X dégâts de moins (tours restants dans `fatigueTurns`). */
+  fatigue?: number;
+  fatigueTurns?: number;
+  /** Malédiction des éléments : +X % de dégâts des Sorts (tours restants). */
+  elements?: number;
+  elementsTurns?: number;
+  /** Malédiction des langages : ses prochaines Incantations prennent un tour de plus. */
+  tongues?: number;
+  /** Hantise : tes DoT infligent +50 % pendant ce nombre de tours. */
+  haunted?: number;
+  /** Asservissement : combat pour toi pendant ce nombre de tours. */
+  enslaved?: number;
   /** Mutation (Chimère d'essai) : tirée au début du combat, active sous 50 % de PV. */
   mutations?: string[];
   mutated?: boolean;
@@ -298,6 +326,36 @@ export interface CombatState {
   killEnergyUsed?: boolean;
   /** Croc des trois souffles : l'effet de la prochaine Attaque (0, 1, 2). */
   fangStep?: number;
+  /** Démoniste — éclats d'âme (0 à 5), repris de la run au début du combat. */
+  shards?: number;
+  /** Démoniste — le familier, et ses bonus pour ce combat. */
+  pet?: PetId | null;
+  petBonus?: number;
+  petDouble?: boolean;
+  /** Le familier a été sacrifié (Sacrifice démoniaque) : +1 énergie par tour. */
+  petSacrificed?: boolean;
+  /** Le Seigneur infernal : dégâts à tous les ennemis à la fin de chacun de tes tours. */
+  infernal?: number;
+  /** La dernière cible visée (Succube, Molosse infernal). */
+  lastTarget?: number;
+  /** Ennemis visés par Siphon d'âme ou Brûlure de l'ombre ce tour-ci (uid → éclats gagnés s'il meurt). */
+  soulSiphon?: Record<number, number>;
+  /** Amplifier la malédiction, Pacte de destruction, Contrecoup. */
+  amplify?: boolean;
+  doubleNext?: boolean;
+  shadowFree?: boolean;
+  /** Pierre d'âme : prête à te relever. */
+  soulstone?: boolean;
+  /** Le Molosse infernal : son Verrou magique est prêt dans ce nombre de tours. */
+  felhunterLock?: number;
+  /** Pierres de vie créées pendant le combat (rangées dans les emplacements de potion par la run). */
+  newPotions?: string[];
+  /** Œil de l'abîme : tu vois les intentions suivantes. */
+  seeAll?: boolean;
+  /** Le familier est en train d'agir (Éclat partagé). */
+  petActing?: boolean;
+  /** Pacte de sang gratuit ce tour-ci (Bâton du Veilleur du Démoniste) déjà utilisé. */
+  freePactUsed?: boolean;
   bleedDoneThisTurn?: boolean;
   /** La classe jouée (guerrier par défaut). */
   classId?: string;
@@ -329,7 +387,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 18;
+  version: 19;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -380,6 +438,10 @@ export interface RunState {
   stargazing: number;
   /** Quête légendaire du Mage : le Bâton du Veilleur. */
   veilleur: 'fragment' | 'tete' | 'forged' | null;
+  /** Démoniste : les éclats d'âme, conservés d'un combat à l'autre. */
+  shards: number;
+  /** Démoniste : le familier choisi au dernier combat. */
+  pet: PetId;
   /** Les monstres vaincus pendant la run (pour les archives de la guilde). */
   kills: Record<string, number>;
   /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */

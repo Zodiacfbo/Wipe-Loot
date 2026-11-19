@@ -22,6 +22,7 @@ import { basicAttack } from './spells';
 import type { ItemEffects } from './items';
 import type { CardInstance, CardType, CombatState, EnemyState, Rarity, School } from './types';
 import { MAGE_CARDS } from './cards_mage';
+import { DEMONISTE_CARDS } from './cards_demoniste';
 
 export interface PlayContext {
   c: CombatState;
@@ -29,6 +30,8 @@ export interface PlayContext {
   up: boolean;
   rageSpent: number;
   dealt: boolean; // la carte a infligé des dégâts (pour la rage)
+  /** Démoniste : les éclats d'âme dépensés pour jouer la carte. */
+  shardsSpent?: number;
 }
 
 export interface CardDef {
@@ -49,6 +52,9 @@ export interface CardDef {
   classId?: string;
   /** L'école de magie (Mage). */
   school?: School;
+  /** Démoniste : coût en éclats d'âme ('all' : tous), et coût une fois améliorée. */
+  shardCost?: number | 'all';
+  shardCostUp?: number;
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
@@ -680,11 +686,20 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   },
 };
 
-export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS };
+export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS };
 
 /** La classe d'une carte. */
 export function cardClass(id: string): string {
   return CARDS[id]?.classId ?? 'guerrier';
+}
+
+/** Le coût en éclats d'âme d'une carte (Invocation rapide : les Invocations sont gratuites). */
+export function shardCost(c: CombatState | null, id: string, up: boolean): number | 'all' {
+  const def = CARDS[id];
+  if (def.shardCost === undefined) return 0;
+  if (def.shardCost === 'all') return 'all';
+  if (c?.gear?.quickSummon && (id === 'invocation_succube' || id === 'invocation_molosse')) return 0;
+  return up && def.shardCostUp !== undefined ? def.shardCostUp : def.shardCost;
 }
 
 /** La carte est-elle Éphémère (en tenant compte de l'amélioration) ? */
@@ -699,6 +714,9 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   if (id === 'vengeance' && c.player.blockedFullAttack) return 0;
   // Inspiration, Présence d'esprit
   if (!def.unplayable && (c.freeNext || (c.freeNextSpell && def.type === 'Sort'))) return 0;
+  // Démoniste : Contrecoup (Trait de l'ombre gratuit), Ruine améliorée (Feu de l'âme gratuit).
+  if (id === 'trait_ombre' && c.shadowFree) return 0;
+  if (id === 'feu_ame' && c.gear?.soulFireFree) return 0;
   // Bague du tisseur : la première carte du combat est gratuite.
   if (c.gear?.firstCardFree && !c.firstCardDone && !def.unplayable) return 0;
   let cost = up && def.costUp !== undefined ? def.costUp : def.cost;

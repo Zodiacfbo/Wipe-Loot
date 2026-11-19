@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Le Guerrier et le Mage sont jouables dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage et le Démoniste sont jouables dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -64,7 +64,9 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Encaisser tout derrière une Égide, puis foudroyer le boss d\'un Courroux céleste à pleine Foi.',
   },
   {
-    id: 'demoniste', name: 'Démoniste', color: '#A66BE0', playable: false, difficulty: 3, hp: 70,
+    id: 'demoniste', name: 'Démoniste', color: '#A66BE0', playable: true, difficulty: 3, hp: 74,
+    starterDeck: ['trait_ombre', 'trait_ombre', 'trait_ombre', 'trait_ombre', 'garde_sombre', 'garde_sombre', 'garde_sombre', 'garde_sombre', 'corruption', 'siphon_ame'],
+    startSpell: 'pacte_de_sang', sprite: 'demoniste.png',
     quote: 'Ma vie est un prix. Ta mort est un gain.',
     role: 'Dégâts dans la durée, invocations', resource: 'Éclats d\'âme et familier démoniaque',
     fantasy: 'Couvrir un boss de malédictions, puis regarder ses PV fondre pendant que son démon le harcèle.',

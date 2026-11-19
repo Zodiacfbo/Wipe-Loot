@@ -112,7 +112,12 @@ export function migrate(raw: unknown): RunState | null {
     run.veilleur = null;
     run.version = 18;
   }
-  return run.version === 18 ? (run as unknown as RunState) : null;
+  if (run.version === 18) {
+    run.shards = 0;
+    run.pet = 'diablotin';
+    run.version = 19;
+  }
+  return run.version === 19 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

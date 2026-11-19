@@ -598,3 +598,14 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .chip.affliction-verte { border-color: #5fb86b; color: #c4f0c8; }
 .chip.affliction-noire { border-color: #8a8a94; color: #e0e0e8; background: #141418; }
 .chip.affliction-bronze { border-color: #c08a3a; color: #f0d0a0; }
+
+/* --- Démoniste --- */
+.carte .cout-eclat { background: #5a2e8a; border: 1px solid #c8a0ff; border-radius: 50%; text-shadow: none; }
+.eclats-label { width: auto; color: #c8a0ff; }
+.rage.eclats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.rage.eclats i { width: 12px; height: 12px; justify-self: center; border-radius: 2px; transform: rotate(45deg); background: #2a1e38; border: 1px solid #5a3a7e; }
+.rage.eclats i.plein { background: #b07af0; box-shadow: 0 0 6px #a066e8; }
+.heros .familier { position: absolute; left: -48px; top: 150px; width: 72px; height: 72px; }
+.heros .seigneur-infernal { position: absolute; left: 196px; top: 70px; width: 120px; height: 120px; }
+.chip.ombre { background: #241a33; border-color: #8a5ac8; color: #dcc8ff; }
+.stat.eclats { color: #c8a0ff; }

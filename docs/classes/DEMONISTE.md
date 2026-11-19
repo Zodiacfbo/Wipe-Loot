@@ -1,7 +1,7 @@
 # Classe : le Démoniste
 
 > Wipe & Loot · Fiche de classe · Version 0.1
-> Les chiffres sont **indicatifs** : ils serviront de base aux premiers tests d'équilibrage.
+> Les chiffres ont été réglés par une première passe d'équilibrage (voir [l'équilibrage](../EQUILIBRAGE.md), §10).
 
 ---
 
@@ -18,7 +18,7 @@ Le Démoniste manipule les ombres et les flammes de l'abîme. Il **paie de sa pr
 
 | Statistique | Valeur |
 |---|---|
-| **PV max** | 70 |
+| **PV max** | 74 |
 | **Énergie** | 3 par tour |
 | **Ressource de classe** | Éclats d'âme (0 à 5), conservés d'un combat à l'autre |
 | **Familier** | Un démon permanent (voir §3) |
@@ -59,8 +59,8 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Familier | Action en fin de tour | Rôle |
 |---|---|---|
-| 😈 **Diablotin** (base) | Inflige 3 dégâts de feu à un ennemi au hasard. | Dégâts |
-| 🛡️ **Rôdeur du néant** (base) | Te donne 4 blocage. | Défense |
+| 😈 **Diablotin** (base) | Inflige 4 dégâts de feu à un ennemi au hasard. | Dégâts |
+| 🛡️ **Rôdeur du néant** (base) | Te donne 5 blocage. | Défense |
 | 💋 **Succube** (par Invocation) | Inflige 2 dégâts à ta cible. Tous les 3 tours, **Séduction** : Contrôle 1 tour sur un ennemi (sauf boss). | Contrôle |
 | 🐺 **Molosse infernal** (par Invocation) | Inflige 2 dégâts à ta cible. Au début de ton tour, **dévore 1 débuff Magie** sur toi (Dissipation). Une fois tous les 3 tours, tu peux lui ordonner un **Verrou magique** gratuit (Interruption). | Utilitaire |
 
@@ -74,10 +74,10 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Trait de l'ombre** | 4 | 1 | Sort | Inflige 6 dégâts. | 9 dégâts |
-| **Garde sombre** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
-| **Corruption** | 1 | 1 | Sort | Applique **DoT 3** pendant 4 tours. | DoT 4 |
-| **Siphon d'âme** | 1 | 1 | Sort | Inflige 5 dégâts. Si la cible meurt ce tour-ci, gagne 2 éclats d'âme. | 8 dégâts |
+| **Trait de l'ombre** | 4 | 1 | Sort | Inflige 7 dégâts. | 10 dégâts |
+| **Garde sombre** | 4 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
+| **Corruption** | 1 | 1 | Sort | Applique **DoT 4** pendant 4 tours. | DoT 5 |
+| **Siphon d'âme** | 1 | 1 | Sort | Inflige 7 dégâts. Si la cible meurt ce tour-ci, gagne 2 éclats d'âme. | 10 dégâts |
 
 ### 4.2 Sort de barre de départ
 
@@ -95,7 +95,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Siphon d'âme** | 1 | Sort | C | Inflige 5 dégâts. Si la cible meurt ce tour-ci, gagne 2 éclats d'âme. | 8 dégâts |
+| **Siphon d'âme** | 1 | Sort | C | Inflige 7 dégâts. Si la cible meurt ce tour-ci, gagne 2 éclats d'âme. | 10 dégâts |
 | **Siphon de vie** | 1 | Sort | C | Inflige 5 dégâts. Te soigne de 5 PV. | 7 / 7 |
 | **Peur** | 1 | Compétence | C | La cible (sauf boss) est **Apeurée** 1 tour. Un boss est Démoralisé 2 tours. | Coûte 0 |
 | **Pacte noir** | 0 | Compétence | C | Perds 3 PV. Pioche 2 cartes. | Pioche 3 cartes |
@@ -109,7 +109,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Corruption** | 1 | Sort | C | Applique DoT 3 pendant 4 tours. | DoT 4 |
+| **Corruption** | 1 | Sort | C | Applique DoT 4 pendant 4 tours. | DoT 5 |
 | **Malédiction de souffrance** | 1 | Malédiction | C | Pendant 6 tours, la cible subit des dégâts croissants : 1, 2, 3, 4, 5 puis 6. | 2 à 7 |
 | **Malédiction de faiblesse** | 1 | Malédiction | C | La cible est Démoralisée pendant 5 tours. | Coûte 0 |
 | **Malédiction de fatigue** | 1 | Malédiction | C | La cible est Ralentie pendant 5 tours, et ses Attaques infligent 2 dégâts de moins. | 3 de moins |
@@ -141,13 +141,13 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 | **Sacrifice démoniaque** | 0 | Compétence | R | Sacrifie ton familier pour le reste du combat. Gagne 2 Puissance et 1 énergie de plus à chaque tour. **Épuisé.** | 3 Puissance |
 | **Asservissement** | 1 | Compétence | R | Un ennemi (sauf boss) combat **pour toi** pendant 2 tours : il attaque les autres ennemis. **Épuisé.** | 3 tours |
 | **Maître des pactes** | 1 | Pouvoir | R | Pacte de sang, Pacte noir et Pacte de souffrance coûtent 2 PV de moins. | 4 PV de moins |
-| **Invocation : Seigneur infernal** | 2 + 2 éclats | Compétence | É | Invoque un **Seigneur infernal** pour ce combat, **en plus** de ton familier. À la fin de chacun de tes tours, il inflige 10 dégâts à tous les ennemis. **Épuisé.** | 14 dégâts |
+| **Invocation : Seigneur infernal** | 2 + 2 éclats | Compétence | É | Invoque un **Seigneur infernal** pour ce combat, **en plus** de ton familier. À la fin de chacun de tes tours, il inflige 12 dégâts à tous les ennemis. **Épuisé.** | 16 dégâts |
 
 ### 5.4 Arbre Destruction (14 cartes) : ombre et flammes
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Trait de l'ombre** | 1 | Sort | C | Inflige 6 dégâts. | 9 dégâts |
+| **Trait de l'ombre** | 1 | Sort | C | Inflige 7 dégâts. | 10 dégâts |
 | **Incinérer** | 1 | Sort | C | Inflige 7 dégâts, +4 si la cible est sous Immolation. | 10 / +5 |
 | **Immolation** | 2 | Sort | C | Inflige 8 dégâts. Applique **Immolation** (DoT 4 pendant 3 tours). | 11 / DoT 5 |
 | **Déflagration d'ombre** | 1 | Sort | C | Inflige 5 dégâts à tous les ennemis. | 8 dégâts |
@@ -186,7 +186,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Corruption améliorée** : Corruption inflige +1 dégât par tour. | **Malédictions durables** : tes Malédictions durent 2 tours de plus. |
+| **1** | **Corruption améliorée** : Corruption inflige +2 dégâts par tour. | **Malédictions durables** : tes Malédictions durent 2 tours de plus. |
 | **2** | **Moisson d'âmes** : quand un ennemi meurt avec un de tes DoT, gagne 1 éclat supplémentaire. | **Double malédiction** : chaque ennemi peut porter 2 de tes Malédictions au lieu d'une. |
 | **3** | **Amplifier la malédiction** : ajoute ce sort à ta barre. | **Spirale mortelle** : ajoute ce sort à ta barre. |
 | **4** | **Contagion naturelle** : quand un ennemi meurt, ses DoT passent à un autre ennemi. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
@@ -196,17 +196,17 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Démon robuste** : ton familier inflige +1 dégât et donne +1 blocage. | **Peau démoniaque** : +6 PV max. |
-| **2** | **Invocation rapide** : les cartes d'Invocation (sauf le Seigneur infernal) ne coûtent plus d'éclat. | **Lien du maître** : chaque fois que ton familier agit, gagne 1 blocage. |
+| **1** | **Démon robuste** : ton familier inflige +2 dégâts et donne +2 blocage. | **Peau démoniaque** : +10 PV max. |
+| **2** | **Invocation rapide** : les cartes d'Invocation (sauf le Seigneur infernal) ne coûtent plus d'éclat. | **Lien du maître** : chaque fois que ton familier agit, gagne 3 blocage. |
 | **3** | **Pacte démoniaque** : ajoute ce sort à ta barre. | **Pierre d'âme** : ajoute ce sort à ta barre. |
-| **4** | **Maître invocateur** : ton familier agit une fois au tout début de chaque combat. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
+| **4** | **Maître invocateur** : ton familier agit deux fois au tout début de chaque combat. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
 | **5** | **Invocation : Seigneur infernal** (carte épique) | — |
 
 ### 7.3 Arbre Destruction
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Trait de l'ombre amélioré** : Trait de l'ombre inflige +2 dégâts. | **Dévastation** : Immolation inflige +2 dégâts par tour. |
+| **1** | **Trait de l'ombre amélioré** : Trait de l'ombre inflige +3 dégâts. | **Dévastation** : Immolation inflige +3 dégâts par tour. |
 | **2** | **Pyroclasme** : Pluie de feu et Déflagration d'ombre appliquent Démoralisé (1 tour). | **Intensité** : Pacte de sang ne coûte que 3 PV. |
 | **3** | **Brûlure de l'ombre** : ajoute ce sort à ta barre. | **Rempart d'ombre** : ajoute ce sort à ta barre. |
 | **4** | **Ruine améliorée** : Feu de l'âme coûte 0 énergie (il coûte toujours 1 éclat). | **Embrasement durable** : Conflagration ne consomme plus l'Immolation. |
@@ -261,3 +261,12 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
   - Cataclysme de l'âme à 5 éclats : 40 dégâts à tous les ennemis (55 amélioré).
   - Le cumul Tourment + Siphon de vie + Armure démoniaque pourrait rendre le Démoniste presque immortel dans les combats longs.
 - **Complexité :** familier, éclats, DoT et malédictions, c'est beaucoup. Le tutoriel de la classe devra présenter le familier en premier.
+
+---
+
+## 12. Ce qui est en jeu dans le prototype
+
+- **Le familier** se choisit au premier tour de chaque combat, avant de jouer une carte (Diablotin ou Rôdeur du néant). Le jeu retient le dernier choix.
+- **Le Verrou magique** du Molosse infernal est automatique : il interrompt la première Incantation interruptible, tous les 3 tours.
+- **La Malédiction de lignée** de Vhaeryx (2 tours) : le Diablotin, la Succube ou le Molosse t'attaquent (sans les bonus que tu leur donnes), et le Rôdeur cesse de te protéger.
+- **Le Bâton du Veilleur** : le Fragment tombe sur Zhaal, la Tête s'obtient à l'observatoire en ruine (−8 PV max), et le Démoniste le scelle au feu de camp avec **3 éclats d'âme**.

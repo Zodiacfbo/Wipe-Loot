@@ -1,6 +1,7 @@
 // La barre de sorts : des sorts toujours disponibles, sans pioche, mais avec un temps de recharge.
 // Référence : docs/classes/GUERRIER.md (§4.2 et §6) et docs/classes/MAGE.md (§4.2 et §6)
-import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, healPlayer, livingEnemies, log, playerAttack } from './actions';
+import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, healPlayer, isBossEnemy, livingEnemies, log, playerAttack, power } from './actions';
+import { loseHp, petAct } from './demoniste';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -22,6 +23,8 @@ export interface SpellDef {
   icon: 'charge' | 'epee' | 'bouclier' | 'hausse' | 'coeur' | 'crane' | 'flamme' | 'flocon' | 'etoile';
   /** Utiliser le sort termine ton tour (Carapace de glace). */
   endsTurn?: boolean;
+  /** Coût en éclats d'âme (Pierre d'âme). */
+  shardCost?: number;
   /** La classe du sort (guerrier par défaut). */
   classId?: string;
   text: string;
@@ -233,6 +236,92 @@ const MAGE_SPELLS: SpellDef[] = [
 ];
 for (const d of MAGE_SPELLS) SPELLS[d.id] = { ...d, classId: 'mage' };
 
+/** Le prix de Pacte de sang : 5 PV, moins Intensité et Maître des pactes ; gratuit une fois par tour avec le Bâton du Veilleur. */
+export function bloodPactCost(c: CombatState): number {
+  if (c.gear?.freePact && !c.freePactUsed) return 0;
+  return Math.max(0, 5 - (c.gear?.bloodPactCost ?? 0) - power(c, 'maitre_pactes'));
+}
+
+/** Les sorts de barre du Démoniste. */
+const DEMONISTE_SPELLS: SpellDef[] = [
+  {
+    id: 'pacte_de_sang', name: 'Pacte de sang', cost: 0, cooldown: 2, needsTarget: false, icon: 'coeur',
+    text: 'Perds 5 PV. Gagne 1 énergie et pioche 1 carte.',
+    cast: (c) => {
+      const cost = bloodPactCost(c);
+      if (c.gear?.freePact && !c.freePactUsed) c.freePactUsed = true;
+      loseHp(c, cost);
+      c.player.energy += 1;
+      drawCards(c, 1);
+    },
+  },
+  {
+    id: 'amplifier', name: 'Amplifier la malédiction', cost: 0, cooldown: 4, needsTarget: false, icon: 'crane',
+    text: 'L\'effet de ta prochaine Malédiction est doublé.',
+    cast: (c) => {
+      c.amplify = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Malédiction amplifiée' });
+    },
+  },
+  {
+    id: 'spirale_mortelle', name: 'Spirale mortelle', cost: 1, cooldown: 4, needsTarget: true, icon: 'crane',
+    text: 'Inflige 8 dégâts et te soigne de 8 PV. La cible (sauf boss) est Apeurée 1 tour.',
+    cast: (c, target) => {
+      if (!target) return;
+      playerAttack(c, target, 8);
+      const healed = healPlayer(c, 8);
+      if (healed > 0) fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+      if (!target.dead && !isBossEnemy(target)) target.buffs.peur = Math.max(target.buffs.peur ?? 0, 1);
+    },
+  },
+  {
+    id: 'pacte_demoniaque', name: 'Pacte démoniaque', cost: 0, cooldown: 4, needsTarget: false, icon: 'hausse',
+    text: 'Ton familier agit deux fois de plus, immédiatement.',
+    cast: (c) => petAct(c, 2),
+  },
+  {
+    id: 'pierre_ame', name: 'Pierre d\'âme', cost: 0, cooldown: 0, once: true, shardCost: 1, needsTarget: false, icon: 'coeur',
+    text: 'Coûte 1 éclat d\'âme. Si tu tombes à 0 PV pendant ce combat, tu reviens à 30 % de tes PV max.',
+    cast: (c) => {
+      c.soulstone = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Pierre d\'âme' });
+    },
+  },
+  {
+    id: 'brulure_ombre', name: 'Brûlure de l\'ombre', cost: 1, cooldown: 3, needsTarget: true, icon: 'flamme',
+    text: 'Inflige 10 dégâts. Si la cible meurt ce tour-ci : +1 éclat d\'âme.',
+    cast: (c, target) => {
+      if (!target) return;
+      if (c.soulSiphon) c.soulSiphon[target.uid] = Math.max(c.soulSiphon[target.uid] ?? 0, 1);
+      playerAttack(c, target, 10);
+    },
+  },
+  {
+    id: 'rempart_ombre', name: 'Rempart d\'ombre', cost: 0, cooldown: 3, needsTarget: false, icon: 'bouclier',
+    text: 'Gagne 10 blocage.',
+    cast: (c) => gainBlock(c, 10, false),
+  },
+  {
+    id: 'cercle_teleportation', name: 'Cercle de téléportation', cost: 0, cooldown: 4, needsTarget: false, icon: 'charge',
+    text: 'Retire de ta main les cartes-statut (Zone de feu, Bombe vivante, Fardeau, Cendres) sans subir leur effet.',
+    cast: (c) => {
+      const gone = c.hand.filter((card) => CARDS[card.id].type === 'Statut' && card.id !== 'malediction');
+      c.hand = c.hand.filter((card) => !gone.includes(card));
+      c.exhaust.push(...gone);
+      log(c, `Tu traverses le cercle : ${gone.length} carte${gone.length > 1 ? 's' : ''}-statut retirée${gone.length > 1 ? 's' : ''}.`);
+    },
+  },
+  {
+    id: 'oeil_abime', name: 'Œil de l\'abîme', cost: 0, cooldown: 3, needsTarget: false, icon: 'etoile',
+    text: 'Pour le reste du combat, tu vois les deux prochaines intentions des ennemis.',
+    cast: (c) => {
+      c.seeAll = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Œil de l\'abîme' });
+    },
+  },
+];
+for (const d of DEMONISTE_SPELLS) SPELLS[d.id] = { ...d, classId: 'demoniste' };
+
 /** La classe d'un sort de barre. */
 export function spellClass(id: string): string {
   return SPELLS[id]?.classId ?? 'guerrier';
@@ -248,7 +337,7 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
 
 /** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
-  const start = new Set(['charge', 'contresort']);
+  const start = new Set(['charge', 'contresort', 'pacte_de_sang']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
 }
 

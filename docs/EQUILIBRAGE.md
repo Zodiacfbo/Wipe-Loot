@@ -188,3 +188,33 @@ Chaque niveau se sent, et le niveau 20 reste le défi ultime. Le bot est un plan
 **À surveiller :** le Mage Arcane est le plus en difficulté en haut de l'échelle (sa Surcharge coûte cher quand tout frappe plus fort), et le Guerrier Protection reste le plus confortable.
 
 Mesure : `tools/balance/difficulte.sim.ts` (variables `RUNS` et `NIVEAUX`).
+
+## 10. Le Démoniste
+
+Mesuré sur la run complète (actes 1 et 2), difficulté 0, 100 runs par profil.
+
+| Profil | Première version | Après réglages | Vulkhar vaincu (acte 2 atteint) |
+|---|---|---|---|
+| Niveau 1 | 0 % | 0 % | 22 % |
+| Niveau 5 (Affliction 3, Destruction 2) | 2 % | **27 %** | 98 % |
+| Niveau 10 (Affliction 5, Destruction 5) | 1 % | **46 %** | 95 % |
+| Niveau 10 (Démonologie 5, Destruction 5) | 2 % | **55 %** | 99 % |
+
+C'est un cran en dessous du Guerrier et du Mage au niveau 10 (64 à 74 %) : c'est cohérent avec sa difficulté (⭐⭐⭐), et le bot joue mal ce qui demande de prévoir (gérer ses PV et ses éclats sur toute la run).
+
+**Ce qui a changé :**
+
+| Élément | Avant | Après | Constat du bot |
+|---|---|---|---|
+| PV max | 70 | **74** | Il se blesse lui-même avec ses pactes |
+| Diablotin, Rôdeur du néant | 3 dégâts, 4 blocage | **4, 5** | Le familier pesait trop peu |
+| Trait de l'ombre, Garde sombre, Siphon d'âme | 6, 5, 5 | **7, 6, 7** | Le deck de départ manquait de dégâts : il laissait 104 PV à Vulkhar en mourant, contre 53 pour le Mage |
+| Corruption | DoT 3 | **DoT 4** | idem |
+| Corruption améliorée, Démon robuste, Trait de l'ombre amélioré, Dévastation | +1, +1, +2, +2 | **+2, +2, +3, +3** | Le niveau 10 ne progressait presque pas par rapport au niveau 5 |
+| Peau démoniaque, Lien du maître, Maître invocateur | +6 PV, 1 blocage, agit 1 fois | **+10 PV, 3 blocage, agit 2 fois** | L'arbre Démonologie était le plus faible |
+| Seigneur infernal | 10 dégâts | **12** | idem |
+| Malédiction de lignée | Le familier retourné garde ses bonus ; le Rôdeur protège Vhaeryx | **Sans ses bonus ; le Rôdeur ne protège plus personne** | La plus dure des Malédictions de lignée (déjà signalée dans la fiche) |
+
+**Le bot :** il ne voit qu'une action à l'avance, il n'aurait jamais lancé Pacte de sang. Il le lance donc quand il n'a plus d'énergie, qu'il a une carte jouable et plus de 45 % de ses PV. Il prend le Rôdeur du néant contre les boss, et il garde la Pierre d'âme pour eux. Prendre le Rôdeur contre les boss a été le plus gros changement : 2 % → 30 % au niveau 5.
+
+**À surveiller :** Vhaeryx reste son combat le plus dur (48 à 76 % de wipe au premier essai), et l'arbre Affliction est un peu derrière Démonologie.

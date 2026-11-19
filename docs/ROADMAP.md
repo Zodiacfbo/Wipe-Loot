@@ -116,7 +116,7 @@
 ### 3.2 Les classes (dans l'ordre de développement)
 - [x] Guerrier (prototype)
 - [x] Mage : Brûlure, Gel et Fracasser, charges arcaniques et Surcharge ; 52 cartes illustrées, 10 sorts de barre, 27 talents, sprite, et 3 objets de Sorts dans les coffres. Reste : son légendaire (Bâton du Veilleur, avec l'acte 2)
-- [ ] Démoniste
+- [x] Démoniste : éclats d'âme conservés d'un combat à l'autre, prix du sang, familier (4 démons et le Seigneur infernal), DoT et Malédictions ; 52 cartes illustrées, 9 sorts de barre, 27 talents, sprites, et sa version du Bâton du Veilleur
 - [ ] Prêtre
 - [ ] Voleur
 - [ ] Paladin
@@ -128,7 +128,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 
 ### 3.3 Les légendaires
 - [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter en plus d'un objet du coffre (si on prend le légendaire, l'objet du coffre ne peut pas être une arme)
-- [x] Brisemonts (Guerrier) et le Bâton du Veilleur (Mage) se forgent à l'acte 2
+- [x] Brisemonts (Guerrier) et le Bâton du Veilleur (Mage, Démoniste) se forgent à l'acte 2
 - [ ] Les légendaires restants et leurs quêtes (Sillon d'orage, Équinoxe, l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres), avec leurs classes
 - [x] Refaire la passe sur les niveaux de difficulté pour deux actes (voir l'équilibrage, §9)
 

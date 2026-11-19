@@ -139,8 +139,60 @@ export const MAGE_TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Démoniste. */
+export const DEMONISTE_TREES: TreeDef[] = [
+  {
+    id: 'affliction', name: 'Affliction', theme: 'DoT et Malédictions',
+    tiers: [
+      [t('corruption_amelioree', 'Corruption améliorée', 'Corruption inflige +2 dégâts par tour.', { fx: { corruptionBonus: 2 } }),
+        t('malediction_durable', 'Malédictions durables', 'Tes Malédictions durent 2 tours de plus.', { fx: { curseDuration: 2 } })],
+      [t('moisson_ames', 'Moisson d\'âmes', 'Quand un ennemi meurt avec un de tes DoT, gagne 1 éclat d\'âme de plus.', { fx: { harvestShard: 1 } }),
+        t('double_malediction', 'Double malédiction', 'Chaque ennemi peut porter 2 de tes Malédictions au lieu d\'une.', { fx: { doubleCurse: 1 } })],
+      [t('t_amplifier', 'Amplifier la malédiction', 'Ajoute ce sort à ta barre : l\'effet de ta prochaine Malédiction est doublé.', { spell: 'amplifier' }),
+        t('t_spirale_mortelle', 'Spirale mortelle', 'Ajoute ce sort à ta barre : 8 dégâts, soigne 8 PV, Apeuré.', { spell: 'spirale_mortelle' })],
+      [t('contagion_naturelle', 'Contagion naturelle', 'Quand un ennemi meurt, ses DoT passent à un autre ennemi.', { fx: { naturalContagion: 1 } }),
+        t('d_quatrieme_emplacement_a', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_tempete_afflictions', 'Tempête d\'afflictions', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'tempete_afflictions' })],
+    ],
+    cards: ['corruption', 'malediction_souffrance', 'malediction_faiblesse', 'malediction_fatigue', 'pacte_souffrance', 'ombre_persistante',
+      'malediction_elements', 'fleau_rampant', 'hantise', 'etreinte_ombre', 'contagion', 'moisson_sombre', 'tourment', 'tempete_afflictions'],
+  },
+  {
+    id: 'demonologie', name: 'Démonologie', theme: 'Le familier',
+    tiers: [
+      [t('demon_robuste', 'Démon robuste', 'Ton familier inflige +2 dégâts et donne +2 blocage.', { fx: { petBonus: 2 } }),
+        t('peau_demoniaque', 'Peau démoniaque', '+10 PV max.', { maxHp: 10 })],
+      [t('invocation_rapide', 'Invocation rapide', 'Les Invocations de la Succube et du Molosse infernal ne coûtent plus d\'éclat.', { fx: { quickSummon: 1 } }),
+        t('lien_maitre', 'Lien du maître', 'Chaque fois que ton familier agit, gagne 3 blocage.', { fx: { petBlock: 3 } })],
+      [t('t_pacte_demoniaque', 'Pacte démoniaque', 'Ajoute ce sort à ta barre : ton familier agit deux fois de plus.', { spell: 'pacte_demoniaque' }),
+        t('t_pierre_ame', 'Pierre d\'âme', 'Ajoute ce sort à ta barre : 1 éclat, tu reviens à 30 % de tes PV si tu tombes à 0.', { spell: 'pierre_ame' })],
+      [t('maitre_invocateur', 'Maître invocateur', 'Ton familier agit deux fois au tout début de chaque combat.', { fx: { petOpening: 2 } }),
+        t('d_quatrieme_emplacement_b', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_seigneur_infernal', 'Invocation : Seigneur infernal', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'seigneur_infernal' })],
+    ],
+    cards: ['ordre_assaut', 'pacte_ombres', 'rituel_invocateur', 'festin_demoniaque', 'lien_vital', 'invocation_succube', 'invocation_molosse',
+      'liens_demoniaques', 'eclat_partage', 'lien_ame', 'sacrifice_demoniaque', 'asservissement', 'maitre_pactes', 'seigneur_infernal'],
+  },
+  {
+    id: 'destruction', name: 'Destruction', theme: 'Ombre et flammes',
+    tiers: [
+      [t('trait_ombre_ameliore', 'Trait de l\'ombre amélioré', 'Trait de l\'ombre inflige +3 dégâts.', { fx: { shadowBoltBonus: 3 } }),
+        t('devastation', 'Dévastation', 'Immolation inflige +3 dégâts par tour.', { fx: { immolationBonus: 3 } })],
+      [t('pyroclasme', 'Pyroclasme', 'Pluie de feu et Déflagration d\'ombre démoralisent (1 tour).', { fx: { pyroclasm: 1 } }),
+        t('intensite', 'Intensité', 'Pacte de sang ne coûte que 3 PV.', { fx: { bloodPactCost: 2 } })],
+      [t('t_brulure_ombre', 'Brûlure de l\'ombre', 'Ajoute ce sort à ta barre : 10 dégâts, +1 éclat si la cible meurt.', { spell: 'brulure_ombre' }),
+        t('t_rempart_ombre', 'Rempart d\'ombre', 'Ajoute ce sort à ta barre : 10 blocage.', { spell: 'rempart_ombre' })],
+      [t('ruine_amelioree', 'Ruine améliorée', 'Feu de l\'âme coûte 0 énergie (il coûte toujours 1 éclat).', { fx: { soulFireFree: 1 } }),
+        t('embrasement_durable', 'Embrasement durable', 'Conflagration ne consomme plus l\'Immolation.', { fx: { keepImmolation: 1 } })],
+      [t('t_cataclysme', 'Cataclysme de l\'âme', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'cataclysme' })],
+    ],
+    cards: ['trait_ombre', 'incinerer', 'immolation', 'deflagration_ombre', 'chaos_instable', 'conflagration', 'embrasement_ame',
+      'ombre_et_flammes', 'contrecoup', 'feu_ame', 'trait_chaos', 'pacte_destruction', 'ruine', 'cataclysme'],
+  },
+];
+
 /** Les arbres de chaque classe jouable. */
-export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES };
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES };
 
 /** Les arbres d'une classe (ceux du Guerrier par défaut). */
 export function treesFor(classId: string | undefined): TreeDef[] {

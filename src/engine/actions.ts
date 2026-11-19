@@ -2,6 +2,7 @@
 // Les cartes et les ennemis s'appuient sur ces fonctions.
 import { ENEMIES, TUNING, hasTag, intentAt } from './enemies';
 import { random, shuffle } from './rng';
+import { demonOnDeath, soulstoneRise } from './demoniste';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
 export function emptyDebuffs(): PlayerDebuffs {
@@ -116,6 +117,11 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (!spell && hasTag(target.defId, 'mortvivant')) dmg += g.undeadBonus ?? 0;
   if (!spell && hasTag(target.defId, 'dragon')) dmg += g.dragonBonus ?? 0;
   if (c.playing?.aoe) dmg += g.aoeBonus ?? 0;
+  // Démoniste : Ruine, Ombre et flammes, Trait de l'ombre amélioré.
+  if (spell && c.playing && c.playing.cost >= 2) dmg += power(c, 'ruine');
+  const id = c.playing?.id;
+  if (id === 'trait_ombre' || id === 'incinerer' || id === 'immolation') dmg += power(c, 'ombre_et_flammes');
+  if (id === 'trait_ombre') dmg += g.shadowBoltBonus ?? 0;
   if (c.playing && (c.playing.id === 'frappe' || c.playing.id === 'frappe_heroique')) dmg += g.strikeBonus ?? 0;
   if (c.playing?.type === 'Attaque' && c.playing.cost === 0) dmg += g.zeroCostBonus ?? 0;
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
@@ -126,6 +132,9 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (p.posture === 'defensive') dmg *= 0.8;
   if (p.temerite) dmg *= 1.5;
   if (p.arcanePower && spell) dmg *= 1.5;
+  // Malédiction des éléments, Pacte de destruction.
+  if (spell && (target.elements ?? 0) > 0) dmg *= 1 + target.elements! / 100;
+  if (spell && c.doubleNext) dmg *= 2;
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   return Math.max(0, Math.floor(dmg));
@@ -273,6 +282,7 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
   fx(c, { kind: 'death', who: target.uid });
   log(c, `${target.name} est vaincu.`);
   onEnemyDeath(c, target);
+  demonOnDeath(c, target, !!c.petActing);
   // Implacable : tuer un ennemi rend de la rage et pioche (pendant ton tour).
   if (!c.enemyActing && c.phase === 'player') {
     if (c.gear?.killRage) gainRage(c, c.gear.killRage);
@@ -330,6 +340,7 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
     if (hpLoss > 0 || blockedRage) gainRage(c, 1);
     if (hpLoss === 0) p.blockedFullAttack = true;
   }
+  if (p.hp <= 0 && c.soulstone) soulstoneRise(c); // Pierre d'âme
   if (p.hp <= 0 && c.gear?.cheatDeath && !c.cheatedDeath) {
     // Phylactère brisé
     c.cheatedDeath = true;
