@@ -239,3 +239,26 @@ Mesuré sur la run complète (actes 1 et 2), difficulté 0, 100 runs par profil.
 | Égide améliorée, Soins améliorés, Douleur améliorée | +2, +2, +1 | **+3, +3, +2** | Les premiers paliers pesaient trop peu |
 
 **À surveiller :** le niveau 5 reste un peu bas par rapport aux autres classes, et l'Égide persistante avec Lumière persistante et Âme inébranlable (signalée dans la fiche) n'a pas encore été vue sur des combats très longs.
+
+## 12. Le Voleur
+
+Mesuré sur la run complète (actes 1 et 2), difficulté 0, 50 runs par profil.
+
+| Profil | Première version | Après réglages | Vulkhar vaincu (acte 2 atteint) |
+|---|---|---|---|
+| Niveau 1 | 2 % | **0 %** | 4 % |
+| Niveau 5 (Assassinat 3, Combat 2) | 8 % | **16 %** | 56 % |
+| Niveau 10 (Assassinat 5, Combat 5) | 78 % | **72 %** | 86 % |
+| Niveau 10 (Finesse 5, Combat 5) | 48 % | **66 %** | 80 % |
+
+**Ce qui a changé :**
+
+| Élément | Avant | Après | Constat du bot |
+|---|---|---|---|
+| Esquive, Éviscération (départ) | 5 blocage, 4 + 5 par point | **6 blocage, 4 + 6 par point** | Le même renfort de départ que les autres classes ; le niveau 5 était trop bas |
+| Maître de la discrétion | +3 | **+4** | L'arbre Finesse était derrière Assassinat |
+| Vendetta (épique) | coût 1 (0 améliorée) | **coût 2 (1 améliorée)** | Avec Impitoyable, l'Assassinat dépassait 80 % au niveau 10 |
+
+**Le bot :** il valorise les points de combo, le Camouflage tant qu'il lui reste une Ouverture en main, le Poison posé et le Poison d'arme. Il prend toujours Sillon d'orage chez Ventor.
+
+**À surveiller :** le niveau 1 est au plancher (0 à 2 %), comme le Démoniste. Le Voleur encaisse mal les longs combats (pression continue) : Vhaeryx et Vulkhar sont ses murs. Seigneur des ombres avec Égorgement, et Ambidextrie experte avec les gros finishers, restent à surveiller sur des runs de joueurs.

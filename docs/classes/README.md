@@ -28,7 +28,7 @@ Toutes les classes sont construites sur le **même modèle** :
 |---|---|---|
 | **Énergie** | 3 par tour | — |
 | **Pioche** | 5 cartes par tour | — |
-| **PV max** | — | De 70 à 80 (Guerrier, Paladin) ; le Mage en a 72, le Démoniste 74, le Prêtre 70 |
+| **PV max** | — | De 70 à 80 (Guerrier, Paladin) ; le Mage en a 72, le Démoniste 74, le Prêtre et le Voleur 70 |
 | **Ressource de classe** | — | Rage, combo, Foi, totems, formes… |
 | **Deck de départ** | 10 cartes : 4 attaques basiques, 4 défenses basiques, 2 cartes de classe | Le nom et l'effet des 2 cartes de classe |
 | **Barre de sorts** | 3 emplacements (4 avec un talent ou un objet d'équipement) | Le sort de départ et les sorts à débloquer |

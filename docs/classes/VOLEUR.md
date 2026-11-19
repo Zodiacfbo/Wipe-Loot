@@ -1,6 +1,6 @@
 # Classe : le Voleur
 
-> Wipe & Loot · Fiche de classe · Version 0.1
+> Wipe & Loot · Fiche de classe · Version 0.2 (jouable dans le prototype)
 > Les chiffres sont **indicatifs** : ils serviront de base aux premiers tests d'équilibrage.
 
 ---
@@ -62,8 +62,8 @@ Le Voleur frappe vite, frappe juste, et disparaît. Il **enchaîne de petites at
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
 | **Attaque sinistre** | 4 | 1 | Attaque | Inflige 6 dégâts. +1 combo. | 9 dégâts |
-| **Esquive** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
-| **Éviscération** | 1 | 1 | Attaque (finisher) | Inflige 4 dégâts + 5 par point de combo. | 4 + 7 par point |
+| **Esquive** | 4 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
+| **Éviscération** | 1 | 1 | Attaque (finisher) | Inflige 4 dégâts + 6 par point de combo. | 4 + 8 par point |
 | **Embuscade** | 1 | 0 | Attaque (Ouverture) | Inflige 10 dégâts. +2 combo. | 14 dégâts |
 
 ### 4.2 Sort de barre de départ
@@ -250,3 +250,20 @@ Il faut affronter deux boss secondaires précis dans l'acte 1 : c'est un objecti
   - Seigneur des ombres combiné à Égorgement (32 dégâts amélioré) chaque tour pourrait être trop fort.
   - Ambidextrie experte double la meilleure attaque du tour : à vérifier avec Égorgement ou Coup au cœur.
 - **Ténèbres** est la seule carte qui reste active d'un combat à l'autre. Si l'idée plaît, on pourra en faire une petite famille de cartes « de run ».
+
+---
+
+## 12. Ce qui est en jeu dans le prototype
+
+**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §12) : Esquive donne 6 blocage (9 améliorée), Éviscération 4 + 6 par point (4 + 8), Maître de la discrétion +4 aux Ouvertures, et Vendetta coûte 2 (1 améliorée). Le reste suit la fiche.
+
+- **Les points de combo** se gardent d'un tour à l'autre et repartent à 0 (ou à 2 avec Agression) à chaque combat. On peut jouer un finisher à 0 point : il ne fait presque rien. Impitoyable ajoute 1 point à chaque finisher, même à 0.
+- **Le Camouflage** dure le premier tour (2 tours avec Ombres profondes ou Ténèbres, qui ne s'additionnent pas). Le sprite du Voleur devient transparent tant qu'il est Camouflé. Une Ouverture Compétence (Assommer, Préméditation) ne profite pas de Bond de l'ombre, qui ne vaut que pour une Attaque.
+- **Le Poison** frappe à chaque Attaque qui touche la cible (même si le coup est bloqué), puis le Poison d'arme s'applique : un coup en plusieurs frappes (Mutiler, Double frappe) le déclenche à chaque frappe. Les sorts de barre (Coup de pied) ne sont pas des Attaques.
+- **Contrôlé** (Coup aux reins, Coup bas) : l'ennemi ne fait rien ; **Assommé** (Assommer) : pareil, mais il se réveille s'il est blessé. Les boss et boss secondaires y sont insensibles.
+- **Garrot** fait échouer l'Incantation en cours (si elle peut être interrompue). **Poison engourdissant**, **Coup bas** (sur un boss) et **Réflexes** la retardent d'un tour.
+- **Plan parfait :** si l'une des cartes piochées est une Ouverture, toutes tes Ouvertures coûtent 0 ce tour-ci.
+- **Seigneur des ombres** te Camoufle aussi tout de suite, au moment où tu le joues.
+- **Ambidextrie experte** rejoue la carte entière (un finisher compte les mêmes points deux fois).
+- **La Malédiction de lignée** de Vhaeryx (2 tours) : tes points de combo tombent à 0, et tu n'en gagnes plus.
+- **Sillon d'orage :** les deux Fermoirs de l'orage tombent sur Gorlok le Fragmenté et le Baron Vossk (acte 1, dans n'importe quel ordre). Avec les deux, Ventor, Prince des tempêtes, attend au premier « ? » de l'acte 2 (comme les autres légendaires, il ne se forge pas avant l'acte 2) : il forge la lame, ou tu revends les fermoirs (75 or).

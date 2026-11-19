@@ -27,9 +27,9 @@ Navigateur : `npx vite preview --port 4173 --strictPort` (après `npm run build`
 
 - `src/engine/` : moteur **pur et sérialisable en JSON** (RNG déterministe mulberry32 dans `rng.ts`). Aucune dépendance au DOM.
   - `types.ts` (états de run et de combat), `run.ts` (déroulement de la run), `combat.ts` (tours, cartes, ennemis), `actions.ts` (dégâts, blocage, soins, morts).
-  - `cards.ts` (Guerrier, cartes-statut, registre `CARDS`), `cards_mage.ts`, `cards_demoniste.ts`, `cards_pretre.ts`.
+  - `cards.ts` (Guerrier, cartes-statut, registre `CARDS`), `cards_mage.ts`, `cards_demoniste.ts`, `cards_pretre.ts`, `cards_voleur.ts`.
   - `spells.ts` (sorts de barre de toutes les classes), `talents.ts` (arbres par classe, `CLASS_TREES`), `classes.ts` (fiches et kits de départ).
-  - Mécaniques de classe : `demoniste.ts` (familier, DoT, Malédictions, éclats), `pretre.ts` (Égide, Foi).
+  - Mécaniques de classe : `demoniste.ts` (familier, DoT, Malédictions, éclats), `pretre.ts` (Égide, Foi), `voleur.ts` (combo, Camouflage, Poison, Contrôle).
   - `enemies.ts` (acte 1) et `enemies_acte2.ts`, `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
   - `save.ts` : sauvegarde **versionnée** avec `migrate()` (run) et `loadProfile()` (profil). Tout nouveau champ de `RunState` → incrémenter la version et ajouter une étape de migration, et mettre à jour `expect(run.version)` dans les tests.
   - `progression.ts` (score, expérience, niveaux), `guild.ts` (coffre), `archives.ts` (lore des monstres).
@@ -40,11 +40,11 @@ Navigateur : `npx vite preview --port 4173 --strictPort` (après `npm run build`
 
 ## État actuel
 
-- Classes jouables : **Guerrier, Mage, Démoniste, Prêtre** (52-53 cartes, 9-10 sorts, 27 talents chacun). Restent : Voleur, Paladin, Chasseur, Chaman, Druide.
+- Classes jouables : **Guerrier, Mage, Démoniste, Prêtre, Voleur** (52-53 cartes, 9-10 sorts, 27 talents chacun). Restent : Paladin, Chasseur, Chaman, Druide.
 - Actes : **1 (Profondeurs Ardentes, Vulkhar) et 2 (Aire de Vhaeryx)** enchaînés ; la run se termine après Vhaeryx. Acte 3 (Irem) à faire.
-- Légendaires faits : Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre). Ils se forgent au feu de camp à partir de l'acte 2.
+- Légendaires faits : Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor). Ils se forgent au feu de camp à partir de l'acte 2.
 
-## Ajouter une classe (recette suivie pour Mage, Démoniste, Prêtre)
+## Ajouter une classe (recette suivie pour Mage, Démoniste, Prêtre, Voleur)
 
 1. Lire la fiche `docs/classes/<CLASSE>.md`.
 2. `types.ts` : champs de combat (ressource) et de run si besoin (+ migration `save.ts`). `items.ts` : clés `ItemEffects` des talents, et `KEY_CLASSES` pour les bonus propres à la classe.
