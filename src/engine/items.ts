@@ -84,6 +84,22 @@ export interface ItemEffects {
   keepImmolation?: number; // Conflagration ne consomme plus l'Immolation
   dotDuration?: number; // tes DoT durent X tours de plus (Bâton du Veilleur)
   freePact?: number; // une fois par tour, Pacte de sang ne coûte pas de PV
+  // Talents du Prêtre
+  aegisBonus?: number; // tes cartes d'Égide donnent +X Égide
+  maxAegis?: number; // Égide maximale
+  martyr?: number; // Égide entièrement détruite : pioche X cartes
+  startAegis?: number; // Égide au début du combat
+  healBonus?: number; // tes soins rendent +X PV
+  smiteBonus?: number; // Châtiment et Châtiment ardent +X dégâts
+  maxFaith?: number; // Foi maximale
+  blessedLight?: number; // un soin excédentaire donne X Foi
+  guardianInnate?: number; // Ange gardien est Inné
+  wrathBonus?: number; // Courroux céleste +X dégâts par point de Foi
+  painBonus?: number; // Murmure de douleur +X par tour
+  flayExtra?: number; // Fouet psychique frappe X fois de plus
+  mindBlastBonus?: number; // Attaque mentale +X dégâts
+  vampHunger?: number; // Étreinte vampirique soigne X PV de plus
+  equinoxe?: number; // le légendaire du Prêtre
   gelKeep?: number; // le Gel ne diminue plus
   freezeEarly?: number; // Gelé à 5 − X cumuls
   shatterBonus?: number; // Fracasser +X dégâts
@@ -292,6 +308,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('bague_lignee', 'Bague de lignée', 'bague', 'rare', 'La Malédiction de lignée est sans effet sur toi.', { lineageImmune: 1 }),
   // Légendaire du Mage
   item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
+  item('equinoxe', 'Équinoxe', 'arme', 'legendaire', 'Dans la Lumière : tes soins rendent +3 PV et chaque soin te donne 1 Foi. En Forme d\'Ombre : tes DoT infligent +2 dégâts et chacun de leurs ticks te soigne de 1 PV.', { equinoxe: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));
 
@@ -314,9 +331,11 @@ export const COMMON_POOL: string[] = [
 const KEY_CLASSES: Partial<Record<keyof ItemEffects, string[]>> = {};
 for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier'];
 for (const k of ['startCharges', 'burnBonus', 'firstSpellFree'] as const) KEY_CLASSES[k] = ['mage'];
-KEY_CLASSES.spellBonus = ['mage', 'demoniste'];
+KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre'];
+for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'healBonus', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
 KEY_CLASSES.allyBonus = ['demoniste'];
-for (const k of ['freePact', 'dotDuration'] as const) KEY_CLASSES[k] = ['demoniste'];
+KEY_CLASSES.freePact = ['demoniste'];
+KEY_CLASSES.dotDuration = ['demoniste', 'pretre'];
 
 /** Les effets d'un objet qui ne servent pas à cette classe. */
 export function uselessFx(id: string, classId = 'guerrier'): (keyof ItemEffects)[] {

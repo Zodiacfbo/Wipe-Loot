@@ -18,9 +18,11 @@ export interface Dot {
   turns: number;
   /** Dégâts en plus à chaque tick (Malédiction de souffrance). */
   grow?: number;
+  /** PV rendus au lanceur à chaque tick (Toucher vampirique, Peste mentale). */
+  heal?: number;
 }
 /** L'école de magie d'une carte du Mage. */
-export type School = 'arcane' | 'feu' | 'givre';
+export type School = 'arcane' | 'feu' | 'givre' | 'sacre' | 'ombre';
 export type Posture = 'combat' | 'berserker' | 'defensive';
 
 export interface CardInstance {
@@ -350,6 +352,25 @@ export interface CombatState {
   felhunterLock?: number;
   /** Pierres de vie créées pendant le combat (rangées dans les emplacements de potion par la run). */
   newPotions?: string[];
+  /** Prêtre — l'Égide (bouclier qui reste d'un tour à l'autre), son plafond, et la Foi. */
+  aegis?: number;
+  maxAegis?: number;
+  faith?: number;
+  maxFaith?: number;
+  /** La carte jouée a soigné ou donné de l'Égide (pour la Foi). */
+  healedFlag?: boolean;
+  /** Prêtre — en Forme d'Ombre jusqu'à la fin du combat. */
+  shadowForm?: boolean;
+  /** Grâce : PV rendus au début des prochains tours. */
+  renew?: { amount: number; turns: number };
+  /** Égide des anciens : tes PV ne descendent pas sous 1 pendant ce nombre de tours. */
+  undying?: number;
+  /** Ange gardien : déjà utilisé. */
+  angelUsed?: boolean;
+  /** Transfusion de puissance : tes cartes coûtent 1 de moins ce tour-ci. */
+  costDown?: boolean;
+  /** PV max gagnés pour toute la run pendant ce combat (Bénédiction de vigueur). */
+  maxHpGain?: number;
   /** Œil de l'abîme : tu vois les intentions suivantes. */
   seeAll?: boolean;
   /** Le familier est en train d'agir (Éclat partagé). */
@@ -387,7 +408,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 19;
+  version: 20;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -442,6 +463,8 @@ export interface RunState {
   shards: number;
   /** Démoniste : le familier choisi au dernier combat. */
   pet: PetId;
+  /** Quête légendaire du Prêtre : Équinoxe. */
+  equinoxe: 'baton' | 'larme' | 'forged' | null;
   /** Les monstres vaincus pendant la run (pour les archives de la guilde). */
   kills: Record<string, number>;
   /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */

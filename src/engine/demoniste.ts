@@ -1,6 +1,6 @@
 // Les mécaniques du Démoniste : le familier, les DoT, les Malédictions, les éclats d'âme et le prix du sang.
 // Référence : docs/classes/DEMONISTE.md (§2 et §3)
-import { damageEnemy, damagePlayer, fx, gainBlock, healPlayer, isBossEnemy, livingEnemies, log, onHpLost, power } from './actions';
+import { damageEnemy, damagePlayer, drawCards, fx, gainBlock, healPlayer, isBossEnemy, livingEnemies, log, onHpLost, power } from './actions';
 import { isInterruptible } from './enemies';
 import { random } from './rng';
 import type { CombatState, EnemyState, PetId } from './types';
@@ -30,6 +30,7 @@ export function loseHp(c: CombatState, n: number, label = 'Pacte'): void {
   const p = c.player;
   if (n <= 0) return;
   p.hp -= n;
+  if ((c.undying ?? 0) > 0 && p.hp < 1) p.hp = 1; // Égide des anciens
   fx(c, { kind: 'tick', who: 'player', amount: n, label });
   onHpLost(c);
   if (power(c, 'contrecoup')) c.shadowFree = true;
@@ -55,7 +56,7 @@ export function soulstoneRise(c: CombatState): void {
 // --- Les DoT ---
 
 /** Applique (ou renforce) un DoT : le même DoT ne se cumule pas, il garde les meilleures valeurs. */
-export function applyDot(c: CombatState, e: EnemyState, id: string, dmg: number, turns: number, grow = 0): void {
+export function applyDot(c: CombatState, e: EnemyState, id: string, dmg: number, turns: number, grow = 0, heal = 0): void {
   if (e.dead || e.submerged || dmg <= 0) return;
   const total = turns + (c.gear?.dotDuration ?? 0);
   const dots = (e.dots ??= []);
@@ -64,14 +65,16 @@ export function applyDot(c: CombatState, e: EnemyState, id: string, dmg: number,
     old.dmg = Math.max(old.dmg, dmg);
     old.turns = Math.max(old.turns, total);
     old.grow = grow || old.grow;
+    old.heal = Math.max(old.heal ?? 0, heal) || undefined;
   } else {
-    dots.push({ id, dmg, turns: total, grow: grow || undefined });
+    dots.push({ id, dmg, turns: total, grow: grow || undefined, heal: heal || undefined });
   }
 }
 
 /** Les dégâts d'un tick de DoT (Étreinte de l'ombre, Hantise). */
 export function dotTick(c: CombatState, e: EnemyState, base: number): number {
-  let dmg = base + power(c, 'etreinte');
+  // Étreinte de l'ombre, Ténèbres intérieures, Forme d'Ombre, Équinoxe (Ombre).
+  let dmg = base + power(c, 'etreinte') + power(c, 'tenebres') + (c.shadowForm ? 1 + (c.gear?.equinoxe ? 2 : 0) : 0);
   if ((e.haunted ?? 0) > 0) dmg = Math.floor(dmg * 1.5);
   return dmg;
 }
@@ -84,8 +87,15 @@ export function triggerDots(c: CombatState, e: EnemyState, consume: boolean): vo
     const dmg = dotTick(c, e, d.dmg);
     fx(c, { kind: 'tick', who: e.uid, amount: dmg, label: DOT_LABEL[d.id] ?? 'Ombre' });
     damageEnemy(c, e, dmg, true);
-    // Tourment : chaque tick de DoT soigne.
+    // Tourment : chaque tick de DoT soigne. Toucher vampirique, Peste mentale, Équinoxe (Ombre).
     if (power(c, 'tourment')) healPlayer(c, power(c, 'tourment'));
+    const heal = (d.heal ?? 0) + (c.shadowForm && c.gear?.equinoxe ? 1 : 0);
+    if (heal > 0) healPlayer(c, heal);
+    // Esprit tourmenté : un DoT qui tue fait piocher.
+    if (e.dead && power(c, 'esprit_tourmente')) {
+      drawCards(c, 2);
+      c.player.energy += power(c, 'esprit_tourmente') - 1;
+    }
     if (consume) {
       d.turns -= 1;
       if (d.grow) d.dmg += d.grow;
@@ -100,6 +110,10 @@ export const DOT_LABEL: Record<string, string> = {
   souffrance: 'Souffrance',
   pacte: 'Pacte de souffrance',
   fleau: 'Fléau rampant',
+  douleur: 'Murmure de douleur',
+  feu_sacre: 'Feu sacré',
+  vampirique: 'Toucher vampirique',
+  peste_mentale: 'Peste mentale',
 };
 
 /** Le nombre de tes DoT et Malédictions sur un ennemi. */

@@ -114,7 +114,38 @@ def seigneur_infernal():
     return s.render()
 
 
+
+def pretre():
+    s = Sprite(64, 64)
+    import math
+    ring = [(32 + math.cos(t / 20 * math.pi * 2) * 13, 12 + math.sin(t / 20 * math.pi * 2) * 5) for t in range(21)]
+    s.line(ring, '#FFE27A', width=2, glow=True)  # halo
+    s.poly([(22, 22), (42, 22), (48, 59), (16, 59)], '#E8E4DC')  # robe blanche
+    s.poly([(29, 22), (35, 22), (37, 59), (27, 59)], '#D8B04A')  # étole dorée
+    s.rect(27, 32, 37, 34, '#F4E8C8', shade=False)
+    s.rect(31, 28, 33, 38, '#F4E8C8', shade=False)
+    s.rect(16, 57, 48, 59, '#D8B04A', shade=False)
+    s.rect(22, 59, 29, 61, '#5A4A3A')
+    s.rect(35, 59, 42, 61, '#6A5A4A')
+    s.ellipse(16, 20, 26, 28, '#E8E4DC')
+    s.ellipse(38, 20, 48, 28, '#E8E4DC')
+    s.poly([(24, 8), (40, 8), (42, 24), (22, 24)], '#C8C0B0')  # capuche
+    s.ellipse(27, 11, 37, 22, '#E8C6A4')
+    s.rect(29, 15, 31, 16, '#2A1C18', shade=False)
+    s.rect(33, 15, 35, 16, '#2A1C18', shade=False)
+    # main gauche : lumière
+    s.rect(14, 28, 19, 34, '#E8E4DC')
+    s.ellipse(10, 32, 17, 38, '#E8C6A4')
+    s.ellipse(6, 24, 18, 36, '#FFE27A', glow=True)
+    s.ellipse(9, 27, 15, 33, '#FFFFFF', glow=True)
+    # main droite : livre de prières
+    s.rect(42, 28, 47, 34, '#E8E4DC')
+    s.poly([(44, 30), (56, 28), (57, 40), (45, 42)], '#7A2A2A')
+    s.rect(49, 32, 52, 37, '#D8B04A', glow=True, shade=False)
+    return s.render()
+
 if __name__ == '__main__':
+    pretre().save(os.path.join(DEST, 'pretre.png'))
     demoniste().save(os.path.join(DEST, 'demoniste.png'))
     for name, fn in (('diablotin', diablotin), ('rodeur', rodeur), ('succube', succube), ('molosse', molosse_infernal), ('seigneur', seigneur_infernal)):
         fn().save(os.path.join(DEST, f'familier_{name}.png'))

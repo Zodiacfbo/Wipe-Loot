@@ -44,6 +44,8 @@ import {
   campfireReforge,
   canReforge,
   canBindStaff,
+  canForgeEquinoxe,
+  campfireEquinoxe,
   campfireBindStaff,
   canRest,
   startNextAct,
@@ -145,7 +147,7 @@ const POSTURES: { id: Posture; label: string; aide: string }[] = [
 
 // ---------- Rendu d'une carte ----------
 
-const SCHOOL_LABEL = { arcane: 'Arcane', feu: 'Feu', givre: 'Givre' } as const;
+const SCHOOL_LABEL = { arcane: 'Arcane', feu: 'Feu', givre: 'Givre', sacre: 'Sacré', ombre: 'Ombre' } as const;
 
 function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean } = {}): string {
   const def = CARDS[card.id];
@@ -162,6 +164,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
     ${opts.panicked ? '<span class="tampon-panique">Paniquée</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
+    ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}</span>
@@ -322,6 +325,8 @@ function questTracker(run: RunState): string {
   if (run.sourcesQuest === 'rune') lines.push('<b>Gardiens des Sources</b> : bats le boss qui porte la rune.');
   if (run.sourcesQuest === 'done') lines.push('<b>Eau des profondeurs</b> : Vulkhar commencera affaibli.');
   if (run.veilleur === 'fragment') lines.push(run.act >= 2 ? '<b>Bâton du Veilleur</b> : trouve l\'observatoire en ruine (un « ? » de l\'acte 2).' : '<b>Bâton du Veilleur</b> : garde le Fragment. L\'esprit du Veilleur t\'attend à l\'acte 2.');
+  if (run.equinoxe === 'baton') lines.push(run.act >= 2 ? '<b>Équinoxe</b> : bats Ysolde la Rouge (boss secondaire de l\'acte 2) pour sa Larme.' : '<b>Équinoxe</b> : garde le Bâton nu. La pierre qu\'il lui faut est gardée par Ysolde la Rouge, à l\'acte 2.');
+  if (run.equinoxe === 'larme') lines.push('<b>Équinoxe</b> : accomplis le Rituel de l\'équinoxe au prochain feu de camp.');
   if (run.veilleur === 'tete') lines.push('<b>Bâton du Veilleur</b> : lie les fragments au prochain feu de camp (une carte rare à sacrifier).');
   if (run.eggsLeft && run.act === 2) lines.push('<b>Les œufs de dragon</b> : Vhaeryx aura un add de plus à chaque vague.');
   if ((run.stargazing ?? 0) > 0) lines.push(`<b>Les étoiles</b> : tu vois les intentions suivantes pendant ${run.stargazing} combat${run.stargazing > 1 ? 's' : ''}.`);
@@ -599,6 +604,7 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
     const cls = ui.run?.classId;
     parts.push(cls === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes'
       : cls === 'demoniste' ? 'Malédiction de lignée : ton familier se retourne contre toi 2 tours'
+      : cls === 'pretre' ? 'Malédiction de lignée : tes soins te blessent 2 tours'
       : 'Malédiction de lignée : forcé en posture Berserker 2 tours');
   }
   const text = parts.join(', ');
@@ -703,6 +709,19 @@ const POWER_LABEL: Record<string, [string, string]> = {
   ombre_et_flammes: ['Ombre et flammes', 'Trait de l\'ombre, Incinérer, Immolation : +dégâts'],
   contrecoup: ['Contrecoup', 'Perdre des PV : Trait de l\'ombre gratuit'],
   ruine: ['Ruine', 'Sorts à 2 énergie : +dégâts'],
+  feu_interieur: ['Feu intérieur', 'Puissance et Robustesse'],
+  meditation_sacree: ['Méditation', 'Égide : +1 Foi par tour'],
+  lumiere_persistante: ['Lumière persistante', 'Égide à chaque tour'],
+  expiation: ['Expiation', 'Sort qui touche : soin'],
+  ame_inebranlable: ['Âme inébranlable', 'Égide max 50, +2 par tour'],
+  sol_sacre: ['Sol sacré', 'Dégâts à tous et soin à chaque tour'],
+  chant_lumiere: ['Chant de lumière', 'Gagner de la Foi : dégâts'],
+  ange_gardien: ['Ange gardien', 'À 0 PV : reste à 1, soigné de 15'],
+  esprit_guerison: ['Esprit de guérison', 'Tout le soin en trop devient Égide'],
+  ascension: ['Ascension lumineuse', 'Chaque soin frappe un ennemi'],
+  etreinte_vampirique: ['Étreinte vampirique', 'Sort d\'Ombre : soin'],
+  esprit_tourmente: ['Esprit tourmenté', 'DoT qui tue : pioche'],
+  tenebres: ['Ténèbres intérieures', 'Tes DoT : +dégâts'],
 };
 
 function playerChips(c: CombatState): string {
@@ -740,6 +759,10 @@ function playerChips(c: CombatState): string {
   if (p.spellReflect) chips.push('<span class="chip">Réflexion des sorts</span>');
   if (p.fireShield) chips.push(`<span class="chip brule">Bouclier de feu : Brûlure ${p.fireShield} aux attaquants</span>`);
   if (c.freeNext) chips.push('<span class="chip">Inspiration : prochaine carte gratuite</span>');
+  if (c.renew?.turns) chips.push(`<span class="chip">Grâce : +${c.renew.amount} PV (${c.renew.turns} tours)</span>`);
+  if (c.undying) chips.push('<span class="chip">Égide des anciens : PV ≥ 1</span>');
+  if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
+  if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
   if (c.soulstone) chips.push('<span class="chip ombre" title="Si tu tombes à 0 PV, tu reviens à 30 %">Pierre d\'âme</span>');
   if (c.amplify) chips.push('<span class="chip ombre">Prochaine Malédiction ×2</span>');
   if (c.doubleNext) chips.push('<span class="chip ombre">Prochain Sort ×2</span>');
@@ -752,6 +775,18 @@ function playerChips(c: CombatState): string {
     if (POWER_LABEL[id]) chips.push(`<span class="chip pouvoir" title="${POWER_LABEL[id][1]}">${POWER_LABEL[id][0]}${v > 1 ? ` ${v}` : ''}</span>`);
   }
   return chips.join('');
+}
+
+/** La Foi et l'Égide du Prêtre. */
+function priestResource(c: CombatState): string {
+  const f = c.faith ?? 0;
+  const max = c.maxFaith ?? 10;
+  const pips = Array.from({ length: max }, (_, i) => `<i class="${i < f ? 'plein' : ''}"></i>`).join('');
+  const a = c.aegis ?? 0;
+  const amax = c.maxAegis ?? 30;
+  return `<div class="ligne"><span class="rage-label foi-label">FOI</span><div class="rage foi" style="grid-template-columns: repeat(${max}, minmax(0, 1fr))">${pips}</div><span class="rage-label" style="width:auto">${f}</span></div>
+    <div class="ligne"><span class="rage-label egide-label">ÉGIDE</span><div class="barre-egide"><div style="width:${Math.min(100, (a / amax) * 100)}%"></div><span>${a} / ${amax}</span></div></div>
+    <div class="aide-posture">${c.shadowForm ? '<b>Forme d\'Ombre</b> : Sorts d\'Ombre +30 %, soins ÷ 2, plus de Foi.' : 'L\'Égide reste d\'un tour à l\'autre. Soigner ou donner de l\'Égide : +1 Foi.'}</div>`;
 }
 
 /** Les éclats d'âme et le familier du Démoniste. */
@@ -780,7 +815,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const resource = mage
     ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
         <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
-    : run.classId === 'demoniste' ? demonResource(c) : '';
+    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
@@ -1165,10 +1200,12 @@ function campfireScreen(run: RunState): string {
     <h2>Feu de camp</h2>
     <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
     ${canReforge(run) ? `<p class="texte-evenement classe">Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d'entraînement. L'épée remplacera ton arme actuelle.</p>${itemHtml('brisemonts')}` : ''}
+    ${canForgeEquinoxe(run) ? `<p class="texte-evenement classe">Tu sertis la Larme d'Ysolde au sommet du Bâton nu. La pierre s'illumine, puis s'assombrit, puis s'illumine encore.</p>${itemHtml('equinoxe')}` : ''}
     ${canBindStaff(run) ? `<p class="texte-evenement classe">Tu poses le Fragment et la Tête du bâton près du feu. Les runes s'éveillent : le Veilleur attend un dernier sacrifice.</p>${itemHtml('baton_veilleur')}` : ''}
     <div class="actions">
       ${canReforge(run) ? '<button type="button" class="gros-bouton legendaire" data-action="reforger">Reforger Brisemonts</button>' : ''}
       ${canBindStaff(run) ? '<button type="button" class="gros-bouton legendaire" data-action="lier-fragments">Lier les fragments</button>' : ''}
+      ${canForgeEquinoxe(run) ? '<button type="button" class="gros-bouton legendaire" data-action="equinoxe">Rituel de l\'équinoxe</button>' : ''}
       ${canRest(run) ? `<button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>` : '<button type="button" class="gros-bouton" disabled>Repos impossible (Flamme captive)</button>'}
       <button type="button" class="gros-bouton secondaire" data-action="feu-ameliorer">Améliorer une carte</button>
     </div>
@@ -1265,7 +1302,7 @@ function classScreen(): string {
   }).join('');
   const next = nextUnlockAt(profile);
   const intro = first
-    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage et le Démoniste sont jouables : les autres classes sont en préparation.'
+    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage, le Démoniste et le Prêtre sont jouables : les autres classes sont en préparation.'
     : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> : touche celle que tu veux.` : ''} Touche une classe débloquée pour la jouer.`;
   return `<div class="ecran ecran-classes">
     <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
@@ -1739,6 +1776,7 @@ function handleClick(ev: MouseEvent): void {
       break;
     case 'lier-baton': ui.bindStaff = false; campfireBindStaff(run, Number(el.dataset.uid)); commit(); break;
     case 'acte-suivant': startNextAct(run); commit(); break;
+    case 'equinoxe': campfireEquinoxe(run); commit(); break;
     case 'acheter': buyCard(run, Number(el.dataset.index)); commit(); break;
     case 'service': ui.shopMode = el.dataset.service as 'remove' | 'upgrade'; render(); break;
     case 'service-carte':
@@ -1803,7 +1841,7 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'mage.png', 'demoniste.png', 'vendeur_gobelin.png', 'bregan.png',
+  'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'vendeur_gobelin.png', 'bregan.png',
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',

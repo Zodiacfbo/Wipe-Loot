@@ -12,7 +12,7 @@ import {
   afterCombatAction, barCapacity, buyCard, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
   canDrink, chooseBlessing, chooseNode, chooseReward, drinkPotion, equipPending, eventChoiceLock, leaveEvent, leavePending,
   leaveShop, learnSpell, newRun, offerBlessing, resolveEvent, retryAfterWipe, takePotion,
-  campfireBindStaff, canBindStaff, canRest, startNextAct,
+  campfireBindStaff, canBindStaff, canRest, startNextAct, campfireEquinoxe,
 } from '../../src/engine/run';
 import { previewIntentDamage } from '../../src/engine/combat';
 import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
@@ -60,12 +60,14 @@ function evaluate(c: CombatState): number {
   // Ce qui brûlera en fin de tour : Zones de feu et Bombes vivantes gardées en main.
   const burn = c.hand.filter((k) => k.id === 'zone_de_feu').length * (c.fireProof ? 0 : 6)
     + c.hand.filter((k) => k.id === 'bombe_vivante').length * 15;
-  const unblocked = Math.max(0, incoming - p.block) * (p.rempart ? 0.5 : 1) + burn;
+  // Le Prêtre : l'Égide encaisse aussi, et elle reste pour les tours suivants.
+  const unblocked = Math.max(0, incoming - p.block - (c.aegis ?? 0)) * (p.rempart ? 0.5 : 1) + burn;
   const powers = Object.values(c.powers ?? {}).length;
   const charges = (p.charges ?? 0) >= 4 && !c.gear?.noOverload ? 4 * 1.5 - 3 : (p.charges ?? 0) * 1.5;
   // La Pierre d'âme ne vaut le coup (1 éclat) que contre un boss.
   const big = c.enemies.some((e) => !e.dead && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss));
-  const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0);
+  const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0)
+    + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0);
   return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
 }
 
@@ -200,7 +202,7 @@ const EVENT_CHOICE: Record<string, (run: RunState) => number> = {
   forge: () => 0,
   trappeur: (r) => (r.potions.some((x) => x) ? 0 : 1),
   cercle: (r) => (eventChoiceLock(r, 0) ? 1 : 0),
-  chapelle: () => 0,
+  chapelle: (r) => (r.classId === 'pretre' && !r.equinoxe ? 2 : 0),
   fantome: (r) => (r.equipment.arme && r.hp > 40 ? 0 : 2),
   gobelin: () => 0,
   fonceur: (r) => (r.hp > r.maxHp * 0.6 ? 0 : 1),
@@ -311,7 +313,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
       case 'reward': handleReward(run); break;
       case 'shop': handleShop(run); break;
       case 'campfire': {
-        if (campfireReforge(run)) break;
+        if (campfireReforge(run) || campfireEquinoxe(run)) break;
         if (canBindStaff(run)) {
           const rare = run.deck.find((k) => CARDS[k.id].rarity === 'rare');
           if (rare && campfireBindStaff(run, rare.uid)) break;

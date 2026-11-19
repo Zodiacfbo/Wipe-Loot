@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage et le Démoniste sont jouables dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste et le Prêtre sont jouables dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -58,7 +58,9 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Un duo inséparable, le chasseur et sa bête, pendant que les pièges s\'occupent des adds.',
   },
   {
-    id: 'pretre', name: 'Prêtre', color: '#E0E0E8', playable: false, difficulty: 2, hp: 70,
+    id: 'pretre', name: 'Prêtre', color: '#E0E0E8', playable: true, difficulty: 2, hp: 70,
+    starterDeck: ['chatiment', 'chatiment', 'chatiment', 'chatiment', 'priere_garde', 'priere_garde', 'priere_garde', 'priere_garde', 'soins_rapides', 'murmure_douleur'],
+    startSpell: 'egide_sacree', sprite: 'pretre.png',
     quote: 'La lumière protège. L\'ombre dévore. Je porte les deux.',
     role: 'Survie, dégâts sacrés ou d\'ombre', resource: 'Foi (0 à 10) et Égide',
     fantasy: 'Encaisser tout derrière une Égide, puis foudroyer le boss d\'un Courroux céleste à pleine Foi.',

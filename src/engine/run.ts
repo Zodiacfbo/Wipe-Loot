@@ -15,7 +15,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 19;
+export const SAVE_VERSION = 20;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -36,14 +36,14 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 19, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 20, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
-    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin',
+    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin', equinoxe: null,
   };
   run.map = mapFor(run, 1);
   applyTalents(run, talents);
@@ -287,6 +287,12 @@ export function afterCombatAction(run: RunState): void {
     if (slot >= 0) run.potions[slot] = id;
   }
   c.newPotions = [];
+  // Prêtre : Bénédiction de vigueur (PV max pour toute la run).
+  if (c.maxHpGain) {
+    run.maxHp += c.maxHpGain;
+    run.hp += c.maxHpGain;
+    c.maxHpGain = 0;
+  }
   if (c.phase === 'victory' || c.phase === 'defeat') {
     // Le Gobelin mimique a avalé de l'or.
     run.gold = Math.max(0, run.gold - (c.goldStolen ?? 0));
@@ -335,6 +341,10 @@ export function afterCombatAction(run: RunState): void {
       if (enc?.rune && run.sourcesQuest === 'rune') {
         run.sourcesQuest = 'done';
         run.questNote = 'Eau des profondeurs : les Gardiens des Sources sont libres. Vulkhar commencera le combat affaibli.';
+      }
+      if (enc?.loot === 'ysolde' && run.classId === 'pretre' && run.equinoxe === 'baton') {
+        run.equinoxe = 'larme';
+        run.questNote = 'Larme d\'Ysolde : libérée, la dragonne laisse une pierre qui contient la lumière et l\'ombre. Au prochain feu de camp, tu pourras forger Équinoxe.';
       }
       if (enc?.loot === 'zhaal' && (run.classId === 'mage' || run.classId === 'demoniste') && !run.veilleur) {
         run.veilleur = 'fragment';
@@ -734,6 +744,9 @@ export function resolveEvent(run: RunState, choice: number): void {
       run.maxHp += 5;
       run.hp += 5;
       return outcome(run, 'Une chaleur douce t\'envahit. +5 PV max.');
+    case 'chapelle:2':
+      run.equinoxe = 'baton';
+      return outcome(run, 'Sous les pierres de l\'autel, un bâton sans pierre, tiède sous les doigts : le Bâton nu. Il lui manque une pierre qui contient la lumière et l\'ombre… On dit qu\'une dragonne rouge, enchaînée dans l\'Aire de Vhaeryx, en garde une.');
     case 'chapelle:1':
       run.gold += 80;
       addCurse(run);
@@ -991,6 +1004,21 @@ export function campfireBindStaff(run: RunState, uid?: number): boolean {
   run.deck.splice(i, 1);
   putOn(run, 'baton_veilleur', 'arme');
   run.veilleur = 'forged';
+  backToMap(run);
+  return true;
+}
+
+// --- Feu de camp : le Rituel de l'équinoxe (Prêtre) ---
+
+export function canForgeEquinoxe(run: RunState): boolean {
+  return run.screen === 'campfire' && run.equinoxe === 'larme' && run.act >= LEGENDARY_MIN_ACT;
+}
+
+/** Le Prêtre sertit la Larme d'Ysolde : Équinoxe est équipée. */
+export function campfireEquinoxe(run: RunState): boolean {
+  if (!canForgeEquinoxe(run)) return false;
+  putOn(run, 'equinoxe', 'arme');
+  run.equinoxe = 'forged';
   backToMap(run);
   return true;
 }

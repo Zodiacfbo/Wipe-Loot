@@ -2,6 +2,7 @@
 // Référence : docs/classes/GUERRIER.md (§4.2 et §6) et docs/classes/MAGE.md (§4.2 et §6)
 import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, healPlayer, isBossEnemy, livingEnemies, log, playerAttack, power } from './actions';
 import { loseHp, petAct } from './demoniste';
+import { gainAegis } from './pretre';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -322,6 +323,85 @@ const DEMONISTE_SPELLS: SpellDef[] = [
 ];
 for (const d of DEMONISTE_SPELLS) SPELLS[d.id] = { ...d, classId: 'demoniste' };
 
+/** Les sorts de barre du Prêtre. */
+const PRETRE_SPELLS: SpellDef[] = [
+  {
+    id: 'egide_sacree', name: 'Égide sacrée', cost: 0, cooldown: 2, needsTarget: false, icon: 'bouclier',
+    text: 'Gagne 5 Égide.',
+    cast: (c) => gainAegis(c, 5, false),
+  },
+  {
+    id: 'transfusion', name: 'Transfusion de puissance', cost: 0, cooldown: 5, needsTarget: false, icon: 'hausse',
+    text: 'Ce tour-ci, tes cartes coûtent 1 de moins (minimum 0).',
+    cast: (c) => {
+      c.costDown = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Transfusion de puissance' });
+    },
+  },
+  {
+    id: 'focalisation_interieure', name: 'Focalisation intérieure', cost: 0, cooldown: 4, needsTarget: false, icon: 'etoile',
+    text: 'Ta prochaine carte coûte 0.',
+    cast: (c) => {
+      c.freeNext = true;
+    },
+  },
+  {
+    id: 'priere_desesperee', name: 'Prière désespérée', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'coeur',
+    text: 'Soigne 20 PV. Une fois par combat.',
+    cast: (c) => {
+      const healed = healPlayer(c, 20);
+      fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+    },
+  },
+  {
+    id: 'nova_lumiere', name: 'Nova de lumière', cost: 1, cooldown: 3, needsTarget: false, icon: 'etoile',
+    text: 'Inflige 6 dégâts à tous les ennemis et soigne 6 PV.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) if (!e.submerged) playerAttack(c, e, 6);
+      const healed = healPlayer(c, 6);
+      if (healed > 0) fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+    },
+  },
+  {
+    id: 'silence', name: 'Silence', cost: 0, cooldown: 4, needsTarget: true, icon: 'crane',
+    text: 'Interruption : la cible ne peut pas finir son Incantation.',
+    cast: (c, target) => {
+      if (!target || !isInterruptible(target.intent) || target.interrupted) return;
+      target.interrupted = true;
+      fx(c, { kind: 'interrupt', who: target.uid });
+      log(c, `${target.name} est réduit au silence !`);
+    },
+  },
+  {
+    id: 'cri_psychique', name: 'Cri psychique', cost: 1, cooldown: 5, needsTarget: false, icon: 'crane',
+    text: 'Tous les ennemis (sauf boss) sont Apeurés 1 tour. Les boss sont Démoralisés 2 tours.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) {
+        if (isBossEnemy(e)) e.buffs.demoralise = Math.max(e.buffs.demoralise, 2);
+        else e.buffs.peur = Math.max(e.buffs.peur ?? 0, 1);
+      }
+    },
+  },
+  {
+    id: 'lien_lumiere', name: 'Lien de lumière', cost: 1, cooldown: 4, needsTarget: false, icon: 'coeur',
+    text: 'Soigne 8 PV et gagne 8 Égide.',
+    cast: (c) => {
+      const healed = healPlayer(c, 8);
+      if (healed > 0) fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+      gainAegis(c, 8, false);
+    },
+  },
+  {
+    id: 'pacte_ombre', name: 'Pacte de l\'ombre', cost: 0, cooldown: 3, needsTarget: false, icon: 'crane',
+    text: 'Pioche 3 cartes. Perds 5 PV.',
+    cast: (c) => {
+      drawCards(c, 3);
+      loseHp(c, 5, 'Pacte de l\'ombre');
+    },
+  },
+];
+for (const d of PRETRE_SPELLS) SPELLS[d.id] = { ...d, classId: 'pretre' };
+
 /** La classe d'un sort de barre. */
 export function spellClass(id: string): string {
   return SPELLS[id]?.classId ?? 'guerrier';
@@ -337,7 +417,7 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
 
 /** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
-  const start = new Set(['charge', 'contresort', 'pacte_de_sang']);
+  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
 }
 

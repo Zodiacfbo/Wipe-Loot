@@ -3,6 +3,7 @@
 import { ENEMIES, TUNING, hasTag, intentAt } from './enemies';
 import { random, shuffle } from './rng';
 import { demonOnDeath, soulstoneRise } from './demoniste';
+import { absorbAegis, gainAegis, gainFaith } from './pretre';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
 export function emptyDebuffs(): PlayerDebuffs {
@@ -67,10 +68,42 @@ export function gainRage(c: CombatState, amount: number): void {
 export function healPlayer(c: CombatState, amount: number): number {
   const p = c.player;
   const d = p.debuffs;
+  const priest = c.aegis !== undefined;
   let heal = amount;
+  if (priest && heal > 0) {
+    heal += c.gear?.healBonus ?? 0; // Soins améliorés
+    if (c.gear?.equinoxe && !c.shadowForm) heal += 3; // Équinoxe (Lumière)
+    if (c.shadowForm) heal = Math.floor(heal / 2); // Forme d'Ombre
+    // Malédiction de lignée du Prêtre : ses soins le blessent.
+    if ((d?.lignee ?? 0) > 0) {
+      p.hp = Math.max(c.undying ? 1 : 0, p.hp - heal);
+      fx(c, { kind: 'tick', who: 'player', amount: heal, label: 'Soin maudit' });
+      if (p.hp <= 0) c.phase = 'defeat';
+      return 0;
+    }
+  }
   if ((d?.peste ?? 0) > 0 || d?.afflictions?.includes('verte')) heal = Math.floor(heal / 2);
   const healed = Math.max(0, Math.min(heal, p.maxHp - p.hp));
   p.hp += healed;
+  if (priest && heal > 0) {
+    c.healedFlag = true;
+    // Rien n'est perdu : le soin en trop devient de l'Égide (la moitié, ou tout avec Esprit de guérison).
+    const excess = heal - healed;
+    if (excess > 0) {
+      gainAegis(c, Math.floor(excess * (power(c, 'esprit_guerison') ? 1 : 0.5)), false);
+      gainFaith(c, c.gear?.blessedLight ?? 0);
+    }
+    if (c.gear?.equinoxe && !c.shadowForm) gainFaith(c, 1);
+    // Ascension lumineuse : chaque soin frappe un ennemi.
+    if (power(c, 'ascension')) {
+      const pool = livingEnemies(c).filter((e) => !e.submerged);
+      if (pool.length > 0) {
+        const t = pool[Math.floor(random(c) * pool.length)];
+        fx(c, { kind: 'tick', who: t.uid, amount: heal, label: 'Ascension' });
+        damageEnemy(c, t, heal);
+      }
+    }
+  }
   return healed;
 }
 
@@ -122,6 +155,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   const id = c.playing?.id;
   if (id === 'trait_ombre' || id === 'incinerer' || id === 'immolation') dmg += power(c, 'ombre_et_flammes');
   if (id === 'trait_ombre') dmg += g.shadowBoltBonus ?? 0;
+  if (id === 'chatiment' || id === 'chatiment_ardent') dmg += g.smiteBonus ?? 0;
+  if (id === 'attaque_mentale') dmg += g.mindBlastBonus ?? 0;
   if (c.playing && (c.playing.id === 'frappe' || c.playing.id === 'frappe_heroique')) dmg += g.strikeBonus ?? 0;
   if (c.playing?.type === 'Attaque' && c.playing.cost === 0) dmg += g.zeroCostBonus ?? 0;
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
@@ -135,6 +170,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   // Malédiction des éléments, Pacte de destruction.
   if (spell && (target.elements ?? 0) > 0) dmg *= 1 + target.elements! / 100;
   if (spell && c.doubleNext) dmg *= 2;
+  // Forme d'Ombre : les Sorts d'Ombre +30 %. Châtiment amélioré, Esprit sombre.
+  if (c.shadowForm && c.playing?.school === 'ombre') dmg *= 1.3;
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   return Math.max(0, Math.floor(dmg));
@@ -332,8 +369,18 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
   if (amount <= 0) return 0;
   const absorbed = Math.min(p.block, amount);
   p.block -= absorbed;
-  const hpLoss = amount - absorbed;
+  // Le Prêtre : l'Égide encaisse après le blocage.
+  const hpLoss = absorbAegis(c, amount - absorbed);
   p.hp -= hpLoss;
+  // Égide des anciens : les PV ne descendent pas sous 1.
+  if ((c.undying ?? 0) > 0 && p.hp < 1) p.hp = 1;
+  // Ange gardien : une fois par combat, on reste à 1 PV et on est soigné.
+  if (p.hp <= 0 && power(c, 'ange_gardien') && !c.angelUsed) {
+    c.angelUsed = true;
+    p.hp = 1;
+    healPlayer(c, 15);
+    fx(c, { kind: 'banner', text: 'L\'Ange gardien te protège !' });
+  }
   if (hpLoss > 0) onHpLost(c);
   if (isAttack) {
     const blockedRage = p.posture === 'defensive' || p.ignorerDouleur;

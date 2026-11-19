@@ -25,6 +25,10 @@ const PROFILES_ALL: { name: string; talents: string[]; cls?: string }[] = [
   { name: 'Démoniste niveau 5 (Affliction 3, Destruction 2)', talents: alloc({ affliction: ['A', 'A', 'B'], destruction: ['A', 'B'] }, 'demoniste'), cls: 'demoniste' },
   { name: 'Démoniste niveau 10 (Affliction 5, Destruction 5)', talents: alloc({ affliction: ['A', 'A', 'B', 'A', 'A'], destruction: ['A', 'B', 'A', 'A', 'A'] }, 'demoniste'), cls: 'demoniste' },
   { name: 'Démoniste niveau 10 (Démonologie 5, Destruction 5)', talents: alloc({ demonologie: ['A', 'B', 'B', 'A', 'A'], destruction: ['A', 'B', 'A', 'A', 'A'] }, 'demoniste'), cls: 'demoniste' },
+  { name: 'Prêtre niveau 1 (aucun talent)', talents: [], cls: 'pretre' },
+  { name: 'Prêtre niveau 5 (Discipline 3, Sacré 2)', talents: alloc({ discipline: ['A', 'A', 'A'], sacre: ['A', 'B'] }, 'pretre'), cls: 'pretre' },
+  { name: 'Prêtre niveau 10 (Discipline 5, Sacré 5)', talents: alloc({ discipline: ['A', 'A', 'A', 'A', 'A'], sacre: ['A', 'B', 'A', 'B', 'A'] }, 'pretre'), cls: 'pretre' },
+  { name: 'Prêtre niveau 10 (Ombre 5, Sacré 5)', talents: alloc({ ombre: ['A', 'A', 'B', 'A', 'A'], sacre: ['A', 'B', 'A', 'B', 'A'] }, 'pretre'), cls: 'pretre' },
   { name: 'Mage niveau 10 (Arcane 5, Feu 5)', talents: mage({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }), cls: 'mage' },
 ];
 

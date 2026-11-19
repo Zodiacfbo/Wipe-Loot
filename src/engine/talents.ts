@@ -191,8 +191,60 @@ export const DEMONISTE_TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Prêtre. */
+export const PRETRE_TREES: TreeDef[] = [
+  {
+    id: 'discipline', name: 'Discipline', theme: 'L\'Égide',
+    tiers: [
+      [t('egide_amelioree', 'Égide améliorée', 'Tes cartes d\'Égide donnent +3 Égide.', { fx: { aegisBonus: 3 } }),
+        t('volonte', 'Volonté', '+6 PV max.', { maxHp: 6 })],
+      [t('meditation_profonde', 'Méditation profonde', 'Ton Égide maximale passe à 40.', { fx: { maxAegis: 40 } }),
+        t('esprit_martyr', 'Esprit martyr', 'Quand ton Égide est entièrement détruite, pioche 2 cartes.', { fx: { martyr: 2 } })],
+      [t('t_transfusion', 'Transfusion de puissance', 'Ajoute ce sort à ta barre : tes cartes coûtent 1 de moins ce tour-ci.', { spell: 'transfusion' }),
+        t('t_focalisation_interieure', 'Focalisation intérieure', 'Ajoute ce sort à ta barre : ta prochaine carte coûte 0.', { spell: 'focalisation_interieure' })],
+      [t('lumiere_interieure', 'Lumière intérieure', 'Commence chaque combat avec 8 Égide.', { fx: { startAegis: 8 } }),
+        t('p_quatrieme_emplacement', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_egide_anciens', 'Égide des anciens', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'egide_anciens' })],
+    ],
+    cards: ['egide_renforcee', 'penitence', 'bastion_sacre', 'sacrifice_soi', 'priere_protection', 'discernement', 'eclat_foi',
+      'rayon_lumiere', 'meditation_sacree', 'lumiere_persistante', 'clarte', 'expiation', 'ame_inebranlable', 'egide_anciens'],
+  },
+  {
+    id: 'sacre', name: 'Sacré', theme: 'Soins et colère divine',
+    tiers: [
+      [t('soins_ameliores', 'Soins améliorés', 'Tes soins rendent +3 PV.', { fx: { healBonus: 3 } }),
+        t('chatiment_ameliore', 'Châtiment amélioré', 'Châtiment et Châtiment ardent infligent +2 dégâts.', { fx: { smiteBonus: 2 } })],
+      [t('foi_ardente', 'Foi ardente', 'Ta Foi maximale passe à 15.', { fx: { maxFaith: 15 } }),
+        t('lumiere_benie', 'Lumière bénie', 'Chaque soin en trop te donne aussi 1 Foi.', { fx: { blessedLight: 1 } })],
+      [t('t_priere_desesperee', 'Prière désespérée', 'Ajoute ce sort à ta barre : soigne 20 PV, une fois par combat.', { spell: 'priere_desesperee' }),
+        t('t_nova_lumiere', 'Nova de lumière', 'Ajoute ce sort à ta barre : 6 dégâts à tous, soigne 6 PV.', { spell: 'nova_lumiere' })],
+      [t('gardien_celeste', 'Gardien céleste', 'Ange gardien est Inné.', { fx: { guardianInnate: 1 } }),
+        t('courroux_sacre', 'Courroux sacré', 'Courroux céleste inflige +1 dégât par point de Foi.', { fx: { wrathBonus: 1 } })],
+      [t('t_ascension', 'Ascension lumineuse', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'ascension_lumineuse' })],
+    ],
+    cards: ['chatiment_ardent', 'feu_sacre', 'soins_superieurs', 'cercle_soins', 'grace_divine', 'colere_divine', 'lumiere_eclatante',
+      'sol_sacre', 'chant_lumiere', 'cantique', 'courroux_celeste', 'ange_gardien', 'esprit_guerison', 'ascension_lumineuse'],
+  },
+  {
+    id: 'ombre', name: 'Ombre', theme: 'DoT et dégâts mentaux',
+    tiers: [
+      [t('douleur_amelioree', 'Douleur améliorée', 'Murmure de douleur inflige +2 dégâts par tour.', { fx: { painBonus: 2 } }),
+        t('concentration_ombre', 'Concentration de l\'ombre', 'Fouet psychique frappe une fois de plus.', { fx: { flayExtra: 1 } })],
+      [t('ombres_tenaces', 'Ombres tenaces', 'Tes DoT durent 1 tour de plus.', { fx: { dotDuration: 1 } }),
+        t('esprit_sombre', 'Esprit sombre', 'Attaque mentale inflige +4 dégâts.', { fx: { mindBlastBonus: 4 } })],
+      [t('t_silence', 'Silence', 'Ajoute ce sort à ta barre : Interruption.', { spell: 'silence' }),
+        t('t_cri_psychique', 'Cri psychique', 'Ajoute ce sort à ta barre : ennemis Apeurés, boss Démoralisés.', { spell: 'cri_psychique' })],
+      [t('puissance_vide', 'Puissance du vide', 'Commence chaque combat avec 1 Puissance.', { fx: { startPuissance: 1 } }),
+        t('faim_vampirique', 'Faim vampirique', 'Étreinte vampirique soigne 1 PV de plus.', { fx: { vampHunger: 1 } })],
+      [t('t_forme_ombre', 'Forme d\'Ombre', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'forme_ombre' })],
+    ],
+    cards: ['murmure_douleur', 'attaque_mentale', 'fouet_psychique', 'eclat_ombre', 'voile_ombre', 'murmures_neant', 'toucher_vampirique',
+      'murmure_mort', 'etreinte_vampirique', 'esprit_tourmente', 'peste_mentale', 'controle_mental', 'tenebres_interieures', 'forme_ombre'],
+  },
+];
+
 /** Les arbres de chaque classe jouable. */
-export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES };
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES };
 
 /** Les arbres d'une classe (ceux du Guerrier par défaut). */
 export function treesFor(classId: string | undefined): TreeDef[] {

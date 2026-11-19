@@ -82,6 +82,7 @@ export const EVENTS: Record<string, EventDef> = {
     choices: [
       { label: 'Prier', detail: '+5 PV max.' },
       { label: 'Piller l\'autel', detail: 'Gagne 80 or, mais une Malédiction rejoint ton deck.' },
+      { label: 'Fouiller sous les décombres', detail: 'Tu trouves le Bâton nu : quête légendaire Équinoxe, étape 1 sur 3.', locked: (run) => (run.classId !== 'pretre' ? 'Réservé au Prêtre' : run.equinoxe ? 'Tu l\'as déjà' : null) },
     ],
   },
   fantome: {

@@ -23,6 +23,7 @@ import type { ItemEffects } from './items';
 import type { CardInstance, CardType, CombatState, EnemyState, Rarity, School } from './types';
 import { MAGE_CARDS } from './cards_mage';
 import { DEMONISTE_CARDS } from './cards_demoniste';
+import { PRETRE_CARDS } from './cards_pretre';
 
 export interface PlayContext {
   c: CombatState;
@@ -32,6 +33,8 @@ export interface PlayContext {
   dealt: boolean; // la carte a infligé des dégâts (pour la rage)
   /** Démoniste : les éclats d'âme dépensés pour jouer la carte. */
   shardsSpent?: number;
+  /** Prêtre : la Foi dépensée pour jouer la carte. */
+  faithSpent?: number;
 }
 
 export interface CardDef {
@@ -55,6 +58,8 @@ export interface CardDef {
   /** Démoniste : coût en éclats d'âme ('all' : tous), et coût une fois améliorée. */
   shardCost?: number | 'all';
   shardCostUp?: number;
+  /** Prêtre : coût en Foi ('all' : toute la Foi). */
+  faithCost?: number | 'all';
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
@@ -686,7 +691,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   },
 };
 
-export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS };
+export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS };
 
 /** La classe d'une carte. */
 export function cardClass(id: string): string {
@@ -723,6 +728,7 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   const d = c.player.debuffs;
   if (d && (d.impie > 0 || d.afflictions?.includes('bleue')) && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie, Affliction bleue
   if (def.type === 'Compétence') cost += c.gear?.skillCost ?? 0; // Marteau des profondeurs
+  if (c.costDown) cost = Math.max(0, cost - 1); // Transfusion de puissance
   // Bâton du Veilleur : le premier Sort de chaque tour coûte 0.
   if (def.type === 'Sort' && c.gear?.firstSpellFree && (c.mageSpellsThisTurn ?? 0) === 0) return 0;
   if (d && d.arcane > 0 && def.type === 'Sort') cost += 1; // Malédiction arcanique

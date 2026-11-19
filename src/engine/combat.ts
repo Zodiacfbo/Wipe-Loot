@@ -24,6 +24,7 @@ import {
 import { AFFLICTIONS, GRIZZIK_POTIONS, PRISMAGOR_BREATHS } from './enemies_acte2';
 import { CARDS, energyCost, isEthereal, shardCost, type PlayContext } from './cards';
 import { decayCurses, felhunterLock, felhunterStart, petAct, triggerDots } from './demoniste';
+import { BASE_AEGIS, BASE_FAITH, gainAegis, gainFaith } from './pretre';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
@@ -60,6 +61,7 @@ export function createCombat(
     },
     classId,
     ...(classId === 'demoniste' ? { shards: demon?.shards ?? 0, pet: demon?.pet ?? 'diablotin', soulSiphon: {} } : {}),
+    ...(classId === 'pretre' ? { aegis: 0, maxAegis: gear.maxAegis ?? BASE_AEGIS, faith: 0, maxFaith: gear.maxFaith ?? BASE_FAITH } : {}),
     enemies: [],
     draw: [],
     hand: [],
@@ -76,7 +78,8 @@ export function createCombat(
   };
   c.draw = shuffle(c, deck.map((card) => ({ ...card })));
   // Cartes innées (Furie croissante+) : en haut de la pioche.
-  const innate = c.draw.filter((card) => card.upgraded && CARDS[card.id].innateUp);
+  // Gardien céleste : Ange gardien est Inné.
+  const innate = c.draw.filter((card) => (card.upgraded && CARDS[card.id].innateUp) || (card.id === 'ange_gardien' && gear.guardianInnate));
   c.draw = [...innate, ...c.draw.filter((card) => !innate.includes(card))];
   c.enemies = encounter.enemies.map((id) => makeEnemy(c, id));
   // Difficulté : PV, Puissance de départ et enrage des ennemis.
@@ -148,6 +151,8 @@ export function createCombat(
   if (gear.startDragonFracture) for (const e of livingEnemies(c)) if (hasTag(e.defId, 'dragon')) e.buffs.armureFracassee = Math.max(e.buffs.armureFracassee, gear.startDragonFracture);
   if (gear.startZone) addStatusToHand(c, 'zone_de_feu', gear.startZone);
   if (gear.startToxine) p.debuffs!.toxine = gear.startToxine;
+  // Lumière intérieure : de l'Égide dès le début du combat.
+  if (gear.startAegis) gainAegis(c, gear.startAegis, false);
   // Maître invocateur : le familier agit dès le début du combat.
   if (gear.petOpening) petAct(c, gear.petOpening);
   if (gear.startFiole) addStatusToHand(c, 'fiole_instable', gear.startFiole);
@@ -196,6 +201,26 @@ export function startPlayerTurn(c: CombatState): void {
   c.soulSiphon = c.shards !== undefined ? {} : undefined;
   c.freePactUsed = false;
   if (power(c, 'armure_demoniaque')) healPlayer(c, 1);
+  // Prêtre : Grâce, Égide des anciens, Transfusion, et ses Pouvoirs de début de tour.
+  c.costDown = false;
+  if (c.turn > 1 && (c.undying ?? 0) > 0) c.undying! -= 1;
+  if (c.renew && c.renew.turns > 0) {
+    const healed = healPlayer(c, c.renew.amount);
+    if (healed > 0) fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+    c.renew.turns -= 1;
+  }
+  if (power(c, 'meditation_sacree') && (c.aegis ?? 0) > 0) gainFaith(c, power(c, 'meditation_sacree'));
+  if (power(c, 'lumiere_persistante')) gainAegis(c, power(c, 'lumiere_persistante'), false);
+  if (power(c, 'ame_inebranlable')) gainAegis(c, 2, false);
+  if (power(c, 'ascension')) gainFaith(c, 1);
+  if (power(c, 'sol_sacre')) {
+    for (const e of livingEnemies(c)) {
+      if (e.submerged) continue;
+      fx(c, { kind: 'tick', who: e.uid, amount: power(c, 'sol_sacre'), label: 'Sol sacré' });
+      damageEnemy(c, e, power(c, 'sol_sacre'));
+    }
+    healPlayer(c, power(c, 'sol_sacre') - 1);
+  }
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
@@ -353,6 +378,8 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   if (def.rageCost === 'all' && c.player.rage === 0) return false;
   const shards = shardCost(c, card.id, card.upgraded);
   if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return false;
+  // Prêtre : le coût en Foi.
+  if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return false;
   return true;
 }
 
@@ -372,6 +399,10 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   if (c.shards !== undefined) c.shards -= shardsSpent;
   if (target) c.lastTarget = target.uid;
   if (card.id === 'trait_ombre' && c.shadowFree) c.shadowFree = false;
+  // Prêtre : la Foi dépensée.
+  const faithSpent = def.faithCost === 'all' ? c.faith ?? 0 : def.faithCost ?? 0;
+  if (c.faith !== undefined) c.faith -= faithSpent;
+  c.healedFlag = false;
   // Inspiration et Présence d'esprit ne servent qu'une fois.
   if (c.freeNext) c.freeNext = false;
   else if (c.freeNextSpell && def.type === 'Sort') c.freeNextSpell = false;
@@ -398,7 +429,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     }
   }
 
-  const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent };
+  const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent };
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
   const blockBefore = p.block;
@@ -408,6 +439,13 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   // Butin : Masse des flammes, Croc des trois souffles, Croc de Prismagor.
   if (ctx.dealt && target && !target.dead && !target.submerged) onHitItems(c, target, def.type);
   if (def.type === 'Sort' && ctx.dealt) p.enrageReady = 0;
+  // Prêtre : une carte qui soigne ou donne de l'Égide rapporte 1 Foi ; Expiation, Étreinte vampirique.
+  if (c.faith !== undefined) {
+    if (c.healedFlag) gainFaith(c, 1);
+    c.healedFlag = false;
+    if (def.type === 'Sort' && ctx.dealt && power(c, 'expiation')) healPlayer(c, power(c, 'expiation'));
+    if (def.school === 'ombre' && ctx.dealt && power(c, 'etreinte_vampirique')) healPlayer(c, power(c, 'etreinte_vampirique') + (c.gear?.vampHunger ?? 0));
+  }
   // Pacte de destruction : seul le prochain Sort qui fait des dégâts est doublé.
   if (def.type === 'Sort' && ctx.dealt && card.id !== 'pacte_destruction') c.doubleNext = false;
   if (c.cleaving) c.cleave = (c.cleave ?? 1) - 1;
@@ -1045,6 +1083,8 @@ function lineageCurse(c: CombatState): void {
   if ((c.classId ?? 'guerrier') === 'mage') {
     c.player.drawPenalty += 2;
     log(c, 'Malédiction de lignée : tu es métamorphosé, ta prochaine main n\'aura que 3 cartes.');
+  } else if (c.classId === 'pretre') {
+    log(c, 'Malédiction de lignée : pendant 2 tours, tes soins te blessent au lieu de te soigner.');
   } else if (c.classId === 'demoniste') {
     log(c, 'Malédiction de lignée : pendant 2 tours, ton familier se retourne contre toi.');
   } else {
