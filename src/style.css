@@ -461,58 +461,88 @@ img.px { image-rendering: pixelated; }
 .badge-classe { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: var(--texte-2); }
 .badge-classe b { font-size: 15px; color: var(--texte); }
 
-/* ---------- Talents ---------- */
-.ecran-talents { justify-content: flex-start; padding: 18px 24px; gap: 8px; }
-.ecran-talents > p { font-size: 13px; margin: 0; }
-.tete-talents { display: flex; align-items: baseline; gap: 18px; }
-.points-talent { font-weight: 800; color: var(--or-clair); }
-.arbres { display: flex; gap: 12px; width: 100%; }
-.arbre { flex: 1; display: flex; flex-direction: column; gap: 5px; padding: 8px; border-radius: 12px; border: 1px solid #5a4433; background: rgba(0, 0, 0, 0.2); }
-.arbre h3 { margin: 0; font-size: 17px; font-weight: 800; display: flex; justify-content: space-between; }
-.arbre h3 span { color: var(--or); font-size: 14px; }
-.arbre > p { margin: 0 0 2px; font-size: 11px; color: var(--texte-2); text-align: left; }
-.palier { display: flex; gap: 6px; align-items: stretch; }
-.palier.ferme { opacity: 0.7; }
-.num-palier { flex: none; width: 18px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--or); font-size: 13px; }
-.choix-palier { flex: 1; display: flex; gap: 3px; align-items: stretch; }
-.ou { align-self: center; font-size: 10px; color: var(--texte-2); }
-.talent { flex: 1; display: flex; flex-direction: column; gap: 1px; padding: 5px 7px; border-radius: 8px; border: 2px solid #5a4433; background: var(--panneau); color: var(--texte); text-align: left; min-height: 74px; }
-.talent b { font-size: 12px; font-weight: 800; }
-.talent em { font-style: normal; font-size: 9px; color: var(--texte-2); text-transform: uppercase; letter-spacing: 0.05em; }
-.talent span { font-size: 10.5px; line-height: 1.2; }
-.talent:hover:not(:disabled) { border-color: var(--or); }
-.talent.pris { border-color: var(--or); background: #3a2e17; box-shadow: 0 0 8px rgba(230, 195, 106, 0.3); }
-.talent.epique { border-color: #a66be0; }
-.talent.epique.pris { background: #2e2240; border-color: #c8a0ff; }
-.talent:disabled { cursor: not-allowed; }
-.talent.epique { flex-direction: row; align-items: center; gap: 10px; }
-.talent.epique > div { display: flex; flex-direction: column; gap: 1px; }
-.illu-talent { flex: none; width: 48px; height: 48px; border-radius: 6px; background: #1e1712; border: 1px solid #a66be0; }
-.talent .ameliore { color: #8fd49a; }
-.talent .note-talent { color: var(--texte-2); font-style: italic; }
+/* ---------- Talents : 3 arbres en icônes et la fiche du talent ---------- */
+.ecran-talents, .ecran-classes { justify-content: flex-start; padding: 14px 24px 20px; gap: 12px; text-align: left; }
+.tete-talents { display: flex; align-items: center; gap: 14px; width: 100%; }
+.tete-talents .points-talent { margin-left: auto; }
+.points-talent { font-weight: 800; color: var(--or-clair); font-size: 17px; }
+.corps-talents, .corps-classes { display: flex; gap: 16px; width: 100%; flex: 1; min-height: 0; }
+.arbres-icones { flex: 1; display: flex; gap: 12px; }
+.arbre-icones { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px; border-radius: 14px; border: 2px solid var(--bordure); background: var(--panneau-sombre); }
+.arbre-icones h3 { margin: 0 0 2px; font-family: Cinzel, serif; font-size: 20px; display: flex; gap: 8px; align-items: baseline; }
+.arbre-icones h3 span { font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; color: var(--or); }
+.palier-icones { position: relative; display: flex; justify-content: center; gap: 22px; margin-top: 22px; }
+.lien-palier { position: absolute; top: -20px; left: 50%; width: 3px; height: 16px; transform: translateX(-50%); background: #5a4433; }
+.lien-palier.ouvert { background: var(--or); }
+.noeud-talent { width: 104px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: 0; background: none; }
+.icone-talent { position: relative; width: 58px; height: 58px; display: grid; place-items: center; border-radius: 50%; border: 3px solid #5a4433; background: #1a130e; }
+.icone-talent img { width: 40px; height: 40px; }
+.k-sort > .icone-talent, .icone-talent.k-sort { border-radius: 12px; }
+.k-epique > .icone-talent, .icone-talent.k-epique { border-radius: 12px; border-color: #a66be0; background: #2a1f38; }
+.noeud-talent.k-epique .icone-talent { width: 66px; height: 66px; }
+.noeud-talent.k-epique .icone-talent img { width: 50px; height: 50px; }
+.nom-talent { font-size: 12px; font-weight: 800; line-height: 1.1; text-align: center; }
+.noeud-talent:hover .icone-talent { border-color: var(--or-clair); }
+.noeud-talent.dispo .icone-talent { border-color: #a8834a; box-shadow: 0 0 8px rgba(230, 195, 106, 0.25); }
+.noeud-talent.pris .icone-talent, .icone-talent.pris { border-color: var(--or); box-shadow: 0 0 14px rgba(230, 195, 106, 0.55); }
+.noeud-talent.pris .icone-talent::after { content: "✓"; position: absolute; right: -7px; bottom: -7px; width: 22px; height: 22px; border-radius: 50%; background: var(--or); color: #1a0f08; font-size: 14px; font-weight: 900; line-height: 22px; text-align: center; }
+.noeud-talent.ecarte .icone-talent img { opacity: 0.45; filter: grayscale(0.8); }
+.noeud-talent.ecarte .nom-talent { color: var(--texte-2); }
+.noeud-talent.ferme .icone-talent { opacity: 0.4; filter: grayscale(1); }
+.noeud-talent.ferme .nom-talent { color: #6f6458; }
+.noeud-talent.choisi .icone-talent { border-color: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22), 0 0 18px rgba(255, 255, 255, 0.35); opacity: 1; }
 
-/* ---------- Choix de la classe ---------- */
-.ecran-classes { justify-content: flex-start; padding: 16px 24px; gap: 8px; }
-.ecran-classes > p { margin: 0; font-size: 13px; max-width: 900px; }
-.grille-classes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; }
-.fiche-classe { display: flex; flex-direction: column; gap: 4px; padding: 9px 12px; border-radius: 12px; border: 2px solid #5a4433; background: var(--panneau); color: var(--texte); text-align: left; }
-.fiche-classe:hover:not(:disabled) { border-color: var(--couleur); box-shadow: 0 0 12px color-mix(in srgb, var(--couleur) 40%, transparent); }
-.fiche-classe.debloquee { border-color: var(--couleur); }
-.fiche-classe.bientot { opacity: 0.7; }
-.fiche-classe:disabled { cursor: default; }
-.tete-classe { display: flex; align-items: center; gap: 10px; }
-.tete-classe > div { display: flex; flex-direction: column; flex: 1; }
-.tete-classe b { font-size: 16px; font-weight: 800; }
-.embleme { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Cinzel, serif; font-weight: 700; font-size: 18px; color: #1a0f08; background: var(--couleur); flex: none; }
-.etoiles { color: var(--or); font-size: 12px; letter-spacing: 1px; }
+.fiche-talent, .fiche-classe-detail { width: 360px; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 16px; border: 2px solid #6a4f3a; background: var(--panneau); }
+.fiche-talent p, .fiche-classe-detail p { margin: 0; color: var(--texte); max-width: none; line-height: 1.35; }
+.titre-fiche { font-size: 24px; font-weight: 800; }
+.haut-fiche { display: flex; gap: 14px; align-items: center; }
+.icone-talent.grande { flex: none; width: 84px; height: 84px; border-color: var(--or); }
+.icone-talent.grande img { width: 64px; height: 64px; }
+.etiquettes { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.type-talent { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; background: #3b2d22; color: var(--texte-2); }
+.type-talent.k-sort { background: #1f3347; color: #9cc8f0; }
+.type-talent.k-epique { background: #3a2550; color: #d4b0ff; }
+.texte-fiche { display: flex; flex-direction: column; gap: 8px; font-size: 19px; }
+.texte-fiche .ameliore { color: var(--vert); font-size: 16px; }
+.fiche-talent .note, .fiche-classe-detail .note { font-size: 15px; color: var(--texte-2); }
+.note b { color: var(--or-clair); }
+.bas-fiche { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.bas-fiche .gros-bouton:disabled { background: var(--panneau-sombre); border-color: #5a4433; color: var(--texte-2); }
+.fiche-talent.vide p { color: var(--texte-2); font-size: 17px; }
+.fiche-talent.vide ul { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 16px; color: var(--texte-2); }
+.legende-talents { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; font-size: 16px; font-weight: 700; }
+.legende-talents span { display: flex; align-items: center; gap: 10px; }
+.forme { width: 24px; height: 24px; border: 3px solid #a8834a; border-radius: 50%; background: #1a130e; }
+.forme.k-sort { border-radius: 6px; }
+.forme.k-epique { border-radius: 6px; border-color: #a66be0; background: #2a1f38; }
+
+/* ---------- Classes : grille de sprites et fiche de la classe ---------- */
+.grille-classes { width: 690px; flex: none; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 10px; }
+.carte-classe { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; padding: 0 0 8px; overflow: hidden; border-radius: 14px; border: 3px solid var(--bordure); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--couleur) 38%, transparent), transparent 65%), var(--panneau-sombre); color: var(--texte); }
+.carte-classe:hover { border-color: color-mix(in srgb, var(--couleur) 70%, var(--bordure)); }
+.carte-classe.choisie { border-color: var(--couleur); box-shadow: 0 0 0 3px color-mix(in srgb, var(--couleur) 40%, transparent), 0 0 20px color-mix(in srgb, var(--couleur) 45%, transparent); }
+.sprite-classe { flex: 1; display: grid; place-items: center; }
+.sprite-classe img { width: 104px; height: 104px; }
+.carte-classe b { font-size: 18px; font-weight: 800; }
+.carte-classe.bientot b { color: #7d6f60; }
+.silhouette img { filter: brightness(0) opacity(0.75); }
+.carte-classe.bientot img { filter: brightness(0) opacity(0.35); }
+.sprite-inconnu { display: grid; place-items: center; width: 84px; height: 84px; font-family: Cinzel, serif; font-size: 56px; font-weight: 700; color: color-mix(in srgb, var(--couleur) 55%, #2a2018); }
+.badge-classe { position: absolute; top: 7px; left: 7px; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; background: #3b2d22; color: var(--texte-2); }
+.jouee .badge-classe, .debloquee .badge-classe { background: #1d3a24; color: var(--vert); }
+.a-debloquer .badge-classe { background: #4a3a14; color: var(--or-clair); }
+.etoiles { color: var(--or); font-size: 13px; letter-spacing: 1px; }
 .etoiles i { font-style: normal; color: #4a3a2a; }
-.statut-classe { font-style: normal; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texte-2); }
-.fiche-classe.debloquee .statut-classe { color: #8fd49a; }
-.fiche-classe q { font-size: 11px; font-style: italic; color: var(--or-clair); line-height: 1.25; }
-.fiche-classe dl { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; margin: 0; font-size: 11px; }
-.fiche-classe dt { color: var(--texte-2); font-weight: 700; }
-.fiche-classe dd { margin: 0; }
-.fiche-classe p { margin: 0; font-size: 11px; line-height: 1.25; color: var(--texte-2); }
+.fiche-classe-detail { flex: 1; width: auto; border-color: var(--couleur); }
+.portrait-classe { height: 170px; flex: none; display: grid; place-items: center; border-radius: 12px; background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--couleur) 45%, transparent), transparent 70%), var(--panneau-sombre); }
+.portrait-classe img { width: 160px; height: 160px; }
+.nom-classe { display: flex; align-items: baseline; gap: 10px; }
+.nom-classe b { font-family: Cinzel, serif; font-size: 30px; color: var(--couleur); }
+.nom-classe em { font-style: normal; font-size: 14px; color: var(--texte-2); }
+.fiche-classe-detail q { font-style: italic; color: var(--or-clair); font-size: 15px; }
+.infos-classe { display: grid; grid-template-columns: 26px 1fr; gap: 6px 10px; align-items: center; font-size: 16px; }
+.infos-classe img { width: 26px; height: 26px; }
+.fiche-classe-detail > p { font-size: 15px; color: var(--texte-2); }
 .apercu-amelioration { display: flex; align-items: center; gap: 60px; height: 300px; }
 .apercu-amelioration .carte { transform: scale(1.5); margin: 0; }
 .fleche-amelioration { font-size: 40px; color: var(--or); font-weight: 800; }

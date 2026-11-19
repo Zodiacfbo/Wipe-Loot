@@ -69,6 +69,7 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
+import { talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
 import { CLASSES, CLASS_BY_ID, chooseStartClass, classInfo, nextUnlockAt, totalXp, unlockClass, unlocksAvailable } from './engine/classes';
 import { DIFFICULTY_TEXT } from './engine/difficulty';
@@ -111,8 +112,12 @@ interface UiState {
   blessingRemove: boolean;
   /** Écran des talents (avant une run). */
   talentScreen: boolean;
+  /** Talent regardé (sa fiche s'affiche à droite). */
+  talentSel: { tree: TreeId; tier: number; choice: Choice } | null;
   /** Écran des classes : choix de la classe de départ, ou consultation. */
   classScreen: boolean;
+  /** Classe regardée sur l'écran des classes. */
+  classSel: string | null;
   /** Archives de la guilde : écran ouvert et onglet. */
   archivesScreen: boolean;
   archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres';
@@ -122,7 +127,7 @@ interface UiState {
   depositSlot: SlotKey | null;
 }
 
-const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, depositSlot: null, blessingRemove: false, talentScreen: false, classScreen: false, upgradeUid: null, pileKind: 'draw', heirloom: null, archivesScreen: false, archiveTab: 'monstres' };
+const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, depositSlot: null, blessingRemove: false, talentScreen: false, talentSel: null, classScreen: false, classSel: null, upgradeUid: null, pileKind: 'draw', heirloom: null, archivesScreen: false, archiveTab: 'monstres' };
 let stage: HTMLElement;
 let busy = false; // une animation est en cours : on ignore les clics
 
@@ -1381,35 +1386,71 @@ function summaryHtml(sum: RunSummary, classId = 'guerrier'): string {
   </div>`;
 }
 
-/** L'écran des classes : au premier lancement, on choisit sa classe de départ ; ensuite, on les consulte. */
+/** L'état d'une classe sur l'écran des classes. */
+type ClassStatus = 'libre' | 'jouee' | 'debloquee' | 'a-debloquer' | 'verrouillee' | 'bientot';
+const CLASS_BADGE: Record<ClassStatus, string> = { libre: '', jouee: 'Jouée', debloquee: 'Débloquée', 'a-debloquer': 'À débloquer', verrouillee: '🔒 À débloquer', bientot: 'Bientôt' };
+const DIFFICULTY_WORD = ['', 'facile', 'moyenne', 'difficile'];
+
+/** L'écran des classes : une grille de sprites, et la fiche de la classe touchée à droite.
+ *  Au premier lancement, on y choisit sa classe de départ ; ensuite, on y joue ou débloque une classe. */
 function classScreen(): string {
   const profile = loadProfile();
   const first = !profile.startClass;
+  const current = activeClass(profile);
+  const status = (id: string): ClassStatus => {
+    const c = CLASS_BY_ID[id];
+    if (!c.playable) return 'bientot';
+    if (first) return 'libre';
+    if (profile.unlockedClasses.includes(id)) return id === current ? 'jouee' : 'debloquee';
+    return unlocksAvailable(profile) > 0 ? 'a-debloquer' : 'verrouillee';
+  };
+  const selId = ui.classSel && CLASS_BY_ID[ui.classSel] ? ui.classSel : first ? 'guerrier' : current;
+  const sprite = (c: (typeof CLASSES)[number]) => (c.sprite ? `<img class="px" src="${A(c.sprite)}" alt="">` : '<span class="sprite-inconnu">?</span>');
   const cards = CLASSES.map((c) => {
-    const unlocked = profile.unlockedClasses.includes(c.id);
+    const st = status(c.id);
+    const hidden = st === 'bientot' || st === 'verrouillee' || st === 'a-debloquer';
     const stars = '★'.repeat(c.difficulty) + '<i>' + '★'.repeat(3 - c.difficulty) + '</i>';
-    const canUnlock = !first && c.playable && !unlocked && unlocksAvailable(profile) > 0;
-    const active = !first && unlocked && c.id === activeClass(profile);
-    const status = !c.playable ? 'En préparation' : active ? 'Jouée' : unlocked ? 'Débloquée · la jouer' : first ? 'Disponible' : canUnlock ? 'La débloquer' : 'À débloquer';
-    const action = first && c.playable ? `data-action="classe-depart" data-id="${c.id}"`
-      : canUnlock ? `data-action="debloquer" data-id="${c.id}"`
-      : unlocked && c.playable && !active ? `data-action="classe-active" data-id="${c.id}"` : 'disabled';
-    return `<button type="button" class="fiche-classe ${c.playable ? '' : 'bientot'} ${unlocked ? 'debloquee' : ''}" ${action} style="--couleur:${c.color}">
-      <div class="tete-classe"><span class="embleme">${c.name[0]}</span><div><b>${c.name}</b><span class="etoiles">${stars}</span></div><em class="statut-classe">${status}</em></div>
-      <q>${c.quote}</q>
-      <dl><dt>Rôle</dt><dd>${c.role}</dd><dt>Ressource</dt><dd>${c.resource}</dd><dt>PV</dt><dd>${c.hp}</dd></dl>
-      <p>${c.fantasy}</p>
+    return `<button type="button" class="carte-classe ${st} ${hidden ? 'silhouette' : ''} ${c.id === selId ? 'choisie' : ''}" data-action="classe-voir" data-id="${c.id}" style="--couleur:${c.color}">
+      ${CLASS_BADGE[st] ? `<span class="badge-classe">${CLASS_BADGE[st]}</span>` : ''}
+      <span class="sprite-classe">${sprite(c)}</span><b>${c.name}</b><span class="etoiles">${stars}</span>
     </button>`;
   }).join('');
+  const c = CLASS_BY_ID[selId];
+  const st = status(selId);
   const next = nextUnlockAt(profile);
-  const intro = first
-    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage, le Paladin, le Démoniste, le Prêtre et le Voleur sont jouables : les autres classes sont en préparation.'
-    : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> : touche celle que tu veux.` : ''} Touche une classe débloquée pour la jouer.`;
+  const n = unlocksAvailable(profile);
+  const [button, note] = {
+    libre: [`<button type="button" class="gros-bouton" data-action="classe-depart" data-id="${c.id}">Commencer avec le ${c.name}</button>`, 'Les autres classes se débloqueront avec l\'expérience.'],
+    jouee: ['<button type="button" class="gros-bouton" disabled>Classe jouée</button>', 'C\'est la classe de tes prochaines expéditions.'],
+    debloquee: [`<button type="button" class="gros-bouton" data-action="classe-active" data-id="${c.id}">Jouer le ${c.name}</button>`, ''],
+    'a-debloquer': [`<button type="button" class="gros-bouton" data-action="debloquer" data-id="${c.id}">Débloquer le ${c.name}</button>`, `Tu peux débloquer ${n} classe${n > 1 ? 's' : ''} : c'est toi qui choisis.`],
+    verrouillee: ['<button type="button" class="gros-bouton" disabled>À débloquer</button>', next ? `Prochaine classe à ${next} exp. (tu en as ${totalXp(profile)}).` : ''],
+    bientot: ['<button type="button" class="gros-bouton" disabled>En préparation</button>', 'Cette classe arrive dans une prochaine version.'],
+  }[st];
+  const sub = first
+    ? 'Choisis ta classe de départ. Touche une classe pour la découvrir.'
+    : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}`;
   return `<div class="ecran ecran-classes">
-    <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
-    <p>${intro}</p>
-    <div class="grille-classes">${cards}</div>
-    <button type="button" class="gros-bouton secondaire" data-action="titre">Retour</button>
+    <div class="tete-talents">
+      <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
+      <span class="points-talent">${sub}</span>
+      <button type="button" class="bouton" data-action="titre">Retour</button>
+    </div>
+    <div class="corps-classes">
+      <div class="grille-classes">${cards}</div>
+      <aside class="fiche-classe-detail" style="--couleur:${c.color}">
+        <div class="portrait-classe ${st === 'bientot' || st === 'verrouillee' ? 'silhouette' : ''}">${sprite(c)}</div>
+        <div class="nom-classe"><b>${c.name}</b><span class="etoiles">${'★'.repeat(c.difficulty)}<i>${'★'.repeat(3 - c.difficulty)}</i></span><em>Difficulté ${DIFFICULTY_WORD[c.difficulty]}</em></div>
+        <q>${c.quote}</q>
+        <div class="infos-classe">
+          <img class="px" src="${A('icone_epee.png')}" alt=""><span>${c.role}</span>
+          <img class="px" src="${A('icone_pouvoir.png')}" alt=""><span>${c.resource}</span>
+          <img class="px" src="${A('icone_sang.png')}" alt=""><span>${c.hp} PV</span>
+        </div>
+        <p>${c.fantasy}</p>
+        <div class="bas-fiche">${note ? `<p class="note">${note}</p>` : ''}${button}</div>
+      </aside>
+    </div>
   </div>`;
 }
 
@@ -1427,50 +1468,113 @@ function myAlloc(): TalentAlloc {
   return clampAlloc(profile.talents[cls] ?? emptyAlloc(cls), classLevel(profile, cls).level, cls);
 }
 
-/** L'écran des talents : 3 arbres de 5 paliers. */
+/** Les trois sortes de talents : la forme de l'icône change (rond, carré, grand cadre violet). */
+type TalentKind = 'passif' | 'sort' | 'epique';
+const TALENT_KIND_LABEL: Record<TalentKind, string> = { passif: 'Passif', sort: 'Sort de barre', epique: 'Carte épique' };
+const talentKind = (d: { card?: string; spell?: string }): TalentKind => (d.card ? 'epique' : d.spell ? 'sort' : 'passif');
+
+/** L'écran des talents : 3 arbres de 5 paliers en icônes ; la fiche du talent touché s'affiche à droite. */
 function talentScreen(): string {
   const profile = loadProfile();
   const cls = activeClass(profile);
   const points = classLevel(profile, cls).level;
   const alloc = myAlloc();
   const left = points - pointsUsed(alloc);
-  const cols = treesFor(cls).map((tree) => {
+  const trees = treesFor(cls);
+  const sel = ui.talentSel && trees.some((tr) => tr.id === ui.talentSel!.tree) ? ui.talentSel : null;
+  const cols = trees.map((tree) => {
     const picks = alloc[tree.id] ?? [];
     const tiers = tree.tiers.map((options, tier) => {
-      const open = tier <= picks.length;
-      const buttons = options.map((d, i) => {
+      const nodes = options.map((d, i) => {
         const choice: Choice = i === 0 ? 'A' : 'B';
-        const taken = picks[tier] === choice;
-        const can = taken || (tier < picks.length) || (tier === picks.length && left > 0);
-        const kind = d.spell ? 'Sort de barre' : d.card ? 'Carte épique' : 'Passif';
-        const action = can ? `data-action="talent" data-tree="${tree.id}" data-tier="${tier}" data-choice="${choice}"` : 'disabled';
-        if (d.card) {
-          // La carte épique : son illustration, son coût et ce qu'elle fait (normale et améliorée).
-          const c = CARDS[d.card];
-          const cost = `${c.cost} énergie${c.rageCost ? ` + ${c.rageCost === 'all' ? 'toute ta' : c.rageCost} rage` : ''}`;
-          return `<button type="button" class="talent epique ${taken ? 'pris' : ''}" ${action}>
-            <img class="px illu-talent" src="${A(`carte_${d.card}.png`)}" alt="">
-            <div><b>${d.name}</b><em>Carte épique · ${c.type} · ${cost}</em><span>${c.text(false)}</span><span class="ameliore">Améliorée : ${c.text(true)}</span><span class="note-talent">Un exemplaire dans ton deck de départ.</span></div></button>`;
-        }
-        return `<button type="button" class="talent ${taken ? 'pris' : ''}" ${action}>
-          <b>${d.name}</b><em>${kind}</em><span>${d.text}</span></button>`;
-      }).join('<span class="ou">ou</span>');
-      return `<div class="palier ${open ? '' : 'ferme'}"><span class="num-palier">${tier + 1}</span><div class="choix-palier">${buttons}</div></div>`;
+        const state = picks[tier] === choice ? 'pris' : tier < picks.length ? 'ecarte' : tier === picks.length ? (left > 0 ? 'dispo' : '') : 'ferme';
+        const chosen = sel?.tree === tree.id && sel.tier === tier && sel.choice === choice;
+        return `<button type="button" class="noeud-talent k-${talentKind(d)} ${state} ${chosen ? 'choisi' : ''}" data-action="talent-voir" data-tree="${tree.id}" data-tier="${tier}" data-choice="${choice}">
+          <span class="icone-talent"><img class="px" src="${A(talentIcon(d))}" alt=""></span><span class="nom-talent">${d.name}</span></button>`;
+      }).join('');
+      return `<div class="palier-icones">${tier ? `<span class="lien-palier ${tier <= picks.length ? 'ouvert' : ''}"></span>` : ''}${nodes}</div>`;
     }).join('');
-    return `<section class="arbre"><h3>${tree.name} <span>${picks.length}/5</span></h3><p>${tree.theme}</p>${tiers}</section>`;
+    return `<section class="arbre-icones"><h3>${tree.name} <span>${picks.length}/5</span></h3>${tiers}</section>`;
   }).join('');
   return `<div class="ecran ecran-talents">
     <div class="tete-talents">
       <h2>Talents du ${classInfo(cls).name}</h2>
-      <span class="points-talent">${left} point${left > 1 ? 's' : ''} à répartir sur ${points}</span>
+      <span class="points-talent">${left > 0 ? `● ${left} point${left > 1 ? 's' : ''} à placer` : 'Tous tes points sont placés'} · ${points} au total</span>
+      <button type="button" class="bouton" data-action="talents-reset" ${pointsUsed(alloc) ? '' : 'disabled'}>Tout retirer</button>
+      <button type="button" class="bouton" data-action="titre">Retour</button>
     </div>
-    <p>1 point par niveau de classe. Il faut un point dans un palier pour ouvrir le suivant. Touche un talent pris pour changer de choix, ou retirer le dernier palier d'un arbre. Le respec est gratuit entre deux runs.</p>
-    <div class="arbres">${cols}</div>
-    <div class="actions">
-      <button type="button" class="gros-bouton secondaire" data-action="talents-reset">Tout réinitialiser</button>
-      <button type="button" class="gros-bouton" data-action="titre">Retour</button>
-    </div>
+    <div class="corps-talents"><div class="arbres-icones">${cols}</div>${talentCard(cls, alloc, left, sel)}</div>
   </div>`;
+}
+
+/** La fiche d'un talent : ce qu'il fait, et le bouton qui le prend (c'est la confirmation). */
+function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: TreeId; tier: number; choice: Choice } | null): string {
+  if (!sel) {
+    return `<aside class="fiche-talent vide">
+      <b class="titre-fiche">Touche un talent</b>
+      <p>pour voir ce qu'il fait, puis le prendre.</p>
+      <div class="legende-talents">
+        <span><i class="forme k-passif"></i>Passif</span><span><i class="forme k-sort"></i>Sort de barre</span><span><i class="forme k-epique"></i>Carte épique</span>
+      </div>
+      <ul>
+        <li>1 point par niveau de classe.</li>
+        <li>Un seul talent par palier.</li>
+        <li>Un talent dans un palier ouvre le suivant.</li>
+        <li>Changer ses talents est gratuit entre deux expéditions.</li>
+      </ul>
+    </aside>`;
+  }
+  const tree = treesFor(cls).find((tr) => tr.id === sel.tree)!;
+  const picks = alloc[tree.id] ?? [];
+  const i = sel.choice === 'A' ? 0 : 1;
+  const d = tree.tiers[sel.tier][i];
+  const other = tree.tiers[sel.tier][1 - i];
+  const kind = talentKind(d);
+  const chips = [`<span class="type-talent k-${kind}">${TALENT_KIND_LABEL[kind]}</span>`, `<span class="type-talent">${tree.name} · palier ${sel.tier + 1}</span>`];
+  let body: string;
+  if (d.card) {
+    const c = CARDS[d.card];
+    chips.push(`<span class="type-talent">${c.type} · ${c.cost} énergie${c.rageCost ? ` + ${c.rageCost === 'all' ? 'toute ta' : c.rageCost} rage` : ''}</span>`);
+    body = `<p>${c.text(false)}</p><p class="ameliore">Améliorée : ${c.text(true)}</p><p class="note">Un exemplaire dans ton deck de départ.</p>`;
+  } else if (d.spell) {
+    // « Ajoute ce sort à ta barre (…) : effet » : le type est déjà dans l'étiquette, on garde l'effet.
+    const m = /^Ajoute ce sort à ta barre(?: \(([^)]*)\))? : (.*)$/.exec(d.text);
+    const spell = SPELLS[d.spell];
+    if (spell) chips.push(`<span class="type-talent">${spell.cost ? `${spell.cost} énergie` : 'Gratuit'} · recharge ${spell.cooldown} tour${spell.cooldown > 1 ? 's' : ''}</span>`);
+    body = m ? `<p>${m[2][0].toUpperCase()}${m[2].slice(1)}</p>${m[1] && !/énergie/.test(m[1]) ? `<p class="note">${m[1][0].toUpperCase()}${m[1].slice(1)}.</p>` : ''}` : `<p>${d.text}</p>`;
+  } else {
+    body = `<p>${d.text}</p>`;
+  }
+  const taken = picks[sel.tier] === sel.choice;
+  let button: string;
+  let note = '';
+  const act = `data-action="talent" data-tree="${tree.id}" data-tier="${sel.tier}" data-choice="${sel.choice}"`;
+  if (taken && sel.tier === picks.length - 1) {
+    button = `<button type="button" class="gros-bouton secondaire" ${act}>Retirer ce talent</button>`;
+    note = 'Tu récupères 1 point.';
+  } else if (taken) {
+    button = '<button type="button" class="gros-bouton" disabled>Talent pris</button>';
+    note = `Pour le retirer, retire d'abord les paliers suivants de ${tree.name}.`;
+  } else if (sel.tier < picks.length) {
+    button = `<button type="button" class="gros-bouton" ${act}>Prendre à la place</button>`;
+    note = `Remplace <b>${other.name}</b>, sans coûter de point.`;
+  } else if (sel.tier === picks.length && left > 0) {
+    button = `<button type="button" class="gros-bouton" ${act}>Prendre · 1 point</button>`;
+    note = other ? `Un seul talent par palier : l'autre choix est <b>${other.name}</b>.` : '';
+  } else if (sel.tier === picks.length) {
+    button = '<button type="button" class="gros-bouton" disabled>Plus de point à placer</button>';
+    note = 'Tu gagnes 1 point par niveau de classe.';
+  } else {
+    button = '<button type="button" class="gros-bouton" disabled>Palier fermé</button>';
+    note = `Prends d'abord un talent du palier ${picks.length + 1} de ${tree.name}.`;
+  }
+  return `<aside class="fiche-talent">
+    <div class="haut-fiche"><span class="icone-talent grande k-${kind} ${taken ? 'pris' : ''}"><img class="px" src="${A(talentIcon(d))}" alt=""></span>
+      <div><b class="titre-fiche">${d.name}</b><div class="etiquettes">${chips.join('')}</div></div></div>
+    <div class="texte-fiche">${body}</div>
+    <div class="bas-fiche">${note ? `<p class="note">${note}</p>` : ''}${button}
+      <button type="button" class="bouton" data-action="talent-fermer">Fermer</button></div>
+  </aside>`;
 }
 
 function endScreen(run: RunState, victory: boolean): string {
@@ -1878,7 +1982,8 @@ function handleClick(ev: MouseEvent): void {
     case 'titre': ui.run = null; ui.overlay = null; ui.talentScreen = false; ui.classScreen = false; ui.archivesScreen = false; render(); return;
     case 'archives': ui.run = null; ui.overlay = null; ui.archivesScreen = true; render(); return;
     case 'archives-onglet': ui.archiveTab = el.dataset.tab as UiState['archiveTab']; render(); return;
-    case 'classes': ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return;
+    case 'classes': ui.run = null; ui.overlay = null; ui.classScreen = true; ui.classSel = null; render(); return;
+    case 'classe-voir': ui.classSel = el.dataset.id!; render(); return;
     case 'classe-depart': {
       const profile = loadProfile();
       if (chooseStartClass(profile, el.dataset.id!)) saveProfile(profile);
@@ -1905,7 +2010,9 @@ function handleClick(ev: MouseEvent): void {
       render();
       return;
     }
-    case 'talents': ui.run = null; ui.overlay = null; ui.talentScreen = true; render(); return;
+    case 'talents': ui.run = null; ui.overlay = null; ui.talentScreen = true; ui.talentSel = null; render(); return;
+    case 'talent-voir': ui.talentSel = { tree: el.dataset.tree as TreeId, tier: Number(el.dataset.tier), choice: el.dataset.choice as Choice }; render(); return;
+    case 'talent-fermer': ui.talentSel = null; render(); return;
     case 'talent': {
       const profile = loadProfile();
       const cls = activeClass(profile);
@@ -1918,6 +2025,7 @@ function handleClick(ev: MouseEvent): void {
       return;
     }
     case 'talents-reset': {
+      if (!confirm('Retirer tous tes talents ? Tu récupères tous tes points.')) return;
       const profile = loadProfile();
       const cls = activeClass(profile);
       profile.talents[cls] = emptyAlloc(cls);

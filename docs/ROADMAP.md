@@ -208,4 +208,6 @@ Reprises du [concept](CONCEPT.md#19-questions-ouvertes) :
 - [x] Animations un peu trop rapides → ralenties
 - [x] Voir ce que font les cartes épiques dans les talents → illustration, coût et effets
 - [x] Passe de cohérence : aperçu avant/après des améliorations, passifs des ennemis affichés, textes d'Exécution, de Pourfendre et de la Zone de feu qui suivent les talents et l'équipement, pioche et défausse consultables, objets sans effet pour le Guerrier signalés, Potion de force et Malédiction renommées, barre du haut cliquable partout
+- [x] Écran des talents plus lisible : 3 arbres en icônes (rond = passif, carré = sort de barre, cadre violet = carte épique), la fiche du talent touché à droite, et le bouton « Prendre · 1 point » qui sert de confirmation. Icônes : l'illustration d'une carte proche, ou une icône dessinée (`tools/pixel/icones_talents.py`)
+- [x] Écran des classes avec les sprites : une grille (silhouette pour les classes à débloquer, « ? » pour celles en préparation) et la fiche de la classe touchée à droite, avec son bouton (commencer, jouer, débloquer)
 - [ ] …
