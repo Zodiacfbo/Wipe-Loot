@@ -90,18 +90,19 @@ cd tools/pixel && python3 illustrations.py                  # régénère les il
 
 - `src/engine/` : moteur **pur et sérialisable en JSON** (RNG déterministe mulberry32 dans `rng.ts`). Aucune dépendance au DOM.
   - `types.ts` (états de run et de combat), `run.ts` (déroulement de la run), `combat.ts` (tours, cartes, ennemis), `actions.ts` (dégâts, blocage, soins, morts).
-  - `cards.ts` (Guerrier, cartes-statut, registre `CARDS`), `cards_mage.ts`, `cards_demoniste.ts`, `cards_pretre.ts`, `cards_voleur.ts`.
+  - `cards.ts` (Guerrier, cartes-statut, registre `CARDS`), `cards_mage.ts`, `cards_demoniste.ts`, `cards_pretre.ts`, `cards_voleur.ts`, `cards_paladin.ts`.
   - `spells.ts` (sorts de barre de toutes les classes), `talents.ts` (arbres par classe, `CLASS_TREES`), `classes.ts` (fiches et kits de départ).
-  - Mécaniques de classe : `demoniste.ts` (familier, DoT, Malédictions, éclats), `pretre.ts` (Égide, Foi), `voleur.ts` (combo, Camouflage, Poison, Contrôle).
+  - Mécaniques de classe : `demoniste.ts` (familier, DoT, Malédictions, éclats), `pretre.ts` (Égide, Foi), `voleur.ts` (combo, Camouflage, Poison, Contrôle), `paladin.ts` (Sceaux et Jugement, Auras, Censure).
   - `enemies.ts` (acte 1) et `enemies_acte2.ts`, `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
   - `save.ts` : sauvegarde **versionnée** avec `migrate()` (run) et `loadProfile()` (profil). Tout nouveau champ de `RunState` → incrémenter la version et ajouter une étape de migration, et mettre à jour `expect(run.version)` dans les tests.
   - `progression.ts` (score, expérience, niveaux), `guild.ts` (coffre), `archives.ts` (lore des monstres).
+  - `devtools.ts` : **l'outil de test** (niveaux, remises à zéro, déblocages, triches de run), affiché seulement sur `/dev/` et en local. **À retirer avant la version 1.0** (avec `tests/devtools.test.ts` et les lignes « Outil de test » de `ui.ts` et `style.css`).
 - `src/ui.ts` : tout l'affichage (HTML en chaînes, délégation d'événements via `data-action`). `src/style.css`. `src/fx.ts` : animations à partir de `c.fx`.
 - `tools/balance/` : le bot (`bot.ts`, qui ne regarde qu'une action à l'avance) et les simulations (`*.sim.ts`).
 - `tools/pixel/` : sprites et illustrations en Python/Pillow (classe `Sprite` dans `sprites.py`). Sortie dans `public/assets/` (`carte_<id>.png`, `ennemi_<id>.png`, `<classe>.png`, `familier_<id>.png`).
 - `docs/` : `CONCEPT.md`, `ROADMAP.md`, `EQUILIBRAGE.md` (journal des passes du bot), une fiche par classe (`docs/classes/`) et par acte (`docs/actes/`).
 
-### Ajouter une classe (recette suivie pour Mage, Démoniste, Prêtre, Voleur)
+### Ajouter une classe (recette suivie pour Mage, Démoniste, Prêtre, Voleur, Paladin)
 
 1. Lire la fiche `docs/classes/<CLASSE>.md`.
 2. `types.ts` : champs de combat (ressource) et de run si besoin (+ migration `save.ts`). `items.ts` : clés `ItemEffects` des talents, et `KEY_CLASSES` pour les bonus propres à la classe.
@@ -122,6 +123,8 @@ cd tools/pixel && python3 illustrations.py                  # régénère les il
 - Ne pas modifier une liste pendant qu'on la parcourt avec un alias (bug déjà vu dans `placeCurse`).
 - Les scripts Playwright échouent parfois à cause de la bénédiction tirée au hasard : relancer, ce n'est pas un bug du jeu.
 - Le bot ne voit qu'une action à l'avance : certains choix (Pacte de sang, Rôdeur contre les boss, Pierre d'âme) sont codés en dur dans `bot.ts`.
+- Pour équilibrer une classe, isoler un talent ou une carte épique : `simulateRun` accepte n'importe quelle liste d'ids de talents (ex. `['t_avatar_lumiere']` seul au niveau 1). Ne pas garder ces sondes dans le dépôt.
+- Le jeu se joue en paysage : dans Playwright, utiliser `devices['iPhone 13 landscape']` (en portrait, un écran « tourne ton téléphone » bloque les clics).
 
 ---
 
@@ -137,15 +140,18 @@ cd tools/pixel && python3 illustrations.py                  # régénère les il
 ## §5 Où en est le projet
 
 - **Joueurs :** moi seul (sur PC et sur téléphone). Aucun compte ni aucune donnée en ligne : la sauvegarde reste dans le navigateur. Les comptes (Firebase) sont prévus pour la phase 4.
-- **Classes jouables :** Guerrier, Mage, Démoniste, Prêtre, Voleur (52-53 cartes, 9-10 sorts, 27 talents chacune). **Restent, dans l'ordre :** Paladin, Chasseur, Chaman, Druide.
+- **Classes jouables :** Guerrier, Mage, Paladin, Démoniste, Prêtre, Voleur (52-53 cartes, 9-10 sorts, 27 talents chacune). **Restent, dans l'ordre :** Chasseur, Chaman, Druide.
 - **Actes :** 1 (Profondeurs Ardentes, Vulkhar) et 2 (Aire de Vhaeryx), enchaînés. La run se termine après Vhaeryx. Acte 3 (Irem) à faire, puis l'acte bonus (Nécropole céleste).
-- **Légendaires faits :** Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor). Ils se forgent au feu de camp à partir de l'acte 2. Restent : l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres (avec leurs classes).
+- **Légendaires faits :** Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor), l'Aurore ardente (Paladin : Reliquaire profané, Ossyrax, feu de camp ; l'étape des Veilleurs viendra avec l'acte 3). Ils se forgent au feu de camp à partir de l'acte 2. Restent : Corde-des-anciens, le Marteau des ancêtres (avec leurs classes).
 - **Profil :** les niveaux de difficulté débloqués et les talents sont propres à chaque classe ; le hall retient la dernière classe choisie.
-- **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0.
+- **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
+- **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
 - **Décisions de design à respecter :**
   - Le Guerrier n'a volontairement que très peu de soins (Sanguinaire, Dernier rempart, objets). Pas de « Second souffle » ni de vol de vie. Si on en ajoute un jour, le réserver à un seul arbre.
   - Une classe de difficulté ⭐⭐⭐ (comme le Démoniste) peut rester un cran en dessous des autres en taux de victoire du bot : c'est accepté.
   - Le butin épique de Vhaeryx arrivera avec l'acte 3 (tant que Vhaeryx termine la run).
+  - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
+  - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---
