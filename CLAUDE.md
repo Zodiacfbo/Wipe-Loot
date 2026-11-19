@@ -5,7 +5,8 @@ Deckbuilder roguelite à la Slay the Spire, univers original (Eldrava) inspiré 
 ## Règles absolues
 
 - **Toujours répondre en français**, à 100 %.
-- **Branches :** travailler sur la branche de session, puis pousser aussi sur `dev` (`git push -q origin HEAD` puis `git push -q origin HEAD:dev`). `main` = version officielle : n'y pousser que si on le demande. Pas de pull request sauf demande.
+- **Branches : pour l'instant, on travaille sur `dev`.** En début de session, partir de `dev` à jour (`git fetch origin dev` puis `git checkout -B <branche de session> origin/dev`). À la fin du travail, pousser sur la branche de session (`git push -q origin HEAD`) puis sur `dev` (`git push -q origin HEAD:dev`), en avance rapide uniquement : si `dev` a bougé, fusionner d'abord `origin/dev`. Jamais de `push --force` sur `dev`.
+- `main` = version officielle : n'y pousser que si on le demande. Pas de pull request sauf demande.
 - **Commits :** en français, et jamais d'identifiant de modèle dans les commits ni le code.
 - **Ne jamais committer `INSPIRATIONS.md`** (notes privées, hors dépôt).
 - Ne pas mettre l'e-mail de l'utilisateur dans le dépôt ni dans des requêtes externes.
