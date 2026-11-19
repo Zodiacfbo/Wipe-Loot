@@ -77,7 +77,9 @@ import { COMMON_POOL } from './engine/items';
 import { POTION_IDS } from './engine/potions';
 import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
-import { loadProfile, localSave, saveProfile } from './engine/save';
+import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save';
+// Outil de test (version dev seulement)
+import { devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
@@ -91,7 +93,9 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 interface UiState {
   run: RunState | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | null;
+  /** Outil de test : la classe choisie dans le panneau. */
+  devClass?: string;
   /** Objet du coffre choisi dans le hall pour la prochaine expédition (index). */
   heirloom: number | null;
   pileKind: 'draw' | 'discard' | 'exhaust';
@@ -1047,7 +1051,7 @@ function titleScreen(): string {
   const stats = profile.stats;
   return `<div class="hall">
     <header class="hall-tete"><span class="titre-jeu petit">Wipe &amp; Loot</span><span class="hall-nom">Hall de la guilde</span>
-      <div class="hall-options">${fullscreenButton('bouton')}</div></header>
+      <div class="hall-options">${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${fullscreenButton('bouton')}</div></header>
     <section class="hall-heros">
       ${switcher}
       <img class="px" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:160px;height:160px">
@@ -1486,6 +1490,7 @@ function endScreen(run: RunState, victory: boolean): string {
 }
 
 function overlayHtml(run: RunState | null): string {
+  if (ui.overlay === 'test') return devPanelHtml(run); // Outil de test
   if (ui.overlay === 'abandon') return confirmAbandonHtml();
   if (ui.overlay === 'difficultes') {
     const max = maxDifficulty();
@@ -1581,10 +1586,98 @@ function overlayHtml(run: RunState | null): string {
       <div class="actions">
         <button type="button" class="gros-bouton" data-action="fermer">Reprendre</button>
         <button type="button" class="gros-bouton secondaire" data-action="titre">Retour au hall de la guilde</button>
+        ${isDevBuild() ? '<button type="button" class="gros-bouton secondaire bouton-test" data-action="test">🛠 Outil de test</button>' : ''}
       </div>
     </div></div>`;
   }
   return '';
+}
+
+// ---------- Outil de test (version dev seulement, à retirer avant la version 1.0) ----------
+
+/** La version de test (/dev/) ou le jeu lancé en local : jamais la version officielle. */
+function isDevBuild(): boolean {
+  return location.pathname.includes('/dev/') || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+}
+
+function devPanelHtml(run: RunState | null): string {
+  const profile = loadProfile();
+  const playable = CLASSES.filter((c) => c.playable);
+  const cls = ui.devClass ?? activeClass(profile);
+  const lvl = classLevel(profile, cls).level;
+  const classes = playable.map((c) => `<button type="button" class="${c.id === cls ? 'actif' : ''}" data-action="test-classe" data-id="${c.id}" style="--couleur:${c.color}">${c.name}</button>`).join('');
+  const levels = Array.from({ length: MAX_LEVEL }, (_, i) => `<button type="button" class="${i + 1 === lvl ? 'actif' : ''}" data-action="test-niveau" data-niveau="${i + 1}">${i + 1}</button>`).join('');
+  const inRun = run && run.screen !== 'victory' && run.screen !== 'gameover';
+  const runPart = inRun ? `<div class="test-bloc">
+      <span class="butin-titre">Expédition en cours · acte ${run.act}</span>
+      <div class="test-boutons">
+        <button type="button" class="bouton" data-action="test-or">+500 or</button>
+        <button type="button" class="bouton" data-action="test-pv">PV au maximum</button>
+        ${run.screen === 'combat' && run.combat?.phase === 'player' ? '<button type="button" class="bouton" data-action="test-gagner">Gagner le combat</button>' : ''}
+        ${run.act < 2 && run.screen !== 'combat' ? '<button type="button" class="bouton" data-action="test-acte">Passer à l\'acte 2</button>' : ''}
+      </div>
+    </div>` : '';
+  return `<div class="overlay"><div class="ecran panneau-test">
+    <h2>🛠 Outil de test</h2>
+    <p>Visible seulement sur la version de test. Il sera retiré avant la version 1.0.</p>
+    <div class="test-bloc">
+      <span class="butin-titre">Classe</span>
+      <div class="choix-classe-hall">${classes}</div>
+      <span class="butin-titre">Niveau de ${classInfo(cls).name} : ${lvl}</span>
+      <div class="test-niveaux">${levels}</div>
+      <div class="test-boutons">
+        <button type="button" class="bouton" data-action="test-difficultes">Débloquer toutes les difficultés (${classInfo(cls).name})</button>
+        <button type="button" class="bouton" data-action="test-reset-classe">Remettre ${classInfo(cls).name} à zéro</button>
+      </div>
+    </div>
+    <div class="test-bloc">
+      <span class="butin-titre">Profil</span>
+      <div class="test-boutons">
+        <button type="button" class="bouton" data-action="test-classes">Débloquer toutes les classes jouables</button>
+        <button type="button" class="bouton danger" data-action="test-reset-tout">Tout remettre à zéro (profil et expédition)</button>
+      </div>
+    </div>
+    ${runPart}
+    <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+  </div></div>`;
+}
+
+/** Les actions du panneau de test. Renvoie true si l'action a été traitée. */
+function devAction(action: string, el: HTMLElement): boolean {
+  if (!action.startsWith('test')) return false;
+  const profile = loadProfile();
+  const cls = ui.devClass ?? activeClass(profile);
+  const run = ui.run;
+  switch (action) {
+    case 'test': ui.overlay = 'test'; break;
+    case 'test-classe': ui.devClass = el.dataset.id; break;
+    case 'test-niveau': devSetLevel(profile, cls, Number(el.dataset.niveau)); saveProfile(profile); break;
+    case 'test-difficultes': devUnlockDifficulties(profile, cls); saveProfile(profile); break;
+    case 'test-reset-classe': devResetClass(profile, cls); saveProfile(profile); break;
+    case 'test-classes': devUnlockClasses(profile); saveProfile(profile); break;
+    case 'test-reset-tout':
+      if (!confirm('Tout remettre à zéro : le profil (niveaux, talents, coffre, archives) et l\'expédition en cours ?')) return true;
+      saveProfile(emptyProfile());
+      localSave.clear();
+      ui.run = null;
+      ui.overlay = null;
+      ui.devClass = undefined;
+      break;
+    case 'test-or': if (run) devGold(run); break;
+    case 'test-pv': if (run) devHeal(run); break;
+    case 'test-gagner':
+      if (run && devWinCombat(run)) {
+        ui.overlay = null;
+        void commit();
+        return true;
+      }
+      break;
+    case 'test-acte': if (run && devNextAct(run)) ui.overlay = null; break;
+    default: return false;
+  }
+  if (ui.run) localSave.save(ui.run);
+  render();
+  return true;
 }
 
 // ---------- Boucle de rendu ----------
@@ -1748,6 +1841,7 @@ function handleClick(ev: MouseEvent): void {
   if (!el || (el as HTMLButtonElement).disabled) return;
   const run = ui.run;
   const action = el.dataset.action;
+  if (action && isDevBuild() && devAction(action, el)) return; // Outil de test
   switch (action) {
     case 'nouvelle': {
       if (!loadProfile().startClass) { ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return; }

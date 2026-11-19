@@ -229,6 +229,11 @@ export function loadProfile(): Profile {
   } catch {
     // profil illisible : on repart d'un profil vide
   }
+  return emptyProfile();
+}
+
+/** Un profil tout neuf (premier lancement). */
+export function emptyProfile(): Profile {
   return { version: 7, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0, seenCards: [], seenEnemies: [], seenPotions: [], kills: {} };
 }
 
