@@ -218,3 +218,24 @@ C'est un cran en dessous du Guerrier et du Mage au niveau 10 (64 à 74 %) : c'es
 **Le bot :** il ne voit qu'une action à l'avance, il n'aurait jamais lancé Pacte de sang. Il le lance donc quand il n'a plus d'énergie, qu'il a une carte jouable et plus de 45 % de ses PV. Il prend le Rôdeur du néant contre les boss, et il garde la Pierre d'âme pour eux. Prendre le Rôdeur contre les boss a été le plus gros changement : 2 % → 30 % au niveau 5.
 
 **À surveiller :** Vhaeryx reste son combat le plus dur (48 à 76 % de wipe au premier essai), et l'arbre Affliction est un peu derrière Démonologie.
+
+## 11. Le Prêtre
+
+Mesuré sur la run complète (actes 1 et 2), difficulté 0, 100 runs par profil.
+
+| Profil | Première version | Après réglages | Vulkhar vaincu (acte 2 atteint) |
+|---|---|---|---|
+| Niveau 1 | 2 % | **8 %** | 31 % |
+| Niveau 5 (Discipline 3, Sacré 2) | 10 % | **15 %** | 61 % |
+| Niveau 10 (Discipline 5, Sacré 5) | 44 % | **63 %** | 96 % |
+| Niveau 10 (Ombre 5, Sacré 5) | 29 % | **53 %** | 95 % |
+
+**Ce qui a changé :**
+
+| Élément | Avant | Après | Constat du bot |
+|---|---|---|---|
+| Égide sacrée (sort de départ) | 1 énergie, 8 Égide | **0 énergie, 5 Égide** | Comme Charge, Contresort et Pacte de sang, le sort de départ doit servir à chaque combat. À 8 Égide gratuite, le Prêtre écrasait tout (80 % au niveau 10) |
+| Châtiment, Prière de garde, Murmure de douleur | 6, 5, DoT 3 | **7, 6, DoT 4** | Le même renfort de départ que les autres classes |
+| Égide améliorée, Soins améliorés, Douleur améliorée | +2, +2, +1 | **+3, +3, +2** | Les premiers paliers pesaient trop peu |
+
+**À surveiller :** le niveau 5 reste un peu bas par rapport aux autres classes, et l'Égide persistante avec Lumière persistante et Âme inébranlable (signalée dans la fiche) n'a pas encore été vue sur des combats très longs.

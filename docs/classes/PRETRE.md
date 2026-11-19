@@ -1,7 +1,7 @@
 # Classe : le Prêtre
 
 > Wipe & Loot · Fiche de classe · Version 0.1
-> Les chiffres sont **indicatifs** : ils serviront de base aux premiers tests d'équilibrage.
+> Les chiffres ont été réglés par une première passe d'équilibrage (voir [l'équilibrage](../EQUILIBRAGE.md), §11).
 
 ---
 
@@ -62,16 +62,16 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Châtiment** | 4 | 1 | Sort (Sacré) | Inflige 6 dégâts. | 9 dégâts |
-| **Prière de garde** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
+| **Châtiment** | 4 | 1 | Sort (Sacré) | Inflige 7 dégâts. | 10 dégâts |
+| **Prière de garde** | 4 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
 | **Soins rapides** | 1 | 1 | Compétence | Soigne 6 PV. | 9 PV |
-| **Murmure de douleur** | 1 | 1 | Sort (Ombre) | Applique DoT 3 pendant 4 tours. | DoT 4 |
+| **Murmure de douleur** | 1 | 1 | Sort (Ombre) | Applique DoT 4 pendant 4 tours. | DoT 5 |
 
 ### 4.2 Sort de barre de départ
 
 | Sort | Coût | Recharge | Effet |
 |---|---|---|---|
-| **Égide sacrée** | 1 | 2 tours | Gagne 8 Égide. |
+| **Égide sacrée** | 0 | 2 tours | Gagne 5 Égide. |
 
 ---
 
@@ -83,7 +83,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Châtiment** | 1 | Sort | C | Inflige 6 dégâts. | 9 dégâts |
+| **Châtiment** | 1 | Sort | C | Inflige 7 dégâts. | 10 dégâts |
 | **Soins rapides** | 1 | Compétence | C | Soigne 6 PV. | 9 PV |
 | **Grâce** | 1 | Compétence | C | Soigne 3 PV au début de tes 3 prochains tours. | 4 PV |
 | **Dissipation de la magie** | 0 | Compétence | C | **Dissipation (Magie).** Pioche 1 carte. | Pioche 2 cartes |
@@ -136,7 +136,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Murmure de douleur** | 1 | Sort | C | Applique DoT 3 pendant 4 tours. | DoT 4 |
+| **Murmure de douleur** | 1 | Sort | C | Applique DoT 4 pendant 4 tours. | DoT 5 |
 | **Attaque mentale** | 1 | Sort | C | Inflige 9 dégâts. | 12 dégâts |
 | **Fouet psychique** | 2 | Sort | C | Inflige 4 dégâts 3 fois. Applique Ralenti (1 tour). | 5 × 3 |
 | **Éclat d'ombre** | 1 | Sort | C | Inflige 5 dégâts à tous les ennemis. | 8 dégâts |
@@ -157,7 +157,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Sort | Coût | Recharge | Effet | Source principale |
 |---|---|---|---|---|
-| **Égide sacrée** | 1 | 2 tours | Gagne 8 Égide. | Départ |
+| **Égide sacrée** | 0 | 2 tours | Gagne 5 Égide. | Départ |
 | **Transfusion de puissance** | 0 | 5 tours | Ce tour-ci, tes cartes coûtent 1 de moins (minimum 0). | Talent Discipline, palier 3 |
 | **Focalisation intérieure** | 0 | 4 tours | Ta prochaine carte coûte 0. | Talent Discipline, palier 3 |
 | **Prière désespérée** | 0 | 1 fois par combat | Soigne 20 PV. | Talent Sacré, palier 3 |
@@ -175,7 +175,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Égide améliorée** : tes cartes d'Égide donnent +2 Égide. | **Volonté** : +6 PV max. |
+| **1** | **Égide améliorée** : tes cartes d'Égide donnent +3 Égide. | **Volonté** : +6 PV max. |
 | **2** | **Méditation profonde** : ton Égide maximale passe à 40. | **Esprit martyr** : quand ton Égide est entièrement détruite, pioche 2 cartes. |
 | **3** | **Transfusion de puissance** : ajoute ce sort à ta barre. | **Focalisation intérieure** : ajoute ce sort à ta barre. |
 | **4** | **Lumière intérieure** : commence chaque combat avec 8 Égide. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
@@ -185,7 +185,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Soins améliorés** : tes soins rendent +2 PV. | **Châtiment amélioré** : Châtiment et Châtiment ardent infligent +2 dégâts. |
+| **1** | **Soins améliorés** : tes soins rendent +3 PV. | **Châtiment amélioré** : Châtiment et Châtiment ardent infligent +2 dégâts. |
 | **2** | **Foi ardente** : ta Foi maximale passe à 15. | **Lumière bénie** : chaque soin excédentaire te donne aussi 1 Foi. |
 | **3** | **Prière désespérée** : ajoute ce sort à ta barre. | **Nova de lumière** : ajoute ce sort à ta barre. |
 | **4** | **Gardien céleste** : Ange gardien est Inné. | **Courroux sacré** : Courroux céleste inflige +1 dégât par point de Foi. |
@@ -195,7 +195,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Douleur améliorée** : Murmure de douleur inflige +1 dégât par tour. | **Concentration de l'ombre** : Fouet psychique frappe une fois de plus. |
+| **1** | **Douleur améliorée** : Murmure de douleur inflige +2 dégâts par tour. | **Concentration de l'ombre** : Fouet psychique frappe une fois de plus. |
 | **2** | **Ombres tenaces** : tes DoT durent 1 tour de plus. | **Esprit sombre** : Attaque mentale inflige +4 dégâts. |
 | **3** | **Silence** : ajoute ce sort à ta barre. | **Cri psychique** : ajoute ce sort à ta barre. |
 | **4** | **Puissance du vide** : commence chaque combat avec 1 Puissance. | **Faim vampirique** : Étreinte vampirique soigne 1 PV de plus. |
@@ -250,3 +250,12 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
   - Ascension lumineuse combinée à Esprit de guérison crée beaucoup de valeur sur chaque soin.
   - Bénédiction de vigueur donne des PV max permanents : il faudra vérifier qu'elle reste rare.
 - **Forme d'Ombre :** le choix de basculer doit rester une vraie décision. Si elle est trop forte, plus personne ne jouera la Lumière.
+
+---
+
+## 12. Ce qui est en jeu dans le prototype
+
+- **La Foi** se gagne quand une **carte** te soigne ou te donne de l'Égide (+1 par carte, quel que soit le nombre de soins), et avec les cartes qui en donnent directement. Les sorts de barre et les soins automatiques (Grâce, Sol sacré) n'en donnent pas.
+- **Les dissipations :** Dissipation de la magie retire les malédictions (Démoralisé, Impie, cartes Paniquées, Malédiction de lignée…) ; Purification retire la Toxine, la Peste et les Afflictions de sang verte et noire.
+- **La Malédiction de lignée** de Vhaeryx (2 tours) : tes soins te blessent au lieu de te soigner.
+- **Équinoxe :** le Bâton nu à la chapelle effondrée (acte 1), la Larme d'Ysolde sur Ysolde la Rouge (acte 2), puis le Rituel de l'équinoxe au feu de camp.
