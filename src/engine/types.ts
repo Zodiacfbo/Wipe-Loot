@@ -7,6 +7,8 @@ import type { RunSummary } from './progression';
 
 export type Rarity = 'depart' | 'commune' | 'peu_commune' | 'rare' | 'epique' | 'statut';
 export type CardType = 'Attaque' | 'Compétence' | 'Pouvoir' | 'Sort' | 'Statut';
+/** L'école de magie d'une carte du Mage. */
+export type School = 'arcane' | 'feu' | 'givre';
 export type Posture = 'combat' | 'berserker' | 'defensive';
 
 export interface CardInstance {
@@ -24,6 +26,10 @@ export interface EnemyBuffs {
   saignementTours: number;
   /** Apeuré (Cri d'intimidation) : ne fait rien à son prochain tour. */
   peur?: number;
+  /** Mage — Brûlure : dégâts au début du tour de l'ennemi, puis −1. */
+  brulure?: number;
+  /** Mage — Gel : à 5 cumuls, l'ennemi devient Gelé. */
+  gel?: number;
 }
 
 export type Intent =
@@ -115,6 +121,10 @@ export interface EnemyState {
   disarmed?: boolean;
   /** Frappe mortelle : ne peut plus être soigné. */
   noHeal?: boolean;
+  /** Gelé : un ennemi normal perd son prochain tour ('skip'), un boss voit sa prochaine attaque réduite de moitié ('half'). */
+  gele?: 'skip' | 'half';
+  /** Métamorphose : transformé en mouton (ne fait rien) pendant ce nombre de tours, ou jusqu'à ce qu'il subisse des dégâts. */
+  mouton?: number;
 }
 
 export interface PlayerState {
@@ -146,6 +156,21 @@ export interface PlayerState {
   riposte?: number;
   /** Enragé : bonus de dégâts de la prochaine Attaque. */
   enrageReady?: number;
+  /** Mage — charges arcaniques (0 à `maxCharges`). */
+  charges?: number;
+  maxCharges?: number;
+  /** Pouvoir des arcanes : Sorts +50 % ce tour-ci. */
+  arcanePower?: boolean;
+  /** Carapace de glace : immunisé à tous les dégâts jusqu'au prochain tour. */
+  iceBlock?: boolean;
+  /** Bouclier de mana : s'il reste du blocage au début du prochain tour, pioche 1 carte. */
+  manaShield?: boolean;
+  /** Distorsion temporelle : au prochain tour, +1 énergie et 2 cartes de plus. */
+  distortion?: boolean;
+  /** Réflexion des sorts : une incantation qui te frappe ce tour-ci renvoie la moitié de ses dégâts. */
+  spellReflect?: boolean;
+  /** Bouclier de feu ancestral : Brûlure appliquée à chaque attaquant jusqu'au prochain tour. */
+  fireShield?: number;
 }
 
 export interface SpellState {
@@ -197,7 +222,7 @@ export interface CombatState {
   /** L'Orbe de distorsion a déjà servi pendant ce combat. */
   orbUsed?: boolean;
   /** La carte en train d'être jouée (pour les bonus qui dépendent de son coût ou de son type). */
-  playing?: { cost: number; type: CardType; id: string };
+  playing?: { cost: number; type: CardType; id: string; school?: School };
   /** Les ennemis sont en train de jouer leur tour. */
   enemyActing?: boolean;
   /** Puissance déjà gagnée avec la Pierre de magma. */
@@ -214,6 +239,15 @@ export interface CombatState {
   /** Les contraintes de difficulté qui touchent les ennemis. */
   mods?: CombatMods;
   bleedDoneThisTurn?: boolean;
+  /** La classe jouée (guerrier par défaut). */
+  classId?: string;
+  /** Inspiration : la prochaine carte coûte 0. Présence d'esprit : le prochain Sort coûte 0. */
+  freeNext?: boolean;
+  freeNextSpell?: boolean;
+  /** Toucher glacial : la prochaine carte avec Fracasser agit comme si la cible avait 3 Gel. */
+  shatterReady?: boolean;
+  /** Sorts (cartes) joués ce tour-ci, pour Concentration arcanique. */
+  mageSpellsThisTurn?: number;
   nextUid: number;
   rng: number;
 }
@@ -235,7 +269,9 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 16;
+  version: 17;
+  /** La classe jouée pendant cette run. */
+  classId: string;
   seed: number;
   rng: number;
   maxHp: number;

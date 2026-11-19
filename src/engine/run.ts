@@ -1,19 +1,20 @@
 // La run : la carte de l'acte, les combats, les récompenses, le feu de camp, les événements, les wipes.
-import { CARDS, REWARD_POOL, STARTER_DECK } from './cards';
+import { CARDS, rewardPool } from './cards';
+import { classInfo } from './classes';
 import { createCombat } from './combat';
 import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, type Encounter } from './enemies';
 import { BLESSINGS, EVENTS, HIDDEN_FIGHTS } from './events';
-import { COMMON_POOL, ITEMS, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
+import { COMMON_POOL, ITEMS, uselessFor, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
-import { BAR_SLOTS, WARRIOR_LOOT_SPELLS } from './spells';
-import { EPIC_CARDS, TALENTS, TREES } from './talents';
+import { BAR_SLOTS, lootSpells } from './spells';
+import { EPIC_CARDS, TALENTS, treesFor } from './talents';
 import { difficultyMods } from './difficulty';
 import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 16;
+export const SAVE_VERSION = 17;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -26,15 +27,17 @@ export const SERVICE_PRICE_STEP = 25;
 /**
  * `heirloom` : l'objet emporté du coffre de la guilde, équipé dès le départ.
  * `talents` : les talents choisis avant la run (ids, voir talents.ts).
+ * `classId` : la classe jouée (le Guerrier par défaut).
  */
-export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null, talents: string[] = [], difficulty = 0): RunState {
+export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null, talents: string[] = [], difficulty = 0, classId = 'guerrier'): RunState {
   const mods = difficultyMods(difficulty);
+  const info = classInfo(classId);
   let uid = 1;
-  const deck: CardInstance[] = STARTER_DECK.map((id) => ({ uid: uid++, id, upgraded: false }));
+  const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 16, seed, rng: seed, maxHp: 80, hp: 80, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 17, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
-    potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: ['charge'], pendingSpell: null, screen: 'map',
+    potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
@@ -77,7 +80,9 @@ export function runGear(run: RunState): ItemEffects {
     for (const [k, v] of Object.entries(TALENTS[id]?.fx ?? {}) as [keyof ItemEffects, number][]) g[k] = (g[k] ?? 0) + v;
   }
   if (run.weaponUpgrade && run.equipment.arme === run.weaponUpgrade && !run.broken.includes('arme')) {
-    g.attackBonus = (g.attackBonus ?? 0) + 2;
+    // Le renfort profite aux Attaques du Guerrier, ou aux Sorts du Mage.
+    if (run.classId === 'mage') g.spellBonus = (g.spellBonus ?? 0) + 2;
+    else g.attackBonus = (g.attackBonus ?? 0) + 2;
   }
   return g;
 }
@@ -168,7 +173,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
 function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0));
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId);
   run.screen = 'combat';
 }
 
@@ -219,7 +224,7 @@ export function afterCombatAction(run: RunState): void {
       if (table) {
         // 5 entrées : les 4 objets du boss, et un sort de barre de ta classe.
         const roll = Math.floor(random(run) * (table.length + 1));
-        const spells = WARRIOR_LOOT_SPELLS.filter((id) => !run.spells.includes(id));
+        const spells = lootSpells(run.classId).filter((id) => !run.spells.includes(id));
         if (roll === table.length && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
         else run.pendingItem = table[roll % table.length];
       }
@@ -265,7 +270,7 @@ function cardUnlocked(run: RunState, id: string): boolean {
 /** Les récompenses penchent vers les arbres où l'on a mis des points. */
 function weightedCard(run: RunState, pool: string[]): string {
   const points = (id: string) => {
-    const tree = TREES.find((t) => t.cards.includes(id));
+    const tree = treesFor(run.classId).find((t) => t.cards.includes(id));
     return tree ? run.talents.filter((t) => tree.tiers.flat().some((d) => d.id === t)).length : 0;
   };
   const weights = pool.map((id) => 1 + 0.5 * points(id));
@@ -282,7 +287,7 @@ function offerCards(run: RunState, title: string, min: Rarity): void {
   let guard = 0;
   while (choices.length < 3 && guard++ < 100) {
     const rarity = rollRarity(run, min);
-    const pool = REWARD_POOL.filter((id) => CARDS[id].rarity === rarity && !choices.includes(id) && cardUnlocked(run, id));
+    const pool = rewardPool(run.classId).filter((id) => CARDS[id].rarity === rarity && !choices.includes(id) && cardUnlocked(run, id));
     if (pool.length === 0) continue;
     choices.push(weightedCard(run, pool));
   }
@@ -318,7 +323,7 @@ function openShop(run: RunState): void {
   const rarities: Rarity[] = ['commune', 'commune', 'peu_commune', 'peu_commune', 'rare'];
   const cards: ShopCard[] = [];
   for (const rarity of rarities) {
-    const pool = REWARD_POOL.filter((id) => CARDS[id].rarity === rarity && !cards.some((c) => c.id === id));
+    const pool = rewardPool(run.classId).filter((id) => CARDS[id].rarity === rarity && !cards.some((c) => c.id === id));
     if (pool.length === 0) continue;
     const id = pool[Math.floor(random(run) * pool.length)];
     const [min, max] = PRICE_RANGE[rarity];
@@ -400,7 +405,8 @@ export function buyItem(run: RunState, index: number, slot: SlotKey): boolean {
 /** Un objet au hasard parmi ceux des coffres et du vendeur (70 % communs, 30 % rares). */
 function rollItem(run: RunState, forced?: 'commun' | 'rare'): string {
   const rarity = forced ?? (random(run) < 0.7 ? 'commun' : 'rare');
-  const pool = COMMON_POOL.filter((id) => ITEMS[id].rarity === rarity);
+  // Les coffres et le vendeur ne proposent que des objets utiles à la classe.
+  const pool = COMMON_POOL.filter((id) => ITEMS[id].rarity === rarity && !uselessFor(id, run.classId));
   return pool[Math.floor(random(run) * pool.length)];
 }
 

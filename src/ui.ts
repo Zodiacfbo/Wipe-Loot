@@ -1,5 +1,5 @@
 // L'interface : affiche l'état de la run et transmet les actions du joueur au moteur.
-import { CARDS, REWARD_POOL, energyCost } from './engine/cards';
+import { CARDS, energyCost, rewardPool, starterCards } from './engine/cards';
 import {
   SPELLS,
   canPlayCard,
@@ -55,8 +55,9 @@ import {
   repairItem,
 } from './engine/run';
 import { POTIONS } from './engine/potions';
-import { TREES, clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
-import { CLASSES, chooseStartClass, nextUnlockAt, totalXp, unlocksAvailable } from './engine/classes';
+import { clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
+import { freezeThreshold } from './engine/actions';
+import { CLASSES, CLASS_BY_ID, chooseStartClass, classInfo, nextUnlockAt, totalXp, unlockClass, unlocksAvailable } from './engine/classes';
 import { DIFFICULTY_TEXT } from './engine/difficulty';
 import { LORE, recordKills, recordSeen } from './engine/archives';
 import { COMMON_POOL } from './engine/items';
@@ -64,7 +65,7 @@ import { POTION_IDS } from './engine/potions';
 import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
-import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, type Slot, type SlotKey } from './engine/items';
+import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx } from './fx';
 import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState } from './engine/types';
@@ -116,6 +117,9 @@ const ICON = {
   sablier: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>',
   crane: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a8 8 0 0 0-8 8c0 3 1.5 4.5 3 5.5V20h10v-3.5c1.5-1 3-2.5 3-5.5a8 8 0 0 0-8-8z"/><circle cx="9" cy="11" r="1.6" fill="currentColor"/><circle cx="15" cy="11" r="1.6" fill="currentColor"/><path d="M10 20v-2M14 20v-2"/></svg>',
   charge: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h12M13 6l6 6-6 6"/></svg>',
+  flamme: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-4 3-5 0 2 1 3 2 3 0-3-1-5 0-8z"/></svg>',
+  flocon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg>',
+  etoile: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 6.2L21 10l-5 4.4L17.5 21 12 17.6 6.5 21 8 14.4 3 10l6.4-.8z"/></svg>',
 };
 
 const RARITY_FRAME: Record<string, string> = {
@@ -129,6 +133,8 @@ const POSTURES: { id: Posture; label: string; aide: string }[] = [
 ];
 
 // ---------- Rendu d'une carte ----------
+
+const SCHOOL_LABEL = { arcane: 'Arcane', feu: 'Feu', givre: 'Givre' } as const;
 
 function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean } = {}): string {
   const def = CARDS[card.id];
@@ -146,7 +152,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     ${opts.panicked ? '<span class="tampon-panique">Paniquée</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
-    <span class="type">${def.type}</span>
+    <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}</span>
     <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}">${text}</span>
   </button>`;
 }
@@ -192,12 +198,14 @@ function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false)
     return `<div class="objet vide"><span class="objet-icone">${SLOT_ICON[(slotLabel.toLowerCase() as Slot)] ?? ''}</span><div><b>${slotLabel}</b><span>Emplacement vide</span></div></div>`;
   }
   const it = ITEMS[id];
-  // Effets qui ne servent pas au Guerrier (il n'a ni Sorts ni alliés) : on le dit clairement.
+  // Effets qui ne servent pas à la classe jouée : on le dit clairement.
+  const cls = ui.run?.classId ?? activeClass();
+  const name = classInfo(cls).name;
   const keys = Object.keys(it.fx);
-  const useless = keys.filter((k) => k === 'spellBonus' || k === 'allyBonus');
+  const useless = uselessFx(id, cls);
   const note = useless.length === 0 ? '' : useless.length === keys.length
-    ? '<i class="note-objet">Sans effet pour le Guerrier.</i>'
-    : '<i class="note-objet">Le bonus aux Sorts ne sert pas au Guerrier.</i>';
+    ? `<i class="note-objet">Sans effet pour le ${name}.</i>`
+    : `<i class="note-objet">${cls === 'mage' ? 'Le bonus aux Attaques' : 'Le bonus aux Sorts'} ne sert pas au ${name}.</i>`;
   return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
 }
 
@@ -248,7 +256,7 @@ function topbar(run: RunState, hp: number): string {
   const pips = Array.from({ length: run.maxWipes ?? MAX_WIPES }, (_, i) => `<i class="pip ${i < run.wipesLeft ? '' : 'vide'}"></i>`).join('');
   return `<div class="topbar">
     <div class="groupe">
-      <span class="nom-classe">Guerrier</span>
+      <span class="nom-classe">${classInfo(run.classId).name}</span>
       <span class="stat pv">${ICON.coeur}<span>${hp} / ${run.maxHp}</span></span>
       <span class="stat or">${ICON.piece}<span>${run.gold}</span></span>
       <span class="potions">${run.potions.map((id, i) => `<button type="button" class="potion-slot ${id ? '' : 'vide'}" ${id ? `data-action="potion" data-slot="${i}" aria-label="${POTIONS[id].name}" title="${POTIONS[id].name}"` : 'disabled aria-label="Emplacement de potion vide"'}>${potionIcon(id)}</button>`).join('')}</span>
@@ -370,7 +378,7 @@ function eventScreen(run: RunState): string {
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>${ev.title}</h2>
     <p class="texte-evenement">${ev.text}</p>
-    ${ev.warriorText ? `<p class="texte-evenement classe">${ev.warriorText}</p>` : ''}
+    ${ev.warriorText && run.classId === 'guerrier' ? `<p class="texte-evenement classe">${ev.warriorText}</p>` : ''}
     <div class="choix-liste">${choices}</div>
   </div>`;
 }
@@ -515,6 +523,10 @@ function enemyChips(e: EnemyState): string {
   if (b.ralenti > 0) chips.push(`<span class="chip debuff">Ralenti ${b.ralenti}</span>`);
   if (b.armureFracassee > 0) chips.push(`<span class="chip debuff">Armure fracassée ${b.armureFracassee}</span>`);
   if (b.saignement > 0) chips.push(`<span class="chip saigne">Saignement ${b.saignement}</span>`);
+  if (b.brulure) chips.push(`<span class="chip brule" title="Dégâts au début de son tour, puis −1">Brûlure ${b.brulure}</span>`);
+  if (b.gel) chips.push(`<span class="chip gel" title="À ${ui.run?.combat ? freezeThreshold(ui.run.combat) : 5} cumuls : Gelé">Gel ${b.gel}/${ui.run?.combat ? freezeThreshold(ui.run.combat) : 5}</span>`);
+  if (e.gele) chips.push(`<span class="chip gel" title="${e.gele === 'skip' ? 'Perd son prochain tour' : 'Prochaine attaque réduite de moitié'}">Gelé${e.gele === 'half' ? ' : attaque ÷ 2' : ''}</span>`);
+  if (e.mouton) chips.push(`<span class="chip debuff" title="Ne fait rien ; reprend forme s'il est blessé">Mouton ${e.mouton}</span>`);
   if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
   if (ui.run?.encounter?.rune && ENEMIES[e.defId].elite) chips.push('<span class="chip rune">Rune des Sources</span>');
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
@@ -559,6 +571,8 @@ function intentHtml(c: CombatState, e: EnemyState): string {
 
 function intentNow(c: CombatState, e: EnemyState): string {
   const i = e.intent;
+  if (e.mouton) return `<div class="intention interrompu">Mouton : ne fait rien</div>`;
+  if (e.gele === 'skip') return `<div class="intention interrompu gele">Gelé : passe son tour</div>`;
   if (e.interrupted) return `<div class="intention interrompu">Interrompu</div>`;
   if (i.cast) {
     const effet =
@@ -615,6 +629,18 @@ const POWER_LABEL: Record<string, [string, string]> = {
   riposte_bouclier: ['Riposte au bouclier', 'Attaque bloquée : dégâts à l\'attaquant'],
   garde_de_fer: ['Garde de fer', 'Tu gardes la moitié de ton blocage'],
   bastion: ['Bastion', 'Carte de blocage : dégâts à tous'],
+  erudition: ['Érudition', 'Pioche 1 carte de plus à chaque tour'],
+  resonance: ['Résonance', '6 charges arcaniques au maximum'],
+  concentration_arcanique: ['Concentration arcanique', '3e Sort du tour : +1 énergie'],
+  esprit_vif: ['Esprit vif', '+1 charge au début de chaque tour'],
+  embrasement: ['Embrasement', 'Sort de 10 dégâts ou plus : Brûlure'],
+  armure_de_lave: ['Armure de lave', 'Tes attaquants reçoivent de la Brûlure'],
+  chaleur_intense: ['Chaleur intense', 'La Brûlure des ennemis augmente à chaque tour'],
+  pyromanie: ['Pyromanie', 'Sorts de Feu à 2 énergie : +dégâts'],
+  armure_de_givre: ['Armure de givre', 'Tes attaquants reçoivent du Gel'],
+  morsure_du_froid: ['Morsure du froid', 'Un ennemi Gelé subit des dégâts'],
+  fragmentation: ['Fragmentation', 'Fracasser : triple dégâts'],
+  coeur_de_glace: ['Cœur de glace', 'Gel 1 à tous au début de ton tour'],
 };
 
 function playerChips(c: CombatState): string {
@@ -636,6 +662,15 @@ function playerChips(c: CombatState): string {
   if (p.riposte) chips.push(`<span class="chip">Riposte ${p.riposte}</span>`);
   if (p.enrageReady) chips.push(`<span class="chip">Enragé : +${p.enrageReady} à la prochaine Attaque</span>`);
   if (c.cleave) chips.push(`<span class="chip">Balayage : ${c.cleave} Attaque${c.cleave > 1 ? 's' : ''}</span>`);
+  if (p.arcanePower) chips.push('<span class="chip">Pouvoir des arcanes : Sorts +50 %</span>');
+  if (p.iceBlock) chips.push('<span class="chip gel">Carapace de glace : immunisé</span>');
+  if (p.manaShield) chips.push('<span class="chip" title="S\'il te reste du blocage au début de ton tour : pioche 1 carte">Bouclier de mana</span>');
+  if (p.distortion) chips.push('<span class="chip">Distorsion : +1 énergie et +2 cartes au prochain tour</span>');
+  if (p.spellReflect) chips.push('<span class="chip">Réflexion des sorts</span>');
+  if (p.fireShield) chips.push(`<span class="chip brule">Bouclier de feu : Brûlure ${p.fireShield} aux attaquants</span>`);
+  if (c.freeNext) chips.push('<span class="chip">Inspiration : prochaine carte gratuite</span>');
+  if (c.freeNextSpell) chips.push('<span class="chip">Présence d\'esprit : prochain Sort gratuit</span>');
+  if (c.shatterReady) chips.push('<span class="chip gel">Toucher glacial : prochain Fracasser</span>');
   for (const [id, v] of Object.entries(c.powers ?? {})) {
     if (POWER_LABEL[id]) chips.push(`<span class="chip pouvoir" title="${POWER_LABEL[id][1]}">${POWER_LABEL[id][0]}${v > 1 ? ` ${v}` : ''}</span>`);
   }
@@ -647,7 +682,14 @@ function combatScreen(run: RunState, c: CombatState): string {
   const targeting = needsEnemyTarget(c);
   const hpPct = Math.max(0, (p.hp / p.maxHp) * 100);
 
+  const mage = run.classId === 'mage';
+  const hero = classInfo(run.classId);
   const rage = Array.from({ length: p.maxRage }, (_, i) => `<i class="${i < p.rage ? 'plein' : ''}"></i>`).join('');
+  const charges = Array.from({ length: p.maxCharges ?? 4 }, (_, i) => `<i class="${i < (p.charges ?? 0) ? 'plein' : ''} ${i >= 3 ? 'surcharge' : ''}"></i>`).join('');
+  const resource = mage
+    ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
+        <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
+    : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
@@ -722,15 +764,15 @@ function combatScreen(run: RunState, c: CombatState): string {
     ${enrage}
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
-      <img class="px" data-fx="player" src="${A('guerrier.png')}" alt="Le Guerrier" style="width:192px;height:192px">
+      <img class="px" data-fx="player" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:192px;height:192px">
       <div class="jauges">
         <div class="ligne">
           <div class="bouclier-badge" title="Blocage"><svg width="32" height="32" viewBox="0 0 24 24" fill="#1d2633" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span>${p.block}</span></div>
           <div class="barre-pv"><div style="width:${hpPct}%"></div><span>${p.hp} / ${p.maxHp}</span></div>
         </div>
-        <div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
+        ${mage ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
         <div class="postures" role="group" aria-label="Posture">${postures}</div>
-        <div class="aide-posture">${aidePosture}${p.postureChanged ? ' · déjà changée ce tour' : ''}</div>
+        <div class="aide-posture">${aidePosture}${p.postureChanged ? ' · déjà changée ce tour' : ''}</div>`}
       </div>
     </div>
     <div class="ennemis ${c.enemies.filter((e) => !e.dead && !e.submerged).length > 4 ? 'nombreux' : ''}">${enemies}</div>
@@ -752,10 +794,16 @@ function titleScreen(): string {
   const saved = localSave.load();
   // Une victoire dont le passage au coffre n'est pas fait peut encore être reprise.
   const canContinue = saved && saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
-  const lvl = classLevel(profile, 'guerrier');
+  const cls = activeClass(profile);
+  const hero = classInfo(cls);
+  const lvl = classLevel(profile, cls);
   const pct = lvl.needed ? Math.round((lvl.into / lvl.needed) * 100) : 100;
   const alloc = myAlloc();
-  const trees = TREES.map((t) => `<span class="${alloc[t.id].length === 5 ? 'complet' : ''}">${t.name} <b>${alloc[t.id].length}</b></span>`).join('');
+  const trees = treesFor(cls).map((t) => `<span class="${(alloc[t.id] ?? []).length === 5 ? 'complet' : ''}">${t.name} <b>${(alloc[t.id] ?? []).length}</b></span>`).join('');
+  const playable = profile.unlockedClasses.filter((id) => CLASS_BY_ID[id]?.playable);
+  const switcher = playable.length > 1
+    ? `<div class="choix-classe-hall" role="group" aria-label="Classe jouée">${playable.map((id) => `<button type="button" class="${id === cls ? 'actif' : ''}" data-action="classe-active" data-id="${id}" aria-pressed="${id === cls}" style="--couleur:${CLASS_BY_ID[id].color}">${CLASS_BY_ID[id].name}</button>`).join('')}</div>`
+    : '';
   const unlocks = unlocksAvailable(profile);
   const chest = profile.guildChest;
   if (ui.heirloom !== null && !chest[ui.heirloom]) ui.heirloom = null;
@@ -768,7 +816,7 @@ function titleScreen(): string {
   }).join('');
   const chosen = ui.heirloom !== null ? ITEMS[chest[ui.heirloom]] : null;
   const run = canContinue && saved ? `<div class="run-en-cours">
-      <span class="butin-titre">Expédition en cours</span>
+      <span class="butin-titre">Expédition en cours · ${classInfo(saved.classId).name}</span>
       <p>${saved.position === null ? 'Entrée des Profondeurs' : `Étage ${saved.map.nodes[saved.position].floor + 1}/${FLOORS}`} · ${ICON.coeur} ${saved.hp}/${saved.maxHp} · ${ICON.piece} ${saved.gold} · ${saved.wipesLeft} wipe${saved.wipesLeft > 1 ? 's' : ''} restant${saved.wipesLeft > 1 ? 's' : ''}</p>
       <button type="button" class="gros-bouton" data-action="continuer">Continuer</button>
     </div>` : '';
@@ -777,8 +825,9 @@ function titleScreen(): string {
     <header class="hall-tete"><span class="titre-jeu petit">Wipe &amp; Loot</span><span class="hall-nom">Hall de la guilde</span>
       <div class="hall-options">${fullscreenButton('bouton')}</div></header>
     <section class="hall-heros">
-      <img class="px" src="${A('guerrier.png')}" alt="Le Guerrier" style="width:160px;height:160px">
-      <h3>Guerrier · niveau ${lvl.level}</h3>
+      ${switcher}
+      <img class="px" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:160px;height:160px">
+      <h3>${hero.name} · niveau ${lvl.level}</h3>
       <div class="barre-xp"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
       <div class="hall-arbres">${trees}</div>
       <button type="button" class="gros-bouton secondaire" data-action="talents">Talents · ${pointsUsed(alloc)}/${lvl.level} points</button>
@@ -809,14 +858,17 @@ function titleScreen(): string {
 /** La progression des archives (en %), pour le hall. */
 function archivesProgress(): number {
   const p = loadProfile();
-  const cards = REWARD_POOL.length + STARTER_CARDS.length;
-  const total = cards + Object.keys(ITEMS).length + POTION_IDS.length + Object.keys(ENEMIES).length;
-  const seenCards = p.seenCards.filter((id) => REWARD_POOL.includes(id) || STARTER_CARDS.includes(id)).length;
+  const all = archiveCards().flatMap(([, ids]) => ids);
+  const total = all.length + Object.keys(ITEMS).length + POTION_IDS.length + Object.keys(ENEMIES).length;
+  const seenCards = p.seenCards.filter((id) => all.includes(id)).length;
   const found = seenCards + p.discoveredItems.length + p.seenPotions.length + p.seenEnemies.length;
   return Math.min(100, Math.round((100 * found) / total));
 }
 
-const STARTER_CARDS = ['frappe', 'parade', 'frappe_heroique', 'cri_de_guerre'];
+/** Les cartes des archives, classe par classe (les classes jouables). */
+function archiveCards(): [string, string[]][] {
+  return CLASSES.filter((c) => c.playable).map((c) => [c.name, [...starterCards(c.id), ...rewardPool(c.id)]]);
+}
 
 /** Les archives de la guilde : cartes, objets, potions et monstres découverts. */
 function archivesScreen(): string {
@@ -827,12 +879,13 @@ function archivesScreen(): string {
   let body = '';
   let count = '';
   if (tab === 'cartes') {
-    const ids = [...STARTER_CARDS, ...REWARD_POOL];
+    const groups = archiveCards();
+    const ids = groups.flatMap(([, list]) => list);
     const seen = ids.filter((id) => p.seenCards.includes(id));
     count = `${seen.length} / ${ids.length} cartes`;
-    body = `<div class="liste-deck archives-cartes">${ids.map((id) => p.seenCards.includes(id)
+    body = groups.map(([name, list]) => `<section class="table-loot"><h3>${name} · ${list.filter((id) => p.seenCards.includes(id)).length}/${list.length}</h3><div class="liste-deck archives-cartes">${list.map((id) => p.seenCards.includes(id)
       ? cardHtml({ uid: 0, id, upgraded: false }, { action: 'disabled' })
-      : '<div class="carte-inconnue">???</div>').join('')}</div>`;
+      : '<div class="carte-inconnue">???</div>').join('')}</div></section>`).join('');
   } else if (tab === 'objets') {
     const groups: [string, string[]][] = [['Coffres et vendeur gobelin', COMMON_POOL],
       ...ELITE_ENCOUNTERS.map((e) => [e.name, LOOT_TABLES[e.loot!]] as [string, string[]]),
@@ -1053,14 +1106,14 @@ function chestPanel(run: RunState): string {
 }
 
 /** Le bilan de la run : le score ligne par ligne, puis l'expérience et le niveau de classe. */
-function summaryHtml(sum: RunSummary): string {
+function summaryHtml(sum: RunSummary, classId = 'guerrier'): string {
   const rows = sum.lines.map((l) => `<div class="ligne-score"><span>${l.label}</span><b class="${l.points < 0 ? 'negatif' : ''}">${l.points > 0 ? '+' : ''}${l.points}</b></div>`).join('');
   const up = sum.levelAfter > sum.levelBefore;
   const pct = sum.needed ? Math.round((sum.into / sum.needed) * 100) : 100;
   return `<div class="bilan">
     <div class="bilan-score">${rows}<div class="ligne-score total"><span>Score</span><b>${sum.score}</b></div></div>
     <div class="bilan-xp">
-      <span class="butin-titre">Guerrier</span>
+      <span class="butin-titre">${classInfo(classId).name}</span>
       <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×2 : rattrapage)</em>' : ''}</b>
       <div class="niveau">Niveau ${sum.levelAfter}${sum.levelAfter === MAX_LEVEL ? ' (maximum)' : ''}</div>
       <div class="barre-xp"><div style="width:${pct}%"></div><span>${sum.needed ? `${sum.into} / ${sum.needed}` : 'Niveau maximum'}</span></div>
@@ -1077,8 +1130,12 @@ function classScreen(): string {
   const cards = CLASSES.map((c) => {
     const unlocked = profile.unlockedClasses.includes(c.id);
     const stars = '★'.repeat(c.difficulty) + '<i>' + '★'.repeat(3 - c.difficulty) + '</i>';
-    const status = !c.playable ? 'En préparation' : unlocked ? 'Débloquée' : first ? 'Disponible' : 'À débloquer';
-    const action = first && c.playable ? `data-action="classe-depart" data-id="${c.id}"` : 'disabled';
+    const canUnlock = !first && c.playable && !unlocked && unlocksAvailable(profile) > 0;
+    const active = !first && unlocked && c.id === activeClass(profile);
+    const status = !c.playable ? 'En préparation' : active ? 'Jouée' : unlocked ? 'Débloquée · la jouer' : first ? 'Disponible' : canUnlock ? 'La débloquer' : 'À débloquer';
+    const action = first && c.playable ? `data-action="classe-depart" data-id="${c.id}"`
+      : canUnlock ? `data-action="debloquer" data-id="${c.id}"`
+      : unlocked && c.playable && !active ? `data-action="classe-active" data-id="${c.id}"` : 'disabled';
     return `<button type="button" class="fiche-classe ${c.playable ? '' : 'bientot'} ${unlocked ? 'debloquee' : ''}" ${action} style="--couleur:${c.color}">
       <div class="tete-classe"><span class="embleme">${c.name[0]}</span><div><b>${c.name}</b><span class="etoiles">${stars}</span></div><em class="statut-classe">${status}</em></div>
       <q>${c.quote}</q>
@@ -1088,8 +1145,8 @@ function classScreen(): string {
   }).join('');
   const next = nextUnlockAt(profile);
   const intro = first
-    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, seul le Guerrier est jouable : les autres classes sont en préparation.'
-    : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> dès que d'autres classes seront prêtes.` : ''}`;
+    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier et le Mage sont jouables : les autres classes sont en préparation.'
+    : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> : touche celle que tu veux.` : ''} Touche une classe débloquée pour la jouer.`;
   return `<div class="ecran ecran-classes">
     <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
     <p>${intro}</p>
@@ -1098,20 +1155,29 @@ function classScreen(): string {
   </div>`;
 }
 
-/** La répartition de talents du Guerrier, ramenée aux points disponibles. */
+/** La classe jouée depuis le hall : celle choisie, si elle est débloquée, sinon la classe de départ. */
+function activeClass(profile = loadProfile()): string {
+  const id = profile.currentClass;
+  if (id && profile.unlockedClasses.includes(id) && CLASS_BY_ID[id]?.playable) return id;
+  return profile.startClass ?? 'guerrier';
+}
+
+/** La répartition de talents de la classe jouée, ramenée aux points disponibles. */
 function myAlloc(): TalentAlloc {
   const profile = loadProfile();
-  return clampAlloc(profile.talents.guerrier ?? emptyAlloc(), classLevel(profile, 'guerrier').level);
+  const cls = activeClass(profile);
+  return clampAlloc(profile.talents[cls] ?? emptyAlloc(cls), classLevel(profile, cls).level, cls);
 }
 
 /** L'écran des talents : 3 arbres de 5 paliers. */
 function talentScreen(): string {
   const profile = loadProfile();
-  const points = classLevel(profile, 'guerrier').level;
+  const cls = activeClass(profile);
+  const points = classLevel(profile, cls).level;
   const alloc = myAlloc();
   const left = points - pointsUsed(alloc);
-  const cols = TREES.map((tree) => {
-    const picks = alloc[tree.id];
+  const cols = treesFor(cls).map((tree) => {
+    const picks = alloc[tree.id] ?? [];
     const tiers = tree.tiers.map((options, tier) => {
       const open = tier <= picks.length;
       const buttons = options.map((d, i) => {
@@ -1137,7 +1203,7 @@ function talentScreen(): string {
   }).join('');
   return `<div class="ecran ecran-talents">
     <div class="tete-talents">
-      <h2>Talents du Guerrier</h2>
+      <h2>Talents du ${classInfo(cls).name}</h2>
       <span class="points-talent">${left} point${left > 1 ? 's' : ''} à répartir sur ${points}</span>
     </div>
     <p>1 point par niveau de classe. Il faut un point dans un palier pour ouvrir le suivant. Touche un talent pris pour changer de choix, ou retirer le dernier palier d'un arbre. Le respec est gratuit entre deux runs.</p>
@@ -1159,7 +1225,7 @@ function endScreen(run: RunState, victory: boolean): string {
   return `<div class="ecran" style="gap:14px">
     <h1>${victory ? 'Vulkhar est vaincu !' : 'Fin de la run'}</h1>
     <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} wipe${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : 'Les Profondeurs Ardentes ont eu raison de toi. La guilde enverra un autre champion.'}</p>
-    ${run.summary ? summaryHtml(run.summary) : ''}
+    ${run.summary ? summaryHtml(run.summary, run.classId) : ''}
     ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
     <div class="actions"><button type="button" class="gros-bouton" data-action="titre">Retour au hall de la guilde</button></div>
   </div>`;
@@ -1309,7 +1375,7 @@ async function commit(): Promise<void> {
     // Fin de run : score, expérience et niveau de classe (une seule fois).
     if ((run.screen === 'victory' || run.screen === 'gameover') && !run.summary) {
       const profile = loadProfile();
-      run.summary = awardRun(profile, run);
+      run.summary = awardRun(profile, run, run.classId);
       recordKills(profile, run.kills ?? {});
       saveProfile(profile);
     }
@@ -1326,9 +1392,10 @@ function hideCard(index: number): void {
   if (el) el.style.visibility = 'hidden';
 }
 
-/** Le plus haut niveau de difficulté débloqué pour le Guerrier. */
+/** Le plus haut niveau de difficulté débloqué pour la classe jouée. */
 function maxDifficulty(): number {
-  return loadProfile().difficulty?.guerrier ?? 0;
+  const profile = loadProfile();
+  return profile.difficulty?.[activeClass(profile)] ?? 0;
 }
 
 /** Le niveau de difficulté choisi dans le hall (le dernier utilisé, dans la limite de ce qui est débloqué). */
@@ -1350,7 +1417,8 @@ function launchFromHall(): void {
 
 function startNewRun(heirloom: string | null = null): void {
   ui.depositSlot = null;
-  ui.run = newRun(undefined, heirloom, talentIds(myAlloc()), chosenDifficulty());
+  const cls = activeClass();
+  ui.run = newRun(undefined, heirloom, talentIds(myAlloc(), cls), chosenDifficulty(), cls);
   offerBlessing(ui.run);
   ui.blessingRemove = false;
   ui.selection = null;
@@ -1467,12 +1535,32 @@ function handleClick(ev: MouseEvent): void {
       startNewRun();
       return;
     }
+    case 'classe-active': {
+      const profile = loadProfile();
+      if (profile.unlockedClasses.includes(el.dataset.id!)) {
+        profile.currentClass = el.dataset.id!;
+        saveProfile(profile);
+      }
+      ui.classScreen = false;
+      render();
+      return;
+    }
+    case 'debloquer': {
+      const profile = loadProfile();
+      if (unlockClass(profile, el.dataset.id!)) {
+        profile.currentClass = el.dataset.id!;
+        saveProfile(profile);
+      }
+      render();
+      return;
+    }
     case 'talents': ui.run = null; ui.overlay = null; ui.talentScreen = true; render(); return;
     case 'talent': {
       const profile = loadProfile();
+      const cls = activeClass(profile);
       const alloc = myAlloc();
-      if (toggleTalent(alloc, el.dataset.tree as TreeId, Number(el.dataset.tier), el.dataset.choice as Choice, classLevel(profile, 'guerrier').level)) {
-        profile.talents.guerrier = alloc;
+      if (toggleTalent(alloc, el.dataset.tree as TreeId, Number(el.dataset.tier), el.dataset.choice as Choice, classLevel(profile, cls).level, cls)) {
+        profile.talents[cls] = alloc;
         saveProfile(profile);
       }
       render();
@@ -1480,7 +1568,8 @@ function handleClick(ev: MouseEvent): void {
     }
     case 'talents-reset': {
       const profile = loadProfile();
-      profile.talents.guerrier = emptyAlloc();
+      const cls = activeClass(profile);
+      profile.talents[cls] = emptyAlloc(cls);
       saveProfile(profile);
       render();
       return;
@@ -1583,7 +1672,7 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'vendeur_gobelin.png', 'bregan.png',
+  'guerrier.png', 'mage.png', 'vendeur_gobelin.png', 'bregan.png',
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`),
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),

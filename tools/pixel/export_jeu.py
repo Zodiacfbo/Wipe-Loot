@@ -2,7 +2,7 @@
 l'agrandissement est fait par le jeu avec un rendu « pixelated »)."""
 import os
 from cartes import cadre, coup_de_bouclier, cri, flamme, frappe_heroique, goutte
-from sprites import guerrier
+from sprites import guerrier, mage
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 os.makedirs(DEST, exist_ok=True)
@@ -26,4 +26,5 @@ cri().save(os.path.join(DEST, 'icone_pouvoir.png'))
 flamme().save(os.path.join(DEST, 'icone_feu.png'))
 goutte().save(os.path.join(DEST, 'icone_sang.png'))
 guerrier().save(os.path.join(DEST, 'guerrier.png'))
+mage().save(os.path.join(DEST, 'mage.png'))
 print('ok', DEST)

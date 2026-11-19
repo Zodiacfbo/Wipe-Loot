@@ -99,7 +99,11 @@ export function migrate(raw: unknown): RunState | null {
     run.kills = {};
     run.version = 16;
   }
-  return run.version === 16 ? (run as unknown as RunState) : null;
+  if (run.version === 16) {
+    run.classId = 'guerrier';
+    run.version = 17;
+  }
+  return run.version === 17 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {
@@ -146,6 +150,8 @@ export interface Profile extends ProgressProfile, ArchiveProfile {
   /** La classe choisie au premier lancement, et les classes débloquées. */
   startClass: string | null;
   unlockedClasses: string[];
+  /** La classe jouée depuis le hall (la classe de départ si absente). */
+  currentClass?: string;
   /** La répartition des points de talent, par classe. */
   talents: Record<string, TalentAlloc>;
   /** Objets déjà obtenus au moins une fois : ils sont visibles dans les tables de loot. */

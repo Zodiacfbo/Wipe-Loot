@@ -115,7 +115,7 @@
 
 ### 3.2 Les classes (dans l'ordre de développement)
 - [x] Guerrier (prototype)
-- [ ] Mage
+- [x] Mage : Brûlure, Gel et Fracasser, charges arcaniques et Surcharge ; 52 cartes illustrées, 10 sorts de barre, 27 talents, sprite, et 3 objets de Sorts dans les coffres. Reste : son légendaire (Bâton du Veilleur, avec l'acte 2)
 - [ ] Démoniste
 - [ ] Prêtre
 - [ ] Voleur
@@ -148,6 +148,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [ ] Animations des sprites (respiration, attaque, mort)
 - [ ] Options : vitesse des animations, volume, réduction des effets
 - [ ] Tutoriel et aide en jeu
+- [ ] Polish visuel de la présentation des classes : portraits, emblèmes dessinés, mise en page plus soignée de l'écran des classes et du hall
 - [ ] Disposition dédiée au téléphone (texte et cartes plus grands)
 - [ ] Accessibilité (contrastes, tailles de texte, lecteurs d'écran)
 - [ ] Performances sur les téléphones modestes

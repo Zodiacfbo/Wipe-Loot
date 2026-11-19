@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
 import { afterCombatAction, chooseNode, learnSpell, newRun } from '../src/engine/run';
-import { BAR_SLOTS, SPELLS, WARRIOR_LOOT_SPELLS } from '../src/engine/spells';
+import { BAR_SLOTS, SPELLS, WARRIOR_LOOT_SPELLS, spellClass } from '../src/engine/spells';
 import { ELITE_ENCOUNTERS } from '../src/engine/enemies';
 import { LOOT_TABLES } from '../src/engine/items';
 import { migrate } from '../src/engine/save';
@@ -19,7 +19,7 @@ const idx = (c: CombatState, id: string) => c.spells.findIndex((s) => s.id === i
 
 describe('la barre de sorts du Guerrier', () => {
   it('9 sorts, et le combat reçoit la barre de la run', () => {
-    expect(Object.keys(SPELLS)).toHaveLength(9);
+    expect(Object.keys(SPELLS).filter((id) => spellClass(id) === 'guerrier')).toHaveLength(9);
     const c = fight(['lieutenant'], ['charge', 'rempart']);
     expect(c.spells.map((s) => s.id)).toEqual(['charge', 'rempart']);
   });
@@ -133,7 +133,7 @@ describe('trouver des sorts', () => {
     const old = { ...newRun(5), version: 8 } as Record<string, unknown>;
     delete old.spells;
     const run = migrate(old)!;
-    expect(run.version).toBe(16);
+    expect(run.version).toBe(17);
     expect(run.spells).toEqual(['charge']);
   });
 });

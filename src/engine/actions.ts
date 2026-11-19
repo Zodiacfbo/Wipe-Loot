@@ -87,10 +87,15 @@ export interface AttackOptions {
 export function attackDamage(c: CombatState, target: EnemyState, base: number, opts: AttackOptions = {}): number {
   const p = c.player;
   const g = c.gear ?? {};
-  let dmg = base + p.puissance + (g.attackBonus ?? 0);
-  if (!c.firstAttackDone) dmg += g.firstAttackBonus ?? 0;
-  if (c.playing && c.playing.cost >= 2) dmg += g.heavyAttackBonus ?? 0;
-  if (c.playing?.type === 'Sort') dmg += g.spellBonus ?? 0;
+  const spell = c.playing?.type === 'Sort';
+  // Les bonus « aux Attaques » ne s'appliquent pas aux Sorts, qui ont leurs propres bonus.
+  let dmg = base + p.puissance + (spell ? g.spellBonus ?? 0 : g.attackBonus ?? 0);
+  if (!c.firstAttackDone && !spell) dmg += g.firstAttackBonus ?? 0;
+  if (c.playing && c.playing.cost >= 2 && !spell) dmg += g.heavyAttackBonus ?? 0;
+  // Mage : charges arcaniques, Pyromanie, Impact.
+  if (c.playing?.school === 'arcane') dmg += 2 * (p.charges ?? 0);
+  if (c.playing?.school === 'feu' && c.playing.cost >= 2) dmg += power(c, 'pyromanie');
+  if (c.playing?.id === 'boule_de_feu') dmg += g.fireballBonus ?? 0;
   if (c.playing && (c.playing.id === 'frappe' || c.playing.id === 'frappe_heroique')) dmg += g.strikeBonus ?? 0;
   if (c.playing?.type === 'Attaque' && c.playing.cost === 0) dmg += g.zeroCostBonus ?? 0;
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
@@ -100,6 +105,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   dmg += p.enrageReady ?? 0;
   if (p.posture === 'defensive') dmg *= 0.8;
   if (p.temerite) dmg *= 1.5;
+  if (p.arcanePower && spell) dmg *= 1.5;
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   return Math.max(0, Math.floor(dmg));
@@ -115,7 +121,11 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
   damageEnemy(c, target, dmg, opts.ignoreBlock ?? false);
   ev.blocked = opts.ignoreBlock ? 0 : Math.min(blockBefore, dmg);
   if (target.defId === 'gardien' && blockBefore > 0) reflectToPlayer(c, target, 3);
-  if (target.defId === 'saldris' && target.shield === 'coups') reflectToPlayer(c, target, Math.floor(dmg / 2));
+  // Saldris : son bouclier renvoie la moitié des coups, ou la moitié des Sorts.
+  const spell = c.playing?.type === 'Sort';
+  if (target.defId === 'saldris' && target.shield === (spell ? 'sorts' : 'coups')) reflectToPlayer(c, target, Math.floor(dmg / 2));
+  // Embrasement : un Sort qui inflige 10 dégâts ou plus enflamme la cible.
+  if (spell && dmg >= 10 && power(c, 'embrasement') && !target.dead) applyBrulure(c, target, power(c, 'embrasement'));
   return dmg;
 }
 
@@ -128,6 +138,11 @@ export function damageEnemy(c: CombatState, target: EnemyState, amount: number, 
     rest -= absorbed;
   }
   target.hp -= rest;
+  // Métamorphose : le mouton reprend forme dès qu'il est blessé.
+  if (target.mouton && rest > 0) {
+    target.mouton = 0;
+    log(c, `${target.name} reprend sa forme.`);
+  }
   // Vulkhar plonge dans la lave à 50 % de ses PV.
   if (target.defId === 'vulkhar' && (target.phase ?? 1) === 1 && target.hp <= target.maxHp / 2) {
     target.hp = Math.ceil(target.maxHp / 2);
@@ -173,6 +188,9 @@ function submerge(c: CombatState, v: EnemyState): void {
   v.delayed = false;
   v.buffs.saignement = 0;
   v.buffs.saignementTours = 0;
+  v.buffs.brulure = 0;
+  v.buffs.gel = 0;
+  v.gele = undefined;
   fx(c, { kind: 'banner', text: 'Vulkhar plonge dans la lave !' });
   log(c, 'Vulkhar plonge dans la lave ! Des Rejetons de flamme surgissent.');
   for (let i = 0; i < 6; i++) c.enemies.push(makeEnemy(c, 'rejeton', ENEMIES.rejeton.hpMax));
@@ -247,6 +265,7 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
 /** Dégâts subis par le joueur. `isAttack` : une attaque ennemie (donne de la rage). */
 export function damagePlayer(c: CombatState, amount: number, isAttack: boolean): number {
   const p = c.player;
+  if (p.iceBlock) return 0; // Carapace de glace
   if (!isAttack) amount -= c.gear?.nonAttackReduce ?? 0;
   if (p.rempart) amount = Math.floor(amount / 2);
   if (amount <= 0) return 0;
@@ -311,4 +330,76 @@ export function addStatusToHand(c: CombatState, id: string, count: number): void
       c.hand.push({ uid: c.nextUid++, id, upgraded: false });
     }
   }
+}
+
+// --- Mage : Brûlure, Gel, charges arcaniques ---
+
+/** Un boss ou un boss secondaire (résiste à la Peur, au Désarmement, à la Métamorphose ; le Gel ne fait que réduire son attaque). */
+export function isBossEnemy(e: EnemyState): boolean {
+  const def = ENEMIES[e.defId];
+  return !!(def.boss || def.elite);
+}
+
+/** Applique de la Brûlure (avec Feu intense et Brasier). */
+export function applyBrulure(c: CombatState, target: EnemyState, amount: number): void {
+  if (target.dead || target.submerged || amount <= 0) return;
+  const g = c.gear ?? {};
+  const before = target.buffs.brulure ?? 0;
+  let add = amount + (g.burnBonus ?? 0);
+  if (g.brasier && before >= 5) add += g.brasier;
+  target.buffs.brulure = before + add;
+}
+
+/** Le seuil de Gel qui rend un ennemi Gelé. */
+export function freezeThreshold(c: CombatState): number {
+  return 5 - (c.gear?.freezeEarly ?? 0);
+}
+
+/** Applique du Gel (avec Hiver précoce). À 5 cumuls, la cible devient Gelée. */
+export function applyGel(c: CombatState, target: EnemyState, amount: number): void {
+  if (target.dead || target.submerged || amount <= 0) return;
+  target.buffs.gel = (target.buffs.gel ?? 0) + amount + (c.gear?.gelBonus ?? 0);
+  if (target.buffs.gel >= freezeThreshold(c)) {
+    target.buffs.gel = 0;
+    freeze(c, target);
+  }
+}
+
+/** La cible devient Gelée : un ennemi normal perd son prochain tour, un boss voit sa prochaine attaque réduite de moitié. */
+export function freeze(c: CombatState, target: EnemyState, forceSkip = false): void {
+  if (target.dead || target.submerged) return;
+  target.gele = isBossEnemy(target) && !forceSkip ? 'half' : 'skip';
+  fx(c, { kind: 'buff', who: target.uid, label: 'Gelé !' });
+  log(c, `${target.name} est Gelé${target.gele === 'half' ? ' : sa prochaine attaque est réduite de moitié' : ' : il perd son prochain tour'}.`);
+  const bite = power(c, 'morsure_du_froid');
+  if (bite > 0) {
+    fx(c, { kind: 'tick', who: target.uid, amount: bite, label: 'Morsure du froid' });
+    damageEnemy(c, target, bite);
+  }
+  if (c.gear?.freezeEnergy && !c.enemyActing && c.phase === 'player') c.player.energy += c.gear.freezeEnergy;
+}
+
+/** Fracasser : la cible a 3 Gel ou plus, ou elle est Gelée (ou Toucher glacial est prêt). */
+export function canShatter(c: CombatState, target: EnemyState): boolean {
+  return (target.buffs.gel ?? 0) >= 3 || !!target.gele || !!c.shatterReady;
+}
+
+/** Les dégâts d'une carte avec Fracasser (double, ou triple avec Fragmentation). */
+export function shatterDamage(c: CombatState, target: EnemyState, base: number): number {
+  const dmg = base + (c.gear?.shatterBonus ?? 0);
+  if (!canShatter(c, target)) return dmg;
+  return dmg * (power(c, 'fragmentation') ? 3 : 2);
+}
+
+/** Gagne des charges arcaniques (0 à 4, ou 6 avec Résonance). */
+export function gainCharges(c: CombatState, amount: number): void {
+  const p = c.player;
+  p.charges = Math.max(0, Math.min(p.maxCharges ?? 4, (p.charges ?? 0) + amount));
+}
+
+/** Consomme toutes les charges arcaniques. Renvoie le nombre consommé. */
+export function spendCharges(c: CombatState): number {
+  const n = c.player.charges ?? 0;
+  c.player.charges = 0;
+  return n;
 }

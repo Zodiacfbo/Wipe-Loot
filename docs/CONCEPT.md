@@ -264,7 +264,7 @@ On garde une liste **courte** :
 | **Armure fracassée** | Débuff | La cible subit 50 % de dégâts en plus. |
 | **Démoralisé** | Débuff | La cible inflige 25 % de dégâts en moins. |
 | **Ralenti** | Débuff | Le blocage gagné par la cible est réduit de 25 %. |
-| **Gel** | Débuff | Spécifique au Mage : la cible gelée subit des critiques garantis avec Fracasser. |
+| **Gel** | Débuff | Spécifique au Mage : à 5 cumuls, la cible est Gelée (un ennemi normal perd son tour, un boss voit sa prochaine attaque réduite de moitié). Fracasser inflige double dégâts à une cible Gelée ou à 3 Gel. |
 | **Peur** | Débuff | La cible ne peut pas agir pendant un tour (comme Contrôle). |
 
 ### 6.6 La barre de sorts (temps de recharge)
@@ -291,7 +291,7 @@ Le héros dispose de deux sources d'actions :
 |---|---|---|
 | **Guerrier** | Charge (gagne de la rage, recharge 3) | Rempart, Témérité, Cri de défi |
 | **Voleur** | Sprint (pioche des cartes, recharge 3) | Disparition, Poussée d'adrénaline, Évasion |
-| **Mage** | Contresort (Interruption, recharge 3) | Carapace de glace, Combustion, Évocation, Pouvoir des arcanes |
+| **Mage** | Contresort (Interruption et 4 dégâts, recharge 3) | Carapace de glace, Combustion, Évocation, Pouvoir des arcanes |
 | **Démoniste** | Pacte de sang (PV contre énergie, recharge 2) | Spirale mortelle, Pacte démoniaque, Pierre d'âme |
 | **Chasseur** | Tir arcanique (recharge 2) | Feindre la mort, Fureur bestiale, Tir rapide |
 | **Paladin** | Jugement (recharge 2) | Bouclier divin, Imposition des mains (1 fois par combat), Marteau du jugement |

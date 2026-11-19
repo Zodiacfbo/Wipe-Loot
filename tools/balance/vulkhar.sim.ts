@@ -5,7 +5,7 @@ it('morts contre Vulkhar au niveau 1', () => {
   const deaths: { enemyHp: number; turn: number; deck: number; maxHp: number }[] = [];
   let hpIn = 0, n = 0;
   for (let seed = 1; seed <= 200; seed++) {
-    const r = simulateRun(seed * 104729, []);
+    const r = simulateRun(seed * 104729, [], 0, process.env.CLASSE ?? 'guerrier');
     const v = r.fights.find((f) => f.kind === 'boss');
     if (v?.deaths) deaths.push(...v.deaths);
     if (v) { hpIn += v.hpLost; n++; }

@@ -159,6 +159,50 @@ def guerrier():
     return s.render()
 
 
+def mage():
+    s = Sprite(64, 64)
+    # cape arrière
+    s.poly([(20, 20), (30, 18), (28, 58), (13, 59)], '#2A2F6E')
+    # robe (bas évasé)
+    s.poly([(24, 26), (40, 26), (46, 59), (18, 59)], '#3D56B0')
+    s.poly([(30, 30), (34, 30), (37, 59), (27, 59)], '#2E4290')
+    s.rect(18, 57, 46, 59, '#C9A8F0', shade=False)
+    # bottes
+    s.rect(22, 59, 29, 61, '#3A2A3E')
+    s.rect(35, 59, 42, 61, '#4A3450')
+    # ceinture et gemme
+    s.rect(23, 37, 41, 39, '#7A4E2A')
+    s.ellipse(30, 36, 34, 40, '#8FE0FF', glow=True)
+    # buste et col
+    s.poly([(24, 22), (40, 22), (41, 37), (23, 37)], '#4766C8')
+    s.poly([(27, 22), (37, 22), (32, 29)], '#C9A8F0')
+    # bras arrière (main qui lance)
+    s.rect(18, 26, 23, 34, '#3D56B0')
+    s.ellipse(15, 32, 22, 38, '#E8C6A4')
+    # flamme dans la main arrière
+    s.poly([(13, 33), (15, 25), (18, 29), (20, 23), (22, 32)], '#F59A2E', glow=True)
+    s.poly([(15, 33), (17, 28), (19, 31), (20, 33)], '#FFD45E', glow=True)
+    # visage et barbe
+    s.ellipse(27, 12, 37, 23, '#E8C6A4')
+    s.rect(30, 16, 32, 17, '#1A1210', shade=False)
+    s.rect(34, 16, 36, 17, '#1A1210', shade=False)
+    s.poly([(27, 19), (37, 19), (35, 27), (32, 30), (29, 27)], '#E6E6EE')
+    # chapeau pointu
+    s.poly([(22, 13), (42, 13), (40, 10), (24, 10)], '#2E4290')
+    s.poly([(25, 11), (39, 11), (35, 4), (30, 0), (28, 6)], '#3D56B0')
+    s.rect(24, 9, 40, 10, '#C9A8F0', shade=False)
+    s.ellipse(31, 4, 34, 7, '#FFE27A', glow=True)
+    # bras avant et main
+    s.rect(39, 26, 44, 33, '#4766C8')
+    s.ellipse(41, 31, 47, 37, '#E8C6A4')
+    # bâton
+    s.line([(44, 60), (47, 14)], '#6A4426', width=3)
+    s.ellipse(43, 6, 53, 16, '#8FB8FF', glow=True)
+    s.ellipse(45, 8, 51, 14, '#E6F2FF', glow=True)
+    s.poly([(43, 16), (47, 12), (52, 16), (47, 19)], '#5A3A22')
+    return s.render()
+
+
 def vulkhar():
     s = Sprite(96, 96)
     # bassin de lave

@@ -7,16 +7,21 @@ import { simulateRun, type FightLog } from './bot';
 
 const RUNS = Number(process.env.RUNS ?? 150);
 
-function alloc(a: Partial<TalentAlloc>): string[] {
-  return talentIds({ ...emptyAlloc(), ...a });
+function alloc(a: Partial<TalentAlloc>, cls = 'guerrier'): string[] {
+  return talentIds({ ...emptyAlloc(cls), ...a } as TalentAlloc, cls);
 }
+const mage = (a: Partial<TalentAlloc>) => alloc(a, 'mage');
 
 const ONLY = process.env.PROFIL;
-const PROFILES_ALL: { name: string; talents: string[] }[] = [
+const PROFILES_ALL: { name: string; talents: string[]; cls?: string }[] = [
   { name: 'Niveau 1 (aucun talent)', talents: [] },
   { name: 'Niveau 5 (Protection 3, Fureur 2)', talents: alloc({ protection: ['A', 'A', 'A'], fureur: ['A', 'B'] }) },
   { name: 'Niveau 10 (Protection 5, Fureur 5)', talents: alloc({ protection: ['A', 'A', 'A', 'A', 'A'], fureur: ['A', 'B', 'A', 'B', 'A'] }) },
   { name: 'Niveau 10 (Armes 5, Fureur 5)', talents: alloc({ armes: ['A', 'B', 'B', 'B', 'A'], fureur: ['A', 'B', 'A', 'B', 'A'] }) },
+  { name: 'Mage niveau 1 (aucun talent)', talents: [], cls: 'mage' },
+  { name: 'Mage niveau 5 (Givre 3, Feu 2)', talents: mage({ givre: ['A', 'A', 'A'], feu: ['A', 'B'] }), cls: 'mage' },
+  { name: 'Mage niveau 10 (Givre 5, Feu 5)', talents: mage({ givre: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }), cls: 'mage' },
+  { name: 'Mage niveau 10 (Arcane 5, Feu 5)', talents: mage({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }), cls: 'mage' },
 ];
 
 const PROFILES = ONLY ? PROFILES_ALL.filter((p) => p.name.startsWith(ONLY)) : PROFILES_ALL;
@@ -30,7 +35,7 @@ it('équilibrage', () => {
     let floors = 0;
     const fights = new Map<string, FightLog[]>();
     for (let seed = 1; seed <= RUNS; seed++) {
-      const r = simulateRun(seed * 104729, prof.talents);
+      const r = simulateRun(seed * 104729, prof.talents, 0, prof.cls);
       if (r.victory) wins++;
       floors += r.floor;
       for (const f of r.fights) {

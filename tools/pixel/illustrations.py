@@ -640,6 +640,8 @@ ILLUSTRATIONS = {
 }
 
 if __name__ == '__main__':
+    from illustrations_mage import ILLUSTRATIONS_MAGE
+    ILLUSTRATIONS.update(ILLUSTRATIONS_MAGE)
     os.makedirs(DEST, exist_ok=True)
     for card_id, fn in ILLUSTRATIONS.items():
         fn().save(os.path.join(DEST, f'carte_{card_id}.png'))

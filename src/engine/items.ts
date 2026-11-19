@@ -55,6 +55,22 @@ export interface ItemEffects {
   potionSlots?: number; // +X emplacements de potion
   rageOnHpLoss?: number; // +X rage quand tu perds des PV
   executeAlways?: number; // Exécution inflige toujours son bonus
+  // Talents du Mage
+  startCharges?: number; // charges arcaniques au début du combat
+  noOverload?: number; // la Surcharge ne coûte plus de PV
+  barrageDraw?: number; // Barrage arcanique pioche X de plus
+  burnBonus?: number; // +X à chaque application de Brûlure
+  fireballBonus?: number; // Boule de feu +X dégâts
+  brasier?: number; // +X Brûlure sur une cible qui en a déjà 5
+  startBurn?: number; // Brûlure à tous les ennemis au début du combat
+  fireSpellCd?: number; // recharge de Combustion et Souffle ardent −X
+  bossBurnKeep?: number; // la Brûlure des boss ne diminue plus
+  gelBonus?: number; // +X à chaque application de Gel
+  gelKeep?: number; // le Gel ne diminue plus
+  freezeEarly?: number; // Gelé à 5 − X cumuls
+  shatterBonus?: number; // Fracasser +X dégâts
+  freezeEnergy?: number; // +X énergie quand un ennemi devient Gelé
+  iceBlockCd?: number; // recharge de Carapace de glace −X
   // Effets des talents
   strikeBonus?: number; // Frappe et Frappe héroïque : +X dégâts
   postureRage?: number; // rage conservée en changeant de posture (3 par défaut)
@@ -97,6 +113,9 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
   item('pierre_braise', 'Pierre de braise', 'bijou', 'commun', 'Soigne 4 PV à la fin de chaque combat gagné.', { healAfterCombat: 4 }),
   item('charme_epines', 'Charme d\'épines', 'bijou', 'commun', 'Quand tu bloques entièrement une attaque, renvoie 2 dégâts à l\'attaquant.', { blockReflect: 2 }),
   item('talisman_rage', 'Talisman de rage', 'bijou', 'rare', 'Commence chaque combat avec 3 rage.', { startRage: 3 }),
+  item('baguette_apprenti', 'Baguette d\'apprenti', 'arme', 'commun', 'Tes Sorts infligent +1 dégât.', { spellBonus: 1 }),
+  item('baton_braises', 'Bâton de braises', 'arme', 'rare', 'Tes Sorts infligent +1 dégât, et tes Brûlures sont augmentées de 1.', { spellBonus: 1, burnBonus: 1 }),
+  item('pierre_arcanique', 'Pierre arcanique', 'bijou', 'rare', 'Commence chaque combat avec 1 charge arcanique.', { startCharges: 1 }),
 
   // --- Morvax le Maudisseur ---
   item('bague_impie', 'Bague de l\'impie', 'bague', 'rare', 'Les malédictions que tu subis durent 1 tour de moins.', { debuffReduce: 1 }),
@@ -160,7 +179,26 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
 export const COMMON_POOL: string[] = [
   'epee_longue', 'hache_de_guerre', 'amulette_vigueur', 'amulette_rempart', 'amulette_sang', 'anneau_force',
   'anneau_soldat', 'bague_vivacite', 'pierre_braise', 'charme_epines', 'talisman_rage',
+  'baguette_apprenti', 'baton_braises', 'pierre_arcanique',
 ];
+
+/** Les effets qui ne servent qu'à une classe (les Attaques et la rage au Guerrier, les Sorts au Mage). */
+const CLASS_KEYS: Record<string, (keyof ItemEffects)[]> = {
+  guerrier: ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage'],
+  mage: ['spellBonus', 'startCharges', 'burnBonus'],
+};
+
+/** Les effets d'un objet qui ne servent pas à cette classe. */
+export function uselessFx(id: string, classId = 'guerrier'): (keyof ItemEffects)[] {
+  const keys = Object.keys(ITEMS[id]?.fx ?? {}) as (keyof ItemEffects)[];
+  return keys.filter((k) => k === 'allyBonus' || Object.entries(CLASS_KEYS).some(([cls, list]) => cls !== classId && list.includes(k)));
+}
+
+/** L'objet ne sert à rien à cette classe. */
+export function uselessFor(id: string, classId = 'guerrier'): boolean {
+  const keys = Object.keys(ITEMS[id]?.fx ?? {});
+  return keys.length > 0 && uselessFx(id, classId).length === keys.length;
+}
 
 /** Les tables de loot des boss secondaires (clé : id de la table, donnée par la rencontre). */
 export const LOOT_TABLES: Record<string, string[]> = {

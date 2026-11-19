@@ -50,7 +50,7 @@ export const EVENTS: Record<string, EventDef> = {
     text: 'Une forge naine abandonnée, à moitié noyée sous la roche. L\'enclume porte encore les runes des rois du mont Durgal.',
     warriorText: 'Sous l\'enclume, enveloppée dans un tissu calciné, tu trouves une lame brisée. Les runes de la garde ne laissent aucun doute : c\'est Brisemonts, l\'épée des anciens rois nains.',
     choices: [
-      { label: 'Prendre la Lame brisée', detail: 'Quête légendaire Brisemonts, étape 1 sur 3.' },
+      { label: 'Prendre la Lame brisée', detail: 'Quête légendaire Brisemonts, étape 1 sur 3.', locked: (run) => ((run.classId ?? 'guerrier') === 'guerrier' ? null : 'Réservé au Guerrier') },
       { label: 'Rallumer la forge', detail: 'Perds 6 PV. Améliore 2 cartes au hasard.' },
       { label: 'Fouiller les décombres', detail: 'Gagne 40 or.' },
     ],

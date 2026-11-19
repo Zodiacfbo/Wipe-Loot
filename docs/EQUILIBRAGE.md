@@ -1,6 +1,6 @@
 # L'équilibrage
 
-> Wipe & Loot · Document vivant · Dernière passe : après les talents du Guerrier (phase 2)
+> Wipe & Loot · Document vivant · Dernière passe : l'arrivée du Mage
 
 ## 1. La méthode
 
@@ -100,4 +100,34 @@ Mesure : `tools/balance/difficulte.sim.ts`.
 - **Krâgg et Saldris** au niveau 1.
 - **L'écart entre le niveau 1 et le niveau 5** reste grand (19 % → 70 %). Si les premiers joueurs trouvent les débuts frustrants, on pourra adoucir les paliers 1 à 3.
 - **Vague de choc** (sort de loot) : à la limite de la « carte gratuite » (voir le concept, §6.6).
-- Refaire une passe après les **niveaux de difficulté**, puis à chaque nouvelle classe.
+- Refaire une passe à chaque nouvelle classe.
+
+## 7. Le Mage
+
+Mesuré avec les mêmes objectifs que le Guerrier (200 runs par profil, difficulté 0). Le bot sait lire la Brûlure, le Gel et les charges arcaniques.
+
+| Profil | Première version | Après réglages | Wipe au 1er essai contre Vulkhar |
+|---|---|---|---|
+| Niveau 1 (aucun talent) | 1 % | **11 %** | 95 % |
+| Niveau 5 (Givre 3, Feu 2) | 63 % | **71 %** | 48 % |
+| Niveau 10 (Givre 5, Feu 5) | 92 % | **83 %** | 33 % |
+| Niveau 10 (Arcane 5, Feu 5) | 46 % | **94 %** | 27 % |
+
+**Ce qui a changé :**
+
+| Élément | Avant | Après | Constat du bot |
+|---|---|---|---|
+| PV max | 65 | **72** | Trop fragile au niveau 1 |
+| Contresort | 1 énergie, interruption seule | **0 énergie, interruption + 4 dégâts** | Inutile contre Vulkhar (son Marteau ne s'interrompt pas), alors que la Charge du Guerrier sert à chaque combat |
+| Trait de magie, Barrière | 6 dégâts, 5 blocage | **7, 6** | Le deck de départ manquait de dégâts : le Mage mourait plus tôt que le Guerrier contre Vulkhar |
+| Boule de feu, Éclair de givre | 12 + Brûlure 3, 5 + Gel 2 | **14 + Brûlure 4, 7 + Gel 2** | idem |
+| Subtilité arcanique | 1 charge | **2 charges** | L'arbre Arcane était loin derrière |
+| Carapace de glace | 0 énergie, recharge 5 | **1 énergie, recharge 6** | +31 points à elle seule |
+| Clignement | recharge 3 | **recharge 4** | +24 points (Vulkhar pose une Zone de feu à chaque tour) |
+| Souffle ardent | 6 dégâts | **4** | +14 points |
+| Souffle du dragon | Brûlure 3 | **Brûlure 2** | +18 points |
+| Fracas glaciaire | 12 dégâts | **14** | −3 points : la carte épique du Givre ne servait à rien |
+
+**À surveiller :** le Mage de niveau 1 reste un peu en dessous de l'objectif (11 % contre 15 à 25 %). C'est cohérent avec sa difficulté (⭐⭐), et le bot joue mal le contrôle (Métamorphose, Contresort au bon moment, Carapace de glace avant le Marteau) : un humain fera mieux. Vulkhar reste son mur : à revoir avec les premiers retours.
+
+Mesures : `PROFIL="Mage" npm run balance` et `CLASSE=mage npx vitest run --config tools/balance/vitest.config.ts --root . --silent=false tools/balance/talents.sim.ts`.

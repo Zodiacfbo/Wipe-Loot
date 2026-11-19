@@ -1,9 +1,11 @@
-// La barre de sorts du Guerrier : des sorts toujours disponibles, sans pioche, mais avec un temps de recharge.
-// Référence : docs/classes/GUERRIER.md (§4.2 et §6)
-import { drawCards, fx, gainRage, livingEnemies, log, playerAttack } from './actions';
+// La barre de sorts : des sorts toujours disponibles, sans pioche, mais avec un temps de recharge.
+// Référence : docs/classes/GUERRIER.md (§4.2 et §6) et docs/classes/MAGE.md (§4.2 et §6)
+import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, livingEnemies, log, playerAttack } from './actions';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
+import type { ItemEffects } from './items';
 import type { CombatState, EnemyState } from './types';
+import { CARDS } from './cards';
 
 /** Nombre d'emplacements de la barre (un 4e viendra avec un talent). */
 export const BAR_SLOTS = 3;
@@ -17,7 +19,11 @@ export interface SpellDef {
   /** Une seule fois par combat. */
   once?: boolean;
   needsTarget: boolean;
-  icon: 'charge' | 'epee' | 'bouclier' | 'hausse' | 'coeur' | 'crane';
+  icon: 'charge' | 'epee' | 'bouclier' | 'hausse' | 'coeur' | 'crane' | 'flamme' | 'flocon' | 'etoile';
+  /** Utiliser le sort termine ton tour (Carapace de glace). */
+  endsTurn?: boolean;
+  /** La classe du sort (guerrier par défaut). */
+  classId?: string;
   text: string;
   cast: (c: CombatState, target: EnemyState | null) => void;
 }
@@ -124,5 +130,127 @@ export const SPELLS: Record<string, SpellDef> = {
   },
 };
 
-/** Les sorts que le Guerrier peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
-export const WARRIOR_LOOT_SPELLS = Object.keys(SPELLS).filter((id) => id !== 'charge' && !TALENT_SPELLS.has(id));
+/** Les sorts de barre du Mage. */
+const MAGE_SPELLS: SpellDef[] = [
+  {
+    id: 'contresort', name: 'Contresort', cost: 0, cooldown: 3, needsTarget: true, icon: 'etoile',
+    text: 'Interruption : la cible ne peut pas finir son Incantation. Inflige 4 dégâts.',
+    cast: (c, target) => {
+      if (!target) return;
+      if (isInterruptible(target.intent) && !target.interrupted) {
+        target.interrupted = true;
+        fx(c, { kind: 'interrupt', who: target.uid });
+        if (c.gear?.interruptDraw) drawCards(c, c.gear.interruptDraw);
+        log(c, `${target.name} est contré !`);
+      }
+      playerAttack(c, target, 4);
+    },
+  },
+  {
+    id: 'evocation', name: 'Évocation', cost: 0, cooldown: 5, needsTarget: false, icon: 'hausse',
+    text: 'Gagne 2 énergie et pioche 1 carte.',
+    cast: (c) => {
+      c.player.energy += 2;
+      drawCards(c, 1);
+      fx(c, { kind: 'buff', who: 'player', label: 'Évocation : +2 énergie' });
+    },
+  },
+  {
+    id: 'pouvoir_arcanes', name: 'Pouvoir des arcanes', cost: 0, cooldown: 5, needsTarget: false, icon: 'etoile',
+    text: 'Ce tour-ci, tes Sorts infligent 50 % de dégâts en plus.',
+    cast: (c) => {
+      c.player.arcanePower = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Pouvoir des arcanes : +50 %' });
+    },
+  },
+  {
+    id: 'clignement', name: 'Clignement', cost: 0, cooldown: 4, needsTarget: false, icon: 'charge',
+    text: 'Retire de ta main les cartes-statut (Zone de feu, Bombe vivante, Fardeau) sans subir leur effet. Gagne 4 blocage.',
+    cast: (c) => {
+      const gone = c.hand.filter((card) => CARDS[card.id].type === 'Statut' && card.id !== 'malediction');
+      c.hand = c.hand.filter((card) => !gone.includes(card));
+      c.exhaust.push(...gone);
+      gainBlock(c, 4, false);
+      log(c, gone.length > 0 ? `Tu te téléportes : ${gone.length} carte${gone.length > 1 ? 's' : ''}-statut retirée${gone.length > 1 ? 's' : ''}.` : 'Tu te téléportes.');
+    },
+  },
+  {
+    id: 'combustion', name: 'Combustion', cost: 1, cooldown: 4, needsTarget: false, icon: 'flamme',
+    text: 'Double la Brûlure de tous les ennemis.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) {
+        if (e.submerged || !e.buffs.brulure) continue;
+        e.buffs.brulure *= 2;
+        fx(c, { kind: 'buff', who: e.uid, label: `Brûlure ${e.buffs.brulure}` });
+      }
+    },
+  },
+  {
+    id: 'souffle_ardent', name: 'Souffle ardent', cost: 1, cooldown: 3, needsTarget: false, icon: 'flamme',
+    text: 'Inflige 4 dégâts et Brûlure 2 à tous les ennemis.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) {
+        if (e.submerged) continue;
+        playerAttack(c, e, 4);
+        if (!e.dead) applyBrulure(c, e, 2);
+      }
+    },
+  },
+  {
+    id: 'carapace_de_glace', name: 'Carapace de glace', cost: 1, cooldown: 6, needsTarget: false, endsTurn: true, icon: 'flocon',
+    text: 'Tu es immunisé à tous les dégâts jusqu\'à ton prochain tour. Ton tour se termine.',
+    cast: (c) => {
+      c.player.iceBlock = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Carapace de glace : immunisé' });
+    },
+  },
+  {
+    id: 'orbe_glaciale', name: 'Orbe glaciale', cost: 1, cooldown: 3, needsTarget: false, icon: 'flocon',
+    text: 'Inflige 4 dégâts et Gel 2 à tous les ennemis.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) {
+        if (e.submerged) continue;
+        playerAttack(c, e, 4);
+        if (!e.dead) applyGel(c, e, 2);
+      }
+    },
+  },
+  {
+    id: 'bouclier_feu_ancestral', name: 'Bouclier de feu ancestral', cost: 1, cooldown: 3, needsTarget: false, icon: 'flamme',
+    text: 'Gagne 8 blocage. Jusqu\'à ton prochain tour, chaque ennemi qui t\'attaque reçoit Brûlure 3.',
+    cast: (c) => {
+      gainBlock(c, 8, false);
+      c.player.fireShield = 3;
+    },
+  },
+  {
+    id: 'vortex_temporel', name: 'Vortex temporel', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'hausse',
+    text: 'Les temps de recharge de tes autres sorts diminuent de 2. Une fois par combat.',
+    cast: (c) => {
+      for (const s of c.spells) if (s.id !== 'vortex_temporel' && s.cooldown < 999) s.cooldown = Math.max(0, s.cooldown - 2);
+      fx(c, { kind: 'buff', who: 'player', label: 'Vortex temporel' });
+    },
+  },
+];
+for (const d of MAGE_SPELLS) SPELLS[d.id] = { ...d, classId: 'mage' };
+
+/** La classe d'un sort de barre. */
+export function spellClass(id: string): string {
+  return SPELLS[id]?.classId ?? 'guerrier';
+}
+
+/** Le temps de recharge d'un sort, avec les talents (Pyromane, Hiver sans fin). */
+export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number {
+  let cd = def.cooldown;
+  if (def.id === 'combustion' || def.id === 'souffle_ardent') cd -= g?.fireSpellCd ?? 0;
+  if (def.id === 'carapace_de_glace') cd -= g?.iceBlockCd ?? 0;
+  return Math.max(1, cd);
+}
+
+/** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
+export function lootSpells(classId = 'guerrier'): string[] {
+  const start = new Set(['charge', 'contresort']);
+  return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
+}
+
+export const WARRIOR_LOOT_SPELLS = lootSpells('guerrier');

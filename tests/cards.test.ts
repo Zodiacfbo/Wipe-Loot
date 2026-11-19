@@ -17,7 +17,7 @@ const play = (c: CombatState, id: string, target?: number) => playCard(c, c.hand
 
 describe('les 52 cartes du Guerrier', () => {
   it('toutes les cartes de la fiche existent (52 + le deck de départ)', () => {
-    const classCards = Object.values(CARDS).filter((d) => ['commune', 'peu_commune', 'rare', 'epique'].includes(d.rarity));
+    const classCards = Object.values(CARDS).filter((d) => ['commune', 'peu_commune', 'rare', 'epique'].includes(d.rarity) && !d.classId);
     expect(classCards).toHaveLength(52);
     expect(REWARD_POOL).toHaveLength(52);
   });

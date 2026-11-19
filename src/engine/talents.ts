@@ -1,8 +1,8 @@
-// Les talents du Guerrier : 3 arbres de 5 paliers, 1 point par niveau de classe (10 au maximum).
-// Référence : docs/CONCEPT.md (§9) et docs/classes/GUERRIER.md (§7)
+// Les talents : 3 arbres de 5 paliers par classe, 1 point par niveau de classe (10 au maximum).
+// Référence : docs/CONCEPT.md (§9), docs/classes/GUERRIER.md (§7) et docs/classes/MAGE.md (§7)
 import type { ItemEffects } from './items';
 
-export type TreeId = 'armes' | 'fureur' | 'protection';
+export type TreeId = string;
 export type Choice = 'A' | 'B';
 /** La répartition des points : pour chaque arbre, le choix fait à chaque palier pris (dans l'ordre). */
 export type TalentAlloc = Record<TreeId, Choice[]>;
@@ -35,6 +35,7 @@ export interface TreeDef {
 const t = (id: string, name: string, text: string, extra: Omit<TalentDef, 'id' | 'name' | 'text'> = {}): TalentDef =>
   ({ id, name, text, ...extra });
 
+/** Les arbres du Guerrier. */
 export const TREES: TreeDef[] = [
   {
     id: 'armes', name: 'Armes', theme: 'Gros coups et saignements',
@@ -86,35 +87,98 @@ export const TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Mage. */
+export const MAGE_TREES: TreeDef[] = [
+  {
+    id: 'arcane', name: 'Arcane', theme: 'Puissance brute et pioche',
+    tiers: [
+      [t('subtilite_arcanique', 'Subtilité arcanique', 'Commence chaque combat avec 2 charges arcaniques.', { fx: { startCharges: 2 } }),
+        t('meditation', 'Méditation', 'Pioche 1 carte de plus au premier tour de chaque combat.', { fx: { firstTurnDraw: 1 } })],
+      [t('stabilite', 'Stabilité', 'La Surcharge ne te fait plus perdre de PV.', { fx: { noOverload: 1 } }),
+        t('esprit_clair', 'Esprit clair', 'Barrage arcanique pioche 1 carte de plus.', { fx: { barrageDraw: 1 } })],
+      [t('t_evocation', 'Évocation', 'Ajoute ce sort à ta barre : +2 énergie et pioche 1 carte.', { spell: 'evocation' }),
+        t('t_pouvoir_arcanes', 'Pouvoir des arcanes', 'Ajoute ce sort à ta barre : tes Sorts infligent +50 % ce tour-ci.', { spell: 'pouvoir_arcanes' })],
+      [t('t_clignement', 'Clignement', 'Ajoute ce sort à ta barre : retire les cartes-statut de ta main sans subir leur effet, 4 blocage.', { spell: 'clignement' }),
+        t('m_quatrieme_emplacement', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_tempete_arcanique', 'Tempête arcanique', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'tempete_arcanique' })],
+    ],
+    cards: ['projectiles_arcaniques', 'deflagration_arcanique', 'focalisation', 'flux_arcanique', 'bouclier_arcanique', 'rayon_arcanique',
+      'barrage_arcanique', 'presence_esprit', 'resonance', 'reflexion_sorts', 'distorsion_temporelle', 'concentration_arcanique', 'esprit_vif', 'tempete_arcanique'],
+  },
+  {
+    id: 'feu', name: 'Feu', theme: 'La Brûlure qui consume',
+    tiers: [
+      [t('feu_intense', 'Feu intense', 'Toutes tes applications de Brûlure sont augmentées de 1.', { fx: { burnBonus: 1 } }),
+        t('m_impact', 'Impact', 'Boule de feu inflige +3 dégâts.', { fx: { fireballBonus: 3 } })],
+      [t('brasier', 'Brasier', 'Quand tu appliques de la Brûlure à une cible qui en a déjà 5 ou plus, applique 2 de plus.', { fx: { brasier: 2 } }),
+        t('souffle_du_dragon', 'Souffle du dragon', 'Au début de chaque combat, applique Brûlure 2 à tous les ennemis.', { fx: { startBurn: 2 } })],
+      [t('t_combustion', 'Combustion', 'Ajoute ce sort à ta barre : double la Brûlure de tous les ennemis.', { spell: 'combustion' }),
+        t('t_souffle_ardent', 'Souffle ardent', 'Ajoute ce sort à ta barre : 4 dégâts et Brûlure 2 à tous les ennemis.', { spell: 'souffle_ardent' })],
+      [t('pyromane', 'Pyromane', 'La recharge de Combustion et de Souffle ardent diminue de 1.', { fx: { fireSpellCd: 1 } }),
+        t('flammes_eternelles', 'Flammes éternelles', 'La Brûlure des boss et des boss secondaires ne diminue plus.', { fx: { bossBurnKeep: 1 } })],
+      [t('t_pyrolance', 'Pyrolance', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'pyrolance' })],
+    ],
+    cards: ['roussir', 'etincelle', 'boule_de_feu', 'cone_de_flammes', 'bouclier_de_flammes', 'eruption', 'incendie', 'embrasement',
+      'armure_de_lave', 'explosion_de_flammes', 'meteore', 'chaleur_intense', 'pyromanie', 'pyrolance'],
+  },
+  {
+    id: 'givre', name: 'Givre', theme: 'Contrôle et Fracasser',
+    tiers: [
+      [t('hiver_precoce', 'Hiver précoce', 'Toutes tes applications de Gel sont augmentées de 1.', { fx: { gelBonus: 1 } }),
+        t('givre_durable', 'Givre durable', 'Le Gel ne diminue plus à la fin des tours ennemis.', { fx: { gelKeep: 1 } })],
+      [t('froid_glacial', 'Froid glacial', 'Un ennemi devient Gelé à 4 cumuls de Gel au lieu de 5.', { fx: { freezeEarly: 1 } }),
+        t('fragilite', 'Fragilité', 'Tes cartes avec Fracasser infligent +3 dégâts.', { fx: { shatterBonus: 3 } })],
+      [t('t_carapace_de_glace', 'Carapace de glace', 'Ajoute ce sort à ta barre (1 énergie) : immunisé à tous les dégâts jusqu\'au prochain tour, mais ton tour se termine.', { spell: 'carapace_de_glace' }),
+        t('t_orbe_glaciale', 'Orbe glaciale', 'Ajoute ce sort à ta barre : 4 dégâts et Gel 2 à tous les ennemis.', { spell: 'orbe_glaciale' })],
+      [t('coeur_gele', 'Cœur gelé', 'Chaque fois qu\'un ennemi devient Gelé pendant ton tour, gagne 1 énergie.', { fx: { freezeEnergy: 1 } }),
+        t('hiver_sans_fin', 'Hiver sans fin', 'La recharge de Carapace de glace diminue de 2.', { fx: { iceBlockCd: 2 } })],
+      [t('t_fracas_glaciaire', 'Fracas glaciaire', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'fracas_glaciaire' })],
+    ],
+    cards: ['eclair_de_givre', 'lance_de_glace', 'gelure', 'cone_de_froid', 'barriere_de_glace', 'armure_de_givre', 'morsure_du_froid',
+      'toucher_glacial', 'souffle_polaire', 'tempete_de_neige', 'prison_de_glace', 'fragmentation', 'coeur_de_glace', 'fracas_glaciaire'],
+  },
+];
+
+/** Les arbres de chaque classe jouable. */
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES };
+
+/** Les arbres d'une classe (ceux du Guerrier par défaut). */
+export function treesFor(classId: string | undefined): TreeDef[] {
+  return CLASS_TREES[classId ?? 'guerrier'] ?? TREES;
+}
+
+const ALL_TREES = Object.values(CLASS_TREES).flat();
+
 export const TALENTS: Record<string, TalentDef> = Object.fromEntries(
-  TREES.flatMap((tree) => tree.tiers.flat()).map((d) => [d.id, d]),
+  ALL_TREES.flatMap((tree) => tree.tiers.flat()).map((d) => [d.id, d]),
 );
 
 /** Les sorts que donnent les talents (ils ne tombent plus sur les boss). */
-export const TALENT_SPELLS = new Set(TREES.flatMap((tree) => tree.tiers.flat()).map((d) => d.spell).filter((s): s is string => !!s));
+export const TALENT_SPELLS = new Set(ALL_TREES.flatMap((tree) => tree.tiers.flat()).map((d) => d.spell).filter((s): s is string => !!s));
 /** Les cartes épiques (débloquées par le palier 5). */
-export const EPIC_CARDS = new Set(TREES.map((tree) => tree.tiers[4][0].card!));
+export const EPIC_CARDS = new Set(ALL_TREES.map((tree) => tree.tiers[4][0].card!));
 
-export function emptyAlloc(): TalentAlloc {
-  return { armes: [], fureur: [], protection: [] };
+export function emptyAlloc(classId = 'guerrier'): TalentAlloc {
+  return Object.fromEntries(treesFor(classId).map((tree) => [tree.id, []]));
 }
 
 export function pointsUsed(alloc: TalentAlloc): number {
-  return alloc.armes.length + alloc.fureur.length + alloc.protection.length;
+  return Object.values(alloc).reduce((a, picks) => a + picks.length, 0);
 }
 
 /** Les talents choisis, dans l'ordre des arbres et des paliers. */
-export function talentIds(alloc: TalentAlloc): string[] {
-  return TREES.flatMap((tree) => alloc[tree.id].map((choice, tier) => tree.tiers[tier][choice === 'B' && tree.tiers[tier][1] ? 1 : 0].id));
+export function talentIds(alloc: TalentAlloc, classId = 'guerrier'): string[] {
+  return treesFor(classId).flatMap((tree) => (alloc[tree.id] ?? []).map((choice, tier) => tree.tiers[tier][choice === 'B' && tree.tiers[tier][1] ? 1 : 0].id));
 }
 
 /**
  * Clique sur un talent : le prend (palier suivant d'un arbre, s'il reste un point), change le choix d'un palier déjà pris,
  * ou retire le dernier palier pris d'un arbre (s'il est déjà choisi). Renvoie false si rien ne change.
  */
-export function toggleTalent(alloc: TalentAlloc, tree: TreeId, tier: number, choice: Choice, points: number): boolean {
-  const picks = alloc[tree];
-  const def = TREES.find((d) => d.id === tree)!;
+export function toggleTalent(alloc: TalentAlloc, tree: TreeId, tier: number, choice: Choice, points: number, classId = 'guerrier'): boolean {
+  const def = treesFor(classId).find((d) => d.id === tree);
+  if (!def) return false;
+  const picks = (alloc[tree] ??= []);
   if (!def.tiers[tier] || (choice === 'B' && !def.tiers[tier][1])) return false;
   if (tier < picks.length) {
     if (picks[tier] !== choice) {
@@ -134,10 +198,11 @@ export function toggleTalent(alloc: TalentAlloc, tree: TreeId, tier: number, cho
 }
 
 /** Ramène la répartition dans les limites (points disponibles), au cas où. */
-export function clampAlloc(alloc: TalentAlloc, points: number): TalentAlloc {
-  const a = { armes: [...alloc.armes], fureur: [...alloc.fureur], protection: [...alloc.protection] };
+export function clampAlloc(alloc: TalentAlloc, points: number, classId = 'guerrier'): TalentAlloc {
+  const ids = treesFor(classId).map((tree) => tree.id);
+  const a: TalentAlloc = Object.fromEntries(ids.map((id) => [id, [...(alloc[id] ?? [])]]));
   while (pointsUsed(a) > points) {
-    const longest = (['armes', 'fureur', 'protection'] as TreeId[]).reduce((x, y) => (a[x].length >= a[y].length ? x : y));
+    const longest = ids.reduce((x, y) => (a[x].length >= a[y].length ? x : y));
     a[longest].pop();
   }
   return a;

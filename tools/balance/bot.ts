@@ -20,7 +20,8 @@ import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
 
 /** Les dégâts qu'un ennemi va infliger à son prochain tour. */
 function incomingFrom(c: CombatState, e: EnemyState): number {
-  if (e.dead || e.submerged || e.interrupted || (e.buffs.peur ?? 0) > 0) return 0;
+  if (e.dead || e.submerged || e.interrupted || (e.buffs.peur ?? 0) > 0 || (e.mouton ?? 0) > 0 || e.gele === 'skip') return 0;
+  if (c.player.iceBlock) return 0;
   const def = ENEMIES[e.defId];
   if (e.disarmed && !def.elite && !def.boss) return 0;
   const i = e.intent;
@@ -47,13 +48,18 @@ function evaluate(c: CombatState): number {
     // Débuffs posés : ils valent quelque chose pour la suite.
     enemyHp -= e.buffs.saignement * Math.min(3, e.buffs.saignementTours) * 0.8;
     enemyHp -= e.buffs.armureFracassee * 3 + e.buffs.demoralise * 1.5 + e.buffs.ralenti;
+    // Mage : la Brûlure à venir, le Gel accumulé.
+    const burn = e.buffs.brulure ?? 0;
+    enemyHp -= (burn * (burn + 1)) / 2 * 0.6;
+    enemyHp -= (e.buffs.gel ?? 0) * 1.5;
   }
   // Ce qui brûlera en fin de tour : Zones de feu et Bombes vivantes gardées en main.
   const burn = c.hand.filter((k) => k.id === 'zone_de_feu').length * (c.fireProof ? 0 : 6)
     + c.hand.filter((k) => k.id === 'bombe_vivante').length * 15;
   const unblocked = Math.max(0, incoming - p.block) * (p.rempart ? 0.5 : 1) + burn;
   const powers = Object.values(c.powers ?? {}).length;
-  return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
+  const charges = (p.charges ?? 0) >= 4 && !c.gear?.noOverload ? 4 * 1.5 - 3 : (p.charges ?? 0) * 1.5;
+  return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
 }
 
 const clone = (c: CombatState): CombatState => JSON.parse(JSON.stringify(c));
@@ -158,7 +164,7 @@ function upgradeTarget(run: RunState): number | null {
 function handleShop(run: RunState): void {
   const shop = run.shop!;
   // Retirer une Malédiction ou une Frappe.
-  const bad = run.deck.find((k) => k.id === 'malediction') ?? run.deck.find((k) => k.id === 'frappe');
+  const bad = run.deck.find((k) => k.id === 'malediction') ?? run.deck.find((k) => k.id === 'frappe' || k.id === 'trait_de_magie');
   if (bad) buyRemoval(run, bad.uid);
   shop.cards.forEach((item, i) => {
     if (!item.sold && CARD_RANK[CARDS[item.id].rarity] >= 2 && run.gold - item.price >= 60) buyCard(run, i);
@@ -229,12 +235,12 @@ export interface RunResult {
 }
 
 /** Joue une run entière. */
-export function simulateRun(seed: number, talents: string[], difficulty = 0): RunResult {
+export function simulateRun(seed: number, talents: string[], difficulty = 0, classId = 'guerrier'): RunResult {
   const rnd = chooser(seed * 7919);
-  const run = newRun(seed, null, talents, difficulty);
+  const run = newRun(seed, null, talents, difficulty, classId);
   offerBlessing(run);
   const blessing = BLESSING_ORDER.find((b) => run.blessings.includes(b))!;
-  if (blessing === 'allegement') chooseBlessing(run, blessing, run.deck.find((k) => k.id === 'frappe')!.uid);
+  if (blessing === 'allegement') chooseBlessing(run, blessing, run.deck.find((k) => k.id === 'frappe' || k.id === 'trait_de_magie')!.uid);
   else chooseBlessing(run, blessing);
   const fights: FightLog[] = [];
   let current: FightLog | null = null;

@@ -124,6 +124,6 @@ describe('les effets des talents en combat', () => {
   });
 
   it('chaque talent est défini une seule fois', () => {
-    expect(Object.keys(TALENTS)).toHaveLength(27);
+    expect(Object.keys(TALENTS)).toHaveLength(54); // 27 par classe jouable
   });
 });

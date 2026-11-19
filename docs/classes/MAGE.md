@@ -1,7 +1,7 @@
 # Classe : le Mage
 
 > Wipe & Loot · Fiche de classe · Version 0.1
-> Les chiffres sont **indicatifs** : ils serviront de base aux premiers tests d'équilibrage.
+> Les chiffres ont été réglés par une première passe d'équilibrage (voir [l'équilibrage](../EQUILIBRAGE.md), §7).
 
 ---
 
@@ -18,7 +18,7 @@ Le Mage est un lanceur de sorts fragile mais redoutable. Il maîtrise **trois é
 
 | Statistique | Valeur |
 |---|---|
-| **PV max** | 65 |
+| **PV max** | 72 |
 | **Énergie** | 3 par tour |
 | **Ressource de classe** | Charges d'école : Gel et Brûlure (sur les ennemis), Charges arcaniques (sur le Mage) |
 | **Sort de barre de départ** | Contresort |
@@ -68,16 +68,16 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Trait de magie** | 4 | 1 | Sort | Inflige 6 dégâts. | 9 dégâts |
-| **Barrière** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
-| **Boule de feu** | 1 | 2 | Sort (Feu) | Inflige 12 dégâts. Applique Brûlure 3. | 16 dégâts, Brûlure 4 |
-| **Éclair de givre** | 1 | 1 | Sort (Givre) | Inflige 5 dégâts. Applique Gel 2. | 7 dégâts, Gel 3 |
+| **Trait de magie** | 4 | 1 | Sort (Arcane) | Inflige 7 dégâts. | 10 dégâts |
+| **Barrière** | 4 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
+| **Boule de feu** | 1 | 2 | Sort (Feu) | Inflige 14 dégâts. Applique Brûlure 4. | 18 dégâts, Brûlure 5 |
+| **Éclair de givre** | 1 | 1 | Sort (Givre) | Inflige 7 dégâts. Applique Gel 2. | 9 dégâts, Gel 3 |
 
 ### 4.2 Sort de barre de départ
 
 | Sort | Coût | Recharge | Effet |
 |---|---|---|---|
-| **Contresort** | 1 | 3 tours | **Interruption.** La cible ne peut pas commencer de nouvelle Incantation à son prochain tour. |
+| **Contresort** | 0 | 3 tours | **Interruption** de l'Incantation de la cible. Inflige 4 dégâts. |
 
 ---
 
@@ -125,7 +125,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 |---|---|---|---|---|---|
 | **Roussir** | 0 | Sort | C | Inflige 3 dégâts. Applique Brûlure 2. | 4 / 3 |
 | **Étincelle** | 0 | Sort | C | Applique Brûlure 3. **Éphémère.** | Brûlure 5 |
-| **Boule de feu** | 2 | Sort | C | Inflige 12 dégâts. Applique Brûlure 3. | 16 / 4 |
+| **Boule de feu** | 2 | Sort | C | Inflige 14 dégâts. Applique Brûlure 4. | 18 / 5 |
 | **Cône de flammes** | 1 | Sort | C | Inflige 5 dégâts à tous les ennemis. Applique Brûlure 1 à tous. | 7 / 2 |
 | **Bouclier de flammes** | 1 | Compétence | C | Gagne 6 blocage. Applique Brûlure 2 à un ennemi au hasard. | 9 / 3 |
 | **Éruption** | 1 | Sort | PC | Inflige des dégâts égaux à **2 fois** la Brûlure de la cible. | 3 fois |
@@ -142,7 +142,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Éclair de givre** | 1 | Sort | C | Inflige 5 dégâts. Applique Gel 2. | 7 / 3 |
+| **Éclair de givre** | 1 | Sort | C | Inflige 7 dégâts. Applique Gel 2. | 9 / 3 |
 | **Lance de glace** | 0 | Sort | C | Inflige 3 dégâts. **Fracasser.** | 5 dégâts |
 | **Gelure** | 1 | Sort | C | Applique Gel 4. | Gel 5 |
 | **Cône de froid** | 2 | Sort | C | Inflige 7 dégâts à tous les ennemis. Applique Gel 2 à tous. | 10 / 3 |
@@ -155,7 +155,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 | **Prison de glace** | 1 | Compétence | R | La cible (sauf boss) devient immédiatement **Gelée**. **Épuisé.** | Fonctionne aussi sur un boss (attaque réduite de moitié) |
 | **Fragmentation** | 2 | Pouvoir | R | **Fracasser** inflige **triple** dégâts au lieu de double. | Coûte 1 |
 | **Cœur de glace** | 1 | Pouvoir | R | Au début de ton tour, applique Gel 1 à tous les ennemis. | Inné |
-| **Fracas glaciaire** | 2 | Sort | É | Inflige 12 dégâts. **Fracasser.** Si la cible est Gelée, inflige aussi ces dégâts à tous les autres ennemis. | 16 dégâts |
+| **Fracas glaciaire** | 2 | Sort | É | Inflige 14 dégâts. **Fracasser.** Si la cible est Gelée, inflige aussi ces dégâts à tous les autres ennemis. | 18 dégâts |
 
 ---
 
@@ -163,13 +163,13 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 
 | Sort | Coût | Recharge | Effet | Source principale |
 |---|---|---|---|---|
-| **Contresort** | 1 | 3 tours | **Interruption.** La cible ne peut pas commencer de nouvelle Incantation à son prochain tour. | Départ |
+| **Contresort** | 0 | 3 tours | **Interruption** de l'Incantation de la cible. Inflige 4 dégâts. | Départ |
 | **Évocation** | 0 | 5 tours | Gagne 2 énergie et pioche 1 carte. | Talent Arcane, palier 3 |
 | **Pouvoir des arcanes** | 0 | 5 tours | Ce tour-ci, tes Sorts infligent 50 % de dégâts en plus. | Talent Arcane, palier 3 |
-| **Clignement** | 0 | 3 tours | Retire de ta main toutes les cartes-statut (Zone de feu, Bombe vivante…) **sans subir leur effet**. Gagne 4 blocage. | Talent Arcane, palier 4 |
+| **Clignement** | 0 | 4 tours | Retire de ta main toutes les cartes-statut (Zone de feu, Bombe vivante…) **sans subir leur effet**. Gagne 4 blocage. | Talent Arcane, palier 4 |
 | **Combustion** | 1 | 4 tours | **Double** la Brûlure de tous les ennemis. | Talent Feu, palier 3 |
-| **Souffle ardent** | 1 | 3 tours | Inflige 6 dégâts à tous les ennemis et leur applique Brûlure 2. | Talent Feu, palier 3 |
-| **Carapace de glace** | 0 | 5 tours | Tu es **immunisé à tous les dégâts** jusqu'à ton prochain tour. Ton tour se termine immédiatement. | Talent Givre, palier 3 |
+| **Souffle ardent** | 1 | 3 tours | Inflige 4 dégâts à tous les ennemis et leur applique Brûlure 2. | Talent Feu, palier 3 |
+| **Carapace de glace** | 1 | 6 tours | Tu es **immunisé à tous les dégâts** jusqu'à ton prochain tour. Ton tour se termine immédiatement. | Talent Givre, palier 3 |
 | **Orbe glaciale** | 1 | 3 tours | Inflige 4 dégâts à tous les ennemis et leur applique Gel 2. | Talent Givre, palier 3 |
 
 **Sorts de barre dans les tables de loot** (exemples) : *Bouclier de feu ancestral* (8 blocage et Brûlure 3 à l'attaquant, recharge 3), *Vortex temporel* (les temps de recharge des autres sorts diminuent de 2, 1 fois par combat).
@@ -184,7 +184,7 @@ Mêmes règles que pour toutes les classes (voir [le fonctionnement des classes]
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Subtilité arcanique** : commence chaque combat avec 1 charge. | **Méditation** : pioche 1 carte de plus au premier tour de chaque combat. |
+| **1** | **Subtilité arcanique** : commence chaque combat avec 2 charges. | **Méditation** : pioche 1 carte de plus au premier tour de chaque combat. |
 | **2** | **Stabilité** : la Surcharge ne fait plus perdre de PV. | **Esprit clair** : Barrage arcanique pioche 1 carte de plus. |
 | **3** | **Évocation** : ajoute ce sort à ta barre. | **Pouvoir des arcanes** : ajoute ce sort à ta barre. |
 | **4** | **Clignement** : ajoute ce sort à ta barre. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
@@ -195,7 +195,7 @@ Mêmes règles que pour toutes les classes (voir [le fonctionnement des classes]
 | Palier | Choix A | Choix B |
 |---|---|---|
 | **1** | **Feu intense** : toutes tes applications de Brûlure sont augmentées de 1. | **Impact** : Boule de feu inflige +3 dégâts. |
-| **2** | **Brasier** : quand tu appliques de la Brûlure à une cible qui en a déjà 5 ou plus, applique 2 de plus. | **Souffle du dragon** : au début de chaque combat, applique Brûlure 3 à tous les ennemis. |
+| **2** | **Brasier** : quand tu appliques de la Brûlure à une cible qui en a déjà 5 ou plus, applique 2 de plus. | **Souffle du dragon** : au début de chaque combat, applique Brûlure 2 à tous les ennemis. |
 | **3** | **Combustion** : ajoute ce sort à ta barre. | **Souffle ardent** : ajoute ce sort à ta barre. |
 | **4** | **Pyromane** : la recharge de Combustion et de Souffle ardent diminue de 1. | **Flammes éternelles** : la Brûlure des boss ne diminue plus. |
 | **5** | **Pyrolance** (carte épique) | — |
@@ -248,7 +248,7 @@ Mêmes règles que pour toutes les classes (voir [le fonctionnement des classes]
 | **Dissipation** | ➖ Seulement les **Malédictions** (Délivrance). |
 | **Zones de feu** | ✅ Clignement les retire sans dégâts. |
 | **Gros coups annoncés** | ✅ Carapace de glace annule une attaque énorme. |
-| **Pression continue** | ❌ **Fragile** : 65 PV et peu de blocage. Un combat long contre plusieurs attaquants est dangereux. |
+| **Pression continue** | ❌ **Fragile** : 72 PV et peu de blocage. Un combat long contre plusieurs attaquants est dangereux. |
 
 ---
 

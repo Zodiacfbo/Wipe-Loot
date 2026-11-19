@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Seul le Guerrier est jouable dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier et le Mage sont jouables dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -16,17 +16,25 @@ export interface ClassInfo {
   color: string;
   /** Jouable dans cette version du jeu. */
   playable: boolean;
+  /** Le kit de départ (classes jouables) : deck, sort de barre, sprite. */
+  starterDeck?: string[];
+  startSpell?: string;
+  sprite?: string;
 }
 
 export const CLASSES: ClassInfo[] = [
   {
     id: 'guerrier', name: 'Guerrier', color: '#C8402A', playable: true, difficulty: 1, hp: 80,
+    starterDeck: ['frappe', 'frappe', 'frappe', 'frappe', 'parade', 'parade', 'parade', 'parade', 'frappe_heroique', 'cri_de_guerre'],
+    startSpell: 'charge', sprite: 'guerrier.png',
     quote: 'Chaque coup reçu me rend plus fort. Chaque coup donné rapproche la fin.',
     role: 'Dégâts physiques ou tank', resource: 'Rage (0 à 10) et postures',
     fantasy: 'Démarrer lentement, monter en puissance, puis tout raser avec une Exécution à pleine rage.',
   },
   {
-    id: 'mage', name: 'Mage', color: '#4C8FE0', playable: false, difficulty: 2, hp: 65,
+    id: 'mage', name: 'Mage', color: '#4C8FE0', playable: true, difficulty: 2, hp: 72,
+    starterDeck: ['trait_de_magie', 'trait_de_magie', 'trait_de_magie', 'trait_de_magie', 'barriere', 'barriere', 'barriere', 'barriere', 'boule_de_feu', 'eclair_de_givre'],
+    startSpell: 'contresort', sprite: 'mage.png',
     quote: 'Le feu consume, la glace emprisonne, l\'arcane plie le monde. Choisis ta perte.',
     role: 'Dégâts magiques à distance, contrôle', resource: 'Gel, Brûlure et charges arcaniques',
     fantasy: 'Geler un boss sur place, ou le regarder brûler derrière une Carapace de glace.',
@@ -76,6 +84,11 @@ export const CLASSES: ClassInfo[] = [
 ];
 
 export const CLASS_BY_ID: Record<string, ClassInfo> = Object.fromEntries(CLASSES.map((c) => [c.id, c]));
+
+/** La fiche d'une classe (le Guerrier si l'id est inconnu). */
+export function classInfo(id: string | undefined): ClassInfo {
+  return CLASS_BY_ID[id ?? 'guerrier'] ?? CLASS_BY_ID.guerrier;
+}
 
 /** Expérience totale (toutes classes) qu'il faut pour débloquer la 2e, la 3e… la 9e classe. */
 export const CLASS_UNLOCK_XP = [300, 700, 1200, 1800, 2500, 3300, 4200, 5200];

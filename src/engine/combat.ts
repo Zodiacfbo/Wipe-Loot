@@ -2,7 +2,11 @@
 import {
   addStatusToDraw,
   addStatusToHand,
+  applyBrulure,
+  applyGel,
   applySaignement,
+  gainCharges,
+  isBossEnemy,
   emptyDebuffs,
   makeEnemy,
   damageEnemy,
@@ -16,8 +20,8 @@ import {
   log,
   power,
 } from './actions';
-import { CARDS, energyCost, type PlayContext } from './cards';
-import { SPELLS } from './spells';
+import { CARDS, energyCost, isEthereal, type PlayContext } from './cards';
+import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
@@ -38,6 +42,7 @@ export function createCombat(
   gear: ItemEffects = {},
   spells: string[] = ['charge'],
   mods?: CombatMods,
+  classId = 'guerrier',
 ): CombatState {
   const c: CombatState = {
     turn: 0,
@@ -46,7 +51,9 @@ export function createCombat(
       hp, maxHp, block: 0, energy: 3, maxEnergy: 3, rage: 0, maxRage: Math.max(10, gear.maxRage ?? 0), posture: 'combat',
       postureChanged: false, puissance: 0, ignorerDouleur: false, blockedFullAttack: false, drawPenalty: 0, robustesse: 0,
       debuffs: emptyDebuffs(),
+      ...(classId === 'mage' ? { charges: 0, maxCharges: 4 } : {}),
     },
+    classId,
     enemies: [],
     draw: [],
     hand: [],
@@ -98,6 +105,8 @@ export function createCombat(
   p.block += gear.startBlock ?? 0;
   p.energy += gear.firstTurnEnergy ?? 0;
   gainRage(c, gear.startRage ?? 0);
+  if (gear.startCharges) gainCharges(c, gear.startCharges); // Subtilité arcanique
+  if (gear.startBurn) for (const e of livingEnemies(c)) applyBrulure(c, e, gear.startBurn); // Souffle du dragon
   if (gear.firstTurnDraw) drawCards(c, gear.firstTurnDraw);
   if (gear.startDemoralise) for (const e of c.enemies) e.buffs.demoralise = Math.max(e.buffs.demoralise, gear.startDemoralise);
   if (gear.startAoe) {
@@ -118,6 +127,11 @@ export function createCombat(
 export function startPlayerTurn(c: CombatState): void {
   const p = c.player;
   c.turn += 1;
+  // Bouclier de mana : s'il reste du blocage, on pioche une carte de plus.
+  const manaDraw = p.manaShield && p.block > 0 ? 1 : 0;
+  p.manaShield = false;
+  // Distorsion temporelle
+  const distortion = p.distortion ? 2 : 0;
   // Garde de fer : on garde la moitié du blocage.
   p.block = power(c, 'garde_de_fer') > 0 ? Math.floor(p.block / 2) : 0;
   p.riposte = 0;
@@ -136,7 +150,18 @@ export function startPlayerTurn(c: CombatState): void {
   c.panicked = [];
   p.temerite = false;
   p.rempart = false;
-  drawCards(c, Math.max(0, 5 - (p.drawPenalty ?? 0)));
+  p.arcanePower = false;
+  p.iceBlock = false;
+  p.spellReflect = false;
+  p.fireShield = 0;
+  c.freeNext = false;
+  c.freeNextSpell = false;
+  c.mageSpellsThisTurn = 0;
+  if (p.distortion) {
+    p.energy += 1;
+    p.distortion = false;
+  }
+  drawCards(c, Math.max(0, 5 + manaDraw + distortion + power(c, 'erudition') - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
   const d = (p.debuffs ??= emptyDebuffs());
   // Embrasement de mana (Baron Vossk)
@@ -171,6 +196,9 @@ export function startPlayerTurn(c: CombatState): void {
   }
   if (power(c, 'tenacite')) gainBlock(c, power(c, 'tenacite'), false);
   if (power(c, 'ambidextrie')) addStatusToHand(c, 'main_gauche', power(c, 'ambidextrie'));
+  // Pouvoirs du Mage
+  if (power(c, 'esprit_vif')) gainCharges(c, power(c, 'esprit_vif'));
+  if (power(c, 'coeur_de_glace')) for (const e of livingEnemies(c)) applyGel(c, e, power(c, 'coeur_de_glace'));
   // Pierre de magma : +1 Puissance tous les 2 tours.
   const magma = c.gear?.magmaPuissance ?? 0;
   if (magma > 0 && c.turn % 2 === 0 && (c.magmaGained ?? 0) < magma) {
@@ -243,6 +271,9 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const p = c.player;
   const cost = energyCost(c, card.id, card.upgraded);
   p.energy -= cost;
+  // Inspiration et Présence d'esprit ne servent qu'une fois.
+  if (c.freeNext) c.freeNext = false;
+  else if (c.freeNextSpell && def.type === 'Sort') c.freeNextSpell = false;
   c.cardsThisTurn = (c.cardsThisTurn ?? 0) + 1;
   c.firstCardDone = true;
   let rageSpent = 0;
@@ -270,10 +301,18 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
   const blockBefore = p.block;
-  c.playing = { cost, type: def.type, id: card.id };
+  c.playing = { cost, type: def.type, id: card.id, school: def.school };
   def.play(ctx);
   c.playing = undefined;
   if (c.cleaving) c.cleave = (c.cleave ?? 1) - 1;
+  // Concentration arcanique : le 3e Sort du tour rend de l'énergie.
+  if (def.type === 'Sort') {
+    c.mageSpellsThisTurn = (c.mageSpellsThisTurn ?? 0) + 1;
+    if (c.mageSpellsThisTurn === 3 && power(c, 'concentration_arcanique')) {
+      p.energy += power(c, 'concentration_arcanique');
+      fx(c, { kind: 'buff', who: 'player', label: 'Concentration arcanique : +1 énergie' });
+    }
+  }
   c.cleaving = false;
   if (attack) {
     p.enrageReady = 0;
@@ -337,8 +376,9 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   if (target === 'invalid') return false;
   c.player.energy -= def.cost;
   def.cast(c, target);
-  s.cooldown = def.once ? 999 : def.cooldown;
+  s.cooldown = def.once ? 999 : spellCooldown(def, c.gear);
   log(c, `Tu lances ${def.name}.`);
+  if (def.endsTurn && c.phase === 'player') endTurn(c);
   return true;
 }
 
@@ -381,9 +421,9 @@ export function endTurn(c: CombatState): void {
     }
   }
   // Les cartes Éphémères restées en main disparaissent.
-  const gone = c.hand.filter((card) => CARDS[card.id].ethereal);
+  const gone = c.hand.filter((card) => isEthereal(card));
   c.exhaust.push(...gone);
-  c.discard.push(...c.hand.filter((card) => !CARDS[card.id].ethereal));
+  c.discard.push(...c.hand.filter((card) => !isEthereal(card)));
   c.hand = [];
   c.panicked = [];
   const d = p.debuffs;
@@ -391,6 +431,13 @@ export function endTurn(c: CombatState): void {
     d.demoralise = Math.max(0, d.demoralise - 1);
     d.impie = Math.max(0, d.impie - 1);
     d.arcane = Math.max(0, d.arcane - 1);
+  }
+  // Surcharge : à 4 charges arcaniques ou plus, le Mage perd 2 PV.
+  if ((p.charges ?? 0) >= 4 && !c.gear?.noOverload && c.phase === 'player') {
+    p.hp = Math.max(0, p.hp - 2);
+    fx(c, { kind: 'tick', who: 'player', amount: 2, label: 'Surcharge' });
+    log(c, 'Surcharge : la magie arcanique te brûle (2 PV).');
+    if (p.hp <= 0) c.phase = 'defeat';
   }
   if (c.phase !== 'player') return;
 
@@ -406,6 +453,7 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number): number {
   if (c.player.temerite) dmg *= 1.25;
   if ((c.player.fureur ?? 0) > 0) dmg *= 1.25;
   if (e.disarmed) dmg *= 0.7; // un boss désarmé frappe moins fort
+  if (e.gele === 'half') dmg *= 0.5; // un boss Gelé
   // Difficulté : les ennemis normaux et les boss secondaires frappent plus fort.
   const def = ENEMIES[e.defId];
   if (c.mods && !def.boss) dmg *= def.elite ? c.mods.eliteDmg : c.mods.normalDmg;
@@ -452,6 +500,22 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
           damageEnemy(c, e, reflect);
         }
         if (e.dead) break;
+      }
+      // Gelé (boss) : seule la prochaine attaque est réduite.
+      if (e.gele === 'half') e.gele = undefined;
+      // Réflexion des sorts : une incantation renvoie la moitié de ses dégâts.
+      if (c.player.spellReflect && intent.cast && !e.dead && c.phase === 'player') {
+        const back = Math.floor(enemyDamage(c, e, base) * times / 2);
+        if (back > 0) {
+          fx(c, { kind: 'tick', who: e.uid, amount: back, label: 'Réflexion' });
+          damageEnemy(c, e, back);
+        }
+      }
+      // Armure de lave, Armure de givre, Bouclier de feu ancestral : l'attaquant en paie le prix.
+      if (!e.dead && c.phase === 'player') {
+        const burn = power(c, 'armure_de_lave') + (c.player.fireShield ?? 0);
+        if (burn > 0) applyBrulure(c, e, burn);
+        if (power(c, 'armure_de_givre')) applyGel(c, e, power(c, 'armure_de_givre'));
       }
       if (intent.drawPenalty && c.phase === 'player') {
         c.player.drawPenalty += intent.drawPenalty;
@@ -591,10 +655,26 @@ function enemyTurnInner(c: CombatState): void {
       if (e.buffs.saignementTours === 0) e.buffs.saignement = 0;
       if (e.dead) continue;
     }
+    // Brûlure (Chaleur intense l'attise d'abord)
+    if ((e.buffs.brulure ?? 0) > 0) {
+      e.buffs.brulure! += power(c, 'chaleur_intense');
+      const burn = e.buffs.brulure!;
+      log(c, `${e.name} brûle : ${burn} dégâts.`);
+      fx(c, { kind: 'tick', who: e.uid, amount: burn, label: 'Brûlure' });
+      damageEnemy(c, e, burn, true);
+      if (!(c.gear?.bossBurnKeep && isBossEnemy(e))) e.buffs.brulure = Math.max(0, burn - 1);
+      if (e.dead || c.phase !== 'player') continue;
+    }
 
     if ((e.buffs.peur ?? 0) > 0) {
       e.buffs.peur! -= 1;
       log(c, `${e.name} est apeuré et ne fait rien.`);
+    } else if ((e.mouton ?? 0) > 0) {
+      e.mouton! -= 1;
+      log(c, `${e.name} broute, transformé en mouton.`);
+    } else if (e.gele === 'skip') {
+      e.gele = undefined;
+      log(c, `${e.name} est Gelé : il ne peut pas agir.`);
     } else if (e.interrupted) {
       log(c, `${e.name} ne peut pas agir : son incantation a été interrompue.`);
       e.interrupted = false;
@@ -613,6 +693,7 @@ function enemyTurnInner(c: CombatState): void {
     }
 
     decayBuffs(e);
+    if ((e.buffs.gel ?? 0) > 0 && !c.gear?.gelKeep) e.buffs.gel! -= 1;
     e.disarmed = false;
     e.step += 1;
     e.intent = intentAt(ENEMIES[e.defId], e.step, e.phase ?? 1, e.hp < e.maxHp / 2);

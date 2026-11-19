@@ -1,5 +1,5 @@
-// Les cartes du Guerrier disponibles dans le prototype, et la carte-statut Zone de feu.
-// Référence : docs/classes/GUERRIER.md
+// Les cartes du Guerrier, les cartes-statut, et (dans cards_mage.ts) les cartes du Mage.
+// Référence : docs/classes/GUERRIER.md et docs/classes/MAGE.md
 import {
   addPower,
   addStatusToHand,
@@ -17,7 +17,8 @@ import { ENEMIES, isInterruptible } from './enemies';
 import { random } from './rng';
 import { basicAttack } from './spells';
 import type { ItemEffects } from './items';
-import type { CardType, CombatState, EnemyState, Rarity } from './types';
+import type { CardInstance, CardType, CombatState, EnemyState, Rarity, School } from './types';
+import { MAGE_CARDS } from './cards_mage';
 
 export interface PlayContext {
   c: CombatState;
@@ -39,6 +40,12 @@ export interface CardDef {
   exhaust?: boolean;
   exhaustUp?: boolean;
   ethereal?: boolean;
+  /** Une fois améliorée, la carte n'est plus Éphémère (Flux arcanique+). */
+  etherealUp?: boolean;
+  /** La classe de la carte (guerrier par défaut ; les cartes-statut sont communes à tous). */
+  classId?: string;
+  /** L'école de magie (Mage). */
+  school?: School;
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
@@ -76,7 +83,7 @@ function otherEnemy(ctx: PlayContext): EnemyState | null {
   return livingEnemies(ctx.c).find((e) => e !== ctx.target) ?? null;
 }
 
-export const CARDS: Record<string, CardDef> = {
+const WARRIOR_CARDS: Record<string, CardDef> = {
   // --- Deck de départ ---
   frappe: {
     id: 'frappe', name: 'Frappe', type: 'Attaque', rarity: 'depart', cost: 1, needsTarget: true, icon: 'epee',
@@ -620,10 +627,25 @@ export const CARDS: Record<string, CardDef> = {
   },
 };
 
+export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS };
+
+/** La classe d'une carte. */
+export function cardClass(id: string): string {
+  return CARDS[id]?.classId ?? 'guerrier';
+}
+
+/** La carte est-elle Éphémère (en tenant compte de l'amélioration) ? */
+export function isEthereal(card: CardInstance): boolean {
+  const def = CARDS[card.id];
+  return card.upgraded && def.etherealUp !== undefined ? def.etherealUp : !!def.ethereal;
+}
+
 /** Coût en énergie d'une carte, en tenant compte de l'amélioration et des réductions. */
 export function energyCost(c: CombatState, id: string, up: boolean): number {
   const def = CARDS[id];
   if (id === 'vengeance' && c.player.blockedFullAttack) return 0;
+  // Inspiration, Présence d'esprit
+  if (!def.unplayable && (c.freeNext || (c.freeNextSpell && def.type === 'Sort'))) return 0;
   // Bague du tisseur : la première carte du combat est gratuite.
   if (c.gear?.firstCardFree && !c.firstCardDone && !def.unplayable) return 0;
   let cost = up && def.costUp !== undefined ? def.costUp : def.cost;
@@ -633,16 +655,20 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   return cost;
 }
 
-/** Les cartes qui peuvent apparaître en récompense, avec leur rareté. */
-export const REWARD_POOL: string[] = Object.values(CARDS)
-  .filter((d) => d.rarity === 'commune' || d.rarity === 'peu_commune' || d.rarity === 'rare' || d.rarity === 'epique')
-  .map((d) => d.id);
+const REWARDABLE = new Set<Rarity>(['commune', 'peu_commune', 'rare', 'epique']);
 
-export const STARTER_DECK: string[] = [
-  'frappe', 'frappe', 'frappe', 'frappe',
-  'parade', 'parade', 'parade', 'parade',
-  'frappe_heroique', 'cri_de_guerre',
-];
+/** Les cartes d'une classe qui peuvent apparaître en récompense. */
+export function rewardPool(classId = 'guerrier'): string[] {
+  return Object.values(CARDS).filter((d) => REWARDABLE.has(d.rarity) && (d.classId ?? 'guerrier') === classId).map((d) => d.id);
+}
+
+/** Les cartes de départ d'une classe (pour les archives). */
+export function starterCards(classId = 'guerrier'): string[] {
+  return Object.values(CARDS).filter((d) => d.rarity === 'depart' && (d.classId ?? 'guerrier') === classId).map((d) => d.id);
+}
+
+/** Les récompenses du Guerrier (compatibilité). */
+export const REWARD_POOL: string[] = rewardPool('guerrier');
 
 export function addStatus(c: CombatState, id: string, count: number): void {
   addStatusToHand(c, id, count);
