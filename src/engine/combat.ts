@@ -25,6 +25,7 @@ import { AFFLICTIONS, GRIZZIK_POTIONS, PRISMAGOR_BREATHS } from './enemies_acte2
 import { CARDS, energyCost, isEthereal, shardCost, type PlayContext } from './cards';
 import { decayCurses, felhunterLock, felhunterStart, petAct, triggerDots } from './demoniste';
 import { BASE_AEGIS, BASE_FAITH, gainAegis, gainFaith } from './pretre';
+import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStrike } from './voleur';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
@@ -62,6 +63,8 @@ export function createCombat(
     classId,
     ...(classId === 'demoniste' ? { shards: demon?.shards ?? 0, pet: demon?.pet ?? 'diablotin', soulSiphon: {} } : {}),
     ...(classId === 'pretre' ? { aegis: 0, maxAegis: gear.maxAegis ?? BASE_AEGIS, faith: 0, maxFaith: gear.maxFaith ?? BASE_FAITH } : {}),
+    // Le Voleur commence chaque combat Camouflé (2 tours avec Ombres profondes ou Ténèbres).
+    ...(classId === 'voleur' ? { combo: Math.min(5, gear.startCombo ?? 0), stealth: true, stealthTurns: gear.longStealth ? 2 : 1, stormCount: 0 } : {}),
     enemies: [],
     draw: [],
     hand: [],
@@ -220,6 +223,17 @@ export function startPlayerTurn(c: CombatState): void {
       damageEnemy(c, e, power(c, 'sol_sacre'));
     }
     healPlayer(c, power(c, 'sol_sacre') - 1);
+  }
+  // Voleur : le Camouflage revient (Fumigène, Coup fourré, Seigneur des ombres), Danse des lames s'use.
+  if (c.combo !== undefined) {
+    if (c.turn > 1 && c.bladeDance && c.bladeDance.turns > 0) c.bladeDance.turns -= 1;
+    if (c.stealthNext || power(c, 'seigneur_ombres')) enterStealth(c, 1);
+    c.stealthNext = false;
+    c.shadowStep = false;
+    c.numbUsed = false;
+    c.riposteCombo = 0;
+    c.openersFree = false;
+    p.evasion = false;
   }
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
@@ -380,6 +394,8 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return false;
   // Prêtre : le coût en Foi.
   if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return false;
+  // Voleur : une Ouverture ne se joue qu'en Camouflage.
+  if (def.opener && !stealthed(c, def.type === 'Attaque')) return false;
   return true;
 }
 
@@ -429,13 +445,21 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     }
   }
 
-  const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent };
+  // Voleur : un finisher consomme tous les points de combo (Impitoyable : un de plus).
+  const comboHeld = c.combo ?? 0;
+  const comboSpent = def.finisher && c.combo !== undefined ? comboHeld + (c.gear?.ruthless ?? 0) : undefined;
+  if (def.finisher && c.combo !== undefined) c.combo = 0;
+  const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent, comboSpent };
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
   const blockBefore = p.block;
-  c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort') };
+  // Ambidextrie experte : la première Attaque du tour est jouée deux fois.
+  const twice = attack && c.combo !== undefined && power(c, 'ambidextrie_experte') > 0 && (c.attacksThisTurn ?? 0) === 0;
+  c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort'), opener: def.opener };
   def.play(ctx);
+  if (twice && c.phase === 'player' && (!target || !target.dead)) def.play(ctx);
   c.playing = undefined;
+  if (c.combo !== undefined) afterRogueCard(c, def, comboHeld, attack);
   // Butin : Masse des flammes, Croc des trois souffles, Croc de Prismagor.
   if (ctx.dealt && target && !target.dead && !target.submerged) onHitItems(c, target, def.type);
   if (def.type === 'Sort' && ctx.dealt) p.enrageReady = 0;
@@ -517,14 +541,14 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   if (!canUseSpell(c, index)) return false;
   const s = c.spells[index];
   const def = SPELLS[s.id];
-  const target = resolveTarget(c, def.needsTarget, targetUid, (def.classId ?? 'guerrier') === 'guerrier');
+  const target = resolveTarget(c, def.needsTarget, targetUid, ['guerrier', 'voleur'].includes(def.classId ?? 'guerrier'));
   if (target === 'invalid') return false;
   c.player.energy -= def.cost;
   if (def.shardCost && c.shards !== undefined) c.shards -= def.shardCost;
   if (target) c.lastTarget = target.uid;
   // Les sorts de barre du Mage et du Démoniste sont des Sorts (bonus aux Sorts, Malédiction des éléments).
   const spellClass = def.classId ?? 'guerrier';
-  if (spellClass !== 'guerrier') c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
+  if (spellClass !== 'guerrier' && spellClass !== 'voleur') c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
   def.cast(c, target);
   c.playing = undefined;
   s.cooldown = def.once ? 999 : spellCooldown(def, c.gear);
@@ -616,6 +640,12 @@ export function endTurn(c: CombatState): void {
   if (c.phase !== 'player') return;
 
   p.blockedFullAttack = false;
+  // Voleur : le Camouflage s'use à la fin du tour.
+  if (c.stealth) {
+    c.stealthTurns = (c.stealthTurns ?? 1) - 1;
+    if (c.stealthTurns <= 0) breakStealth(c);
+  }
+  c.shadowStep = false;
   // Le familier agit, puis le Seigneur infernal ; le Molosse guette les incantations.
   petAct(c);
   if (c.infernal && c.phase === 'player') {
@@ -641,6 +671,7 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent
   if (c.player.posture === 'berserker') dmg *= 1.2;
   if (c.player.temerite) dmg *= 1.25;
   if ((c.player.fureur ?? 0) > 0) dmg *= 1.25;
+  if (c.player.evasion) dmg *= 0.5; // Évasion du Voleur
   if (e.disarmed) dmg *= 0.7; // un boss désarmé frappe moins fort
   if (e.gele === 'half') dmg *= 0.5; // un boss Gelé
   // Difficulté : les ennemis normaux et les boss secondaires frappent plus fort.
@@ -696,6 +727,8 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
           fx(c, { kind: 'tick', who: e.uid, amount: c.player.riposte!, label: 'Riposte' });
           damageEnemy(c, e, c.player.riposte!);
           c.player.riposte = 0;
+          if (c.riposteCombo) gainCombo(c, c.riposteCombo); // Riposte du Voleur
+          c.riposteCombo = 0;
         }
         const reflect = (c.gear?.blockReflect ?? 0) + (lost === 0 ? power(c, 'riposte_bouclier') : 0);
         if (reflect > 0 && dmg > 0 && lost === 0 && c.phase === 'player' && !e.dead) {
@@ -904,7 +937,13 @@ function enemyTurnInner(c: CombatState): void {
       e.delayed = true;
       log(c, `${e.name} bafouille : son incantation prend un tour de plus.`);
     }
-    if ((e.buffs.peur ?? 0) > 0) {
+    if ((e.stun ?? 0) > 0) {
+      e.stun! -= 1;
+      log(c, `${e.name} est Contrôlé et ne fait rien.`);
+    } else if ((e.sap ?? 0) > 0) {
+      e.sap! -= 1;
+      log(c, `${e.name} est assommé et ne fait rien.`);
+    } else if ((e.buffs.peur ?? 0) > 0) {
       e.buffs.peur! -= 1;
       log(c, `${e.name} est apeuré et ne fait rien.`);
     } else if ((e.mouton ?? 0) > 0) {
@@ -920,6 +959,7 @@ function enemyTurnInner(c: CombatState): void {
       log(c, `${e.name} reprend son incantation.`);
       e.delayed = false;
       decayBuffs(e);
+      decayPoison(c, e);
       continue; // garde la même intention pour le tour suivant
     } else if (e.intent.cast && c.gear?.castCancel && !c.orbUsed) {
       // Orbe de distorsion : la première incantation du combat est annulée.
@@ -937,6 +977,7 @@ function enemyTurnInner(c: CombatState): void {
     }
 
     decayBuffs(e);
+    decayPoison(c, e);
     if ((e.buffs.gel ?? 0) > 0 && !c.gear?.gelKeep) e.buffs.gel! -= 1;
     decayCurses(e);
     if ((e.enslaved ?? 0) > 0) e.enslaved! -= 1;
@@ -1083,6 +1124,9 @@ function lineageCurse(c: CombatState): void {
   if ((c.classId ?? 'guerrier') === 'mage') {
     c.player.drawPenalty += 2;
     log(c, 'Malédiction de lignée : tu es métamorphosé, ta prochaine main n\'aura que 3 cartes.');
+  } else if (c.classId === 'voleur') {
+    c.combo = 0;
+    log(c, 'Malédiction de lignée : tes points de combo s\'envolent, et tu n\'en gagnes plus pendant 2 tours.');
   } else if (c.classId === 'pretre') {
     log(c, 'Malédiction de lignée : pendant 2 tours, tes soins te blessent au lieu de te soigner.');
   } else if (c.classId === 'demoniste') {
@@ -1180,4 +1224,27 @@ export function choosePet(c: CombatState, pet: PetId): boolean {
   if (c.turn !== 1 || (c.cardsThisTurn ?? 0) > 0 || c.pet === pet) return false;
   c.pet = pet;
   return true;
+}
+
+// --- Voleur ---
+
+/** Après une carte du Voleur : le Camouflage, les Ouvertures, les finishers, Sang-froid, Sillon d'orage. */
+function afterRogueCard(c: CombatState, def: (typeof CARDS)[string], comboHeld: number, attack: boolean): void {
+  const g = c.gear ?? {};
+  if (def.opener) gainCombo(c, power(c, 'initiative') + (g.openerCombo ?? 0)); // Initiative, Préparé
+  if (attack) {
+    if (!def.opener) breakStealth(c);
+    c.shadowStep = false;
+    c.coldBlood = false;
+    stormStrike(c);
+  }
+  if (def.finisher) {
+    if (power(c, 'second_souffle')) gainBlock(c, power(c, 'second_souffle'), false);
+    // Opportunité : un finisher à 5 points rend de l'énergie et du combo.
+    if (comboHeld >= 5 && power(c, 'opportunite')) {
+      c.player.energy += 1;
+      gainCombo(c, power(c, 'opportunite'));
+      fx(c, { kind: 'buff', who: 'player', label: 'Opportunité : +1 énergie' });
+    }
+  }
 }

@@ -22,6 +22,8 @@ export interface EventDef {
   available?: (run: RunState) => boolean;
   /** L'acte où il se trouve (1 par défaut). */
   act?: number;
+  /** Une étape de quête légendaire : il passe avant les autres événements. */
+  quest?: boolean;
 }
 
 const hasCurse = (run: RunState) => run.deck.some((c) => c.id === 'malediction');
@@ -151,6 +153,16 @@ export const EVENTS: Record<string, EventDef> = {
       { label: 'Regarder les étoiles', detail: 'Pendant les 3 prochains combats, tu vois les deux prochaines intentions des ennemis.' },
       { label: 'Fouiller la tour', detail: 'Gagne 60 or.' },
     ],
+  },
+  ventor: {
+    id: 'ventor', act: 2, quest: true,
+    title: 'Ventor, Prince des tempêtes',
+    text: 'Au sommet d\'un piton battu par les vents, un géant de foudre est enchaîné à la roche. Ses chaînes portent deux serrures vides, de la forme exacte de tes fermoirs. « Libère-moi, voleur, et je forgerai pour toi une lame que l\'orage lui-même jalousera. »',
+    choices: [
+      { label: 'Libérer Ventor', detail: 'Il forge Sillon d\'orage (arme légendaire), qui remplace ton arme.' },
+      { label: 'Garder les fermoirs pour toi', detail: 'Tu les revends : 75 or.' },
+    ],
+    available: (run) => run.classId === 'voleur' && run.sillon === 'deux',
   },
   reliquaire: {
     id: 'reliquaire', act: 2,

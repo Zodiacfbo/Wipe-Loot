@@ -100,6 +100,19 @@ export interface ItemEffects {
   mindBlastBonus?: number; // Attaque mentale +X dégâts
   vampHunger?: number; // Étreinte vampirique soigne X PV de plus
   equinoxe?: number; // le légendaire du Prêtre
+  // Talents du Voleur
+  sinisterBonus?: number; // Attaque sinistre +X dégâts
+  poisonBonus?: number; // tes applications de Poison +X
+  evisBonus?: number; // Éviscération +X dégâts par point de combo
+  kidneyDelay?: number; // Coup aux reins retarde l'Incantation d'un boss
+  ruthless?: number; // tes finishers comptent X points de combo de plus
+  startCombo?: number; // points de combo au début du combat
+  weaponMaster?: number; // Double frappe et Valse des lames frappent X fois de plus
+  openerBonus?: number; // tes Ouvertures +X dégâts
+  openerCombo?: number; // tes Ouvertures donnent +X combo
+  evadeBonus?: number; // Esquive et Esquive agile +X blocage
+  longStealth?: number; // le Camouflage de début de combat dure 2 tours
+  stormblade?: number; // le légendaire du Voleur
   gelKeep?: number; // le Gel ne diminue plus
   freezeEarly?: number; // Gelé à 5 − X cumuls
   shatterBonus?: number; // Fracasser +X dégâts
@@ -309,6 +322,7 @@ Object.assign(ITEMS, Object.fromEntries([
   // Légendaire du Mage
   item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
   item('equinoxe', 'Équinoxe', 'arme', 'legendaire', 'Dans la Lumière : tes soins rendent +3 PV et chaque soin te donne 1 Foi. En Forme d\'Ombre : tes DoT infligent +2 dégâts et chacun de leurs ticks te soigne de 1 PV.', { equinoxe: 1 }),
+  item('sillon_orage', 'Sillon d\'orage', 'arme', 'legendaire', 'Toutes les 3 Attaques que tu joues, un éclair inflige 6 dégâts à tous les ennemis.', { stormblade: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));
 
@@ -329,7 +343,10 @@ export const COMMON_POOL: string[] = [
 
 /** Les effets qui ne servent qu'à certaines classes (les Attaques et la rage au Guerrier, les Sorts au Mage et au Démoniste…). */
 const KEY_CLASSES: Partial<Record<keyof ItemEffects, string[]>> = {};
-for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier'];
+for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage'] as const) KEY_CLASSES[k] = ['guerrier'];
+// Les bonus aux Attaques servent au Guerrier et au Voleur.
+for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur'];
+for (const k of ['sinisterBonus', 'poisonBonus', 'evisBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
 for (const k of ['startCharges', 'burnBonus', 'firstSpellFree'] as const) KEY_CLASSES[k] = ['mage'];
 KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre'];
 for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'healBonus', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];

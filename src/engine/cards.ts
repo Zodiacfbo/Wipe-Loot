@@ -24,6 +24,7 @@ import type { CardInstance, CardType, CombatState, EnemyState, Rarity, School } 
 import { MAGE_CARDS } from './cards_mage';
 import { DEMONISTE_CARDS } from './cards_demoniste';
 import { PRETRE_CARDS } from './cards_pretre';
+import { VOLEUR_CARDS } from './cards_voleur';
 
 export interface PlayContext {
   c: CombatState;
@@ -35,6 +36,8 @@ export interface PlayContext {
   shardsSpent?: number;
   /** Prêtre : la Foi dépensée pour jouer la carte. */
   faithSpent?: number;
+  /** Voleur : les points de combo dépensés par un finisher (avec Impitoyable). */
+  comboSpent?: number;
 }
 
 export interface CardDef {
@@ -60,6 +63,9 @@ export interface CardDef {
   shardCostUp?: number;
   /** Prêtre : coût en Foi ('all' : toute la Foi). */
   faithCost?: number | 'all';
+  /** Voleur : Ouverture (jouable seulement en Camouflage) et finisher (consomme tous les points de combo). */
+  opener?: boolean;
+  finisher?: boolean;
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
@@ -691,7 +697,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   },
 };
 
-export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS };
+export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS, ...VOLEUR_CARDS };
 
 /** La classe d'une carte. */
 export function cardClass(id: string): string {
@@ -724,6 +730,8 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   if (id === 'feu_ame' && c.gear?.soulFireFree) return 0;
   // Bague du tisseur : la première carte du combat est gratuite.
   if (c.gear?.firstCardFree && !c.firstCardDone && !def.unplayable) return 0;
+  // Plan parfait : les Ouvertures coûtent 0 ce tour-ci.
+  if (def.opener && c.openersFree) return 0;
   let cost = up && def.costUp !== undefined ? def.costUp : def.cost;
   const d = c.player.debuffs;
   if (d && (d.impie > 0 || d.afflictions?.includes('bleue')) && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie, Affliction bleue

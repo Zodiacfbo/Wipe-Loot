@@ -121,7 +121,12 @@ export function migrate(raw: unknown): RunState | null {
     run.equinoxe = null;
     run.version = 20;
   }
-  return run.version === 20 ? (run as unknown as RunState) : null;
+  if (run.version === 20) {
+    run.sillon = null;
+    run.tenebres = false;
+    run.version = 21;
+  }
+  return run.version === 21 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

@@ -15,7 +15,7 @@ import { random } from './rng';
 import type { CardInstance, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 20;
+export const SAVE_VERSION = 21;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -36,14 +36,14 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 20, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 21, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
-    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin', equinoxe: null,
+    floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin', equinoxe: null, sillon: null, tenebres: false,
   };
   run.map = mapFor(run, 1);
   applyTalents(run, talents);
@@ -139,6 +139,7 @@ export function runGear(run: RunState): ItemEffects {
   // Les bonus de l'acte en cours (Autel chromatique, sérum) et l'Observatoire.
   for (const [k, v] of Object.entries(run.actBuffs ?? {}) as [keyof ItemEffects, number][]) g[k] = (g[k] ?? 0) + v;
   if ((run.stargazing ?? 0) > 0) g.seeTwoIntents = 1;
+  if (run.tenebres) g.longStealth = 1; // Ténèbres (Voleur)
   if (run.weaponUpgrade && run.equipment.arme === run.weaponUpgrade && !run.broken.includes('arme')) {
     // Le renfort profite aux Attaques du Guerrier, ou aux Sorts du Mage.
     if (run.classId === 'mage') g.spellBonus = (g.spellBonus ?? 0) + 2;
@@ -218,7 +219,14 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
     case 'event': {
       // Un « ? » cache parfois un combat.
       const pool = Object.values(EVENTS).filter((e) => (e.act ?? 1) === run.act && !run.seenEvents.includes(e.id) && (e.available?.(run) ?? true));
-      if (random(run) < 0.2 || pool.length === 0) {
+      // Un événement de quête légendaire passe en premier (Ventor).
+      const quest = pool.find((e) => e.quest);
+      if (quest) {
+        run.eventId = quest.id;
+        run.seenEvents.push(quest.id);
+        run.eventOutcome = null;
+        run.screen = 'event';
+      } else if (random(run) < 0.2 || pool.length === 0) {
         startEncounter(run, pick(run, act.hidden ?? HIDDEN_FIGHTS));
       } else {
         const ev = pick(run, pool);
@@ -287,6 +295,8 @@ export function afterCombatAction(run: RunState): void {
     if (slot >= 0) run.potions[slot] = id;
   }
   c.newPotions = [];
+  // Voleur : Ténèbres reste active jusqu'à la fin de la run.
+  if (c.tenebres) run.tenebres = true;
   // Prêtre : Bénédiction de vigueur (PV max pour toute la run).
   if (c.maxHpGain) {
     run.maxHp += c.maxHpGain;
@@ -349,6 +359,16 @@ export function afterCombatAction(run: RunState): void {
       if (enc?.loot === 'zhaal' && (run.classId === 'mage' || run.classId === 'demoniste') && !run.veilleur) {
         run.veilleur = 'fragment';
         run.questNote = 'Fragment du Veilleur : un éclat du bâton du premier gardien des arcanes. L\'esprit du Veilleur t\'attend dans un observatoire en ruine, à l\'acte 2.';
+      }
+      // Sillon d'orage (Voleur) : les deux Fermoirs de l'orage, sur Gorlok et sur le Baron Vossk.
+      if ((enc?.loot === 'gorlok' || enc?.loot === 'vossk') && run.classId === 'voleur' && run.sillon !== 'deux' && run.sillon !== 'forged') {
+        const side = enc.loot === 'gorlok' ? 'gauche' : 'droit';
+        if (run.sillon !== side) {
+          run.sillon = run.sillon ? 'deux' : side;
+          run.questNote = run.sillon === 'deux'
+            ? `Fermoir ${side} de l'orage : les deux fermoirs sont réunis. Ventor, le Prince des tempêtes, t'attend derrière un « ? » de l'acte ${LEGENDARY_MIN_ACT}.`
+            : `Fermoir ${side} de l'orage : il en manque un, gardé par ${side === 'gauche' ? 'le Baron Vossk' : 'Gorlok le Fragmenté'}.`;
+        }
       }
       if (enc?.loot === 'kragg' && run.brisemonts === 'lame') {
         run.brisemonts = 'coeur';
@@ -791,6 +811,13 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'oeufs:1':
       run.eggsLeft = true;
       return outcome(run, 'Tu refermes doucement la porte. Derrière toi, une coquille craque.');
+    case 'ventor:0':
+      putOn(run, 'sillon_orage', 'arme');
+      run.sillon = 'forged';
+      return outcome(run, 'Tu brises les chaînes avec les deux fermoirs. Ventor se redresse, la foudre aux poings, et scelle l\'orage dans une lame : Sillon d\'orage. « Garde-la bien, petit voleur. Je viendrai la reprendre. »');
+    case 'ventor:1':
+      run.gold += 75;
+      return outcome(run, 'Tu revends les fermoirs à un marchand peu regardant : 75 or. Au loin, le tonnerre gronde.');
     case 'observatoire:0':
       run.maxHp = Math.max(1, run.maxHp - 8);
       run.hp = Math.min(run.hp, run.maxHp);

@@ -45,6 +45,8 @@ export interface EnemyBuffs {
   /** Démoniste — Démoralisé est aussi utilisé par la Malédiction de faiblesse ; Ralenti par la Malédiction de fatigue. */
   /** Mage — Gel : à 5 cumuls, l'ennemi devient Gelé. */
   gel?: number;
+  /** Voleur — Poison : dégâts en plus à chaque Attaque qui le touche, puis −1 à la fin de son tour. */
+  poison?: number;
 }
 
 export type Intent =
@@ -203,6 +205,12 @@ export interface EnemyState {
   gele?: 'skip' | 'half';
   /** Métamorphose : transformé en mouton (ne fait rien) pendant ce nombre de tours, ou jusqu'à ce qu'il subisse des dégâts. */
   mouton?: number;
+  /** Voleur — Contrôlé (Coup aux reins, Coup bas) : ne fait rien pendant ce nombre de tours. */
+  stun?: number;
+  /** Voleur — Assommé : ne fait rien pendant ce nombre de tours, ou jusqu'à ce qu'il subisse des dégâts. */
+  sap?: number;
+  /** Voleur — Vendetta : tes Attaques contre lui infligent +50 % et appliquent 2 Poison de plus. */
+  vendetta?: boolean;
 }
 
 export interface PlayerState {
@@ -249,6 +257,8 @@ export interface PlayerState {
   spellReflect?: boolean;
   /** Bouclier de feu ancestral : Brûlure appliquée à chaque attaquant jusqu'au prochain tour. */
   fireShield?: number;
+  /** Voleur — Évasion : les Attaques ennemies infligent 50 % de dégâts en moins jusqu'au prochain tour. */
+  evasion?: boolean;
 }
 
 export interface SpellState {
@@ -300,7 +310,7 @@ export interface CombatState {
   /** L'Orbe de distorsion a déjà servi pendant ce combat. */
   orbUsed?: boolean;
   /** La carte en train d'être jouée (pour les bonus qui dépendent de son coût ou de son type). */
-  playing?: { cost: number; type: CardType; id: string; school?: School; aoe?: boolean };
+  playing?: { cost: number; type: CardType; id: string; school?: School; aoe?: boolean; opener?: boolean };
   /** Les ennemis sont en train de jouer leur tour. */
   enemyActing?: boolean;
   /** Puissance déjà gagnée avec la Pierre de magma. */
@@ -371,6 +381,30 @@ export interface CombatState {
   costDown?: boolean;
   /** PV max gagnés pour toute la run pendant ce combat (Bénédiction de vigueur). */
   maxHpGain?: number;
+  /** Voleur — les points de combo (0 à 5) et le Camouflage (tours restants, celui-ci compris). */
+  combo?: number;
+  stealth?: boolean;
+  stealthTurns?: number;
+  /** Fumigène, Coup fourré : Camouflé au début du prochain tour. */
+  stealthNext?: boolean;
+  /** Bond de l'ombre : la prochaine Attaque de ce tour est jouée comme si tu étais Camouflé. */
+  shadowStep?: boolean;
+  /** Le Poison d'arme actif (un seul à la fois). */
+  weaponPoison?: { id: 'mortel' | 'affaiblissant' | 'engourdissant'; amount: number };
+  /** Poison engourdissant : déjà utilisé ce tour-ci. */
+  numbUsed?: boolean;
+  /** Danse des lames : +bonus aux Attaques pendant ce nombre de tours. */
+  bladeDance?: { bonus: number; turns: number };
+  /** Sang-froid : la prochaine Attaque inflige double dégâts. */
+  coldBlood?: boolean;
+  /** Riposte : la riposte donne aussi des points de combo. */
+  riposteCombo?: number;
+  /** Plan parfait : tes Ouvertures coûtent 0 ce tour-ci. */
+  openersFree?: boolean;
+  /** Ténèbres a été joué : le Camouflage durera 2 tours aux combats suivants (gardé par la run). */
+  tenebres?: boolean;
+  /** Sillon d'orage : Attaques jouées pendant le combat. */
+  stormCount?: number;
   /** Œil de l'abîme : tu vois les intentions suivantes. */
   seeAll?: boolean;
   /** Le familier est en train d'agir (Éclat partagé). */
@@ -408,7 +442,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 20;
+  version: 21;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -465,6 +499,10 @@ export interface RunState {
   pet: PetId;
   /** Quête légendaire du Prêtre : Équinoxe. */
   equinoxe: 'baton' | 'larme' | 'forged' | null;
+  /** Quête légendaire du Voleur : Sillon d'orage (les deux Fermoirs de l'orage, puis Ventor). */
+  sillon: 'gauche' | 'droit' | 'deux' | 'forged' | null;
+  /** Voleur : Ténèbres a été joué, le Camouflage de début de combat dure 2 tours jusqu'à la fin de la run. */
+  tenebres: boolean;
   /** Les monstres vaincus pendant la run (pour les archives de la guilde). */
   kills: Record<string, number>;
   /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */

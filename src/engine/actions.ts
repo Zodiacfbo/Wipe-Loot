@@ -4,6 +4,7 @@ import { ENEMIES, TUNING, hasTag, intentAt } from './enemies';
 import { random, shuffle } from './rng';
 import { demonOnDeath, soulstoneRise } from './demoniste';
 import { absorbAegis, gainAegis, gainFaith } from './pretre';
+import { onRogueHit, rogueOnDeath } from './voleur';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
 export function emptyDebuffs(): PlayerDebuffs {
@@ -159,6 +160,13 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (id === 'attaque_mentale') dmg += g.mindBlastBonus ?? 0;
   if (c.playing && (c.playing.id === 'frappe' || c.playing.id === 'frappe_heroique')) dmg += g.strikeBonus ?? 0;
   if (c.playing?.type === 'Attaque' && c.playing.cost === 0) dmg += g.zeroCostBonus ?? 0;
+  // Voleur : Danse des lames, Maître de la discrétion, Opportuniste, Vendetta, Sang-froid.
+  const rogueAttack = c.combo !== undefined && c.playing?.type === 'Attaque';
+  if (rogueAttack) {
+    dmg += c.bladeDance && c.bladeDance.turns > 0 ? c.bladeDance.bonus : 0;
+    if (c.playing!.opener) dmg += g.openerBonus ?? 0;
+    if ((target.stun ?? 0) > 0 || (target.sap ?? 0) > 0 || (target.buffs.peur ?? 0) > 0 || (target.mouton ?? 0) > 0) dmg += power(c, 'opportuniste');
+  }
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
@@ -173,6 +181,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   // Forme d'Ombre : les Sorts d'Ombre +30 %. Châtiment amélioré, Esprit sombre.
   if (c.shadowForm && c.playing?.school === 'ombre') dmg *= 1.3;
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
+  if (rogueAttack && target.vendetta) dmg *= 1.5;
+  if (rogueAttack && c.coldBlood) dmg *= 2;
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   return Math.max(0, Math.floor(dmg));
 }
@@ -192,6 +202,8 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
   if (target.defId === 'saldris' && target.shield === (spell ? 'sorts' : 'coups')) reflectToPlayer(c, target, Math.floor(dmg / 2));
   // Embrasement : un Sort qui inflige 10 dégâts ou plus enflamme la cible.
   if (spell && dmg >= 10 && power(c, 'embrasement') && !target.dead) applyBrulure(c, target, power(c, 'embrasement'));
+  // Voleur : le Poison de la cible, puis le Poison d'arme.
+  if (c.combo !== undefined && c.playing?.type === 'Attaque') onRogueHit(c, target);
   return dmg;
 }
 
@@ -213,6 +225,11 @@ export function damageEnemy(c: CombatState, target: EnemyState, amount: number, 
   if (target.mouton && rest > 0) {
     target.mouton = 0;
     log(c, `${target.name} reprend sa forme.`);
+  }
+  // Assommer : l'ennemi se réveille dès qu'il est blessé.
+  if (target.sap && rest > 0) {
+    target.sap = 0;
+    log(c, `${target.name} reprend ses esprits.`);
   }
   // Mutation : sous 50 % de PV, la Chimère mute.
   if (target.mutations?.length && !target.mutated && target.hp > 0 && target.hp < target.maxHp / 2) {
@@ -320,6 +337,7 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
   log(c, `${target.name} est vaincu.`);
   onEnemyDeath(c, target);
   demonOnDeath(c, target, !!c.petActing);
+  rogueOnDeath(c, target);
   // Implacable : tuer un ennemi rend de la rage et pioche (pendant ton tour).
   if (!c.enemyActing && c.phase === 'player') {
     if (c.gear?.killRage) gainRage(c, c.gear.killRage);
