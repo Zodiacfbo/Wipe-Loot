@@ -619,3 +619,12 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .barre-egide { flex: 1; height: 12px; border-radius: 6px; background: #1a2430; position: relative; overflow: hidden; border: 1px solid #5a7ea8; }
 .barre-egide > div { height: 100%; background: linear-gradient(90deg, #8fc8ff, #e8f4ff); }
 .barre-egide span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #f4faff; text-shadow: 0 0 2px #0e1620, 0 0 2px #0e1620; }
+
+/* --- Voleur --- */
+.combo-label { width: auto; color: #ffe27a; }
+.rage.combo { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.rage.combo i { height: 12px; border-radius: 3px; background: #2a2614; border: 1px solid #6a5e2a; transform: rotate(45deg) scale(0.8); }
+.rage.combo i.plein { background: #ffe27a; box-shadow: 0 0 6px #ffd23a; }
+.camoufle { color: #b8a8e8; }
+.chip.poison { background: #1a2a14; border-color: #6ac84a; color: #c8f0b0; }
+.heros img.camoufle-sprite { opacity: 0.55; filter: drop-shadow(0 0 6px #6a4ab8); }

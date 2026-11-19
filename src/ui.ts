@@ -167,7 +167,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
-    <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}</span>
+    <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}${def.opener ? ' · Ouverture' : def.finisher ? ' · Finisher' : ''}</span>
     <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}">${text}</span>
   </button>`;
 }
@@ -220,7 +220,7 @@ function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false)
   const useless = uselessFx(id, cls);
   const note = useless.length === 0 ? '' : useless.length === keys.length
     ? `<i class="note-objet">Sans effet pour le ${name}.</i>`
-    : `<i class="note-objet">${cls === 'guerrier' ? 'Le bonus aux Sorts' : 'Le bonus aux Attaques'} ne sert pas au ${name}.</i>`;
+    : `<i class="note-objet">${cls === 'guerrier' || cls === 'voleur' ? 'Le bonus aux Sorts' : 'Le bonus aux Attaques'} ne sert pas au ${name}.</i>`;
   return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
 }
 
@@ -326,6 +326,8 @@ function questTracker(run: RunState): string {
   if (run.sourcesQuest === 'done') lines.push('<b>Eau des profondeurs</b> : Vulkhar commencera affaibli.');
   if (run.veilleur === 'fragment') lines.push(run.act >= 2 ? '<b>Bâton du Veilleur</b> : trouve l\'observatoire en ruine (un « ? » de l\'acte 2).' : '<b>Bâton du Veilleur</b> : garde le Fragment. L\'esprit du Veilleur t\'attend à l\'acte 2.');
   if (run.equinoxe === 'baton') lines.push(run.act >= 2 ? '<b>Équinoxe</b> : bats Ysolde la Rouge (boss secondaire de l\'acte 2) pour sa Larme.' : '<b>Équinoxe</b> : garde le Bâton nu. La pierre qu\'il lui faut est gardée par Ysolde la Rouge, à l\'acte 2.');
+  if (run.sillon === 'gauche' || run.sillon === 'droit') lines.push(run.act > 1 ? '<b>Sillon d\'orage</b> : il te manquait un fermoir. La quête ne pourra pas être terminée cette fois.' : `<b>Sillon d'orage</b> : bats ${run.sillon === 'gauche' ? 'le Baron Vossk' : 'Gorlok le Fragmenté'} (boss secondaire) pour le second fermoir.`);
+  if (run.sillon === 'deux') lines.push(run.act >= 2 ? '<b>Sillon d\'orage</b> : Ventor t\'attend derrière un « ? » de cet acte.' : '<b>Sillon d\'orage</b> : les deux fermoirs sont réunis. Ventor t\'attendra derrière un « ? » de l\'acte 2.');
   if (run.equinoxe === 'larme') lines.push('<b>Équinoxe</b> : accomplis le Rituel de l\'équinoxe au prochain feu de camp.');
   if (run.veilleur === 'tete') lines.push('<b>Bâton du Veilleur</b> : lie les fragments au prochain feu de camp (une carte rare à sacrifier).');
   if (run.eggsLeft && run.act === 2) lines.push('<b>Les œufs de dragon</b> : Vhaeryx aura un add de plus à chaque vague.');
@@ -567,6 +569,10 @@ function enemyChips(e: EnemyState): string {
   if (e.defId === 'skarn' && (e.phase ?? 1) === 1) chips.push('<span class="chip">Immunisé (Œufs)</span>');
   if (ui.run?.encounter?.rune && ENEMIES[e.defId].elite) chips.push('<span class="chip rune">Rune des Sources</span>');
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
+  if (b.poison) chips.push(`<span class="chip poison" title="Chaque Attaque qui le touche : +${b.poison} dégâts. −1 à la fin de son tour">Poison ${b.poison}</span>`);
+  if (e.vendetta) chips.push('<span class="chip debuff" title="Tes Attaques : +50 % et +2 Poison">Vendetta</span>');
+  if (e.stun) chips.push(`<span class="chip debuff">Contrôlé ${e.stun}</span>`);
+  if (e.sap) chips.push(`<span class="chip debuff" title="Ne fait rien ; se réveille s'il est blessé">Assommé ${e.sap}</span>`);
   if (e.disarmed) chips.push('<span class="chip debuff">Désarmé</span>');
   if (e.noHeal) chips.push('<span class="chip debuff">Insoignable</span>');
   if (e.shield) chips.push(`<span class="chip bouclier-saldris">Anti-${e.shield} : renvoie 50 %</span><span class="chip">Ensuite : anti-${e.shield === 'coups' ? 'sorts' : 'coups'}</span>`);
@@ -605,6 +611,7 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
     parts.push(cls === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes'
       : cls === 'demoniste' ? 'Malédiction de lignée : ton familier se retourne contre toi 2 tours'
       : cls === 'pretre' ? 'Malédiction de lignée : tes soins te blessent 2 tours'
+      : cls === 'voleur' ? 'Malédiction de lignée : tes points de combo s\'envolent, plus de combo pendant 2 tours'
       : 'Malédiction de lignée : forcé en posture Berserker 2 tours');
   }
   const text = parts.join(', ');
@@ -619,6 +626,8 @@ function intentHtml(c: CombatState, e: EnemyState): string {
 function intentNow(c: CombatState, e: EnemyState): string {
   const i = e.intent;
   if (e.mouton) return `<div class="intention interrompu">Mouton : ne fait rien</div>`;
+  if (e.stun) return `<div class="intention interrompu">Contrôlé : ne fait rien</div>`;
+  if (e.sap) return `<div class="intention interrompu">Assommé : ne fait rien</div>`;
   if (e.gele === 'skip') return `<div class="intention interrompu gele">Gelé : passe son tour</div>`;
   if (e.interrupted) return `<div class="intention interrompu">Interrompu</div>`;
   if (i.cast) {
@@ -722,6 +731,16 @@ const POWER_LABEL: Record<string, [string, string]> = {
   etreinte_vampirique: ['Étreinte vampirique', 'Sort d\'Ombre : soin'],
   esprit_tourmente: ['Esprit tourmenté', 'DoT qui tue : pioche'],
   tenebres: ['Ténèbres intérieures', 'Tes DoT : +dégâts'],
+  bagarreur: ['Bagarreur', 'Puissance'],
+  toxines_virulentes: ['Toxines virulentes', 'Le Poison passe d\'un mort à un vivant'],
+  lames_empoisonnees: ['Lames empoisonnées', 'Le Poison ne diminue plus'],
+  opportunite: ['Opportunité', 'Finisher à 5 points : énergie et combo'],
+  tourbillon_lames: ['Tourbillon de lames', 'Cible unique : un 2e ennemi à moitié'],
+  second_souffle: ['Second souffle', 'Finisher : blocage'],
+  ambidextrie_experte: ['Ambidextrie experte', '1re Attaque du tour jouée deux fois'],
+  initiative: ['Initiative', 'Ouverture : +2 combo'],
+  opportuniste: ['Opportuniste', 'Ennemis contrôlés : +dégâts'],
+  seigneur_ombres: ['Seigneur des ombres', 'Camouflé à chaque tour'],
 };
 
 function playerChips(c: CombatState): string {
@@ -763,6 +782,14 @@ function playerChips(c: CombatState): string {
   if (c.undying) chips.push('<span class="chip">Égide des anciens : PV ≥ 1</span>');
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
+  if (c.weaponPoison) chips.push(`<span class="chip poison" title="Tes Attaques appliquent ce Poison">Poison ${c.weaponPoison.id} ${c.weaponPoison.amount}</span>`);
+  if (c.bladeDance?.turns) chips.push(`<span class="chip">Danse des lames : +${c.bladeDance.bonus} (${c.bladeDance.turns}t)</span>`);
+  if (c.coldBlood) chips.push('<span class="chip">Sang-froid : prochaine Attaque ×2</span>');
+  if (c.shadowStep) chips.push('<span class="chip ombre">Bond de l\'ombre</span>');
+  if (c.stealthNext) chips.push('<span class="chip ombre">Camouflé au prochain tour</span>');
+  if (c.openersFree) chips.push('<span class="chip">Plan parfait : Ouvertures gratuites</span>');
+  if (p.evasion) chips.push('<span class="chip">Évasion : dégâts ÷ 2</span>');
+  if (c.tenebres || c.gear?.longStealth) chips.push('<span class="chip ombre" title="Ton Camouflage de début de combat dure 2 tours">Ombres profondes</span>');
   if (c.soulstone) chips.push('<span class="chip ombre" title="Si tu tombes à 0 PV, tu reviens à 30 %">Pierre d\'âme</span>');
   if (c.amplify) chips.push('<span class="chip ombre">Prochaine Malédiction ×2</span>');
   if (c.doubleNext) chips.push('<span class="chip ombre">Prochain Sort ×2</span>');
@@ -787,6 +814,17 @@ function priestResource(c: CombatState): string {
   return `<div class="ligne"><span class="rage-label foi-label">FOI</span><div class="rage foi" style="grid-template-columns: repeat(${max}, minmax(0, 1fr))">${pips}</div><span class="rage-label" style="width:auto">${f}</span></div>
     <div class="ligne"><span class="rage-label egide-label">ÉGIDE</span><div class="barre-egide"><div style="width:${Math.min(100, (a / amax) * 100)}%"></div><span>${a} / ${amax}</span></div></div>
     <div class="aide-posture">${c.shadowForm ? '<b>Forme d\'Ombre</b> : Sorts d\'Ombre +30 %, soins ÷ 2, plus de Foi.' : 'L\'Égide reste d\'un tour à l\'autre. Soigner ou donner de l\'Égide : +1 Foi.'}</div>`;
+}
+
+/** Les points de combo et le Camouflage du Voleur. */
+function rogueResource(c: CombatState): string {
+  const n = c.combo ?? 0;
+  const pips = Array.from({ length: 5 }, (_, i) => `<i class="${i < n ? 'plein' : ''}"></i>`).join('');
+  const stealth = c.stealth
+    ? `<b class="camoufle">Camouflé</b>${(c.stealthTurns ?? 1) > 1 ? ` (${c.stealthTurns} tours)` : ''} : tu peux jouer tes Ouvertures. Une Attaque qui n'en est pas une te fait sortir de l'ombre.`
+    : 'Les générateurs donnent du combo, les finishers le dépensent.';
+  return `<div class="ligne"><span class="rage-label combo-label">COMBO</span><div class="rage combo">${pips}</div><span class="rage-label" style="width:auto">${n}</span></div>
+    <div class="aide-posture">${stealth}</div>`;
 }
 
 /** Les éclats d'âme et le familier du Démoniste. */
@@ -815,7 +853,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const resource = mage
     ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
         <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
-    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : '';
+    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
@@ -891,7 +929,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     ${enrage}
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
-      <img class="px" data-fx="player" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:192px;height:192px">
+      <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:192px;height:192px">
       ${c.pet && !c.petSacrificed ? `<img class="px familier" src="${A(`familier_${c.pet}.png`)}" alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
       ${c.infernal ? `<img class="px seigneur-infernal" src="${A('familier_seigneur.png')}" alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
       <div class="jauges">
@@ -1302,7 +1340,7 @@ function classScreen(): string {
   }).join('');
   const next = nextUnlockAt(profile);
   const intro = first
-    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage, le Démoniste et le Prêtre sont jouables : les autres classes sont en préparation.'
+    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage, le Démoniste, le Prêtre et le Voleur sont jouables : les autres classes sont en préparation.'
     : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> : touche celle que tu veux.` : ''} Touche une classe débloquée pour la jouer.`;
   return `<div class="ecran ecran-classes">
     <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
@@ -1841,7 +1879,7 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'vendeur_gobelin.png', 'bregan.png',
+  'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'voleur.png', 'vendeur_gobelin.png', 'bregan.png',
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',
