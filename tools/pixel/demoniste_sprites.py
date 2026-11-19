@@ -144,7 +144,40 @@ def pretre():
     s.rect(49, 32, 52, 37, '#D8B04A', glow=True, shade=False)
     return s.render()
 
+def voleur():
+    s = Sprite(64, 64)
+    # cape
+    s.poly([(20, 20), (44, 20), (50, 58), (14, 58)], '#2E2634')
+    # jambes et bottes
+    s.rect(24, 46, 30, 57, '#3A3440')
+    s.rect(34, 46, 40, 57, '#463E4C')
+    s.rect(23, 55, 31, 60, '#2A1E16')
+    s.rect(33, 55, 41, 60, '#3A2A1E')
+    # tunique de cuir et ceinture
+    s.poly([(24, 24), (40, 24), (42, 46), (22, 46)], '#5A4632')
+    s.line([(25, 26), (39, 44)], '#3A2A1E', width=2)
+    s.rect(22, 40, 42, 42, '#2A1E16')
+    s.rect(31, 40, 33, 42, '#E8D84A', shade=False)
+    # capuche
+    s.ellipse(23, 6, 41, 26, '#3A3040')
+    s.poly([(23, 16), (41, 16), (44, 26), (20, 26)], '#3A3040')
+    s.ellipse(27, 12, 37, 23, '#120E16')
+    s.rect(29, 16, 30, 17, '#E8D84A', glow=True, shade=False)
+    s.rect(34, 16, 35, 17, '#E8D84A', glow=True, shade=False)
+    s.rect(27, 20, 37, 23, '#4A3E54')  # masque
+    # bras et dagues
+    s.rect(16, 28, 21, 36, '#5A4632')
+    s.rect(43, 28, 48, 36, '#5A4632')
+    s.poly([(14, 36), (16, 35), (10, 50), (9, 49)], '#DCE3EC')
+    s.rect(14, 33, 19, 36, '#8A7A5A')
+    s.poly([(48, 36), (50, 35), (58, 22), (57, 21)], '#DCE3EC')
+    s.rect(45, 34, 50, 37, '#8A7A5A')
+    s.dots([(9, 49), (57, 21)], '#F4F7FB', glow=True)
+    return s.render()
+
+
 if __name__ == '__main__':
+    voleur().save(os.path.join(DEST, 'voleur.png'))
     pretre().save(os.path.join(DEST, 'pretre.png'))
     demoniste().save(os.path.join(DEST, 'demoniste.png'))
     for name, fn in (('diablotin', diablotin), ('rodeur', rodeur), ('succube', succube), ('molosse', molosse_infernal), ('seigneur', seigneur_infernal)):
