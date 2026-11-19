@@ -96,7 +96,7 @@ cd tools/pixel && python3 icones_talents.py                  # régénère les i
   - Mécaniques de classe : `demoniste.ts` (familier, DoT, Malédictions, éclats), `pretre.ts` (Égide, Foi), `voleur.ts` (combo, Camouflage, Poison, Contrôle), `paladin.ts` (Sceaux et Jugement, Auras, Censure).
   - `enemies.ts` (acte 1) et `enemies_acte2.ts`, `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
   - `save.ts` : sauvegarde **versionnée** avec `migrate()` (run) et `loadProfile()` (profil). Tout nouveau champ de `RunState` → incrémenter la version et ajouter une étape de migration, et mettre à jour `expect(run.version)` dans les tests.
-  - `talent_icons.ts` : l'icône de chaque talent (illustration d'une carte proche, ou `talent_<id>.png` dessinée par `tools/pixel/icones_talents.py`). Un nouveau talent → une ligne ici (vérifié par `tests/talent_icons.test.ts`).
+  - `talent_icons.ts` : l'icône de chaque talent (illustration d'une carte proche, ou `talent_<id>.png` dessinée par `tools/pixel/icones_talents.py`) et `TALENT_REFS`, les cartes et sorts qu'un talent cite (rappelés dans sa fiche). Un nouveau talent → une ligne ici (vérifié par `tests/talent_icons.test.ts`).
   - `progression.ts` (score, expérience, niveaux), `guild.ts` (coffre), `archives.ts` (lore des monstres).
   - `devtools.ts` : **l'outil de test** (niveaux, remises à zéro, déblocages, triches de run), affiché seulement sur `/dev/` et en local. **À retirer avant la version 1.0** (avec `tests/devtools.test.ts` et les lignes « Outil de test » de `ui.ts` et `style.css`).
 - `src/ui.ts` : tout l'affichage (HTML en chaînes, délégation d'événements via `data-action`). `src/style.css`. `src/fx.ts` : animations à partir de `c.fx`.
@@ -110,7 +110,7 @@ cd tools/pixel && python3 icones_talents.py                  # régénère les i
 2. `types.ts` : champs de combat (ressource) et de run si besoin (+ migration `save.ts`). `items.ts` : clés `ItemEffects` des talents, et `KEY_CLASSES` pour les bonus propres à la classe.
 3. Mécaniques dans un module `src/engine/<classe>.ts`, branchées dans `combat.ts` (début de tour, `playCard`, fin de tour) et `actions.ts`.
 4. `cards_<classe>.ts` (ids uniques ! vérifier les collisions avec `CARDS`), fusion dans `CARDS`. Champ `classId` posé automatiquement.
-5. Sorts de barre dans `spells.ts` (+ id du sort de départ dans `lootSpells`), arbres dans `talents.ts` (`CLASS_TREES`), kit dans `classes.ts` (`playable: true`, `starterDeck`, `startSpell`, `sprite`).
+5. Sorts de barre dans `spells.ts` (+ id du sort de départ dans `lootSpells`), arbres dans `talents.ts` (`CLASS_TREES`), icônes et rappels des talents dans `talent_icons.ts`, kit dans `classes.ts` (`playable: true`, `starterDeck`, `startSpell`, `sprite` : le sprite remplace le « ? » de l'écran des classes).
 6. Malédiction de lignée de Vhaeryx (`lineageCurse` dans `combat.ts`) et texte dans `ui.ts` (`curseText`).
 7. Légendaire et quête (item dans `items.ts`, étapes dans `run.ts`/`events.ts`, bouton au feu de camp dans `ui.ts`).
 8. UI : jauge de ressource dans `combatScreen` (voir `demonResource`, `priestResource`), chips, `POWER_LABEL`, préchargement du sprite.
@@ -145,6 +145,7 @@ cd tools/pixel && python3 icones_talents.py                  # régénère les i
 - **Classes jouables :** Guerrier, Mage, Paladin, Démoniste, Prêtre, Voleur (52-53 cartes, 9-10 sorts, 27 talents chacune). **Restent, dans l'ordre :** Chasseur, Chaman, Druide.
 - **Actes :** 1 (Profondeurs Ardentes, Vulkhar) et 2 (Aire de Vhaeryx), enchaînés. La run se termine après Vhaeryx. Acte 3 (Irem) à faire, puis l'acte bonus (Nécropole céleste).
 - **Légendaires faits :** Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor), l'Aurore ardente (Paladin : Reliquaire profané, Ossyrax, feu de camp ; l'étape des Veilleurs viendra avec l'acte 3). Ils se forgent au feu de camp à partir de l'acte 2. Restent : Corde-des-anciens, le Marteau des ancêtres (avec leurs classes).
+- **Interface :** l'écran des talents (arbres en icônes, fiche à droite avec rappel des cartes et sorts, bouton « Prendre » comme confirmation) et l'écran des classes (grille de sprites et fiche) sont refaits. Les autres menus (hall, équipement, deck, vendeur, feu de camp, archives) suivront les mêmes règles : voir « 💡 Idées pour plus tard ».
 - **Profil :** les niveaux de difficulté débloqués et les talents sont propres à chaque classe ; le hall retient la dernière classe choisie.
 - **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
