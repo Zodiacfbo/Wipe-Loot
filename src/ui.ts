@@ -69,7 +69,7 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
-import { talentIcon } from './engine/talent_icons';
+import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
 import { CLASSES, CLASS_BY_ID, chooseStartClass, classInfo, nextUnlockAt, totalXp, unlockClass, unlocksAvailable } from './engine/classes';
 import { DIFFICULTY_TEXT } from './engine/difficulty';
@@ -1507,6 +1507,15 @@ function talentScreen(): string {
   </div>`;
 }
 
+/** Le rappel des cartes et des sorts dont parle un talent (ex. Lame aiguisée → Frappe et Frappe héroïque). */
+function talentRefs(id: string): string {
+  const refs = TALENT_REFS[id];
+  if (!refs) return '';
+  const cards = (refs.cards ?? []).map((c) => cardHtml({ uid: 0, id: c, upgraded: false })).join('');
+  const spells = (refs.spells ?? []).map(spellHtml).join('');
+  return `<div class="rappel-talent"><span class="titre-rappel">Rappel</span>${cards ? `<div class="cartes-rappel">${cards}</div>` : ''}${spells}</div>`;
+}
+
 /** La fiche d'un talent : ce qu'il fait, et le bouton qui le prend (c'est la confirmation). */
 function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: TreeId; tier: number; choice: Choice } | null): string {
   if (!sel) {
@@ -1569,11 +1578,12 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
     note = `Prends d'abord un talent du palier ${picks.length + 1} de ${tree.name}.`;
   }
   return `<aside class="fiche-talent">
+    <button type="button" class="fermer-fiche" data-action="talent-fermer" aria-label="Fermer">✕</button>
     <div class="haut-fiche"><span class="icone-talent grande k-${kind} ${taken ? 'pris' : ''}"><img class="px" src="${A(talentIcon(d))}" alt=""></span>
       <div><b class="titre-fiche">${d.name}</b><div class="etiquettes">${chips.join('')}</div></div></div>
     <div class="texte-fiche">${body}</div>
-    <div class="bas-fiche">${note ? `<p class="note">${note}</p>` : ''}${button}
-      <button type="button" class="bouton" data-action="talent-fermer">Fermer</button></div>
+    ${talentRefs(d.id)}
+    <div class="bas-fiche">${note ? `<p class="note">${note}</p>` : ''}${button}</div>
   </aside>`;
 }
 

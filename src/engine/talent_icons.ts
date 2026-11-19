@@ -1,4 +1,4 @@
-// Les icônes de l'écran des talents.
+// Les icônes de l'écran des talents, et les cartes ou sorts que chaque talent rappelle.
 // Une carte épique montre sa propre illustration. Les autres talents reprennent l'illustration d'une carte
 // proche (`carte_<id>`), ou une icône dessinée pour eux (`talent_<id>`, tools/pixel/icones_talents.py).
 import type { TalentDef } from './talents';
@@ -88,3 +88,48 @@ export const TALENT_ICONS: Record<string, string> = {
 export function talentIcon(def: TalentDef): string {
   return `${def.card ? `carte_${def.card}` : TALENT_ICONS[def.id] ?? 'talent_emplacement'}.png`;
 }
+
+/** Les cartes et les sorts dont parle un talent : la fiche du talent les rappelle (sans compter le sort qu'il ajoute à la barre). */
+export const TALENT_REFS: Record<string, { cards?: string[]; spells?: string[] }> = {
+  // Guerrier
+  lame_aiguisee: { cards: ['frappe', 'frappe_heroique'] },
+  impact: { cards: ['execution'] },
+  voix_de_stentor: { cards: ['hurlement_furieux'] },
+  // Mage
+  esprit_clair: { cards: ['barrage_arcanique'] },
+  m_impact: { cards: ['boule_de_feu'] },
+  pyromane: { spells: ['combustion', 'souffle_ardent'] },
+  hiver_sans_fin: { spells: ['carapace_de_glace'] },
+  // Démoniste
+  corruption_amelioree: { cards: ['corruption'] },
+  invocation_rapide: { cards: ['invocation_succube', 'invocation_molosse'] },
+  trait_ombre_ameliore: { cards: ['trait_ombre'] },
+  devastation: { cards: ['immolation'] },
+  pyroclasme: { cards: ['pluie_de_feu', 'deflagration_ombre'] },
+  intensite: { spells: ['pacte_de_sang'] },
+  ruine_amelioree: { cards: ['feu_ame'] },
+  embrasement_durable: { cards: ['conflagration', 'immolation'] },
+  // Prêtre
+  chatiment_ameliore: { cards: ['chatiment', 'chatiment_ardent'] },
+  gardien_celeste: { cards: ['ange_gardien'] },
+  courroux_sacre: { cards: ['courroux_celeste'] },
+  douleur_amelioree: { cards: ['murmure_douleur'] },
+  concentration_ombre: { cards: ['fouet_psychique'] },
+  esprit_sombre: { cards: ['attaque_mentale'] },
+  faim_vampirique: { cards: ['etreinte_vampirique'] },
+  // Voleur
+  lames_malicieuses: { cards: ['attaque_sinistre'] },
+  finesse_meurtriere: { cards: ['evisceration'] },
+  reflexes: { cards: ['coup_aux_reins'] },
+  maitre_d_armes: { cards: ['double_frappe', 'valse_lames'] },
+  insaisissable: { cards: ['esquive', 'esquive_agile'] },
+  // Paladin
+  purification_rapide: { cards: ['lumiere_purificatrice'] },
+  sagesse_accrue: { cards: ['sceau_sagesse'], spells: ['jugement'] },
+  devotion_accrue: { cards: ['aura_devotion'] },
+  consecration_durable: { cards: ['consecration'] },
+  retribution: { cards: ['juste_chatiment'] },
+  jugements_rapides: { spells: ['jugement'] },
+  vengeance_divine: { spells: ['jugement'] },
+  double_sceau: { spells: ['jugement'] },
+};

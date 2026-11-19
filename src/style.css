@@ -494,6 +494,9 @@ img.px { image-rendering: pixelated; }
 
 .fiche-talent, .fiche-classe-detail { width: 360px; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 16px; border: 2px solid #6a4f3a; background: var(--panneau); }
 .fiche-talent p, .fiche-classe-detail p { margin: 0; color: var(--texte); max-width: none; line-height: 1.35; }
+.fiche-talent { position: relative; }
+.fermer-fiche { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #5a4433; background: var(--panneau-sombre); color: var(--texte-2); font-size: 15px; font-weight: 800; }
+.fermer-fiche:hover { border-color: var(--or); color: var(--texte); }
 .titre-fiche { font-size: 24px; font-weight: 800; }
 .haut-fiche { display: flex; gap: 14px; align-items: center; }
 .icone-talent.grande { flex: none; width: 84px; height: 84px; border-color: var(--or); }
@@ -508,6 +511,11 @@ img.px { image-rendering: pixelated; }
 .note b { color: var(--or-clair); }
 .bas-fiche { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
 .bas-fiche .gros-bouton:disabled { background: var(--panneau-sombre); border-color: #5a4433; color: var(--texte-2); }
+.rappel-talent { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid #4a372a; }
+.titre-rappel { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texte-2); }
+.cartes-rappel { display: flex; justify-content: center; gap: 10px; }
+.cartes-rappel .carte { margin: 0; cursor: default; }
+.rappel-talent .objet { text-align: left; }
 .fiche-talent.vide p { color: var(--texte-2); font-size: 17px; }
 .fiche-talent.vide ul { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 16px; color: var(--texte-2); }
 .legende-talents { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; font-size: 16px; font-weight: 700; }
