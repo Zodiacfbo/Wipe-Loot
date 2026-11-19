@@ -32,7 +32,7 @@ function powerCard(ctx: PlayContext, id: string, value: number, label: string): 
 function sealCard(id: string, seal: SealId, name: string, rarity: PaladinCard['rarity']): PaladinCard {
   return {
     id, name, type: 'Compétence', seal: true, rarity, cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => `Active le ${name} : ${SEAL_TEXT[seal].bonus}. Jugement : ${SEAL_TEXT[seal].judge}.`,
+    text: () => `Sceau : ${SEAL_TEXT[seal].bonus}. Jugement : ${SEAL_TEXT[seal].judge}.`,
     play: (ctx) => activateSeal(ctx.c, seal),
   };
 }

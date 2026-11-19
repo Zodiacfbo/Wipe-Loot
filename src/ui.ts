@@ -46,6 +46,8 @@ import {
   canBindStaff,
   canForgeEquinoxe,
   campfireEquinoxe,
+  canForgeAurore,
+  campfireAurore,
   campfireBindStaff,
   canRest,
   startNextAct,
@@ -329,6 +331,8 @@ function questTracker(run: RunState): string {
   if (run.equinoxe === 'baton') lines.push(run.act >= 2 ? '<b>Équinoxe</b> : bats Ysolde la Rouge (boss secondaire de l\'acte 2) pour sa Larme.' : '<b>Équinoxe</b> : garde le Bâton nu. La pierre qu\'il lui faut est gardée par Ysolde la Rouge, à l\'acte 2.');
   if (run.sillon === 'gauche' || run.sillon === 'droit') lines.push(run.act > 1 ? '<b>Sillon d\'orage</b> : il te manquait un fermoir. La quête ne pourra pas être terminée cette fois.' : `<b>Sillon d'orage</b> : bats ${run.sillon === 'gauche' ? 'le Baron Vossk' : 'Gorlok le Fragmenté'} (boss secondaire) pour le second fermoir.`);
   if (run.sillon === 'deux') lines.push(run.act >= 2 ? '<b>Sillon d\'orage</b> : Ventor t\'attend derrière un « ? » de cet acte.' : '<b>Sillon d\'orage</b> : les deux fermoirs sont réunis. Ventor t\'attendra derrière un « ? » de l\'acte 2.');
+  if (run.aurore === 'lame') lines.push('<b>L\'Aurore ardente</b> : bats Ossyrax, le Drake ressuscité (boss secondaire de l\'acte 2), pour purifier la Lame ternie.');
+  if (run.aurore === 'purifiee') lines.push('<b>L\'Aurore ardente</b> : rallume la lame au prochain feu de camp.');
   if (run.equinoxe === 'larme') lines.push('<b>Équinoxe</b> : accomplis le Rituel de l\'équinoxe au prochain feu de camp.');
   if (run.veilleur === 'tete') lines.push('<b>Bâton du Veilleur</b> : lie les fragments au prochain feu de camp (une carte rare à sacrifier).');
   if (run.eggsLeft && run.act === 2) lines.push('<b>Les œufs de dragon</b> : Vhaeryx aura un add de plus à chaque vague.');
@@ -616,6 +620,7 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
       : cls === 'demoniste' ? 'Malédiction de lignée : ton familier se retourne contre toi 2 tours'
       : cls === 'pretre' ? 'Malédiction de lignée : tes soins te blessent 2 tours'
       : cls === 'voleur' ? 'Malédiction de lignée : tes points de combo s\'envolent, plus de combo pendant 2 tours'
+      : cls === 'paladin' ? 'Malédiction de lignée : ton Sceau se brise, plus de Sceau pendant 2 tours'
       : 'Malédiction de lignée : forcé en posture Berserker 2 tours');
   }
   const text = parts.join(', ');
@@ -745,6 +750,17 @@ const POWER_LABEL: Record<string, [string, string]> = {
   initiative: ['Initiative', 'Ouverture : +2 combo'],
   opportuniste: ['Opportuniste', 'Ennemis contrôlés : +dégâts'],
   seigneur_ombres: ['Seigneur des ombres', 'Camouflé à chaque tour'],
+  rayonnement: ['Rayonnement', 'Chaque soin blesse tous les ennemis'],
+  grace_croise: ['Grâce du croisé', 'Soin au début de chaque tour'],
+  illumination: ['Illumination', '1er soin du tour : +1 énergie'],
+  avatar_lumiere: ['Avatar de lumière', 'Soins +25 %, chaque soin frappe un ennemi'],
+  sanctuaire: ['Sanctuaire', 'Attaques ennemies : −dégâts'],
+  fervent: ['Fervent', 'Attaque bloquée entièrement : +1 énergie au prochain tour'],
+  dernier_serment: ['Dernier serment', 'Sous 20 % des PV : soin de 15, une fois'],
+  zele: ['Zèle', 'Sceau activé : +1 Puissance (5 max)'],
+  science_combat: ['Science du combat', '2e Attaque du tour : prochain soin gratuit'],
+  vengeance_pal: ['Vengeance', 'Ennemi tué : +1 Puissance'],
+  croisade: ['Croisade', 'Attaques +2, +4 contre Morts-vivants et Démons'],
 };
 
 function playerChips(c: CombatState): string {
@@ -787,9 +803,6 @@ function playerChips(c: CombatState): string {
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
   // Paladin
-  let auraChip = false;
-  try { auraChip = localStorage.getItem('maquette-paladin') === 'C'; } catch { /* sans stockage */ }
-  if (auraChip && c.aura) chips.push(`<span class="chip sacre">${AURA_NAMES[c.aura.id]}</span>`);
   if (p.divineShield) chips.push('<span class="chip sacre">Bouclier divin : immunisé, Attaques ÷ 2</span>');
   if (c.favor) chips.push('<span class="chip sacre">Faveur divine : prochain soin ou Sort ×2</span>');
   if (c.consecration?.turns) chips.push(`<span class="chip sacre">Consécration : ${c.consecration.dmg} à tous (${c.consecration.turns}t)</span>`);
@@ -849,30 +862,26 @@ function judgeText(c: CombatState): string {
   return seals.length ? seals.map((s) => SEAL_TEXT[s].judge).join(' + ') : '6 dégâts';
 }
 
-/** Les Sceaux et l'Aura du Paladin. MAQUETTE : 3 variantes (localStorage « maquette-paladin »). */
+/** Les noms courts des Sceaux et des Auras (sous les emblèmes du Paladin). */
+const SEAL_SHORT: Record<string, string> = { droiture: 'Droiture', croise: 'Croisé', lumiere: 'Lumière', sagesse: 'Sagesse', rempart: 'Rempart', vengeance: 'Vengeance' };
+const AURA_SHORT: Record<string, string> = { devotion: 'Dévotion', resistance: 'Résistance', epines: 'Épines' };
+const ICON_SCEAU = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>';
+const ICON_AURA = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M12 10l2 4h-4l2-4zM8 20h8"/></svg>';
+
+/** Les Sceaux et l'Aura du Paladin : deux emblèmes, et ce que fera le Jugement. */
 function paladinResource(c: CombatState): string {
   const seals = c.seals ?? [];
-  const aura = c.aura ? AURA_NAMES[c.aura.id] : null;
-  let variant = 'A';
-  try { variant = localStorage.getItem('maquette-paladin') ?? 'A'; } catch { /* sans stockage */ }
-  const sealNames = seals.map((s) => SEAL_NAMES[s]).join(' et ');
+  const aura = c.aura;
+  const sealLabel = seals.length ? seals.map((s) => SEAL_SHORT[s]).join(' + ') : 'Aucun Sceau';
+  const sealTitle = seals.length ? seals.map((s) => `${SEAL_NAMES[s]} : ${SEAL_TEXT[s].bonus}`).join(' ; ') : 'Joue une carte Sceau';
+  const auraTitle = aura ? AURA_NAMES[aura.id] : 'Joue une carte Aura (une seule à la fois)';
   const bonus = seals.map((s) => SEAL_TEXT[s].bonus).join(' ; ');
-  if (variant === 'B') {
-    const tile = (cls: string, on: boolean, icon: string, label: string) =>
-      `<div class="pal-tuile ${cls} ${on ? 'actif' : ''}">${icon}<span>${label}</span></div>`;
-    const sun = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>';
-    const halo = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M12 10l2 4h-4l2-4zM8 20h8"/></svg>';
-    return `<div class="ligne pal-tuiles">${tile('sceau', seals.length > 0, sun, seals.length ? sealNames.replace(/Sceaux? /g, '').replace('de ', '').replace('du ', '') : 'Aucun Sceau')}${tile('aura', !!aura, halo, aura ? aura.replace('Aura ', '').replace('de ', '').replace('d\'', '') : 'Aucune Aura')}
-      <div class="pal-jugement"><small>JUGEMENT</small><b>${judgeText(c)}</b></div></div>
-      <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}.` : 'Joue une carte Sceau, puis juge-la avec le sort Jugement.'}</div>`;
-  }
-  if (variant === 'C') {
-    return `<div class="ligne pal-bandeau"><span class="pal-sceau ${seals.length ? 'actif' : ''}">${seals.length ? sealNames : 'Aucun Sceau'}</span><span class="pal-fleche">➜</span><span class="pal-juge">Jugement : <b>${judgeText(c)}</b></span></div>
-      <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}.` : 'Joue une carte Sceau, puis juge-la avec le sort Jugement.'}${aura ? '' : ' · aucune Aura'}</div>`;
-  }
-  return `<div class="ligne"><span class="rage-label sceau-label">SCEAU</span><span class="pal-pastille ${seals.length ? 'actif' : ''}">${seals.length ? sealNames : 'Aucun'}</span></div>
-    <div class="ligne"><span class="rage-label aura-label">AURA</span><span class="pal-pastille aura ${aura ? 'actif' : ''}">${aura ?? 'Aucune'}</span></div>
-    <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}. ` : ''}Jugement : <b>${judgeText(c)}</b></div>`;
+  return `<div class="ligne pal-tuiles">
+      <div class="pal-tuile ${seals.length ? 'actif' : ''}" title="${sealTitle}">${ICON_SCEAU}<span>${sealLabel}</span></div>
+      <div class="pal-tuile aura ${aura ? 'actif' : ''}" title="${auraTitle}">${ICON_AURA}<span>${aura ? AURA_SHORT[aura.id] : 'Aucune Aura'}</span></div>
+      <div class="pal-jugement"><small>JUGEMENT</small><b>${judgeText(c)}</b></div>
+    </div>
+    <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}.` : 'Joue une carte Sceau, puis juge-la avec le sort Jugement.'}</div>`;
 }
 
 /** Les éclats d'âme et le familier du Démoniste. */
@@ -1287,11 +1296,13 @@ function campfireScreen(run: RunState): string {
     <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
     ${canReforge(run) ? `<p class="texte-evenement classe">Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d'entraînement. L'épée remplacera ton arme actuelle.</p>${itemHtml('brisemonts')}` : ''}
     ${canForgeEquinoxe(run) ? `<p class="texte-evenement classe">Tu sertis la Larme d'Ysolde au sommet du Bâton nu. La pierre s'illumine, puis s'assombrit, puis s'illumine encore.</p>${itemHtml('equinoxe')}` : ''}
+    ${canForgeAurore(run) ? `<p class="texte-evenement classe">Tu poses la lame purifiée dans les braises. Une lueur d'aube monte de l'acier, comme si elle n'attendait que ce feu-là.</p>${itemHtml('aurore_ardente')}` : ''}
     ${canBindStaff(run) ? `<p class="texte-evenement classe">Tu poses le Fragment et la Tête du bâton près du feu. Les runes s'éveillent : le Veilleur attend un dernier sacrifice.</p>${itemHtml('baton_veilleur')}` : ''}
     <div class="actions">
       ${canReforge(run) ? '<button type="button" class="gros-bouton legendaire" data-action="reforger">Reforger Brisemonts</button>' : ''}
       ${canBindStaff(run) ? '<button type="button" class="gros-bouton legendaire" data-action="lier-fragments">Lier les fragments</button>' : ''}
       ${canForgeEquinoxe(run) ? '<button type="button" class="gros-bouton legendaire" data-action="equinoxe">Rituel de l\'équinoxe</button>' : ''}
+      ${canForgeAurore(run) ? '<button type="button" class="gros-bouton legendaire" data-action="aurore">Rallumer l\'Aurore ardente</button>' : ''}
       ${canRest(run) ? `<button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>` : '<button type="button" class="gros-bouton" disabled>Repos impossible (Flamme captive)</button>'}
       <button type="button" class="gros-bouton secondaire" data-action="feu-ameliorer">Améliorer une carte</button>
     </div>
@@ -1388,7 +1399,7 @@ function classScreen(): string {
   }).join('');
   const next = nextUnlockAt(profile);
   const intro = first
-    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage, le Démoniste, le Prêtre et le Voleur sont jouables : les autres classes sont en préparation.'
+    ? 'Choisis ta classe de départ. Les autres se débloqueront avec l\'expérience, et c\'est toi qui choisiras laquelle. Dans ce prototype, le Guerrier, le Mage, le Paladin, le Démoniste, le Prêtre et le Voleur sont jouables : les autres classes sont en préparation.'
     : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}.${unlocksAvailable(profile) > 0 ? ` <b>${unlocksAvailable(profile)} classe${unlocksAvailable(profile) > 1 ? 's' : ''} à débloquer</b> : touche celle que tu veux.` : ''} Touche une classe débloquée pour la jouer.`;
   return `<div class="ecran ecran-classes">
     <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>
@@ -1863,6 +1874,7 @@ function handleClick(ev: MouseEvent): void {
     case 'lier-baton': ui.bindStaff = false; campfireBindStaff(run, Number(el.dataset.uid)); commit(); break;
     case 'acte-suivant': startNextAct(run); commit(); break;
     case 'equinoxe': campfireEquinoxe(run); commit(); break;
+    case 'aurore': campfireAurore(run); commit(); break;
     case 'acheter': buyCard(run, Number(el.dataset.index)); commit(); break;
     case 'service': ui.shopMode = el.dataset.service as 'remove' | 'upgrade'; render(); break;
     case 'service-carte':
@@ -1927,7 +1939,7 @@ function fit(): void {
 }
 
 const PRELOAD = [
-  'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'voleur.png', 'vendeur_gobelin.png', 'bregan.png',
+  'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'voleur.png', 'paladin.png', 'vendeur_gobelin.png', 'bregan.png',
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',

@@ -262,3 +262,30 @@ Mesuré sur la run complète (actes 1 et 2), difficulté 0, 50 runs par profil.
 **Le bot :** il valorise les points de combo, le Camouflage tant qu'il lui reste une Ouverture en main, le Poison posé et le Poison d'arme. Il prend toujours Sillon d'orage chez Ventor.
 
 **À surveiller :** le niveau 1 est au plancher (0 à 2 %), comme le Démoniste. Le Voleur encaisse mal les longs combats (pression continue) : Vhaeryx et Vulkhar sont ses murs. Seigneur des ombres avec Égorgement, et Ambidextrie experte avec les gros finishers, restent à surveiller sur des runs de joueurs.
+
+## 13. Le Paladin
+
+Mesuré sur la run complète (actes 1 et 2), difficulté 0, 50 runs par profil.
+
+| Profil | Première version | Après réglages | Vulkhar vaincu (acte 2 atteint) |
+|---|---|---|---|
+| Niveau 1 | 4 % | **2 %** | 14 % |
+| Niveau 5 (Vindicte 3, Sacré 2) | 30 % | **22 %** | 68 % |
+| Niveau 10 (Vindicte 5, Sacré 5) | 100 % | **72 %** | 96 % |
+| Niveau 10 (Protection 5, Sacré 5) | 100 % | **78 %** | 92 % |
+
+**Ce qui a changé** (le détail est dans la fiche, §12) :
+
+| Élément | Avant | Après | Constat du bot |
+|---|---|---|---|
+| Jugement | recharge 2, 4 dégâts sans Sceau ; droiture 10 | **recharge 3, 6 sans Sceau ; droiture 12** | Avec Jugements rapides, Sceaux bénis et Vengeance divine, un Jugement par tour faisait plus que doubler le niveau 5 |
+| Imposition des mains | 50 % des PV, quand on veut | **sous 30 % des PV, soigne 30 %** | Un grand soin à chaque combat : à lui seul +20 % de victoires |
+| Verdict des cieux | coût 2, 12 × 2 | **coût 3 (2), 8 × 2** | Le bot le jouait presque à chaque tour (deck fin) : 36 dégâts et un Jugement pour 2 énergie |
+| Avatar de lumière | coût 2, soins +50 %, soin entier en dégâts | **coût 3 (2), +25 %, la moitié en dégâts** | Il faisait passer Sacré 4 → 5 de 38 % à 83 % |
+| Bouclier du croisé | 20 blocage, renvoi 6 | **18 blocage, renvoi 6, Épuisé** | Seul, il faisait passer le niveau 1 de 3 % à 43 % |
+| Lumière améliorée, Lumière bénie | soins +2 ; ½ du soin en blocage | **cartes de soin +2 ; ¼ en blocage** | Les petits soins du Sceau de lumière en profitaient à chaque Attaque |
+| Bouclier amélioré, Vengeance divine, Bouclier divin | +2 ; +6 ; recharge 6 | **+1 ; +4 ; recharge 7** | Les derniers points de trop au niveau 10 |
+
+**Le bot :** il valorise chaque Sceau actif (5), l'Aura (8), la Censure posée et la Consécration à venir. Il prend la Lame ternie au Reliquaire et rallume toujours l'Aurore ardente au feu de camp.
+
+**À surveiller :** Protection + Sacré reste un peu au-dessus de la cible (78 %) : c'est la classe ⭐ la plus facile, c'est attendu. À regarder sur des runs de joueurs : Double sceau avec Verdict des cieux (deux Jugements gratuits), Juste châtiment après un gros tour de blocage, et la Censure qui ne diminue pas dans les longs combats.

@@ -648,6 +648,8 @@ if __name__ == '__main__':
     ILLUSTRATIONS.update(ILLUSTRATIONS_PRETRE)
     from illustrations_voleur import ILLUSTRATIONS_VOLEUR
     ILLUSTRATIONS.update(ILLUSTRATIONS_VOLEUR)
+    from illustrations_paladin import ILLUSTRATIONS_PALADIN
+    ILLUSTRATIONS.update(ILLUSTRATIONS_PALADIN)
     os.makedirs(DEST, exist_ok=True)
     for card_id, fn in ILLUSTRATIONS.items():
         fn().save(os.path.join(DEST, f'carte_{card_id}.png'))

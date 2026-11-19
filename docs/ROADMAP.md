@@ -119,7 +119,7 @@
 - [x] Démoniste : éclats d'âme conservés d'un combat à l'autre, prix du sang, familier (4 démons et le Seigneur infernal), DoT et Malédictions ; 52 cartes illustrées, 9 sorts de barre, 27 talents, sprites, et sa version du Bâton du Veilleur
 - [x] Prêtre : l'Égide (bouclier persistant, soins excédentaires convertis), la Foi, la Forme d'Ombre ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprite, et son légendaire Équinoxe avec sa quête
 - [x] Voleur : points de combo, Camouflage et Ouvertures, Poisons d'arme, Contrôle ; 52 cartes illustrées, 9 sorts de barre, 27 talents, sprite, et son légendaire Sillon d'orage avec sa quête
-- [ ] Paladin
+- [x] Paladin : Sceaux et Jugement, Auras, Censure ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprite, le tag Démon sur les ennemis, et son légendaire l'Aurore ardente avec sa quête (forgé à l'acte 2 en attendant l'acte 3)
 - [ ] Chasseur
 - [ ] Chaman
 - [ ] Druide
@@ -131,7 +131,8 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [x] Brisemonts (Guerrier) et le Bâton du Veilleur (Mage, Démoniste) se forgent à l'acte 2
 - [x] Équinoxe (Prêtre)
 - [x] Sillon d'orage (Voleur)
-- [ ] Les légendaires restants et leurs quêtes (l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres), avec leurs classes
+- [x] L'Aurore ardente (Paladin) : le Reliquaire profané, Ossyrax, puis le feu de camp ; l'étape des Veilleurs de l'Aurore viendra avec l'acte 3
+- [ ] Les légendaires restants et leurs quêtes (Corde-des-anciens, le Marteau des ancêtres), avec leurs classes
 - [x] Refaire la passe sur les niveaux de difficulté pour deux actes (voir l'équilibrage, §9)
 
 ---

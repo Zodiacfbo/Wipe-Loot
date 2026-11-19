@@ -1,6 +1,6 @@
 # Classe : le Paladin
 
-> Wipe & Loot · Fiche de classe · Version 0.1
+> Wipe & Loot · Fiche de classe · Version 0.2 (jouable dans le prototype)
 > Les chiffres sont **indicatifs** : ils serviront de base aux premiers tests d'équilibrage.
 
 ---
@@ -257,3 +257,41 @@ La quête se termine tard dans la run, mais l'Aurore ardente est faite pour la *
   - Juste châtiment après un tour de gros blocage peut infliger beaucoup de dégâts pour 1 énergie.
   - La survie globale (soins + blocage + Bouclier divin) ne doit pas rendre les combats ennuyeux : l'enrage timer reste le garde-fou.
 - **Tags Mort-vivant et Démon :** il faudra les répartir dans les 4 actes pour que le Paladin ne soit pas fort uniquement dans l'acte bonus.
+
+---
+
+## 12. Ce qui est en jeu dans le prototype
+
+**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §13) :
+
+| Élément | Fiche | En jeu |
+|---|---|---|
+| Parade (départ) | 5 blocage (8 améliorée) | **6 blocage (9)** : le renfort de départ des autres classes |
+| Jugement | recharge 2 ; sans Sceau : 4 dégâts | **recharge 3** (2 avec Jugements rapides) ; **sans Sceau : 6 dégâts** |
+| Jugement du Sceau de droiture | 10 dégâts | **12 dégâts** |
+| Imposition des mains | 50 % des PV max, une fois par combat | **seulement sous 30 % des PV**, soigne **30 %** des PV max, une fois par combat |
+| Bouclier divin | recharge 6 | **recharge 7** |
+| Verdict des cieux (épique) | coût 2, 12 × 2 (16 × 2) | **coût 3 (2 amélioré), 8 × 2** |
+| Avatar de lumière (épique) | coût 2 (1), soins +50 %, chaque soin en dégâts | **coût 3 (2), soins +25 %, la moitié du soin en dégâts** |
+| Bouclier du croisé (épique) | 20 blocage (26), 6 dégâts et 2 PV | **18 blocage (24), 6 dégâts et 2 PV, Épuisé** |
+| Lumière améliorée | tes soins +2 | **tes cartes de soin +2** (pas le Sceau de lumière, le Jugement ni Grâce du croisé) |
+| Lumière bénie | la moitié du soin en blocage | **un quart du soin en blocage** |
+| Bouclier amélioré | +2 blocage | **+1 blocage** (comme le Guerrier) |
+| Vengeance divine | +6 | **+4** |
+
+**Les règles précisées :**
+- **Les Sceaux** : une carte Sceau coûte 1 (0 améliorée). Un seul Sceau à la fois (deux avec Double sceau : le plus ancien est remplacé). Les bonus « tes Attaques » ne valent que pour les cartes Attaque (pas les Sorts, ni le Jugement).
+- **Le Jugement** est un sort de barre gratuit, qui demande une cible. Il consomme le(s) Sceau(x) actif(s). Verdict des cieux déclenche le même Jugement sans consommer le Sceau.
+- **La Censure** (Sceau de vengeance) : chaque Attaque qui touche ajoute 1 cumul ; au début de son tour, l'ennemi subit autant de dégâts que de cumuls (ils ne diminuent pas). Le Jugement du Sceau de vengeance inflige 5 dégâts par cumul et les consomme.
+- **Les Auras** sont des Pouvoirs : une seule à la fois. Changer d'Aura retire la Robustesse de l'Aura de dévotion. L'Aura de résistance réduit de moitié les Zones de feu, la Toxine et l'Affliction rouge.
+- **Onde sacrée** : au lieu d'un choix, elle soigne si tu es sous la moitié de tes PV, et frappe sinon.
+- **Inquisition** réactive le dernier Sceau consommé par un Jugement (le Sceau de droiture s'il n'y en a pas eu).
+- **Faveur divine** double le prochain Sort (ses dégâts et ses soins) ou la prochaine carte qui soigne, pendant ce tour.
+- **Juste châtiment** compte les dégâts bloqués pendant le dernier tour des ennemis.
+- **Science du combat** : la carte de soin gratuite reste valable jusqu'à la fin du tour. Les cartes de soin sont celles qui soignent (Lumière bienfaisante, Lumière sacrée, Main sacrée, Éclair de foi, Onde sacrée, Lumière purificatrice, Aube purificatrice).
+- **Dernier serment** se déclenche dès que tu passes sous 20 % de tes PV max, même à 0 PV : tu restes à 1 PV et tu es soigné de 15.
+- **Sorts de loot :** Bénédiction de sauvegarde, Charge sacrée, et **Lumière de l'aube** (Dissipation de tous les types et 6 PV, une fois par combat).
+- **Les Démons** : Morvax, Croc-de-lave, les Molosses de braise et les Molosses enragés de Krâgg (acte 1). **Les Morts-vivants** : les Serviteurs rapiécés, les Drakes d'os, les Serviteurs d'os et Ossyrax (acte 2). Le Paladin voit ces étiquettes sur les ennemis.
+- **La Malédiction de lignée** de Vhaeryx (2 tours) : ton Sceau se brise, et tu ne peux plus en activer.
+- **L'Aurore ardente** (en attendant l'acte 3) : au premier « ? » de l'acte 2, le Reliquaire profané attend le Paladin. Au fond de la crypte, il trouve la Lame ternie. Vaincre Ossyrax la purifie, puis on la rallume au feu de camp suivant. L'étape des Veilleurs de l'Aurore viendra avec l'acte 3.
+- **L'interface** : sous la barre de PV, deux emblèmes (le Sceau actif, l'Aura active) et une case « Jugement » qui dit ce que fera le Jugement maintenant.
