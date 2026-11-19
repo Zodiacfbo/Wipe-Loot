@@ -706,19 +706,19 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 | 5 | Le feu de camp soigne 25 % des PV max au lieu de 30 %. |
 | 6 | Tu commences la run avec 80 % de tes PV. |
 | 7 | Un wipe autorisé de moins (2). |
-| 8 | Les ennemis normaux infligent 15 % de dégâts en plus. |
-| 9 | Les boss secondaires infligent 15 % de dégâts en plus. |
+| 8 | Les ennemis normaux infligent 10 % de dégâts en plus. |
+| 9 | Les boss secondaires infligent 10 % de dégâts en plus. |
 | 10 | Ton deck de départ contient une Malédiction. |
 | 11 | Tu gagnes 25 % d'or en moins. |
 | 12 | Un wipe autorisé de moins (1). |
 | 13 | Le vendeur gobelin est 20 % plus cher. |
 | 14 | Les factures de réparation coûtent 50 % de plus. |
 | 15 | Tu trouves moins de potions après les combats. |
-| 16 | Vulkhar a 20 % de PV en plus. |
-| 17 | Plus aucun wipe autorisé : une défaite met fin à la run. |
-| 18 | Les boss secondaires commencent chaque combat avec 2 Puissance. |
-| 19 | Les ennemis normaux commencent chaque combat avec 1 Puissance. |
-| 20 | Le Souverain enragé : Vulkhar commence avec 2 Puissance, et son enrage arrive 3 tours plus tôt. *(Avec les 3 actes : deux boss d'affilée à la fin de l'acte 3.)* |
+| 16 | Les boss de fin d'acte (Vulkhar, Vhaeryx) ont 15 % de PV en plus. |
+| 17 | Les boss de fin d'acte infligent 10 % de dégâts en plus. |
+| 18 | Les boss secondaires commencent chaque combat avec 1 Puissance. |
+| 19 | Les ennemis normaux ont encore 10 % de PV en plus (20 % au total). |
+| 20 | Les Souverains enragés : les boss de fin d'acte commencent avec 2 Puissance, et leur enrage arrive 2 tours plus tôt. |
 
 - **Archives de la guilde** (compendium) : une encyclopédie qui recense les cartes, objets, potions et monstres découverts, avec un petit texte d'histoire pour chaque monstre et le nombre de fois où on l'a vaincu. Ce qui n'a pas encore été vu reste caché (« ??? »). La progression (en %) s'affiche dans le hall.
 

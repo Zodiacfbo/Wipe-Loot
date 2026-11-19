@@ -14,19 +14,19 @@ export const DIFFICULTY_TEXT: string[] = [
   'Le feu de camp soigne 25 % des PV max au lieu de 30 %.',
   'Tu commences la run avec 80 % de tes PV.',
   'Un wipe autorisé de moins (2).',
-  'Les ennemis normaux infligent 15 % de dégâts en plus.',
-  'Les boss secondaires infligent 15 % de dégâts en plus.',
+  'Les ennemis normaux infligent 10 % de dégâts en plus.',
+  'Les boss secondaires infligent 10 % de dégâts en plus.',
   'Ton deck de départ contient une Malédiction.',
   'Tu gagnes 25 % d\'or en moins.',
   'Un wipe autorisé de moins (1).',
   'Le vendeur gobelin est 20 % plus cher.',
   'Les factures de réparation coûtent 50 % de plus.',
   'Tu trouves moins de potions après les combats.',
-  'Vulkhar a 20 % de PV en plus.',
-  'Plus aucun wipe autorisé : une défaite met fin à la run.',
-  'Les boss secondaires commencent chaque combat avec 2 Puissance.',
-  'Les ennemis normaux commencent chaque combat avec 1 Puissance.',
-  'Le Souverain enragé : Vulkhar commence avec 2 Puissance, et son enrage arrive 3 tours plus tôt.',
+  'Les boss de fin d\'acte (Vulkhar, Vhaeryx) ont 15 % de PV en plus.',
+  'Les boss de fin d\'acte infligent 10 % de dégâts en plus.',
+  'Les boss secondaires commencent chaque combat avec 1 Puissance.',
+  'Les ennemis normaux ont encore 10 % de PV en plus (20 % au total).',
+  'Les Souverains enragés : les boss de fin d\'acte commencent avec 2 Puissance, et leur enrage arrive 2 tours plus tôt.',
 ];
 
 /** Tous les effets d'un niveau de difficulté, contraintes des niveaux précédents comprises. */
@@ -37,8 +37,9 @@ export interface DifficultyMods {
   bossHp: number;
   normalDmg: number; // multiplicateur de dégâts
   eliteDmg: number;
+  bossDmg: number; // dégâts des boss de fin d'acte
   enrageEarlier: number; // tours d'avance de l'enrage (boss secondaires et boss)
-  bossEnrageEarlier: number; // tours d'avance en plus pour Vulkhar
+  bossEnrageEarlier: number; // tours d'avance en plus pour les boss de fin d'acte
   campfireHeal: number; // part des PV max soignée au feu de camp
   startHpRatio: number; // PV au départ de la run
   wipes: number;
@@ -56,23 +57,25 @@ export function difficultyMods(level: number): DifficultyMods {
   const at = (n: number) => level >= n;
   return {
     eliteWeight: at(1) ? 34 : 22,
-    normalHp: at(2) ? 1.1 : 1,
+    normalHp: at(19) ? 1.2 : at(2) ? 1.1 : 1,
     eliteHp: at(3) ? 1.15 : 1,
-    bossHp: at(16) ? 1.2 : 1,
+    bossHp: at(16) ? 1.15 : 1,
     enrageEarlier: at(4) ? 2 : 0,
-    bossEnrageEarlier: at(20) ? 3 : 0,
+    bossEnrageEarlier: at(20) ? 2 : 0,
     campfireHeal: at(5) ? 0.25 : 0.3,
     startHpRatio: at(6) ? 0.8 : 1,
-    wipes: at(17) ? 0 : at(12) ? 1 : at(7) ? 2 : 3,
-    normalDmg: at(8) ? 1.15 : 1,
-    eliteDmg: at(9) ? 1.15 : 1,
+    // Pas de niveau sans wipe : une run fait deux actes, deux boss de fin d'acte.
+    wipes: at(12) ? 1 : at(7) ? 2 : 3,
+    normalDmg: at(8) ? 1.1 : 1,
+    eliteDmg: at(9) ? 1.1 : 1,
+    bossDmg: at(17) ? 1.1 : 1,
     startCurse: at(10),
     goldMult: at(11) ? 0.75 : 1,
     shopMult: at(13) ? 1.2 : 1,
     repairMult: at(14) ? 1.5 : 1,
     potionChance: at(15) ? 0.25 : 0.4,
-    elitePuissance: at(18) ? 2 : 0,
-    normalPuissance: at(19) ? 1 : 0,
+    elitePuissance: at(18) ? 1 : 0,
+    normalPuissance: 0,
     bossPuissance: at(20) ? 2 : 0,
   };
 }

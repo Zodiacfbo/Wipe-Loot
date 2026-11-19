@@ -116,6 +116,7 @@ export interface CombatMods {
   bossHp: number;
   normalDmg: number;
   eliteDmg: number;
+  bossDmg: number;
   enrageEarlier: number;
   bossEnrageEarlier: number;
   normalPuissance: number;

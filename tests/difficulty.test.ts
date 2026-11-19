@@ -13,8 +13,10 @@ describe('les niveaux de difficulté', () => {
     expect(difficultyMods(0).wipes).toBe(3);
     expect(difficultyMods(7).wipes).toBe(2);
     expect(difficultyMods(12).wipes).toBe(1);
-    expect(difficultyMods(20).wipes).toBe(0);
-    expect(difficultyMods(20).normalHp).toBe(1.1); // la contrainte du niveau 2 reste
+    expect(difficultyMods(20).wipes).toBe(1);
+    expect(difficultyMods(17).bossDmg).toBe(1.1);
+    expect(difficultyMods(20).normalHp).toBe(1.2); // niveaux 2 et 19
+    expect(difficultyMods(18).normalHp).toBe(1.1);
   });
 
   it('la run : PV de départ, Malédiction, wipes, feu de camp, factures', () => {
@@ -40,12 +42,12 @@ describe('les niveaux de difficulté', () => {
     const m = difficultyMods(20);
     const boss = createCombat(BOSS_ENCOUNTER, deck, 80, 80, 5, 100, {}, ['charge'], m);
     const v = boss.enemies[0];
-    expect(v.maxHp).toBe(Math.round(225 * 1.2));
+    expect(v.maxHp).toBe(Math.round(225 * 1.15));
     expect(v.buffs.puissance).toBe(2);
-    expect(boss.enrageTurn).toBe(14 - 2 - 3);
+    expect(boss.enrageTurn).toBe(14 - 2 - 2);
     const elite = createCombat(ELITE_ENCOUNTERS[0], deck, 80, 80, 5, 100, {}, ['charge'], m);
     expect(elite.enemies[0].maxHp).toBe(Math.round(75 * 1.15));
-    expect(elite.enemies[0].buffs.puissance).toBe(2);
+    expect(elite.enemies[0].buffs.puissance).toBe(1);
   });
 
   it('gagner au plus haut niveau débloque le suivant ; le score monte de 5 % par niveau', () => {

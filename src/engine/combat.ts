@@ -567,7 +567,7 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent
   if (e.gele === 'half') dmg *= 0.5; // un boss Gelé
   // Difficulté : les ennemis normaux et les boss secondaires frappent plus fort.
   const def = ENEMIES[e.defId];
-  if (c.mods && !def.boss) dmg *= def.elite ? c.mods.eliteDmg : c.mods.normalDmg;
+  if (c.mods) dmg *= def.boss ? c.mods.bossDmg ?? 1 : def.elite ? c.mods.eliteDmg : c.mods.normalDmg;
   if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
   return Math.max(0, Math.floor(dmg));
 }

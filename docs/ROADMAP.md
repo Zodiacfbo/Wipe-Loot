@@ -130,7 +130,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter en plus d'un objet du coffre (si on prend le légendaire, l'objet du coffre ne peut pas être une arme)
 - [x] Brisemonts (Guerrier) et le Bâton du Veilleur (Mage) se forgent à l'acte 2
 - [ ] Les légendaires restants et leurs quêtes (Sillon d'orage, Équinoxe, l'Aurore ardente, Corde-des-anciens, le Marteau des ancêtres), avec leurs classes
-- [ ] Refaire la passe sur les niveaux de difficulté : ils ont été réglés pour un acte, une victoire demande maintenant les deux
+- [x] Refaire la passe sur les niveaux de difficulté pour deux actes (voir l'équilibrage, §9)
 
 ---
 

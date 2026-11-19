@@ -154,6 +154,37 @@ Taux de victoire du bot (150 runs par profil, difficulté 0) :
 **À surveiller :**
 - **Vhaeryx** reste le gros verrou de la run. C'est voulu (boss de fin d'acte), mais à revoir avec les premiers joueurs.
 - **Les boss secondaires de l'acte 2** restent plus faciles que ceux de l'acte 1 pour un personnage de niveau 10 : le joueur arrive avec tout son butin.
-- **Les niveaux de difficulté** ont été réglés pour un acte : à refaire pour deux.
 
 Mesures : `npm run balance` et `tools/balance/vhaeryx.sim.ts` (les morts contre Vhaeryx).
+
+## 9. Les niveaux de difficulté sur deux actes
+
+La première courbe (§5) avait été réglée pour l'acte 1 seul. Avec deux actes, elle s'effondrait en haut : 0 à 9 % de victoires au niveau 20, surtout à cause du niveau 17 (plus aucun wipe, avec deux boss de fin d'acte à passer).
+
+**Ce qui a changé :**
+
+| Niveau | Avant | Après |
+|---|---|---|
+| 8 et 9 | Ennemis normaux, puis boss secondaires : +15 % de dégâts | **+10 %** (ces contraintes pèsent sur tous les combats des deux actes) |
+| 16 | Vulkhar : +20 % de PV | **Les boss de fin d'acte : +15 % de PV** |
+| 17 | Plus aucun wipe autorisé | **Les boss de fin d'acte infligent +10 % de dégâts** (il reste 1 wipe, depuis le niveau 12) |
+| 18 | Boss secondaires : 2 Puissance | **1 Puissance** |
+| 19 | Ennemis normaux : 1 Puissance | **+10 % de PV en plus (20 % au total)** |
+| 20 | Vulkhar : 2 Puissance, enrage 3 tours plus tôt | **Les boss de fin d'acte : 2 Puissance, enrage 2 tours plus tôt** |
+
+**Taux de victoire du bot** (personnages de niveau 10, 80 à 100 runs par case ; entre parenthèses, la part des runs qui atteignent l'acte 2) :
+
+| Difficulté | Guerrier Protection + Fureur | Guerrier Armes + Fureur | Mage Givre + Feu | Mage Arcane + Feu |
+|---|---|---|---|---|
+| 0 | 70 % (99 %) | 78 % (94 %) | 64 % (84 %) | 71 % (90 %) |
+| 5 | 66 % (98 %) | 60 % (83 %) | 55 % (79 %) | 60 % (88 %) |
+| 10 | 70 % (98 %) | 46 % (81 %) | 44 % (66 %) | 40 % (75 %) |
+| 15 | 59 % (90 %) | 41 % (63 %) | 33 % (58 %) | 28 % (60 %) |
+| 17 | 31 % (76 %) | 16 % (44 %) | 20 % (47 %) | 11 % (48 %) |
+| 20 | 14 % (44 %) | 7 % (29 %) | 14 % (32 %) | 4 % (27 %) |
+
+Chaque niveau se sent, et le niveau 20 reste le défi ultime. Le bot est un plancher : un joueur humain qui maîtrise sa classe fera mieux.
+
+**À surveiller :** le Mage Arcane est le plus en difficulté en haut de l'échelle (sa Surcharge coûte cher quand tout frappe plus fort), et le Guerrier Protection reste le plus confortable.
+
+Mesure : `tools/balance/difficulte.sim.ts` (variables `RUNS` et `NIVEAUX`).
