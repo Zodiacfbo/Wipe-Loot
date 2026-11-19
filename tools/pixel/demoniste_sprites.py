@@ -176,7 +176,56 @@ def voleur():
     return s.render()
 
 
+def paladin():
+    """Le Paladin : armure de plaques dorée, tabard blanc au soleil, marteau levé et écu."""
+    s = Sprite(64, 64)
+    import math
+    # cape blanche
+    s.poly([(20, 20), (30, 18), (29, 57), (13, 59)], '#D8D2C4')
+    s.rect(13, 57, 29, 59, '#D8B04A', shade=False)
+    # jambes et solerets
+    s.rect(24, 46, 30, 57, '#A89060')
+    s.rect(33, 46, 39, 57, '#C8A868')
+    s.rect(23, 55, 31, 60, '#7A6438')
+    s.rect(32, 55, 40, 60, '#8A7244')
+    # tabard
+    s.poly([(24, 38), (40, 38), (42, 51), (22, 51)], '#E8E4DC')
+    s.rect(22, 50, 42, 51, '#D8B04A', shade=False)
+    # cuirasse dorée et soleil
+    s.poly([(23, 23), (41, 23), (42, 41), (22, 41)], '#C8A050')
+    s.ellipse(28, 27, 36, 35, '#FFE27A', glow=True)
+    for t in range(8):
+        a = t / 8 * math.pi * 2
+        s.line([(32 + math.cos(a) * 5, 31 + math.sin(a) * 5), (32 + math.cos(a) * 7, 31 + math.sin(a) * 7)], '#FFE27A', glow=True)
+    s.rect(22, 39, 42, 41, '#6A4A2A')
+    s.rect(31, 39, 33, 41, '#FFE27A', shade=False)
+    # épaulière arrière
+    s.ellipse(18, 20, 28, 28, '#B08A40')
+    # écu
+    s.poly([(8, 25), (24, 25), (24, 40), (16, 49), (8, 40)], '#D8B04A')
+    s.poly([(10, 27), (22, 27), (22, 39), (16, 46), (10, 39)], '#E8E4DC')
+    s.ellipse(12, 30, 20, 38, '#D8B04A')
+    s.ellipse(14, 32, 18, 36, '#FFE27A', glow=True)
+    # casque à visière et crête
+    s.ellipse(25, 8, 39, 24, '#D0A850')
+    s.rect(29, 15, 38, 16, '#1A1210', shade=False)
+    s.rect(31, 13, 32, 19, '#1A1210', shade=False)
+    s.poly([(30, 9), (32, 2), (34, 9)], '#E8E4DC')
+    # épaulière avant
+    s.ellipse(35, 20, 46, 29, '#D8B04A')
+    # bras et gantelet
+    s.rect(38, 27, 43, 35, '#C8A050')
+    s.ellipse(40, 32, 46, 38, '#A88A48')
+    # marteau levé, tête lumineuse
+    s.line([(43, 38), (52, 10)], '#6A4426', width=3)
+    s.poly([(46, 4), (58, 8), (56, 15), (44, 11)], '#E0D8C0')
+    s.poly([(47, 6), (56, 9), (55, 12), (46, 9)], '#FFF2B0', glow=True)
+    s.dots([(60, 4), (42, 2), (61, 14)], '#FFE27A', glow=True)
+    return s.render()
+
+
 if __name__ == '__main__':
+    paladin().save(os.path.join(DEST, 'paladin.png'))
     voleur().save(os.path.join(DEST, 'voleur.png'))
     pretre().save(os.path.join(DEST, 'pretre.png'))
     demoniste().save(os.path.join(DEST, 'demoniste.png'))

@@ -76,6 +76,7 @@ import { POTION_IDS } from './engine/potions';
 import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { loadProfile, localSave, saveProfile } from './engine/save';
+import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx } from './fx';
@@ -569,6 +570,9 @@ function enemyChips(e: EnemyState): string {
   if (e.defId === 'skarn' && (e.phase ?? 1) === 1) chips.push('<span class="chip">Immunisé (Œufs)</span>');
   if (ui.run?.encounter?.rune && ENEMIES[e.defId].elite) chips.push('<span class="chip rune">Rune des Sources</span>');
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
+  if (b.censure) chips.push(`<span class="chip sacre" title="${b.censure} dégâts au début de son tour ; le Jugement du Sceau de vengeance la consomme">Censure ${b.censure}</span>`);
+  if (ui.run?.classId === 'paladin' && ENEMIES[e.defId].tags?.includes('mortvivant')) chips.push('<span class="chip impie">Mort-vivant</span>');
+  if (ui.run?.classId === 'paladin' && ENEMIES[e.defId].tags?.includes('demon')) chips.push('<span class="chip impie">Démon</span>');
   if (b.poison) chips.push(`<span class="chip poison" title="Chaque Attaque qui le touche : +${b.poison} dégâts. −1 à la fin de son tour">Poison ${b.poison}</span>`);
   if (e.vendetta) chips.push('<span class="chip debuff" title="Tes Attaques : +50 % et +2 Poison">Vendetta</span>');
   if (e.stun) chips.push(`<span class="chip debuff">Contrôlé ${e.stun}</span>`);
@@ -782,6 +786,18 @@ function playerChips(c: CombatState): string {
   if (c.undying) chips.push('<span class="chip">Égide des anciens : PV ≥ 1</span>');
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
+  // Paladin
+  let auraChip = false;
+  try { auraChip = localStorage.getItem('maquette-paladin') === 'C'; } catch { /* sans stockage */ }
+  if (auraChip && c.aura) chips.push(`<span class="chip sacre">${AURA_NAMES[c.aura.id]}</span>`);
+  if (p.divineShield) chips.push('<span class="chip sacre">Bouclier divin : immunisé, Attaques ÷ 2</span>');
+  if (c.favor) chips.push('<span class="chip sacre">Faveur divine : prochain soin ou Sort ×2</span>');
+  if (c.consecration?.turns) chips.push(`<span class="chip sacre">Consécration : ${c.consecration.dmg} à tous (${c.consecration.turns}t)</span>`);
+  if (c.pavois) chips.push(`<span class="chip sacre">Pavois : ${c.pavois} aux attaquants bloqués</span>`);
+  if (c.crusaderShield) chips.push('<span class="chip sacre">Bouclier du croisé</span>');
+  if (c.wings) chips.push(`<span class="chip sacre">Ailes de justice : +2 Puissance (${c.wings}t)</span>`);
+  if (c.judgeBonus) chips.push(`<span class="chip sacre">Vengeance divine : +${c.judgeBonus} à la prochaine Attaque</span>`);
+  if (c.healFree) chips.push('<span class="chip sacre">Prochaine carte de soin gratuite</span>');
   if (c.weaponPoison) chips.push(`<span class="chip poison" title="Tes Attaques appliquent ce Poison">Poison ${c.weaponPoison.id} ${c.weaponPoison.amount}</span>`);
   if (c.bladeDance?.turns) chips.push(`<span class="chip">Danse des lames : +${c.bladeDance.bonus} (${c.bladeDance.turns}t)</span>`);
   if (c.coldBlood) chips.push('<span class="chip">Sang-froid : prochaine Attaque ×2</span>');
@@ -827,6 +843,38 @@ function rogueResource(c: CombatState): string {
     <div class="aide-posture">${stealth}</div>`;
 }
 
+/** Ce que fera le Jugement maintenant (pour l'interface du Paladin). */
+function judgeText(c: CombatState): string {
+  const seals = c.seals ?? [];
+  return seals.length ? seals.map((s) => SEAL_TEXT[s].judge).join(' + ') : '6 dégâts';
+}
+
+/** Les Sceaux et l'Aura du Paladin. MAQUETTE : 3 variantes (localStorage « maquette-paladin »). */
+function paladinResource(c: CombatState): string {
+  const seals = c.seals ?? [];
+  const aura = c.aura ? AURA_NAMES[c.aura.id] : null;
+  let variant = 'A';
+  try { variant = localStorage.getItem('maquette-paladin') ?? 'A'; } catch { /* sans stockage */ }
+  const sealNames = seals.map((s) => SEAL_NAMES[s]).join(' et ');
+  const bonus = seals.map((s) => SEAL_TEXT[s].bonus).join(' ; ');
+  if (variant === 'B') {
+    const tile = (cls: string, on: boolean, icon: string, label: string) =>
+      `<div class="pal-tuile ${cls} ${on ? 'actif' : ''}">${icon}<span>${label}</span></div>`;
+    const sun = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>';
+    const halo = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M12 10l2 4h-4l2-4zM8 20h8"/></svg>';
+    return `<div class="ligne pal-tuiles">${tile('sceau', seals.length > 0, sun, seals.length ? sealNames.replace(/Sceaux? /g, '').replace('de ', '').replace('du ', '') : 'Aucun Sceau')}${tile('aura', !!aura, halo, aura ? aura.replace('Aura ', '').replace('de ', '').replace('d\'', '') : 'Aucune Aura')}
+      <div class="pal-jugement"><small>JUGEMENT</small><b>${judgeText(c)}</b></div></div>
+      <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}.` : 'Joue une carte Sceau, puis juge-la avec le sort Jugement.'}</div>`;
+  }
+  if (variant === 'C') {
+    return `<div class="ligne pal-bandeau"><span class="pal-sceau ${seals.length ? 'actif' : ''}">${seals.length ? sealNames : 'Aucun Sceau'}</span><span class="pal-fleche">➜</span><span class="pal-juge">Jugement : <b>${judgeText(c)}</b></span></div>
+      <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}.` : 'Joue une carte Sceau, puis juge-la avec le sort Jugement.'}${aura ? '' : ' · aucune Aura'}</div>`;
+  }
+  return `<div class="ligne"><span class="rage-label sceau-label">SCEAU</span><span class="pal-pastille ${seals.length ? 'actif' : ''}">${seals.length ? sealNames : 'Aucun'}</span></div>
+    <div class="ligne"><span class="rage-label aura-label">AURA</span><span class="pal-pastille aura ${aura ? 'actif' : ''}">${aura ?? 'Aucune'}</span></div>
+    <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}. ` : ''}Jugement : <b>${judgeText(c)}</b></div>`;
+}
+
 /** Les éclats d'âme et le familier du Démoniste. */
 function demonResource(c: CombatState): string {
   const n = c.shards ?? 0;
@@ -853,7 +901,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const resource = mage
     ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
         <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
-    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : '';
+    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
