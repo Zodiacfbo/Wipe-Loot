@@ -184,7 +184,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [ ] Mettre à jour les actions GitHub du déploiement (avertissement sur l'ancienne version de Node.js)
 - [x] Migration des sauvegardes quand leur format change (la version 2 est convertie en version 3)
 - [ ] Ajouter des tests à chaque nouvelle mécanique
-- [ ] Suivre les bugs et les idées avec les « Issues » GitHub (optionnel)
+- [x] Suivre les bugs et les idées avec les « Issues » GitHub (voir le CLAUDE.md, §6)
 
 ---
 
