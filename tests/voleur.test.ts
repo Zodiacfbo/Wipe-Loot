@@ -58,7 +58,7 @@ describe('les points de combo', () => {
     expect(c.combo).toBe(5);
     const hp = e.hp;
     play(c, 'evisceration');
-    expect(hp - e.hp).toBe(4 + 5 * 5);
+    expect(hp - e.hp).toBe(4 + 6 * 5);
     expect(c.combo).toBe(0);
   });
 
@@ -71,7 +71,7 @@ describe('les points de combo', () => {
     c.player.energy = 3;
     const hp = c.enemies[0].hp;
     play(c, 'evisceration');
-    expect(hp - c.enemies[0].hp).toBe(4 + 5 * 2);
+    expect(hp - c.enemies[0].hp).toBe(4 + 6 * 2);
   });
 });
 

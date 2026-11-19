@@ -45,8 +45,8 @@ const LIST: RogueCard[] = [
   // --- Deck de départ ---
   {
     id: 'esquive', name: 'Esquive', type: 'Compétence', rarity: 'depart', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up, g) => `Gagne ${(up ? 8 : 5) + (g?.evadeBonus ?? 0)} blocage.`,
-    play: (ctx) => gainBlock(ctx.c, (ctx.up ? 8 : 5) + (ctx.c.gear?.evadeBonus ?? 0)),
+    text: (up, g) => `Gagne ${(up ? 9 : 6) + (g?.evadeBonus ?? 0)} blocage.`,
+    play: (ctx) => gainBlock(ctx.c, (ctx.up ? 9 : 6) + (ctx.c.gear?.evadeBonus ?? 0)),
   },
 
   // --- Tronc commun ---
@@ -60,8 +60,8 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'evisceration', name: 'Éviscération', type: 'Attaque', finisher: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige 4 dégâts + ${(up ? 7 : 5) + (g?.evisBonus ?? 0)} par point de combo.`,
-    play: (ctx) => hit(ctx, 4 + ((ctx.up ? 7 : 5) + (ctx.c.gear?.evisBonus ?? 0)) * pts(ctx)),
+    text: (up, g) => `Finisher : inflige 4 dégâts + ${(up ? 8 : 6) + (g?.evisBonus ?? 0)} par point de combo.`,
+    play: (ctx) => hit(ctx, 4 + ((ctx.up ? 8 : 6) + (ctx.c.gear?.evisBonus ?? 0)) * pts(ctx)),
   },
   {
     id: 'embuscade', name: 'Embuscade', type: 'Attaque', opener: true, rarity: 'commune', cost: 0, needsTarget: true, icon: 'epee',
@@ -228,7 +228,7 @@ const LIST: RogueCard[] = [
     },
   },
   {
-    id: 'vendetta', name: 'Vendetta', type: 'Compétence', rarity: 'epique', cost: 1, costUp: 0, needsTarget: true, exhaust: true, icon: 'pouvoir',
+    id: 'vendetta', name: 'Vendetta', type: 'Compétence', rarity: 'epique', cost: 2, costUp: 1, needsTarget: true, exhaust: true, icon: 'pouvoir',
     text: () => 'Marque la cible pour tout le combat : tes Attaques contre elle infligent 50 % de dégâts en plus et appliquent 2 Poison de plus. Épuisé.',
     play: (ctx) => {
       if (!ctx.target) return;

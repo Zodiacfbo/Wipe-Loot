@@ -21,7 +21,7 @@ import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
 
 /** Les dégâts qu'un ennemi va infliger à son prochain tour. */
 function incomingFrom(c: CombatState, e: EnemyState): number {
-  if (e.dead || e.submerged || e.interrupted || (e.buffs.peur ?? 0) > 0 || (e.mouton ?? 0) > 0 || e.gele === 'skip' || (e.enslaved ?? 0) > 0) return 0;
+  if (e.dead || e.submerged || e.interrupted || (e.stun ?? 0) > 0 || (e.sap ?? 0) > 0 || (e.buffs.peur ?? 0) > 0 || (e.mouton ?? 0) > 0 || e.gele === 'skip' || (e.enslaved ?? 0) > 0) return 0;
   if (c.player.iceBlock) return 0;
   const def = ENEMIES[e.defId];
   if (e.disarmed && !def.elite && !def.boss) return 0;
@@ -56,6 +56,8 @@ function evaluate(c: CombatState): number {
     // Démoniste : les DoT à venir et les Malédictions.
     for (const d of e.dots ?? []) enemyHp -= d.dmg * Math.min(4, d.turns) * 0.7;
     enemyHp -= (e.curses?.length ?? 0) * 3;
+    // Voleur : le Poison posé, la Vendetta.
+    enemyHp -= (e.buffs.poison ?? 0) * 2 + (e.vendetta ? 12 : 0);
   }
   // Ce qui brûlera en fin de tour : Zones de feu et Bombes vivantes gardées en main.
   const burn = c.hand.filter((k) => k.id === 'zone_de_feu').length * (c.fireProof ? 0 : 6)
@@ -67,8 +69,19 @@ function evaluate(c: CombatState): number {
   // La Pierre d'âme ne vaut le coup (1 éclat) que contre un boss.
   const big = c.enemies.some((e) => !e.dead && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss));
   const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0)
-    + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0);
+    + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0)
+    // Voleur : les points de combo, le Camouflage (s'il reste une Ouverture en main), le Poison d'arme, Danse des lames.
+    + rogueValue(c);
   return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
+}
+
+function rogueValue(c: CombatState): number {
+  if (c.combo === undefined) return 0;
+  const openers = c.hand.filter((k) => CARDS[k.id].opener).length;
+  return c.combo * 2.5 + (c.stealth && openers > 0 ? 6 * openers : 0) + (c.stealthNext ? 4 : 0)
+    + (c.weaponPoison ? 6 + c.weaponPoison.amount * 3 : 0)
+    + (c.bladeDance ? c.bladeDance.bonus * c.bladeDance.turns * 1.5 : 0) + (c.coldBlood ? 6 : 0) + (c.shadowStep ? 3 : 0)
+    + (c.player.evasion ? 8 : 0);
 }
 
 const clone = (c: CombatState): CombatState => JSON.parse(JSON.stringify(c));
@@ -85,7 +98,7 @@ function candidates(c: CombatState): Action[] {
   });
   c.spells.forEach((s, i) => {
     if (!canUseSpell(c, i)) return;
-    const needs = ['charge', 'coup_de_pommeau'].includes(s.id);
+    const needs = ['charge', 'coup_de_pommeau', 'coup_de_pied'].includes(s.id);
     if (needs) targets.forEach((t) => list.push({ kind: 'spell', index: i, target: t }));
     else list.push({ kind: 'spell', index: i });
   });
@@ -185,7 +198,7 @@ function upgradeTarget(run: RunState): number | null {
 function handleShop(run: RunState): void {
   const shop = run.shop!;
   // Retirer une Malédiction ou une Frappe.
-  const bad = run.deck.find((k) => k.id === 'malediction') ?? run.deck.find((k) => k.id === 'frappe' || k.id === 'trait_de_magie');
+  const bad = run.deck.find((k) => k.id === 'malediction') ?? run.deck.find((k) => ['frappe', 'trait_de_magie', 'attaque_sinistre'].includes(k.id));
   if (bad) buyRemoval(run, bad.uid);
   shop.cards.forEach((item, i) => {
     if (!item.sold && CARD_RANK[CARDS[item.id].rarity] >= 2 && run.gold - item.price >= 60) buyCard(run, i);
@@ -218,6 +231,7 @@ const EVENT_CHOICE: Record<string, (run: RunState) => number> = {
   autel: () => 0,
   fantome_raideur: (r) => (r.hp < r.maxHp * 0.6 ? 1 : 0),
   fonceur2: (r) => (r.hp > r.maxHp * 0.6 ? 0 : 1),
+  ventor: () => 0,
 };
 
 const BLESSING_ORDER = ['pari', 'entrainement', 'provisions', 'potions', 'pret', 'bourse', 'allegement', 'marche'];
@@ -275,7 +289,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
   const run = newRun(seed, null, talents, difficulty, classId);
   offerBlessing(run);
   const blessing = BLESSING_ORDER.find((b) => run.blessings.includes(b))!;
-  if (blessing === 'allegement') chooseBlessing(run, blessing, run.deck.find((k) => k.id === 'frappe' || k.id === 'trait_de_magie')!.uid);
+  if (blessing === 'allegement') chooseBlessing(run, blessing, run.deck.find((k) => ['frappe', 'trait_de_magie', 'attaque_sinistre'].includes(k.id))!.uid);
   else chooseBlessing(run, blessing);
   const fights: FightLog[] = [];
   let current: FightLog | null = null;

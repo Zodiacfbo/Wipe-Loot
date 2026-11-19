@@ -280,7 +280,7 @@ export const VOLEUR_TREES: TreeDef[] = [
   {
     id: 'finesse', name: 'Finesse', theme: 'Ombres et ouvertures',
     tiers: [
-      [t('maitre_discretion', 'Maître de la discrétion', 'Tes Ouvertures infligent +3 dégâts.', { fx: { openerBonus: 3 } }),
+      [t('maitre_discretion', 'Maître de la discrétion', 'Tes Ouvertures infligent +4 dégâts.', { fx: { openerBonus: 4 } }),
         t('pas_de_velours', 'Pas de velours', 'La première carte que tu joues dans chaque combat coûte 0.', { fx: { firstCardFree: 1 } })],
       [t('prepare', 'Préparé', 'Tes Ouvertures donnent +1 combo.', { fx: { openerCombo: 1 } }),
         t('insaisissable', 'Insaisissable', 'Esquive et Esquive agile donnent +2 blocage.', { fx: { evadeBonus: 2 } })],
