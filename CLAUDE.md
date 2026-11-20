@@ -88,6 +88,7 @@ cd tools/pixel && python3 illustrations.py                  # régénère les il
 cd tools/pixel && python3 icones_talents.py                  # régénère les icônes de talents sans carte proche
 cd tools/pixel && python3 decor.py                           # régénère le décor : feu de camp animé (4 images), icônes repos et enclume
 cd tools/pixel && python3 acte3.py                           # sprites des ennemis de l'acte 3, cartes Sable et Hallucination
+cd tools/pixel && python3 animations.py                      # planches animées (héros, familiers, tous les ennemis) : à relancer après tout nouveau sprite
 ```
 
 ### Le code
@@ -106,7 +107,7 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
   - `src/keywords.ts` : le lexique des infobulles (mots-clés soulignés dans les cartes, pastilles). Un nouveau mot-clé (Folie, Résonance, Piège…) → une entrée dans `KEYWORDS`. Une pastille avec un `title` garde cette aide précise.
   - `src/aides.ts` : les bulles (appui long sur téléphone, survol sur PC ; le clic qui suit un appui long est avalé) et l'aperçu des dégâts sur les ennemis. Le calcul est dans `src/engine/preview.ts` (`previewCard`, `cardHitValue`) : la carte est jouée sur une copie du combat, donc toute nouvelle mécanique est prise en compte sans rien ajouter.
 - `tools/balance/` : le bot (`bot.ts`, qui ne regarde qu'une action à l'avance) et les simulations (`*.sim.ts`).
-- `tools/pixel/` : sprites et illustrations en Python/Pillow (classe `Sprite` dans `sprites.py`). Sortie dans `public/assets/` (`carte_<id>.png`, `ennemi_<id>.png`, `<classe>.png`, `familier_<id>.png`, et le décor de `decor.py` : `feu_camp.png`, `icone_repos.png`, `icone_enclume.png`).
+- `tools/pixel/` : sprites et illustrations en Python/Pillow (classe `Sprite` dans `sprites.py`). Sortie dans `public/assets/` (`carte_<id>.png`, `ennemi_<id>.png`, `<classe>.png`, `familier_<id>.png`, et le décor de `decor.py` : `feu_camp.png`, `icone_repos.png`, `icone_enclume.png`). `animations.py` exporte les planches animées `anim_<fichier>.png` (4 images côte à côte) : héros et Vulkhar, Vhaeryx, Molosse, Étincelle dessinés à la main (fonction `f`), les autres ennemis par l'animateur automatique `anime_auto` (profils dans `PROFILS`). Le jeu les joue en CSS (`spriteAttrs` et `ANIMES` dans `ui.ts`) ; règles dans `docs/DIRECTION_ARTISTIQUE.md` §7.
 - `docs/` : `CONCEPT.md`, `ROADMAP.md`, `EQUILIBRAGE.md` (journal des passes du bot), une fiche par classe (`docs/classes/`) et par acte (`docs/actes/`).
 
 ### Ajouter une classe (recette suivie pour Mage, Démoniste, Prêtre, Voleur, Paladin)
@@ -119,7 +120,7 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
 6. Malédiction de lignée de Vhaeryx (`lineageCurse` dans `combat.ts`) et texte dans `ui.ts` (`curseText`).
 7. Légendaire et quête (item dans `items.ts`, étapes dans `run.ts`/`events.ts`, bouton au feu de camp dans `ui.ts`).
 8. UI : jauge de ressource dans `combatScreen` (voir `demonResource`, `priestResource`), chips, `POWER_LABEL`, préchargement du sprite.
-9. Sprite + illustrations (`tools/pixel/illustrations_<classe>.py`, ajouté dans `illustrations.py`).
+9. Sprite **animé** (fonction de dessin avec `f`, ligne dans `ANIMES` de `tools/pixel/animations.py` et de `src/ui.ts` ; vérifié par `tests/animations.test.ts`) + illustrations (`tools/pixel/illustrations_<classe>.py`, ajouté dans `illustrations.py`).
 10. Tests `tests/<classe>.test.ts` ; mettre à jour `tests/classes.test.ts` et le compte de talents dans `tests/talents.test.ts`.
 11. Bot : valeur de la ressource dans `evaluate()` ; profils dans `balance.sim.ts`. Cibles (run complète, difficulté 0) : niveau 1 ≈ 0-10 %, niveau 5 ≈ 15-30 %, niveau 10 ≈ 50-75 %. Le sort de départ est gratuit (comme Charge, Contresort, Pacte de sang, Égide sacrée) et le deck de départ un peu renforcé par rapport à la fiche.
 12. Docs : fiche de classe (chiffres retenus + §« Ce qui est en jeu »), `EQUILIBRAGE.md`, `ROADMAP.md`.
@@ -157,6 +158,7 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
   - Boutons de sortie : écrans pleins du hall → « Retour » en haut à droite ; fenêtres et écrans d'expédition → bouton en bas.
   - Premier lancement : après le choix de la classe, on arrive au hall (pas directement en expédition).
   - Combat : infobulles des mots-clés (mots soulignés et pastilles ; appui long sur téléphone, survol sur PC ; l'appui long sur une carte la décrit sans la jouer) et aperçu des dégâts (chiffre corrigé sur la carte, PV perdus et « Achevé » sur les ennemis ; rien quand le résultat dépend du hasard).
+- **Animations (novembre 2026) :** les 6 héros (le Prêtre change de tenue en Forme d'Ombre, avec un flash), les 5 familiers et tous les ennemis sont animés au repos, style « marqué » comme le feu de camp (4 images, 0,2 s chacune). Arrêt sur image et flash blanc à l'impact (`hitStop` dans `fx.ts`). **Règle :** tout nouveau sprite (classes restantes, acte 3, acte bonus) est animé dès sa création ; un ennemi ou une classe jouable sans planche fait échouer les tests. Restent : les poses d'action (élan, coup reçu, incantation, mort) et des retouches à la main des boss secondaires.
 - **Profil :** les niveaux de difficulté débloqués et les talents sont propres à chaque classe ; le hall retient la dernière classe choisie.
 - **Râtelier :** le légendaire forgé (`legendary` du profil, par classe) est emporté par défaut depuis le hall (`newRun(…, legendary)`), en plus d'un objet du coffre qui n'est alors pas une arme ; sa quête passe à « forged » pour l'expédition (`LEGENDARY_QUEST` dans `run.ts`). Une nouvelle classe → une ligne dans `LEGENDARY_QUEST`.
 - **Décisions de novembre 2026 :** pas de déblocage de cartes par niveau (tout est disponible dès le départ) ; l'amélioration des sorts de barre est rangée dans « Plus tard ».
