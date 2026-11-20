@@ -772,3 +772,7 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .boutons-fiche { display: flex; gap: 12px; }
 .boutons-fiche .gros-bouton { flex: 1; }
 .boutons-fiche .gros-bouton:disabled { background: var(--panneau-sombre); border-color: #5a4433; color: var(--texte-2); }
+
+/* Deck : les cartes identiques regroupées, avec « ×N ». */
+.groupe-cartes { position: relative; flex: none; }
+.nombre-cartes { position: absolute; top: -6px; right: -4px; z-index: 2; min-width: 36px; height: 34px; padding: 0 6px; border-radius: 17px; border: 3px solid var(--fond); background: var(--or); color: #1a0f08; font-size: 17px; font-weight: 900; line-height: 28px; text-align: center; pointer-events: none; }

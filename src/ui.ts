@@ -190,6 +190,21 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
   </button>`;
 }
 
+/** Un deck affiché en regroupant les cartes identiques (même carte, même amélioration) : une seule carte, avec « ×N ».
+ * Les copies sont interchangeables : choisir la carte du groupe choisit la première copie. */
+function deckList(deck: CardInstance[], render: (card: CardInstance) => string): string {
+  const groups = new Map<string, { card: CardInstance; count: number }>();
+  for (const card of deck) {
+    const key = `${card.id}${card.upgraded ? '+' : ''}`;
+    const g = groups.get(key);
+    if (g) g.count++;
+    else groups.set(key, { card, count: 1 });
+  }
+  return [...groups.values()].map(({ card, count }) => count > 1
+    ? `<div class="groupe-cartes">${render(card)}<span class="nombre-cartes">×${count}</span></div>`
+    : render(card)).join('');
+}
+
 // ---------- Plein écran ----------
 
 function canFullscreen(): boolean {
@@ -503,7 +518,7 @@ function eventScreen(run: RunState): string {
 
 function blessingScreen(run: RunState): string {
   if (ui.blessingRemove) {
-    const cards = run.deck.map((card) => cardHtml(card, { action: `data-action="benediction-carte" data-uid="${card.uid}"` })).join('');
+    const cards = deckList(run.deck, (card) => cardHtml(card, { action: `data-action="benediction-carte" data-uid="${card.uid}"` }));
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Allègement</h2>
       <p>Choisis la carte à retirer de ton deck.</p>
@@ -534,11 +549,11 @@ function shopScreen(run: RunState): string {
   }
   if (ui.shopMode) {
     const remove = ui.shopMode === 'remove';
-    const cards = run.deck.map((card) => {
+    const cards = deckList(run.deck, (card) => {
       const ok = remove || (!card.upgraded && !CARDS[card.id].unplayable);
       const action = remove ? 'service-carte' : 'apercu-amelioration';
       return cardHtml(card, { action: ok ? `data-action="${action}" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
-    }).join('');
+    });
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>${remove ? 'Retirer une carte' : 'Améliorer une carte'}</h2>
       <p>${remove ? 'Choisis la carte à retirer définitivement de ton deck.' : 'Choisis la carte à améliorer.'} Prix : ${servicePrice(remove ? run.removals : run.upgradesBought)} or.</p>
@@ -1443,10 +1458,10 @@ function campfireScreen(run: RunState): string {
     return `${topbar(run, run.hp)}${upgradePreview(run, ui.upgradeUid, 'Améliorer cette carte', 'data-action="ameliorer"')}`;
   }
   if (ui.campfireUpgrade) {
-    const cards = run.deck.map((card) => cardHtml(card, {
+    const cards = deckList(run.deck, (card) => cardHtml(card, {
       action: card.upgraded || CARDS[card.id].unplayable ? 'disabled' : `data-action="apercu-amelioration" data-uid="${card.uid}"`,
       disabled: card.upgraded || CARDS[card.id].unplayable,
-    })).join('');
+    }));
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Le maître de classe</h2>
       <p>Choisis une carte à améliorer.</p>
@@ -1455,10 +1470,10 @@ function campfireScreen(run: RunState): string {
     </div>`;
   }
   if (ui.bindStaff) {
-    const cards = run.deck.map((card) => {
+    const cards = deckList(run.deck, (card) => {
       const ok = CARDS[card.id].rarity === 'rare';
       return cardHtml(card, { action: ok ? `data-action="lier-baton" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
-    }).join('');
+    });
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Lier les fragments</h2>
       <p>Le bâton exige un sacrifice : choisis une carte rare de ton deck. Elle disparaît, et le Bâton du Veilleur remplace ton arme.</p>
@@ -1823,7 +1838,7 @@ function overlayHtml(run: RunState | null): string {
     </div></div>`;
   }
   if (ui.overlay === 'deck') {
-    const cards = run.deck.map((card) => cardHtml(card, { action: 'disabled' })).join('');
+    const cards = deckList(run.deck, (card) => cardHtml(card, { action: 'disabled' }));
     return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:40px;gap:14px">
       <h2>Ton deck (${run.deck.length} cartes)</h2>
       <div class="liste-deck">${cards}</div>
