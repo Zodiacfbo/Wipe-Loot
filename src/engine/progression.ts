@@ -1,6 +1,7 @@
 // La progression entre les runs : le score d'une run, l'expérience et le niveau de chaque classe (1 à 10).
 // Référence : docs/CONCEPT.md (§9.1, §15.2 et §15.3)
 import { MAX_DIFFICULTY } from './difficulty';
+import { ITEMS } from './items';
 import { MAX_WIPES } from './run';
 import type { RunState } from './types';
 
@@ -10,6 +11,10 @@ export const XP_PER_LEVEL = [80, 100, 120, 140, 160, 180, 200, 220, 240];
 
 export interface ClassProgress {
   xp: number;
+  /** Expéditions gagnées avec cette classe (comptées depuis l'ajout de ce champ). */
+  wins?: number;
+  /** Le légendaire déjà forgé avec cette classe (id de l'objet), s'il y en a un. */
+  legendary?: string;
 }
 
 /** La partie du profil qui concerne la progression. */
@@ -103,6 +108,10 @@ export function awardRun(profile: ProgressProfile, run: RunState, classId = 'gue
   const victory = run.screen === 'victory';
   profile.stats.runs += 1;
   if (victory) profile.stats.wins += 1;
+  if (victory) entry.wins = (entry.wins ?? 0) + 1;
+  // Le légendaire forgé pendant l'expédition (pas celui emporté depuis le coffre).
+  const weapon = run.equipment.arme;
+  if (weapon && weapon !== run.heirloom && ITEMS[weapon]?.rarity === 'legendaire') entry.legendary = weapon;
   // Gagner au niveau de difficulté le plus haut débloque le suivant.
   let newDifficulty: number | null = null;
   const unlocked = (profile.difficulty ??= {})[classId] ?? 0;

@@ -1216,6 +1216,11 @@ function titleScreen(): string {
       ${switcher}
       <img class="px" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:160px;height:160px">
       <h3>${hero.name} · niveau ${lvl.level}</h3>
+      <div class="description-hall">
+        <div><span class="etoiles">${'★'.repeat(hero.difficulty)}<i>${'★'.repeat(3 - hero.difficulty)}</i></span> <em>Difficulté ${DIFFICULTY_WORD[hero.difficulty]}</em></div>
+        <span><img class="px" src="${A('icone_epee.png')}" alt="">${hero.role}</span>
+        <span><img class="px" src="${A('icone_pouvoir.png')}" alt="">${hero.resource}</span>
+      </div>
       <div class="barre-xp"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
       <div class="hall-arbres">${trees}</div>
       <button type="button" class="gros-bouton secondaire" data-action="talents">Talents · ${pointsUsed(alloc)}/${lvl.level} points</button>
@@ -1685,7 +1690,7 @@ function classScreen(): string {
     </div>
     <div class="corps-classes">
       <div class="grille-classes">${cards}</div>
-      <aside class="fiche-classe-detail" style="--couleur:${c.color}">
+      <aside class="fiche-classe-detail ${st === 'jouee' || st === 'debloquee' ? 'avec-progression' : ''}" style="--couleur:${c.color}">
         <div class="portrait-classe ${st === 'bientot' || st === 'verrouillee' ? 'silhouette' : ''}">${sprite(c)}</div>
         <div class="nom-classe"><b>${c.name}</b><span class="etoiles">${'★'.repeat(c.difficulty)}<i>${'★'.repeat(3 - c.difficulty)}</i></span><em>Difficulté ${DIFFICULTY_WORD[c.difficulty]}</em></div>
         <q>${c.quote}</q>
@@ -1695,6 +1700,7 @@ function classScreen(): string {
           <img class="px" src="${A('icone_sang.png')}" alt=""><span>${c.hp} PV</span>
         </div>
         <p>${c.fantasy}</p>
+        ${st === 'jouee' || st === 'debloquee' ? classProgressHtml(profile, c.id) : ''}
         <div class="bas-fiche">${note ? `<p class="note">${note}</p>` : ''}${button}</div>
       </aside>
     </div>
@@ -1709,6 +1715,25 @@ function activeClass(profile = loadProfile()): string {
 }
 
 /** La répartition de talents de la classe jouée, ramenée aux points disponibles. */
+/** La progression du joueur avec une classe (fiche de l'écran des classes). */
+function classProgressHtml(profile: ReturnType<typeof loadProfile>, cls: string): string {
+  const lvl = classLevel(profile, cls);
+  const pct = lvl.needed ? Math.round((lvl.into / lvl.needed) * 100) : 100;
+  const used = pointsUsed(clampAlloc(profile.talents[cls] ?? emptyAlloc(cls), lvl.level, cls));
+  const entry = profile.classes[cls];
+  const unlocked = profile.difficulty?.[cls] ?? 0;
+  const tag = (text: string, cls2 = '') => `<span class="type-talent ${cls2}">${text}</span>`;
+  const tags = [
+    tag(`Talents ${used}/${lvl.level}`),
+    unlocked > 0 ? tag(`Meilleure victoire : difficulté ${unlocked - 1}`) : tag('Pas encore de victoire'),
+    entry?.wins ? tag(`${entry.wins} victoire${entry.wins > 1 ? 's' : ''}`) : '',
+    entry?.legendary && ITEMS[entry.legendary] ? tag(`Légendaire forgé : ${ITEMS[entry.legendary].name}`, 'r-legendaire') : '',
+  ].join('');
+  return `<div class="progression-classe"><span class="titre-rappel">Ta progression</span>
+    <div class="ligne-niveau"><b>Niveau ${lvl.level}</b><div class="barre-xp petite"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div></div>
+    <div class="etiquettes">${tags}</div></div>`;
+}
+
 function myAlloc(): TalentAlloc {
   const profile = loadProfile();
   const cls = activeClass(profile);

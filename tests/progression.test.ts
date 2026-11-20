@@ -78,3 +78,25 @@ describe('score et expérience', () => {
     expect(run.stats).toEqual({ combats: 1, elites: 0 });
   });
 });
+
+describe('progression par classe : victoires et légendaire forgé', () => {
+  it('compte les victoires de la classe et retient le légendaire forgé', () => {
+    const profile = fresh();
+    awardRun(profile, finished(false));
+    expect(profile.classes.guerrier.wins ?? 0).toBe(0);
+    const win = finished(true);
+    win.equipment.arme = 'brisemonts';
+    awardRun(profile, win);
+    expect(profile.classes.guerrier.wins).toBe(1);
+    expect(profile.classes.guerrier.legendary).toBe('brisemonts');
+  });
+
+  it('un légendaire emporté depuis le coffre ne compte pas comme forgé', () => {
+    const profile = fresh();
+    const run = finished(true);
+    run.heirloom = 'brisemonts';
+    run.equipment.arme = 'brisemonts';
+    awardRun(profile, run);
+    expect(profile.classes.guerrier.legendary).toBeUndefined();
+  });
+});
