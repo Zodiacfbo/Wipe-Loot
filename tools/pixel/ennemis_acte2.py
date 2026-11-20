@@ -2,7 +2,7 @@
 Palette de l'acte : noir et pourpre de la citadelle, écailles chromatiques, vert toxique des fioles.
 Les sprites regardent vers la gauche (vers le héros)."""
 import os
-from sprites import Sprite
+from sprites import BATTEMENT, RESPIRE, Sprite, danse
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
@@ -14,8 +14,10 @@ PEAU_GOB = '#7AA84A'
 
 
 def aile(s, pts, membrane=VIOLET, os_=NOIR2):
-    s.poly(pts, membrane)
-    s.line(pts[:2], os_, width=1)
+    """Une aile : le premier point est l'attache sur le dos (l'animateur la fait battre autour)."""
+    with s.marque('aile'):
+        s.poly(pts, membrane)
+        s.line(pts[:2], os_, width=1)
 
 
 def dragonnet(couleur=NOIR, aile_c=VIOLET):
@@ -324,48 +326,82 @@ def vashka():
 
 # ---------- Vhaeryx ----------
 
-def vhaeryx():
-    """Phase 1 : l'alchimiste à forme humaine, entouré de fioles."""
+def vhaeryx(f=0):
+    """Phase 1 : l'alchimiste à forme humaine, entouré de fioles.
+    f = image de l'animation (0 à 3) : il respire, ses fioles flottent autour de lui chacune à son rythme
+    et bouillonnent, l'orbe de son sceptre pulse et les runes de sa robe s'allument."""
     s = Sprite(96, 96)
-    s.poly([(30, 34), (66, 34), (76, 94), (20, 94)], '#2A1E38')  # grande robe
-    s.poly([(40, 36), (56, 36), (62, 94), (34, 94)], '#4A2A5E')
-    s.dots([(38, 60), (58, 70), (44, 80), (54, 54)], '#E85AE8', glow=True)
-    s.poly([(24, 30), (36, 26), (34, 44), (20, 46)], '#3A2A4E')  # épaulières
-    s.poly([(72, 30), (60, 26), (62, 44), (76, 46)], '#3A2A4E')
-    s.ellipse(34, 6, 62, 34, '#8A7A6E')  # tête
-    s.poly([(36, 10), (26, 0), (32, 14)], '#2A1C18')  # cornes
-    s.poly([(60, 10), (70, 0), (64, 14)], '#2A1C18')
-    s.rect(40, 18, 44, 20, '#E85AE8', glow=True)
-    s.rect(52, 18, 56, 20, '#E85AE8', glow=True)
-    s.poly([(42, 26), (54, 26), (48, 34)], '#3A2A26')  # barbe
-    for (x, y, c) in ((4, 44, TOXIQUE), (12, 60, '#E85A9A'), (6, 76, '#5AA0E8'), (82, 50, JAUNE), (86, 70, TOXIQUE)):
-        s.ellipse(x, y, x + 9, y + 12, '#C9D2DE')
-        s.ellipse(x + 2, y + 4, x + 7, y + 10, c, glow=True)
-    s.line([(18, 34), (22, 90)], '#5A3822', width=2)  # sceptre
-    s.ellipse(12, 26, 26, 38, '#E85AE8', glow=True)
+    b = RESPIRE[f]
+    s.poly([(30, 34 + b), (66, 34 + b), (76, 94), (20, 94)], '#2A1E38')  # grande robe
+    s.poly([(40, 36 + b), (56, 36 + b), (62, 94), (34, 94)], '#4A2A5E')
+    runes = [(38, 60), (58, 70), (44, 80), (54, 54)]
+    s.dots([r for k, r in enumerate(runes) if k != f], '#E85AE8', glow=True)
+    s.dots([runes[f]], '#FFB0FF', glow=True)
+    with s.bouge(0, b):
+        s.poly([(24, 30), (36, 26), (34, 44), (20, 46)], '#3A2A4E')  # épaulières
+        s.poly([(72, 30), (60, 26), (62, 44), (76, 46)], '#3A2A4E')
+        s.ellipse(34, 6, 62, 34, '#8A7A6E')  # tête
+        s.poly([(36, 10), (26, 0), (32, 14)], '#2A1C18')  # cornes
+        s.poly([(60, 10), (70, 0), (64, 14)], '#2A1C18')
+        yeux = ['#E85AE8', '#FF8AFF', '#FFB0FF', '#FF8AFF'][f]
+        s.rect(40, 18, 44, 20, yeux, glow=True)
+        s.rect(52, 18, 56, 20, yeux, glow=True)
+        s.poly([(42, 26), (54, 26), (48, 34)], '#3A2A26')  # barbe
+        s.line([(18, 34), (22, 90)], '#5A3822', width=2)  # sceptre
+        g = [0, 1, 2, 1][f]
+        s.ellipse(12 - g, 26 - g, 26 + g, 38 + g, '#E85AE8', glow=True)
+        s.ellipse(17, 30, 21, 34, '#FFD8FF', glow=True)
+    # les fioles flottent autour de lui, chacune à son rythme, et bouillonnent
+    for k, (x, y, c) in enumerate(((4, 44, TOXIQUE), (12, 60, '#E85A9A'), (6, 76, '#5AA0E8'), (82, 50, JAUNE), (86, 70, TOXIQUE))):
+        dy = [0, -2, -3, -2][(f + k) % 4]
+        with s.bouge(0, dy):
+            s.ellipse(x, y, x + 9, y + 12, '#C9D2DE')
+            s.ellipse(x + 2, y + 4, x + 7, y + 10, c, glow=True)
+            s.dots([(x + 3 + (f + k) % 3, y + 2 - (f + k) % 2)], '#FFFFFF', glow=True)  # bulle
     return s.render()
 
 
-def vhaeryx_dragon():
-    """Phases 2 et 3 : le dragon chromatique."""
+def vhaeryx_dragon(f=0):
+    """Phases 2 et 3 : le dragon chromatique.
+    f = image de l'animation (0 à 3) : il bat des ailes, respire, balance la queue
+    et son souffle couve dans sa gueule."""
     s = Sprite(96, 96)
-    s.poly([(44, 26), (84, 0), (94, 42), (62, 46)], '#4A2A6E')  # aile
-    s.poly([(50, 30), (82, 8), (88, 38), (62, 42)], '#6A4A8E')
-    s.poly([(60, 64), (94, 80), (90, 86), (60, 72)], '#3A7A8E')  # queue
-    s.ellipse(26, 36, 72, 76, '#3A7A8E')  # corps
-    s.ellipse(32, 52, 60, 72, '#C84A6E')  # ventre
-    s.rect(32, 70, 40, 94, '#2A4A5E')
+    b = RESPIRE[f]
+    k = BATTEMENT[f]
+
+    def battre(pts):  # l'aile bat autour de son attache (le premier point)
+        rx, ry = pts[0]
+        return [(x, round(ry + (y - ry) * k)) for x, y in pts]
+
+    with s.bouge(0, b):
+        s.poly(battre([(44, 26), (84, 0), (94, 42), (62, 46)]), '#4A2A6E')  # aile
+        s.poly(battre([(50, 30), (82, 8), (88, 38), (62, 42)]), '#6A4A8E')
+        s.line(battre([(44, 26), (84, 0)]), '#2A1A3E', width=2)
+    q = [0, 2, 4, 2][f]  # la queue balance
+    s.poly([(60, 64), (94, 80 + q), (90, 86 + q), (60, 72)], '#3A7A8E')  # queue
+    s.rect(32, 70, 40, 94, '#2A4A5E')  # pattes (fixes)
     s.rect(56, 70, 64, 94, '#2A4A5E')
-    s.poly([(16, 26), (36, 30), (34, 48), (18, 46)], '#4AA84A')  # cou vert
-    s.ellipse(0, 12, 28, 34, '#C8402A')  # tête rouge
-    s.poly([(0, 22), (10, 22), (10, 32), (2, 30)], '#8E2A1E')
-    s.poly([(14, 12), (20, 0), (24, 14)], '#E6C89A')
-    s.poly([(20, 14), (30, 4), (30, 18)], '#E6C89A')
-    s.rect(8, 18, 11, 20, JAUNE, glow=True)
-    s.dots([(40, 44), (52, 40), (62, 50), (46, 58)], '#5AA0E8', glow=True)  # écailles bleues
-    s.dots([(38, 60), (66, 58)], '#B8843A', glow=True)
-    s.ellipse(0, 30, 10, 40, '#E85AE8', glow=True)  # souffle
-    s.ellipse(2, 32, 7, 37, FEU, glow=True)
+    with s.bouge(0, b):
+        s.ellipse(26, 36, 72, 76, '#3A7A8E')  # corps
+        v = [0, 1, 2, 1][f]
+        s.ellipse(32 - v, 52 - v, 60 + v, 72, '#C84A6E')  # ventre qui se gonfle
+        s.dots([(40, 44), (52, 40), (62, 50), (46, 58)], '#5AA0E8', glow=True)  # écailles bleues
+        s.dots([(38, 60), (66, 58)], '#B8843A', glow=True)
+    t = [0, 1, 2, 1][f]  # la tête suit, un peu plus fort
+    with s.bouge(0, t):
+        s.poly([(16, 26), (36, 30), (34, 48), (18, 46)], '#4AA84A')  # cou vert
+        s.ellipse(0, 12, 28, 34, '#C8402A')  # tête rouge
+        s.poly([(0, 22), (10, 22), (10, 32), (2, 30)], '#8E2A1E')
+        s.poly([(14, 12), (20, 0), (24, 14)], '#E6C89A')
+        s.poly([(20, 14), (30, 4), (30, 18)], '#E6C89A')
+        s.rect(8, 18, 11, 20, JAUNE, glow=True)
+        # le souffle couve dans la gueule
+        g = [0, 1, 2, 1][f]
+        s.ellipse(0, 30 - g, 10 + g, 40 + g, '#E85AE8', glow=True)
+        s.poly(danse([(0, 34), (2, 28), (4, 32), (6, 26), (9, 34), (5, 38)], f, 1.5), FEU, glow=True)
+        s.ellipse(2, 32, 7, 37, JAUNE, glow=True)
+    # fumée qui s'échappe des naseaux
+    s.dots([(2 + (j + f) % 2, 10 - 3 * ((j + f) % 4)) for j in range(2)], '#8A7A8E', glow=True)
     return s.render()
 
 

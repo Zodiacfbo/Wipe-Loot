@@ -74,6 +74,8 @@ Puis l'ajouter à `ANIMES` dans `animations.py` et lancer `python3 animations.py
 
 ### Les ennemis : animation automatique
 
-Les ennemis n'ont pas besoin d'être redessinés : `anime_auto(fn, profil)` rejoue les formes de leur sprite image par image. Le haut du corps respire, le bas (pattes, socle) reste au sol, les pointes des flammes dansent et les grandes lueurs pulsent. Profils : `sol` (par défaut), `vol` (tout le sprite flotte), `fixe` (seules les lueurs vivent). Ils sont réglés dans `PROFILS` de `animations.py`.
+Les ennemis n'ont pas besoin d'être redessinés : `anime_auto(fn, profil)` rejoue les formes de leur sprite image par image. Le haut du corps respire, le bas (pattes, socle) reste au sol, les pointes des flammes dansent et les grandes lueurs pulsent. Profils : `sol` (par défaut), `vol` (tout le sprite flotte), `fixe` (seules les lueurs vivent), `ondule` (le corps se balance, plus fort en haut : vers, tentacules), `gelee` (le corps s'écrase et s'élargit : limons).
+
+**Les ailes battent toutes seules** si on les dessine dans un bloc `with s.marque('aile'):`, le premier point du polygone étant l'attache sur le dos. Ils sont réglés dans `PROFILS` de `animations.py`.
 
 **Après avoir ajouté un ennemi**, lancer `python3 animations.py` : sa planche `anim_ennemi_<nom>.png` est créée. Sans elle, `tests/animations.test.ts` échoue.

@@ -39,6 +39,17 @@ class Sprite:
         self.parts = []  # (couleur, lumineux, ombré)
         self.dx = self.dy = 0  # décalage des formes suivantes (pour animer)
         self.journal = []  # les formes dessinées, pour que l'animateur automatique les rejoue
+        self.etiquette = None  # ce que sont les formes suivantes ('aile'…), pour l'animateur
+
+    @contextmanager
+    def marque(self, etiquette):
+        """Marque les formes dessinées dans le bloc (par exemple 'aile' : l'animateur la fait battre)."""
+        avant = self.etiquette
+        self.etiquette = etiquette
+        try:
+            yield
+        finally:
+            self.etiquette = avant
 
     @contextmanager
     def bouge(self, dx=0, dy=0):
@@ -69,23 +80,23 @@ class Sprite:
                         self.part[Y][X] = pid
 
     def poly(self, pts, color, **kw):
-        self.journal.append(('poly', pts, color, kw, {}, self.dx, self.dy))
+        self.journal.append(('poly', pts, color, kw, {}, self.dx, self.dy, self.etiquette))
         self._stamp(lambda d: d.polygon(pts, fill=1), color, **kw)
 
     def rect(self, x0, y0, x1, y1, color, **kw):
-        self.journal.append(('rect', (x0, y0, x1, y1), color, kw, {}, self.dx, self.dy))
+        self.journal.append(('rect', (x0, y0, x1, y1), color, kw, {}, self.dx, self.dy, self.etiquette))
         self._stamp(lambda d: d.rectangle([x0, y0, x1, y1], fill=1), color, **kw)
 
     def ellipse(self, x0, y0, x1, y1, color, **kw):
-        self.journal.append(('ellipse', (x0, y0, x1, y1), color, kw, {}, self.dx, self.dy))
+        self.journal.append(('ellipse', (x0, y0, x1, y1), color, kw, {}, self.dx, self.dy, self.etiquette))
         self._stamp(lambda d: d.ellipse([x0, y0, x1, y1], fill=1), color, **kw)
 
     def line(self, pts, color, width=1, **kw):
-        self.journal.append(('line', pts, color, kw, {'width': width}, self.dx, self.dy))
+        self.journal.append(('line', pts, color, kw, {'width': width}, self.dx, self.dy, self.etiquette))
         self._stamp(lambda d: d.line(pts, fill=1, width=width), color, **kw)
 
     def dots(self, pts, color, **kw):
-        self.journal.append(('dots', pts, color, kw, {}, self.dx, self.dy))
+        self.journal.append(('dots', pts, color, kw, {}, self.dx, self.dy, self.etiquette))
         self._stamp(lambda d: [d.point(p, fill=1) for p in pts], color, **kw)
 
     def render(self):
@@ -317,6 +328,7 @@ def vulkhar(f=0):
 # Animations « marquées », comme le feu de camp : 4 images en boucle.
 RESPIRE = [0, 1, 2, 1]  # le haut du corps descend puis remonte (en pixels)
 FLAMME = [0, -2, 1, -1]  # les pointes de flammes montent et descendent
+BATTEMENT = [1, 0.7, 0.4, 0.7]  # les ailes se replient à moitié puis se déploient
 
 
 def danse(pts, f, amp=1):
@@ -345,7 +357,9 @@ def _boite(kind, geom):
 def anime_auto(fn, profil='sol'):
     """Anime un sprite déjà dessiné, sans le redessiner : rejoue ses formes image par image.
     - profil 'sol' : le haut du corps respire (descend de 2 pixels), le bas (pattes, socle) reste au sol ;
-      'vol' : tout le sprite flotte ; 'fixe' : rien ne bouge (un œuf, un objet).
+      'vol' : tout le sprite flotte ; 'fixe' : rien ne bouge (un œuf, un objet) ;
+      'ondule' : le corps se balance de gauche à droite, plus fort en haut qu'à la base (ver, tentacule) ;
+      'gelee' : le corps s'écrase et s'élargit puis se redresse, posé au sol (limon).
     - Dans tous les cas, les formes lumineuses vivent : les pointes des flammes dansent,
       les grandes lueurs pulsent, les fissures et les petits éclats brillent tour à tour.
     Renvoie une fonction f -> image, à donner à planche() ou apercu_gif()."""
@@ -356,10 +370,27 @@ def anime_auto(fn, profil='sol'):
     haut = min(b[1] for b in boites)
     sol = max(b[3] for b in boites)
     seuil = sol - 0.28 * (sol - haut)  # en dessous : les pattes, qui ne bougent pas
+    gauche = min(b[0] for b in boites)
+    droite = max(b[2] for b in boites)
+    milieu = (gauche + droite) / 2
+
+    def deforme(pts, f):
+        """Déplace chaque point selon le profil 'ondule' ou 'gelee'."""
+        out = []
+        for x, y in pts:
+            if profil == 'ondule':
+                hauteur = max(0, (sol - y) / max(1, sol - haut))  # 0 à la base, 1 en haut
+                x += round([0, 1, 0, -1][f] * 3 * hauteur)
+            else:  # gelée : écrasée en f = 2
+                ky = [1, 0.94, 0.88, 0.94][f]
+                y = sol - (sol - y) * ky
+                x = milieu + (x - milieu) * (2 - ky)
+            out.append((round(x), round(y)))
+        return out
 
     def image(f):
         s = Sprite(src.w, src.h)
-        for i, ((kind, geom, color, kw, extra, ox, oy), (x0, y0, x1, y1)) in enumerate(zip(journal, boites)):
+        for i, ((kind, geom, color, kw, extra, ox, oy, tag), (x0, y0, x1, y1)) in enumerate(zip(journal, boites)):
             if profil == 'vol':
                 dy = [1, 0, -1, 0][f]
             elif profil == 'sol':
@@ -367,6 +398,19 @@ def anime_auto(fn, profil='sol'):
             else:
                 dy = 0
             phase = (f + i) % 4
+            if profil in ('ondule', 'gelee'):
+                if kind in ('rect', 'ellipse'):
+                    (ax, ay), (bx, by) = deforme([(x0, y0), (x1, y1)], f)
+                    geom = (ax, ay, bx, by)
+                    x0, y0, x1, y1 = geom
+                else:
+                    geom = deforme(geom, f)
+            if tag == 'aile' and kind in ('poly', 'line'):
+                # l'aile bat autour de son attache (son premier point, celui qui touche le dos) :
+                # elle se replie à moitié puis se déploie
+                rx, ry = geom[0]
+                k = BATTEMENT[f]
+                geom = [(x, round(ry + (y - ry) * k)) for x, y in geom]
             if kw.get('glow'):
                 if kind == 'poly' and y1 - y0 >= 4:
                     geom = danse(geom, f + i, 1.5 if y1 - y0 >= 10 else 1)

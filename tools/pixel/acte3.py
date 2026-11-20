@@ -244,8 +244,9 @@ def vorra():
     s.rect(18, 9, 20, 11, '#7EF0B0', glow=True)
     s.rect(25, 9, 27, 11, '#7EF0B0', glow=True)
     s.poly([(16, 2), (20, -2), (24, 2), (28, -2), (32, 2)], OR_C)
-    s.poly([(30, 18), (46, 10), (44, 26)], '#C8E8F0')  # ailes translucides
-    s.poly([(18, 18), (2, 10), (4, 26)], '#C8E8F0')
+    with s.marque('aile'):
+        s.poly([(30, 18), (46, 10), (44, 26)], '#C8E8F0')  # ailes translucides
+        s.poly([(18, 18), (2, 10), (4, 26)], '#C8E8F0')
     s.dots([(6, 34), (10, 30), (40, 34), (36, 38)], '#7EF0B0', glow=True)  # chant de soin
     return s.render()
 

@@ -6,6 +6,7 @@ Lancer depuis tools/pixel/ : python3 animations.py"""
 import os
 from demoniste_sprites import demoniste, diablotin, molosse_infernal, paladin, pretre, rodeur, seigneur_infernal, succube, voleur
 from ennemis import etincelle, molosse
+from ennemis_acte2 import vhaeryx, vhaeryx_dragon
 from sprites import anime_auto, apercu_gif, guerrier, mage, planche, vulkhar
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
@@ -28,13 +29,18 @@ ANIMES = {
     'ennemi_molosse': (molosse, 4, False, 6),
     'ennemi_etincelle': (etincelle, 4, False, 8),
     'ennemi_vulkhar': (vulkhar, 4, True, 4),
+    'ennemi_vhaeryx': (vhaeryx, 4, False, 4),
+    'ennemi_vhaeryx_dragon': (vhaeryx_dragon, 4, False, 4),
 }
 
 # Les autres ennemis sont animés automatiquement (anime_auto) : on leur donne juste un profil.
-# 'sol' par défaut ; 'vol' pour ceux qui flottent ; 'fixe' pour ceux qui ne bougent pas.
+# 'sol' par défaut ; 'vol' pour ceux qui flottent ; 'fixe' pour ceux qui ne bougent pas ;
+# 'ondule' pour les vers et les tentacules ; 'gelee' pour les limons.
 PROFILS = {
     'eclat': 'vol', 'rejeton': 'vol', 'vorra': 'vol',
     'oeuf': 'fixe', 'oeuf_skarn': 'fixe', 'oeuf_vashka': 'fixe',
+    'gharul': 'ondule', 'ver_mineur': 'ondule', 'tentacule': 'ondule',
+    'limon': 'gelee', 'limon_mineur': 'gelee',
 }
 # Les copies : même dessin qu'un autre ennemi.
 COPIES = {'mimique_2': 'mimique', 'mehkar_copie': 'mehkar'}
