@@ -27,6 +27,7 @@ Les images sont écrites dans `assets/essais/` : une version à la taille réell
 |---|---|
 | `sprites.py` | Le moteur de dessin (la classe `Sprite`) et deux sprites d'essai : le Guerrier (64 × 64) et Vulkhar (96 × 96). |
 | `cartes.py` | Les cadres de carte (70 × 98) par rareté, et trois illustrations de cartes (32 × 32) : Frappe héroïque, Coup de bouclier, Frappe mortelle. |
+| `decor.py` | Le décor hors combat, écrit dans `public/assets/` : le feu de camp animé (`feu_camp.png`, 4 images de 64 × 64 côte à côte) et les icônes du repos et de l'enclume (32 × 32). |
 
 ## Comment dessiner un nouveau sprite
 

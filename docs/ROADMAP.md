@@ -154,6 +154,8 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [ ] Options : vitesse des animations, volume, réduction des effets
 - [ ] Tutoriel et aide en jeu
 - [ ] Polish visuel de la présentation des classes : portraits, emblèmes dessinés, mise en page plus soignée de l'écran des classes et du hall
+- [x] Refonte des menus avec les mêmes règles (icônes, fiche au toucher, confirmation de ce qui coûte) : talents, classes, équipement, archives, feu de camp (feu animé), vendeur, deck regroupé, coffre et tables de loot ; premier lancement → hall
+- [ ] Icônes en pixel art pour chaque objet (aujourd'hui : l'icône du type, colorée par rareté)
 - [ ] Disposition dédiée au téléphone (texte et cartes plus grands)
 - [ ] Accessibilité (contrastes, tailles de texte, lecteurs d'écran)
 - [ ] Performances sur les téléphones modestes
