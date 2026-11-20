@@ -4,6 +4,7 @@ jouée en boucle par le jeu comme le feu de camp.
 et dans assets/essais/ : <nom>_anime.gif, un aperçu agrandi.
 Lancer depuis tools/pixel/ : python3 animations.py"""
 import os
+from demoniste_sprites import pretre
 from ennemis import etincelle, molosse
 from sprites import apercu_gif, guerrier, planche, vulkhar
 
@@ -13,6 +14,8 @@ DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 # Vulkhar est dessiné tourné vers la droite ; en jeu il regarde vers la gauche (vers le héros).
 ANIMES = {
     'guerrier': (guerrier, 4, False, 6),
+    'pretre': (pretre, 4, False, 6),
+    'pretre_ombre': (lambda f: pretre(f, 'ombre'), 4, False, 6),
     'ennemi_molosse': (molosse, 4, False, 6),
     'ennemi_etincelle': (etincelle, 4, False, 8),
     'ennemi_vulkhar': (vulkhar, 4, True, 4),

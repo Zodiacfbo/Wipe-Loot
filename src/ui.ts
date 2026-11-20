@@ -96,10 +96,18 @@ const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 // (tools/pixel/animations.py) est jouée en boucle par le CSS, comme le feu de camp.
 const ANIMES: Record<string, number> = {
   'guerrier.png': 4,
+  'pretre.png': 4,
+  'pretre_ombre.png': 4,
   'ennemi_molosse.png': 4,
   'ennemi_etincelle.png': 4,
   'ennemi_vulkhar.png': 4,
 };
+
+/** Le sprite du héros en combat : le Prêtre change de tenue en Forme d'Ombre. */
+function heroSprite(sprite: string | undefined, c: CombatState): string {
+  if (sprite === 'pretre.png' && c.shadowForm) return 'pretre_ombre.png';
+  return sprite ?? 'guerrier.png';
+}
 
 /** Le src, la classe et le style d'un sprite : la planche animée s'il y en a une, sinon l'image fixe.
  *  `decale` décale le début de la boucle, pour que deux ennemis ne respirent pas en même temps. */
@@ -1200,7 +1208,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     ${enrage}
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
-      <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}" width="192" height="192">
+      <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" ${spriteAttrs(heroSprite(hero.sprite, c))} alt="Le ${hero.name}" width="192" height="192">
       ${c.pet && !c.petSacrificed ? `<img class="px familier" src="${A(`familier_${c.pet}.png`)}" alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
       ${c.infernal ? `<img class="px seigneur-infernal" src="${A('familier_seigneur.png')}" alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
       <div class="jauges">

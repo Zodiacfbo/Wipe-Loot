@@ -1,6 +1,6 @@
 """Le Démoniste et ses familiers (ils regardent vers la droite, comme le héros)."""
 import os
-from sprites import Sprite
+from sprites import RESPIRE, Sprite
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 FEL, FEL_C = '#7ED84A', '#C8FF8A'
@@ -115,34 +115,68 @@ def seigneur_infernal():
 
 
 
-def pretre():
-    s = Sprite(64, 64)
+# Les deux tenues du Prêtre : la lumière (normale) et la Forme d'Ombre.
+TENUES = {
+    'lumiere': dict(robe='#E8E4DC', etole='#D8B04A', croix='#F4E8C8', ourlet='#D8B04A', capuche='#C8C0B0',
+                    peau='#E8C6A4', yeux='#2A1C18', orbe=('#FFE27A', '#FFFFFF'), livre='#7A2A2A', glyphe='#D8B04A'),
+    'ombre': dict(robe='#3A2E4E', etole='#6A3A9E', croix='#B07AFF', ourlet='#6A3A9E', capuche='#2A2238',
+                  peau='#8A7A9A', yeux='#C89AFF', orbe=('#7A3AD0', '#D8B0FF'), livre='#2A1A3A', glyphe='#B07AFF'),
+}
+
+
+def pretre(f=0, tenue='lumiere'):
+    """Le Prêtre. f = image de l'animation (0 à 3) : il respire, l'auréole flotte au-dessus de sa tête,
+    la lumière de sa main pulse. En Forme d'Ombre (tenue='ombre') : robe sombre, yeux violets,
+    pas d'auréole mais des volutes d'ombre qui montent autour de lui."""
     import math
-    ring = [(32 + math.cos(t / 20 * math.pi * 2) * 13, 12 + math.sin(t / 20 * math.pi * 2) * 5) for t in range(21)]
-    s.line(ring, '#FFE27A', width=2, glow=True)  # halo
-    s.poly([(22, 22), (42, 22), (48, 59), (16, 59)], '#E8E4DC')  # robe blanche
-    s.poly([(29, 22), (35, 22), (37, 59), (27, 59)], '#D8B04A')  # étole dorée
-    s.rect(27, 32, 37, 34, '#F4E8C8', shade=False)
-    s.rect(31, 28, 33, 38, '#F4E8C8', shade=False)
-    s.rect(16, 57, 48, 59, '#D8B04A', shade=False)
+    T = TENUES[tenue]
+    s = Sprite(64, 64)
+    b = RESPIRE[f]
+    p = [0, 1, 2, 1][f]  # la lumière de la main pulse
+    if tenue == 'ombre':  # volutes d'ombre derrière lui
+        for k, (x, y) in enumerate([(12, 56), (52, 54), (17, 40), (48, 36), (32, 14)]):
+            dy = -3 * ((k + f) % 4)
+            c = '#6A3AA8' if (k + f) % 4 < 2 else '#4A2A78'  # elles pâlissent en montant
+            s.line([(x, y + dy), (x - 2, y - 4 + dy), (x, y - 8 + dy), (x + 2, y - 11 + dy)], c, width=2, glow=True)
+    # jambes (elles ne bougent pas)
     s.rect(22, 59, 29, 61, '#5A4A3A')
     s.rect(35, 59, 42, 61, '#6A5A4A')
-    s.ellipse(16, 20, 26, 28, '#E8E4DC')
-    s.ellipse(38, 20, 48, 28, '#E8E4DC')
-    s.poly([(24, 8), (40, 8), (42, 24), (22, 24)], '#C8C0B0')  # capuche
-    s.ellipse(27, 11, 37, 22, '#E8C6A4')
-    s.rect(29, 15, 31, 16, '#2A1C18', shade=False)
-    s.rect(33, 15, 35, 16, '#2A1C18', shade=False)
-    # main gauche : lumière
-    s.rect(14, 28, 19, 34, '#E8E4DC')
-    s.ellipse(10, 32, 17, 38, '#E8C6A4')
-    s.ellipse(6, 24, 18, 36, '#FFE27A', glow=True)
-    s.ellipse(9, 27, 15, 33, '#FFFFFF', glow=True)
-    # main droite : livre de prières
-    s.rect(42, 28, 47, 34, '#E8E4DC')
-    s.poly([(44, 30), (56, 28), (57, 40), (45, 42)], '#7A2A2A')
-    s.rect(49, 32, 52, 37, '#D8B04A', glow=True, shade=False)
+    s.poly([(22, 22 + b), (42, 22 + b), (48, 59), (16, 59)], T['robe'])  # robe
+    s.rect(16, 57, 48, 59, T['ourlet'], shade=False)
+    with s.bouge(0, b):
+        s.poly([(29, 22), (35, 22), (37, 57), (27, 57)], T['etole'])  # étole
+        if tenue == 'lumiere':  # la croix sacrée
+            s.rect(27, 32, 37, 34, T['croix'], shade=False)
+            s.rect(31, 28, 33, 38, T['croix'], shade=False)
+        else:  # l'œil du Vide
+            s.poly([(27, 33), (32, 29), (37, 33), (32, 37)], T['croix'], glow=True)
+            s.rect(31, 32, 33, 34, '#1A0E2A', glow=True)
+        s.ellipse(16, 20, 26, 28, T['robe'])  # épaules
+        s.ellipse(38, 20, 48, 28, T['robe'])
+        # capuche arrondie, visage
+        s.poly([(22, 24), (22, 15), (25, 10), (32, 8), (39, 10), (42, 15), (42, 24)], T['capuche'])
+        s.ellipse(27, 12, 37, 23, T['peau'])
+        oeil = dict(shade=False, glow=tenue == 'ombre')
+        s.rect(29, 16, 31, 17, T['yeux'], **oeil)
+        s.rect(33, 16, 35, 17, T['yeux'], **oeil)
+        # main gauche : lumière (ou ombre)
+        s.rect(14, 28, 19, 34, T['robe'])
+        s.ellipse(10, 32, 17, 38, T['peau'])
+        o1, o2 = T['orbe']
+        s.ellipse(6 - p, 24 - p, 18 + p, 36 + p, o1, glow=True)
+        s.ellipse(9, 27, 15, 33, o2, glow=True)
+        # main droite : livre de prières
+        s.rect(42, 28, 47, 34, T['robe'])
+        s.poly([(44, 30), (56, 28), (57, 40), (45, 42)], T['livre'])
+        s.rect(49, 32, 52, 37, T['glyphe'], glow=True, shade=False)
+    if tenue == 'lumiere':
+        # l'auréole flotte au-dessus de la tête, sans toucher la capuche
+        h = [0, -1, -1, 0][f] + b
+        ring = [(32 + math.cos(t / 24 * math.pi * 2) * 9, 4 + h + math.sin(t / 24 * math.pi * 2) * 2.5) for t in range(25)]
+        s.line(ring, '#FFE27A', width=1, glow=True)
+        s.dots([(23, 4 + h), (41, 4 + h)], '#FFE27A', glow=True)
     return s.render()
+
 
 def voleur():
     s = Sprite(64, 64)
