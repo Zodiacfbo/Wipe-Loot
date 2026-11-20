@@ -108,6 +108,8 @@ interface UiState {
   bindStaff?: boolean;
   shopMode: 'remove' | 'upgrade' | null;
   shopItem: number | null;
+  /** Vendeur : la carte regardée (sa fiche s'ouvre en fenêtre). */
+  shopCard?: number | null;
   /** Brégan : choix de la carte à retirer (Allègement). */
   blessingRemove: boolean;
   /** Écran des talents (avant une run). */
@@ -545,16 +547,24 @@ function shopScreen(run: RunState): string {
     </div>`;
   }
 
-  const items = shop.cards.map((item, i) => {
-    const affordable = run.gold >= item.price;
-    const def = CARDS[item.id];
-    const promo = item.price < (def.rarity === 'commune' ? 45 : def.rarity === 'peu_commune' ? 68 : 135);
-    if (item.sold) return `<div class="article vendu"><div class="vendu-texte">Vendu</div></div>`;
-    return `<div class="article">
-      ${cardHtml({ uid: 0, id: item.id, upgraded: false }, { action: affordable ? `data-action="acheter" data-index="${i}"` : 'disabled', disabled: !affordable })}
-      <span class="prix ${affordable ? '' : 'trop-cher'} ${promo ? 'promo' : ''}">${ICON.piece}${item.price}${promo ? ' · promo' : ''}</span>
-    </div>`;
-  }).join('');
+  const piece = (price: number, ok: boolean, promo = false) => `<span class="prix ${ok ? '' : 'trop-cher'} ${promo ? 'promo' : ''}">${ICON.piece}${price}${promo ? ' · promo' : ''}</span>`;
+  const isPromo = (id: string, price: number) => price < (CARDS[id].rarity === 'commune' ? 45 : CARDS[id].rarity === 'peu_commune' ? 68 : 135);
+
+  // L'étal : toucher un article ouvre sa fiche (en fenêtre), l'achat se confirme dans la fiche.
+  const cards = shop.cards.map((item, i) => item.sold
+    ? '<div class="article vendu"><div class="vendu-texte">Vendu</div></div>'
+    : `<div class="article">
+      ${cardHtml({ uid: 0, id: item.id, upgraded: false }, { action: `data-action="carte-boutique" data-index="${i}"`, disabled: run.gold < item.price })}
+      ${piece(item.price, run.gold >= item.price, isPromo(item.id, item.price))}
+    </div>`).join('');
+  const shopItems = shop.items.map((item, i) => item.sold
+    ? '<div class="article-tuile"><span class="case-equipement vide vendu-tuile">Vendu</span></div>'
+    : `<button type="button" class="article-tuile" data-action="objet-boutique" data-index="${i}" aria-label="${ITEMS[item.id].name}">
+      <span class="case-equipement ${ITEMS[item.id].rarity}">${SLOT_ICON[ITEMS[item.id].slot]}</span>${piece(item.price, run.gold >= item.price)}</button>`).join('');
+  const shopPotions = shop.potions.map((item, i) => item.sold
+    ? '<div class="article-tuile"><span class="case-equipement vide vendu-tuile">Vendu</span></div>'
+    : `<button type="button" class="article-tuile" data-action="potion-boutique" data-index="${i}" aria-label="${POTIONS[item.id].name}">
+      <span class="case-equipement ${POTIONS[item.id].rarity}">${potionIcon(item.id, 44)}</span>${piece(item.price, run.gold >= item.price)}</button>`).join('');
 
   const service = (kind: 'remove' | 'upgrade', label: string, used: boolean, count: number) => {
     const price = servicePrice(count);
@@ -564,56 +574,11 @@ function shopScreen(run: RunState): string {
     </button>`;
   };
 
-  if (ui.shopPotion !== null && shop.potions[ui.shopPotion] && !shop.potions[ui.shopPotion].sold) {
-    const item = shop.potions[ui.shopPotion];
-    const free = run.potions.includes(null);
-    const ok = free && run.gold >= item.price;
-    const why = !free ? 'Tes 3 emplacements de potion sont pleins : jette ou bois une potion d\'abord.' : run.gold < item.price ? 'Pas assez d\'or.' : '';
-    return `${topbar(run, run.hp)}<div class="ecran">
-      <h2>Acheter pour ${item.price} or ?</h2>
-      ${potionHtml(item.id)}
-      ${why ? `<p>${why}</p>` : ''}
-      <div class="choix-objet">
-        <button type="button" class="bouton-objet" ${ok ? `data-action="acheter-potion" data-index="${ui.shopPotion}"` : 'disabled'}>Acheter</button>
-        <button type="button" class="bouton-objet secondaire" data-action="annuler-potion">Retour</button>
-      </div>
-    </div>`;
-  }
-
-  if (ui.shopItem !== null && shop.items[ui.shopItem] && !shop.items[ui.shopItem].sold) {
-    const item = shop.items[ui.shopItem];
-    return `${topbar(run, run.hp)}<div class="ecran">
-      <h2>Acheter pour ${item.price} or ?</h2>
-      ${itemHtml(item.id)}
-      <p>Choisis l'emplacement. Un objet remplacé est perdu.</p>
-      ${equipChoices(run, item.id, `data-action="acheter-objet" data-index="${ui.shopItem}"`, '<button type="button" class="bouton-objet secondaire" data-action="annuler-objet">Annuler</button>')}
-    </div>`;
-  }
-
-  const shopPotions = shop.potions.map((item, i) => {
-    if (item.sold) return `<div class="article-potion vendu-potion">Vendu</div>`;
-    const ok = run.gold >= item.price;
-    return `<button type="button" class="article-potion" data-action="potion-boutique" data-index="${i}" aria-label="${POTIONS[item.id].name}">
-      ${potionIcon(item.id, 44)}<span class="nom-potion">${POTIONS[item.id].name}</span><span class="prix ${ok ? '' : 'trop-cher'}">${ICON.piece}${item.price}</span></button>`;
-  }).join('');
-
-  const shopItems = shop.items.map((item, i) => {
-    if (item.sold) return `<div class="objet vendu-objet">Vendu</div>`;
-    const ok = run.gold >= item.price;
-    return `<button type="button" class="article-objet ${ok ? '' : 'trop-cher'}" ${ok ? `data-action="objet-boutique" data-index="${i}"` : 'disabled'}>
-      ${itemHtml(item.id)}<span class="prix ${ok ? '' : 'trop-cher'}">${ICON.piece}${item.price}</span></button>`;
-  }).join('');
-
   return `${topbar(run, run.hp)}
     <div class="boutique">
       <div class="vendeur">
         <img class="px" src="${A('vendeur_gobelin.png')}" alt="Le vendeur gobelin" style="width:192px;height:192px">
         <p class="replique">« Tout est à vendre, champion ! Même ce qui ne m'appartient pas. »</p>
-      </div>
-      <div class="etal">
-        <h2 class="titre-boutique">Le vendeur gobelin</h2>
-        <div class="articles">${items}</div>
-        <div class="objets-boutique">${shopItems}<div class="potions-boutique">${shopPotions}</div></div>
         <div class="services">
           ${service('remove', 'Retirer une carte', shop.removeUsed, run.removals)}
           ${service('upgrade', 'Améliorer une carte', shop.upgradeUsed, run.upgradesBought)}
@@ -626,7 +591,58 @@ function shopScreen(run: RunState): string {
           <button type="button" class="gros-bouton secondaire" data-action="partir">Partir</button>
         </div>
       </div>
-    </div>`;
+      <div class="etal">
+        <h2 class="titre-boutique">Le vendeur gobelin</h2>
+        <div class="articles">${cards}</div>
+        <div class="rayons">
+          <div class="rayon"><span class="titre-rappel">Objets</span><div>${shopItems}</div></div>
+          <div class="rayon"><span class="titre-rappel">Potions</span><div>${shopPotions}</div></div>
+        </div>
+      </div>
+    </div>
+    ${shopSheet(run)}`;
+}
+
+/** La fiche d'un article du vendeur, en fenêtre par-dessus l'étal, avec le bouton d'achat (la confirmation). */
+function shopSheet(run: RunState): string {
+  const shop = run.shop!;
+  const tag = (text: string, cls = '') => `<span class="type-talent ${cls}">${text}</span>`;
+  const back = (action: string) => `<button type="button" class="gros-bouton secondaire" data-action="${action}">Retour</button>`;
+  const noGold = '<p class="note">Pas assez d\'or.</p>';
+  let body = '';
+  if (ui.shopCard != null && shop.cards[ui.shopCard] && !shop.cards[ui.shopCard].sold) {
+    const item = shop.cards[ui.shopCard];
+    const def = CARDS[item.id];
+    const ok = run.gold >= item.price;
+    body = `<div class="titre-fiche">${def.name}</div>
+      <div class="etiquettes">${tag(def.type)}${tag(CARD_RARITY_LABEL[def.rarity] ?? def.rarity)}</div>
+      <div class="cartes-rappel">${cardHtml({ uid: 0, id: item.id, upgraded: false }, { action: 'disabled' })}</div>
+      ${ok ? '' : noGold}
+      <div class="boutons-fiche"><button type="button" class="gros-bouton" ${ok ? `data-action="acheter" data-index="${ui.shopCard}"` : 'disabled'}>Acheter · ${item.price} or</button>${back('annuler-carte')}</div>`;
+  } else if (ui.shopItem !== null && shop.items[ui.shopItem] && !shop.items[ui.shopItem].sold) {
+    const item = shop.items[ui.shopItem];
+    const it = ITEMS[item.id];
+    const ok = run.gold >= item.price;
+    const note = uselessNote(item.id);
+    body = `<div class="haut-fiche"><span class="case-equipement ${it.rarity} grande">${SLOT_ICON[it.slot]}</span><div><div class="titre-fiche">${it.name}</div>
+      <div class="etiquettes">${tag(SLOT_LABEL[slotsFor(item.id)[0]])}${tag(RARITY_LABEL[it.rarity], `r-${it.rarity}`)}</div></div></div>
+      <div class="texte-fiche"><p>${it.text}</p>${note ? `<p class="note">${note}</p>` : ''}</div>
+      ${ok
+        ? `<p class="note">Acheter pour <b>${item.price} or</b> : choisis l'emplacement. Un objet remplacé est perdu.</p>${equipChoices(run, item.id, `data-action="acheter-objet" data-index="${ui.shopItem}"`, back('annuler-objet'))}`
+        : `${noGold}<div class="boutons-fiche"><button type="button" class="gros-bouton" disabled>Acheter · ${item.price} or</button>${back('annuler-objet')}</div>`}`;
+  } else if (ui.shopPotion !== null && shop.potions[ui.shopPotion] && !shop.potions[ui.shopPotion].sold) {
+    const item = shop.potions[ui.shopPotion];
+    const d = POTIONS[item.id];
+    const free = run.potions.includes(null);
+    const ok = free && run.gold >= item.price;
+    const why = !free ? 'Tes emplacements de potion sont pleins : jette ou bois une potion d\'abord.' : run.gold < item.price ? 'Pas assez d\'or.' : '';
+    body = `<div class="haut-fiche"><span class="case-equipement ${d.rarity} grande">${potionIcon(item.id, 52)}</span><div><div class="titre-fiche">${d.name}</div>
+      <div class="etiquettes">${tag('Potion')}${tag(d.rarity, `r-${d.rarity}`)}</div></div></div>
+      <div class="texte-fiche"><p>${d.text}</p></div>
+      ${why ? `<p class="note">${why}</p>` : ''}
+      <div class="boutons-fiche"><button type="button" class="gros-bouton" ${ok ? `data-action="acheter-potion" data-index="${ui.shopPotion}"` : 'disabled'}>Acheter · ${item.price} or</button>${back('annuler-potion')}</div>`;
+  }
+  return body ? `<div class="fenetre-boutique"><aside class="fiche-talent fiche-boutique">${body}</aside></div>` : '';
 }
 
 // ---------- Écran de combat ----------
@@ -2247,7 +2263,9 @@ function handleClick(ev: MouseEvent): void {
     case 'acte-suivant': startNextAct(run); commit(); break;
     case 'equinoxe': campfireEquinoxe(run); commit(); break;
     case 'aurore': campfireAurore(run); commit(); break;
-    case 'acheter': buyCard(run, Number(el.dataset.index)); commit(); break;
+    case 'carte-boutique': ui.shopCard = Number(el.dataset.index); render(); break;
+    case 'annuler-carte': ui.shopCard = null; render(); break;
+    case 'acheter': buyCard(run, Number(el.dataset.index)); ui.shopCard = null; commit(); break;
     case 'service': ui.shopMode = el.dataset.service as 'remove' | 'upgrade'; render(); break;
     case 'service-carte':
       if (ui.shopMode === 'remove') buyRemoval(run, Number(el.dataset.uid));
@@ -2259,7 +2277,7 @@ function handleClick(ev: MouseEvent): void {
     case 'apercu-amelioration': ui.upgradeUid = Number(el.dataset.uid); render(); break;
     case 'annuler-amelioration': ui.upgradeUid = null; render(); break;
     case 'boutique-retour': ui.shopMode = null; ui.upgradeUid = null; render(); break;
-    case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; leaveShop(run); commit(); break;
+    case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; ui.shopCard = null; leaveShop(run); commit(); break;
     case 'equiper': equipPending(run, el.dataset.slot as SlotKey, el.dataset.alt === undefined ? undefined : Number(el.dataset.alt)); commit(); break;
     case 'laisser': leavePending(run); commit(); break;
     case 'boire': drinkPotion(run, Number(el.dataset.slot)); ui.overlay = null; ui.selection = null; commit(); break;

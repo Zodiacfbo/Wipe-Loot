@@ -359,12 +359,6 @@ img.px { image-rendering: pixelated; }
 .table-loot h3 span { font-weight: 600; color: var(--texte-2); font-size: 14px; }
 .liste-objets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .bouton-loot { right: 24px; top: 14px; }
-.objets-boutique { display: flex; gap: 16px; }
-.article-objet { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: none; background: none; }
-.article-objet .objet { width: 300px; }
-.article-objet:hover:not(:disabled) .objet { border-color: var(--or); }
-.article-objet:disabled { opacity: 0.6; }
-.vendu-objet { width: 300px; height: 80px; justify-content: center; align-items: center; font-weight: 800; color: #8e7c6a; border-style: dashed; }
 
 /* ---------- Potions ---------- */
 .potions { display: flex; gap: 4px; margin-left: 4px; }
@@ -372,12 +366,6 @@ img.px { image-rendering: pixelated; }
 .potion-slot:not(.vide):hover { border-color: var(--or); background: #2c2218; }
 .potion-slot.vide { opacity: 0.7; }
 .butin-potion { margin-top: 2px; }
-.potions-boutique { display: flex; gap: 8px; }
-.article-potion { width: 96px; height: 128px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 8px 4px; border-radius: 10px; border: 2px solid #5a4433; background: var(--panneau); color: var(--texte); }
-.article-potion:hover { border-color: var(--or); }
-.nom-potion { font-size: 11px; font-weight: 700; line-height: 1.2; height: 40px; display: flex; align-items: center; text-align: center; }
-.article-potion .prix { font-size: 14px; }
-.vendu-potion { justify-content: center; color: #8e7c6a; font-weight: 800; border-style: dashed; }
 .butins { display: flex; gap: 24px; align-items: flex-start; justify-content: center; }
 .butins .choix-objet { max-width: 330px; }
 
@@ -765,3 +753,22 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .apercu-pv i, .apercu-pv u { position: absolute; top: 0; bottom: 0; }
 .apercu-pv i { left: 0; background: var(--pv); }
 .apercu-pv u { background: var(--vert); }
+
+/* ---------- Vendeur gobelin : le grand étal, la fiche de l'article en fenêtre ---------- */
+.vendeur .services { flex-direction: column; align-items: stretch; width: 230px; gap: 8px; }
+.vendeur .services .service { width: auto; }
+.vendeur .services .gros-bouton { margin-top: 4px; }
+.rayons { display: flex; gap: 34px; align-items: flex-start; }
+.rayon { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.rayon > div { display: flex; gap: 12px; }
+.article-tuile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: none; background: none; }
+.article-tuile .case-equipement { width: 84px; height: 84px; }
+.article-tuile .case-equipement svg { width: 42px; height: 42px; }
+.article-tuile:hover .case-equipement { box-shadow: 0 0 0 3px var(--or); }
+.vendu-tuile { font-size: 14px; font-weight: 800; color: #8e7c6a; }
+.fenetre-boutique { position: absolute; inset: 52px 0 0 0; z-index: 40; display: grid; place-items: center; background: rgba(12, 8, 6, 0.8); }
+.fiche-boutique { width: 520px; max-height: 640px; overflow-y: auto; text-align: left; }
+.fiche-boutique .choix-objet { flex-wrap: wrap; justify-content: flex-start; }
+.boutons-fiche { display: flex; gap: 12px; }
+.boutons-fiche .gros-bouton { flex: 1; }
+.boutons-fiche .gros-bouton:disabled { background: var(--panneau-sombre); border-color: #5a4433; color: var(--texte-2); }
