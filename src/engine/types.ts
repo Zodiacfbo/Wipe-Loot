@@ -60,6 +60,10 @@ export type AuraId = 'devotion' | 'resistance' | 'epines';
 export type Intent =
   | {
       kind: 'attack'; dmg: number; times?: number; addZone?: number; cast?: string;
+      /** Le nom de l'attaque (affiché sous l'intention). */
+      label?: string;
+      /** Acte 3 (Regard du dieu) : dégâts en plus si le joueur a 5 Folie ou plus. */
+      madBonus?: number;
       /** Frappe perçante : ignore le blocage. */
       pierce?: boolean;
       /** Incantation impossible à interrompre. */
@@ -77,7 +81,7 @@ export type Intent =
     }
   | { kind: 'block'; amount: number; cast?: string }
   | { kind: 'buff'; puissance: number; target: 'allies' | 'self'; cast?: string }
-  | { kind: 'heal'; amount: number; cast?: string; self?: boolean }
+  | { kind: 'heal'; amount: number; cast?: string; self?: boolean; /** Soigne tous ses alliés (Soins royaux). */ all?: boolean }
   /** Une malédiction ou un effet sur le joueur, sans dégâts. */
   | { kind: 'curse'; label: string; cast?: string } & PlayerCurse
   /** Rappelle un add (jusqu'à `max` en vie). */
@@ -116,6 +120,9 @@ export interface PlayerCurse {
   // Acte 3
   folie?: number; // Folie gagnée (voir folie.ts)
   sable?: number; // cartes Sable ajoutées à la pioche
+  sableHand?: number; // cartes Sable ajoutées à la main (Tempête de sable)
+  hallucinations?: number; // Hallucinations ajoutées à la main (Vision partagée)
+  domination?: boolean; // Domination mentale : pendant ton prochain tour, ta première Attaque te vise toi-même
 }
 
 /** Les malédictions actives sur le joueur. */
@@ -228,6 +235,26 @@ export interface EnemyState {
   sap?: number;
   /** Voleur — Vendetta : tes Attaques contre lui infligent +50 % et appliquent 2 Poison de plus. */
   vendetta?: boolean;
+  // --- Acte 3 : les boss secondaires d'Irem ---
+  /** Méhkar et ses Copies : on ne sait pas qui est qui tant qu'il n'a pas été touché. */
+  masked?: boolean;
+  /** Méhkar : paliers de Copies déjà franchis (75 %, 50 %, 25 %). */
+  splits?: number;
+  /** Rois-Jumeaux : immunité actuelle (elle s'échange tous les 3 tours). */
+  immune?: 'attaques' | 'sorts';
+  /** Rois-Jumeaux : se relève dans ce nombre de tours si son jumeau vit encore. */
+  twinRevive?: number;
+  /** Triade de la Ruche : Vengeance royale (+50 % de dégâts). */
+  vengeance?: boolean;
+  /** Limon : cumuls de Figeage, et tours Figé restants (n'agit plus, double dégâts). */
+  figeage?: number;
+  fige?: number;
+  /** Les débuffs vus au dernier contrôle (Figeage, Fiole de limon, Bague primordiale). */
+  debuffSnap?: Record<string, number>;
+  /** Vient de resurgir du sable (Dent de Gharul). */
+  surfaced?: boolean;
+  /** Sartaq : Suprématie suspendue pendant ce nombre de tours (Cristal d'obsidienne). */
+  suspended?: number;
 }
 
 export interface PlayerState {
@@ -305,6 +332,12 @@ export interface CombatState {
   /** Acte 3 : la Folie du joueur (0 à 10), et la Crise de folie qui lui fera perdre son prochain tour. */
   folie?: number;
   crisis?: boolean;
+  /** Domination mentale (Méhkar) : ta prochaine Attaque te vise toi-même. */
+  dominated?: boolean;
+  /** Butin d'Irem, une fois par tour ou par combat : Bague du lien royal, Bague des reflets, Larme du rêveur. */
+  mixDrawUsed?: boolean;
+  spellTwiceUsed?: boolean;
+  dreamEnergyUsed?: boolean;
   turn: number;
   phase: CombatPhase;
   player: PlayerState;

@@ -14,7 +14,9 @@ import {
   useSpell,
 } from './engine/combat';
 import { ENEMIES, TUNING, intentAt, isInterruptible } from './engine/enemies';
-import { AFFLICTIONS, ENEMIES_ACTE2, GRIZZIK_POTIONS } from './engine/enemies_acte2';
+import { AFFLICTIONS, ENEMIES_ACTE2, ELITE_ENCOUNTERS_2, GRIZZIK_POTIONS } from './engine/enemies_acte2';
+import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM } from './engine/enemies_acte3';
+import { turnsBeforeSwap } from './engine/irem';
 import { MUTATION_LABEL } from './engine/actions';
 import { cardHitValue } from './engine/preview';
 import { afterRender, initAides } from './aides';
@@ -83,7 +85,7 @@ import { MAX_LEVEL, awardRun, classLevel, rackLegendary, type RunSummary } from 
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save';
 // Outil de test (version dev seulement)
-import { devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
+import { devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotOf, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
@@ -807,6 +809,23 @@ function enemyChips(e: EnemyState): string {
   if (e.giant) chips.push(`<span class="chip">Géant : +5 dégâts (${e.giant} tours)</span>`);
   if (e.haste) chips.push('<span class="chip">Vitesse : agit deux fois</span>');
   if (e.defId === 'ossyrax' && !e.revived) chips.push('<span class="chip">Deux vies</span>');
+  // Acte 3 : les boss secondaires d'Irem.
+  const c3 = ui.run?.combat;
+  if (e.masked && c3?.gear?.seeHallucinations) chips.push(`<span class="chip">${e.defId === 'mehkar' ? 'Le vrai Méhkar' : 'Copie'}</span>`);
+  if (e.immune) {
+    const swap = c3 ? turnsBeforeSwap(c3) : 0;
+    chips.push(`<span class="chip bouclier-saldris" title="Ne subit aucun dégât de ce type (les DoT et les effets de zone passent)">Immunisé (${e.immune === 'sorts' ? 'Sorts' : 'Attaques'})</span><span class="chip" title="Les Rois échangent leurs immunités">Échange ${swap === 0 ? 'à la fin de ce tour' : `dans ${swap} tour${swap > 1 ? 's' : ''}`}</span>`);
+    const fallen = c3?.enemies.find((o) => o.dead && o.twinRevive && o !== e);
+    if (fallen) chips.push(`<span class="chip alerte" title="Lien des jumeaux : tue-le avant, ou son frère se relève">Relève ${fallen.name} dans ${fallen.twinRevive} tour${fallen.twinRevive! > 1 ? 's' : ''}</span>`);
+  }
+  if (e.vengeance) chips.push('<span class="chip debuff" title="Il frappe 50 % plus fort jusqu\'à la fin du combat">Vengeance royale</span>');
+  if (e.defId === 'limon') {
+    chips.push((e.fige ?? 0) > 0
+      ? `<span class="chip gel" title="N'agit plus et subit double dégâts">Figé ${e.fige}</span>`
+      : `<span class="chip" title="Chaque débuff que tu lui appliques ajoute 1 cumul (pas les DoT)">Figeage ${e.figeage ?? 0}/${IREM.limonStacks}</span>`);
+  }
+  if (e.defId === 'sartaq' && (e.suspended ?? 0) > 0) chips.push('<span class="chip debuff" title="Pas de blocage à son prochain tour">Suprématie brisée</span>');
+  if (e.surfaced && c3?.gear?.surfaceDouble) chips.push('<span class="chip">Vient de resurgir</span>');
   if (e.defId === 'skarn' && (e.phase ?? 1) === 1) chips.push('<span class="chip">Immunisé (Œufs)</span>');
   if (ui.run?.encounter?.rune && ENEMIES[e.defId].elite) chips.push('<span class="chip rune">Rune des Sources</span>');
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
@@ -851,6 +870,11 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   if (i.panic) parts.push(`${i.panic} cartes Paniquées au prochain tour`);
   if (i.fardeau) parts.push(`${i.fardeau} Fardeaux dans ta pioche`);
   if (i.bomb) parts.push('une Bombe vivante dans ta main');
+  if (i.folie) parts.push(`+${i.folie} Folie`);
+  if (i.sable) parts.push(`${i.sable} Sable dans ta pioche`);
+  if (i.sableHand) parts.push(`${i.sableHand} Sable dans ta main`);
+  if (i.hallucinations) parts.push(`${i.hallucinations} Hallucinations dans ta main`);
+  if (i.domination) parts.push('pendant ton prochain tour, ta première Attaque te frappera toi-même');
   if (i.lignee) {
     const cls = ui.run?.classId;
     parts.push(cls === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes'
@@ -880,7 +904,7 @@ function intentNow(c: CombatState, e: EnemyState): string {
     const effet =
       i.kind === 'attack'
         ? `${previewIntentDamage(c, e)} dégâts à la fin de ce tour${i.drawPenalty ? `, et tu pioches ${i.drawPenalty} cartes de moins` : ''}`
-        : i.kind === 'heal' ? `Soigne un allié de ${i.amount} PV à la fin de ce tour`
+        : i.kind === 'heal' ? `${i.all ? 'Soigne tous ses alliés' : 'Soigne un allié'} de ${i.amount} PV à la fin de ce tour`
         : i.kind === 'potion' ? `${GRIZZIK_POTIONS[i.potion].split(' : ')[1]}, à la fin de ce tour`
         : i.kind === 'hatch' ? 'Tous les Œufs éclosent à la fin de ce tour'
         : i.kind === 'curse' ? curseText(i)
@@ -890,11 +914,15 @@ function intentNow(c: CombatState, e: EnemyState): string {
   }
   switch (i.kind) {
     case 'attack': {
-      const dmg = previewIntentDamage(c, e) ?? 0;
+      // Méhkar et ses Copies : leurs dégâts trahiraient le vrai.
+      const hidden = e.masked && !c.gear?.seeHallucinations;
+      const dmg = hidden ? '?' : previewIntentDamage(c, e) ?? 0;
       const times = i.times && i.times > 1 ? ` × ${i.times}` : '';
       const zone = i.addZone ? ' + Zone de feu' : i.stealGold ? ` + vole ${i.stealGold} or` : '';
-      const extra = i.effect ? ` + ${i.effect.label}` : '';
-      return `<div class="intention">${ICON.epee}<span>${dmg}${times}${zone}${extra}</span></div>`;
+      const extra = i.effect && i.effect.label !== i.label ? ` + ${i.effect.label}` : '';
+      // Le nom de l'attaque en infobulle (une ligne de plus repousserait l'intention hors de l'écran).
+      const name = i.label ? `${i.label}${i.madBonus ? ` : +${i.madBonus} dégâts si tu as 5 Folie ou plus` : ''}` : '';
+      return `<div class="intention" ${name ? `title="${name}"` : ''}>${ICON.epee}<span>${dmg}${times}${zone}${extra}</span></div>`;
     }
     case 'block':
       return `<div class="intention defense">${ICON.bouclier}<span>+${i.amount}</span></div>`;
@@ -1007,6 +1035,7 @@ function playerChips(c: CombatState): string {
   const d = p.debuffs;
   const chips: string[] = [];
   // Acte 3 : la Folie (à 5, des Hallucinations ; à 10, Crise de folie).
+  if (c.dominated) chips.push('<span class="chip debuff alerte" title="Ce tour-ci, ta première Attaque te frappe toi-même : tu subis ses dégâts, ses autres effets sont perdus">Domination mentale</span>');
   if (c.folie || c.crisis) chips.push(`<span class="chip folie ${(c.folie ?? 0) >= 5 ? 'alerte' : ''}">Folie ${c.folie ?? 0}/10${c.crisis ? ' · Crise !' : ''}</span>`);
   if (p.puissance > 0) chips.push(`<span class="chip">Puissance ${p.puissance}</span>`);
   if (p.robustesse > 0) chips.push(`<span class="chip">Robustesse ${p.robustesse}</span>`);
@@ -1160,20 +1189,24 @@ function combatScreen(run: RunState, c: CombatState): string {
   const aidePosture = POSTURES.find((po) => po.id === p.posture)?.aide ?? '';
 
   const enemies = c.enemies.filter((e) => !e.dead && !e.submerged).map((e) => {
-    const def = ENEMIES[e.defId];
-    const big = e.defId === 'seigneur' || (def.elite && e.defId !== 'croc');
+    const def0 = ENEMIES[e.defId];
+    // Une Copie a l'aspect de l'original (taille, cadre, sprite).
+    const def = def0.copyOf ? ENEMIES[def0.copyOf] : def0;
+    const masked = e.masked && !c.gear?.seeHallucinations;
+    // La Triade de la Ruche : trois boss côte à côte, un peu plus petits pour laisser la place aux incantations.
+    const big = e.defId === 'seigneur' || (def.elite && e.defId !== 'croc' && !['kesh', 'vorra', 'tazz'].includes(e.defId));
     const small = ['etincelle', 'rejeton', 'eclat', 'dragonnet', 'oeuf', 'oeuf_skarn', 'oeuf_vashka', 'serviteur_os'].includes(e.defId);
     const size = e.defId === 'vulkhar' ? 240 : e.defId === 'vhaeryx' ? 208 : big ? 192 : small ? 96 : 144;
-    const sprite = e.defId === 'vhaeryx' && (e.phase ?? 1) >= 2 ? 'ennemi_vhaeryx_dragon.png' : `ennemi_${e.defId}.png`;
-    const pct = Math.max(0, (e.hp / e.maxHp) * 100);
+    const sprite = e.defId === 'vhaeryx' && (e.phase ?? 1) >= 2 ? 'ennemi_vhaeryx_dragon.png' : `ennemi_${def.id}.png`;
+    const pct = masked ? 100 : Math.max(0, (e.hp / e.maxHp) * 100);
     const canTarget = targeting && !e.untargetable;
     const tag = canTarget ? 'button' : 'div';
-    return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}, ${e.hp} PV">
+    return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
       ${intentHtml(c, e)}
       <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${size}" height="${size}">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
-      <div class="barre-pv"><div style="width:${pct}%"></div><span>${e.hp} / ${e.maxHp}</span></div>
-      <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${enemyChips(e)}</div>
+      <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
+      <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}</div>
       ${def.passive ? `<div class="passif-ennemi">${def.passive}</div>` : ''}
     </${tag}>`;
   }).join('');
@@ -1381,7 +1414,7 @@ function archiveGroups(tab: UiState['archiveTab']): ArchiveGroup[] {
   }
   if (tab === 'objets') {
     const groups: [string, string[]][] = [['Coffres et vendeur gobelin', COMMON_POOL],
-      ...ELITE_ENCOUNTERS.map((e) => [e.name, LOOT_TABLES[e.loot!]] as [string, string[]]),
+      ...[...ELITE_ENCOUNTERS, ...ELITE_ENCOUNTERS_2, ...ELITE_ENCOUNTERS_3].map((e) => [e.name, LOOT_TABLES[e.loot!]] as [string, string[]]),
       ['Légendaires', Object.keys(ITEMS).filter((id) => ITEMS[id].rarity === 'legendaire')]];
     return groups.map(([title, ids]) => ({
       title,
@@ -1392,8 +1425,9 @@ function archiveGroups(tab: UiState['archiveTab']): ArchiveGroup[] {
     return [{ title: 'Potions', entries: POTION_IDS.map((id) => ({ key: id, seen: p.seenPotions.includes(id), cls: POTIONS[id].rarity, icon: potionIcon(p.seenPotions.includes(id) ? id : null, 44) })) }];
   }
   const groups: ArchiveGroup[] = [];
-  for (const act of [1, 2]) {
-    const ids = Object.keys(ENEMIES).filter((id) => (id in ENEMIES_ACTE2) === (act === 2));
+  for (const act of [1, 2, 3]) {
+    // Les Copies de Méhkar n'ont pas leur propre fiche.
+    const ids = Object.keys(ENEMIES).filter((id) => enemyAct(id) === act && !ENEMIES[id].copyOf);
     const kinds: [string, (id: string) => boolean][] = [
       ['Monstres', (id) => !ENEMIES[id].elite && !ENEMIES[id].boss],
       ['Boss secondaires', (id) => !!ENEMIES[id].elite && !ENEMIES[id].boss],
@@ -1447,6 +1481,11 @@ function archivesScreen(): string {
   </div>`;
 }
 
+/** L'acte d'un monstre. */
+function enemyAct(id: string): number {
+  return id in ENEMIES_ACTE3 ? 3 : id in ENEMIES_ACTE2 ? 2 : 1;
+}
+
 /** Le nom d'une entrée des archives (pour l'accessibilité). */
 function archiveName(tab: UiState['archiveTab'], key: string): string {
   const id = key.split('|').pop()!;
@@ -1480,7 +1519,7 @@ function archiveSheet(tab: UiState['archiveTab'], e: ArchiveEntry): string {
     return `<aside class="fiche-talent">${head(d.name, tag('Potion') + tag(d.rarity, `r-${d.rarity}`))}<div class="texte-fiche"><p>${d.text}</p></div></aside>`;
   }
   const d = ENEMIES[e.key];
-  const act = e.key in ENEMIES_ACTE2 ? 2 : 1;
+  const act = enemyAct(e.key);
   const kind = d.boss ? 'Boss' : d.elite ? 'Boss secondaire' : 'Monstre';
   const kindTag = tag(`${kind} · acte ${act}`, d.boss ? 'r-legendaire' : d.elite ? 'r-epique' : '');
   if (!e.seen) return `<aside class="fiche-talent">${head('???', kindTag)}<div class="texte-fiche"><p class="note">Pas encore rencontré.</p></div></aside>`;
@@ -2081,6 +2120,8 @@ function devPanelHtml(run: RunState | null): string {
         ${run.screen === 'combat' && run.combat?.phase === 'player' ? '<button type="button" class="bouton" data-action="test-gagner">Gagner le combat</button>' : ''}
         ${run.act < 2 && run.screen !== 'combat' ? '<button type="button" class="bouton" data-action="test-acte">Passer à l\'acte 2</button>' : ''}
       </div>
+      ${run.screen === 'map' ? `<span class="butin-titre">Boss secondaires d'Irem (acte 3 en construction)</span>
+      <div class="test-boutons">${ELITE_ENCOUNTERS_3.map((e, i) => `<button type="button" class="bouton" data-action="test-irem" data-index="${i}">${e.name}</button>`).join('')}</div>` : ''}
     </div>` : '';
   return `<div class="overlay"><div class="ecran panneau-test">
     <h2>🛠 Outil de test</h2>
@@ -2138,6 +2179,7 @@ function devAction(action: string, el: HTMLElement): boolean {
       }
       break;
     case 'test-acte': if (run && devNextAct(run)) ui.overlay = null; break;
+    case 'test-irem': if (run && devFightIrem(run, Number(el.dataset.index))) ui.overlay = null; break;
     default: return false;
   }
   if (ui.run) localSave.save(ui.run);

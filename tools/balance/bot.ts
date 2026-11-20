@@ -293,7 +293,8 @@ export interface RunResult {
 }
 
 /** Joue une run entière. */
-export function simulateRun(seed: number, talents: string[], difficulty = 0, classId = 'guerrier'): RunResult {
+/** `onBoss` : appelé à l'entrée de chaque boss de fin d'acte (pour copier la run à ce moment-là). */
+export function simulateRun(seed: number, talents: string[], difficulty = 0, classId = 'guerrier', onBoss?: (run: RunState) => void): RunResult {
   const rnd = chooser(seed * 7919);
   const run = newRun(seed, null, talents, difficulty, classId);
   offerBlessing(run);
@@ -310,6 +311,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
           const node = run.map.nodes[run.position!];
           current = { name: run.encounter!.name, kind: node.type === 'elite' ? 'elite' : node.type === 'boss' ? 'boss' : 'combat', floor: node.floor + 1, act: run.act, wipes: 0, hpLost: run.hp, hpIn: run.hp, won: false };
           fights.push(current);
+          if (node.type === 'boss') onBoss?.(run);
         }
         break;
       }

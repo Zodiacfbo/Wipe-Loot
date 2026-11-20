@@ -5,6 +5,7 @@ import { random, shuffle } from './rng';
 import { demonOnDeath, soulstoneRise } from './demoniste';
 import { absorbAegis, gainAegis, gainFaith } from './pretre';
 import { onRogueHit, rogueOnDeath } from './voleur';
+import { afterEnemyDamaged, immuneTo, onIremDeath, slimeDamage } from './irem';
 import { isPaladin, lastOath, onPaladinHit, paladinAttackBonus, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
@@ -163,6 +164,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (id === 'chatiment' || id === 'chatiment_ardent') dmg += g.smiteBonus ?? 0;
   if (id === 'attaque_mentale') dmg += g.mindBlastBonus ?? 0;
   if (c.playing && (c.playing.id === 'frappe' || c.playing.id === 'frappe_heroique')) dmg += g.strikeBonus ?? 0;
+  // Poing d'obsidienne : les Attaques qui ignorent le blocage.
+  if (!spell && opts.ignoreBlock) dmg += g.pierceBonus ?? 0;
   if (c.playing?.type === 'Attaque' && c.playing.cost === 0) dmg += g.zeroCostBonus ?? 0;
   // Voleur : Danse des lames, Maître de la discrétion, Opportuniste, Vendetta, Sang-froid.
   const rogueAttack = c.combo !== undefined && c.playing?.type === 'Attaque';
@@ -196,6 +199,10 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   // Acte 3 : Résistance aux Attaques ou aux Sorts.
   const resist = ENEMIES[target.defId]?.resist;
   if ((resist === 'sorts' && spell) || (resist === 'attaques' && !spell)) dmg *= 0.5;
+  // Dent de Gharul : la première Attaque contre un ennemi qui vient de resurgir inflige double dégâts.
+  if (!spell && target.surfaced && g.surfaceDouble) dmg *= 2;
+  // Rois-Jumeaux : immunisé aux Attaques ou aux Sorts (les effets de zone passent).
+  if (immuneTo(target, spell, !!c.playing?.aoe)) return 0;
   return Math.max(0, Math.floor(dmg));
 }
 
@@ -208,6 +215,7 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
   const ev = c.fx![c.fx!.length - 1] as { blocked: number };
   damageEnemy(c, target, dmg, opts.ignoreBlock ?? false);
   ev.blocked = opts.ignoreBlock ? 0 : Math.min(blockBefore, dmg);
+  if (dmg > 0 && c.playing?.type !== 'Sort' && c.gear?.surfaceDouble) target.surfaced = false;
   if (target.defId === 'gardien' && blockBefore > 0) reflectToPlayer(c, target, 3);
   // Saldris : son bouclier renvoie la moitié des coups, ou la moitié des Sorts.
   const spell = c.playing?.type === 'Sort';
@@ -228,13 +236,16 @@ export function damageEnemy(c: CombatState, target: EnemyState, amount: number, 
     log(c, 'Skarn est protégé par la magie de ses Œufs.');
     return;
   }
-  let rest = amount;
+  // Corps visqueux (Limon) : moitié moins de dégâts, double s'il est Figé.
+  let rest = slimeDamage(target, amount);
   if (!ignoreBlock) {
     const absorbed = Math.min(target.block, rest);
     target.block -= absorbed;
     rest -= absorbed;
   }
   target.hp -= rest;
+  // Méhkar se révèle quand il est touché, et se divise à 75, 50 et 25 % de PV.
+  afterEnemyDamaged(c, target, rest);
   // Métamorphose : le mouton reprend forme dès qu'il est blessé.
   if (target.mouton && rest > 0) {
     target.mouton = 0;
@@ -566,6 +577,7 @@ export const MUTATION_LABEL: Record<string, string> = {
 
 /** Ce qui se passe quand un ennemi meurt (actes 2 et 3). */
 function onEnemyDeath(c: CombatState, target: EnemyState): void {
+  onIremDeath(c, target);
   // Nuée (acte 3) : les autres scarabées gagnent 1 Puissance.
   if (target.defId === 'scarabee') {
     for (const o of livingEnemies(c)) {
