@@ -85,6 +85,7 @@ npx tsc --noEmit -p .
 RUNS=50 PROFIL="Prêtre" npm run balance -- --silent=false   # équilibrage par le bot
 cd tools/pixel && python3 illustrations.py                  # régénère les illustrations de cartes
 cd tools/pixel && python3 icones_talents.py                  # régénère les icônes de talents sans carte proche
+cd tools/pixel && python3 decor.py                           # régénère le décor : feu de camp animé (4 images), icônes repos et enclume
 ```
 
 ### Le code
@@ -97,11 +98,11 @@ cd tools/pixel && python3 icones_talents.py                  # régénère les i
   - `enemies.ts` (acte 1) et `enemies_acte2.ts`, `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
   - `save.ts` : sauvegarde **versionnée** avec `migrate()` (run) et `loadProfile()` (profil). Tout nouveau champ de `RunState` → incrémenter la version et ajouter une étape de migration, et mettre à jour `expect(run.version)` dans les tests.
   - `talent_icons.ts` : l'icône de chaque talent (illustration d'une carte proche, ou `talent_<id>.png` dessinée par `tools/pixel/icones_talents.py`) et `TALENT_REFS`, les cartes et sorts qu'un talent cite (rappelés dans sa fiche). Un nouveau talent → une ligne ici (vérifié par `tests/talent_icons.test.ts`).
-  - `progression.ts` (score, expérience, niveaux), `guild.ts` (coffre), `archives.ts` (lore des monstres).
+  - `progression.ts` (score, expérience, niveaux ; par classe : victoires `wins` et légendaire forgé `legendary`, retenus depuis novembre 2026), `guild.ts` (coffre), `archives.ts` (lore des monstres).
   - `devtools.ts` : **l'outil de test** (niveaux, remises à zéro, déblocages, triches de run), affiché seulement sur `/dev/` et en local. **À retirer avant la version 1.0** (avec `tests/devtools.test.ts` et les lignes « Outil de test » de `ui.ts` et `style.css`).
 - `src/ui.ts` : tout l'affichage (HTML en chaînes, délégation d'événements via `data-action`). `src/style.css`. `src/fx.ts` : animations à partir de `c.fx`.
 - `tools/balance/` : le bot (`bot.ts`, qui ne regarde qu'une action à l'avance) et les simulations (`*.sim.ts`).
-- `tools/pixel/` : sprites et illustrations en Python/Pillow (classe `Sprite` dans `sprites.py`). Sortie dans `public/assets/` (`carte_<id>.png`, `ennemi_<id>.png`, `<classe>.png`, `familier_<id>.png`).
+- `tools/pixel/` : sprites et illustrations en Python/Pillow (classe `Sprite` dans `sprites.py`). Sortie dans `public/assets/` (`carte_<id>.png`, `ennemi_<id>.png`, `<classe>.png`, `familier_<id>.png`, et le décor de `decor.py` : `feu_camp.png`, `icone_repos.png`, `icone_enclume.png`).
 - `docs/` : `CONCEPT.md`, `ROADMAP.md`, `EQUILIBRAGE.md` (journal des passes du bot), une fiche par classe (`docs/classes/`) et par acte (`docs/actes/`).
 
 ### Ajouter une classe (recette suivie pour Mage, Démoniste, Prêtre, Voleur, Paladin)
@@ -134,7 +135,7 @@ cd tools/pixel && python3 icones_talents.py                  # régénère les i
 
 1. **Tests automatiques** : `npm test` et `npm run build`, toujours verts avant une publication. Une nouvelle mécanique = de nouveaux tests.
 2. **Équilibrage par le bot** : `RUNS=50`, seulement la classe ou l'acte concerné (ex. `RUNS=50 PROFIL="Voleur" npm run balance -- --silent=false`). Noter le résultat dans `docs/EQUILIBRAGE.md`.
-3. **Navigateur, une seule fois à la fin** : `npm run build`, puis `npx vite preview --port 4173 --strictPort` et un script Playwright, **sur PC et sur téléphone** (petit écran). Le parcours : Commencer → choix de la classe → Brégan (bénédiction) → carte.
+3. **Navigateur, une seule fois à la fin** : `npm run build`, puis `npx vite preview --port 4173 --strictPort` et un script Playwright, **sur PC et sur téléphone** (petit écran). Le parcours : Commencer → choix de la classe → **hall de la guilde** → Partir en expédition → Brégan (bénédiction) → carte. Pour tester un écran précis (vendeur, feu de camp, butin), générer un état de run avec un test vitest jetable puis l'écrire dans `localStorage` (clé `wipe-and-loot:/:run`) avant de recharger.
    Aujourd'hui, le script est réécrit à chaque conversation et se perd ensuite. À faire : le garder dans le dépôt (`tools/e2e/`), voir l'issue « 🧰 Outils et entretien ».
 
 ---
@@ -145,7 +146,12 @@ cd tools/pixel && python3 icones_talents.py                  # régénère les i
 - **Classes jouables :** Guerrier, Mage, Paladin, Démoniste, Prêtre, Voleur (52-53 cartes, 9-10 sorts, 27 talents chacune). **Restent, dans l'ordre :** Chasseur, Chaman, Druide.
 - **Actes :** 1 (Profondeurs Ardentes, Vulkhar) et 2 (Aire de Vhaeryx), enchaînés. La run se termine après Vhaeryx. Acte 3 (Irem) à faire, puis l'acte bonus (Nécropole céleste).
 - **Légendaires faits :** Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor), l'Aurore ardente (Paladin : Reliquaire profané, Ossyrax, feu de camp ; l'étape des Veilleurs viendra avec l'acte 3). Ils se forgent au feu de camp à partir de l'acte 2. Restent : Corde-des-anciens, le Marteau des ancêtres (avec leurs classes).
-- **Interface :** l'écran des talents (arbres en icônes, fiche à droite avec rappel des cartes et sorts, bouton « Prendre » comme confirmation) et l'écran des classes (grille de sprites et fiche) sont refaits. Les autres menus (hall, équipement, deck, vendeur, feu de camp, archives) suivront les mêmes règles : voir « 💡 Idées pour plus tard ».
+- **Interface (refonte des menus faite) :** mêmes règles partout : des icônes plutôt que des phrases (cadre = rareté : vert commun, bleu rare, violet épique, orange légendaire ; pointillés = vide ou pas découvert), le détail quand on touche, une confirmation pour ce qui coûte ou ne s'annule pas.
+  - Fiche à droite : talents, classes (avec « Ta progression »), équipement (héros entouré de ses 6 emplacements), archives (grille par groupes, % par onglet), coffre détaillé et tables de loot.
+  - Fiche en fenêtre : vendeur (« Acheter · X or », y compris pour les cartes) et confirmations de carte définitives (retirer, Allègement, sacrifice du Bâton).
+  - Feu de camp : scène (héros + feu animé) et choix en tuiles ; repos grisé si PV pleins. Deck et choix de carte : copies regroupées « ×N ». Hall : coffre en icônes, description de la classe jouée ; les boutons de classe en texte restent (choix de l'utilisateur).
+  - Boutons de sortie : écrans pleins du hall → « Retour » en haut à droite ; fenêtres et écrans d'expédition → bouton en bas.
+  - Premier lancement : après le choix de la classe, on arrive au hall (pas directement en expédition).
 - **Profil :** les niveaux de difficulté débloqués et les talents sont propres à chaque classe ; le hall retient la dernière classe choisie.
 - **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
