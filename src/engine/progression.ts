@@ -42,6 +42,12 @@ export function levelFromXp(xp: number): LevelInfo {
   return { level, into: level === MAX_LEVEL ? 0 : rest, needed: level === MAX_LEVEL ? 0 : XP_PER_LEVEL[level - 1] };
 }
 
+/** Le légendaire forgé de la classe, gardé au râtelier de la guilde (null s'il n'a jamais été forgé). */
+export function rackLegendary(profile: ProgressProfile, classId: string): string | null {
+  const id = profile.classes[classId]?.legendary;
+  return id && ITEMS[id] ? id : null;
+}
+
 export function classLevel(profile: ProgressProfile, classId: string): LevelInfo {
   return levelFromXp(profile.classes[classId]?.xp ?? 0);
 }

@@ -29,8 +29,10 @@ export const SERVICE_PRICE_STEP = 25;
  * `heirloom` : l'objet emporté du coffre de la guilde, équipé dès le départ.
  * `talents` : les talents choisis avant la run (ids, voir talents.ts).
  * `classId` : la classe jouée (le Guerrier par défaut).
+ * `legendary` : le légendaire de la classe emporté depuis le râtelier de la guilde (jamais perdu).
+ *   Il prend l'emplacement d'Arme, et sa quête est déjà faite pour cette expédition.
  */
-export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null, talents: string[] = [], difficulty = 0, classId = 'guerrier'): RunState {
+export function newRun(seed: number = Date.now() % 2147483647, heirloom: string | null = null, talents: string[] = [], difficulty = 0, classId = 'guerrier', legendary: string | null = null): RunState {
   const mods = difficultyMods(difficulty);
   const info = classInfo(classId);
   let uid = 1;
@@ -50,8 +52,19 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   if (mods.startCurse) run.deck.push({ uid: run.nextUid++, id: 'malediction', upgraded: false });
   run.hp = Math.round(run.maxHp * mods.startHpRatio);
   if (heirloom && ITEMS[heirloom]) putOn(run, heirloom, slotsFor(heirloom)[0]);
+  // Le légendaire du râtelier (si l'objet du coffre n'a pas déjà pris l'Arme : le hall l'empêche).
+  if (legendary && ITEMS[legendary] && !run.equipment.arme) {
+    putOn(run, legendary, 'arme');
+    const quest = LEGENDARY_QUEST[run.classId];
+    if (quest) run[quest] = 'forged';
+  }
   return run;
 }
+
+/** L'état de la quête légendaire de chaque classe. */
+export const LEGENDARY_QUEST = {
+  guerrier: 'brisemonts', mage: 'veilleur', demoniste: 'veilleur', pretre: 'equinoxe', voleur: 'sillon', paladin: 'aurore',
+} as Record<string, 'brisemonts' | 'veilleur' | 'equinoxe' | 'sillon' | 'aurore'>;
 
 /** La carte d'un acte. */
 function mapFor(run: RunState, act: number) {

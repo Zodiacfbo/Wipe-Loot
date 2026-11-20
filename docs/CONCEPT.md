@@ -670,7 +670,7 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 | **Bénédiction** en début de run | **Bénédiction d'entrée** : **Brégan le Passeur**, qui guide les expéditions jusqu'aux Profondeurs Ardentes, propose un choix parmi 4 bonus de départ, dont certains avec une contrepartie (« Perds 10 PV max, obtiens un objet rare »). |
 | Deck de départ basique | **Deck de départ de la classe** : 10 cartes (voir §7.5). |
 | Récompenses de cartes après combat | Inchangé : 1 carte parmi 3, influencée par les talents (§9). |
-| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte ou un sort de barre, **à la place du repos**. On peut aussi acheter une amélioration chez le vendeur gobelin. |
+| Amélioration de cartes au feu de camp | **Maître de classe** au feu de camp : améliore une carte (l'amélioration des sorts de barre est rangée dans « Plus tard »), **à la place du repos**. On peut aussi acheter une amélioration chez le vendeur gobelin. |
 | **Relique de boss** après chaque boss de fin d'acte | **Butin de boss** : choix parmi 3 objets d'équipement épiques, souvent avec un inconvénient (il n'y a pas de reliques, voir §12.4). |
 | Ordre fixe des actes | **Ordre fixe des raids** : Profondeurs Ardentes → Aire de Vhaeryx → Irem. |
 | **Acte 4** débloqué par 3 clés | **La Nécropole céleste**, débloquée par **3 éclats de clé** récupérés pendant la run (voir ci-dessous). |
@@ -684,7 +684,7 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 
 - **Niveau de classe (1 à 10)** : à la fin de chaque run, victoire ou défaite, le joueur gagne de l'expérience selon son **score** (voir §15.3). Chaque niveau donne :
   - **1 point de talent permanent** (voir §9) ;
-  - **un lot de nouvelles cartes ou de nouveaux objets** pour cette classe.
+  - ~~un lot de nouvelles cartes ou de nouveaux objets~~ *(abandonné en novembre 2026 : tout le contenu est disponible dès le départ ; des objets nouveaux par niveau sont une piste pour plus tard)*.
 - **Après le niveau 10**, l'expérience continue de débloquer du contenu cosmétique et des entrées dans les archives, mais plus de points de talent.
 - **Déblocage des classes** : au **tout premier lancement**, le joueur **choisit sa classe de départ** parmi les 9, chacune avec une fiche de présentation (rôle, ressource, style de jeu, difficulté). Les 8 autres sont ensuite à débloquer : à chaque palier d'expérience totale (toutes classes confondues : 300, 700, 1 200, 1 800, 2 500, 3 300, 4 200 et 5 200), le joueur **choisit lui-même** la prochaine classe débloquée. La 2e classe arrive donc après 2 ou 3 runs, et les 9 sont débloquées après environ 35 runs.
 - **Le rattrapage** : une nouvelle classe ne doit pas donner l'impression de tout recommencer. Tant qu'une classe est en dessous du **meilleur niveau atteint** par une autre classe, elle gagne **le double d'expérience**. Le bonus s'arrête tout seul quand elle a rattrapé. Il ne touche que l'expérience : les talents restent à gagner, et la difficulté se débloque toujours classe par classe.
@@ -785,7 +785,7 @@ Le score minimum est de 10. **Expérience = score** (doublée pendant le rattrap
 |---|---|
 | **Niveau de classe (1 à 10)** | Chaque run, même perdue, rapporte de l'expérience selon le score. |
 | **Points de talent** | 1 par niveau de classe, 10 au maximum. On les répartit dans le hall de la guilde, avec un respec gratuit entre deux runs. |
-| **Nouvelles cartes et nouveaux objets** | Chaque niveau de classe ajoute un lot de nouvelles cartes ou de nouveaux objets aux récompenses possibles. |
+| ~~Nouvelles cartes et nouveaux objets~~ | *Abandonné (novembre 2026) : tout est disponible dès le départ. Piste pour plus tard : des objets nouveaux par niveau, sans rien retirer.* |
 | **Nouvelles classes** | Au premier lancement, on choisit sa classe de départ parmi les 9 (avec une description). Ensuite, chaque palier d'expérience totale débloque une nouvelle classe, **au choix du joueur**. |
 | **Coffre de la guilde** | 6 places. On y dépose 1 objet après une run gagnée, on en emporte 1 au départ (perdu si la run échoue). Le légendaire forgé est gardé pour toujours. |
 | **Niveaux de difficulté** | Gagner une run débloque la difficulté suivante pour cette classe, jusqu'à 20. C'est un défi optionnel. |

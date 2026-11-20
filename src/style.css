@@ -832,3 +832,12 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .apercu.perte.mortel { color: #ffd27a; }
 @keyframes apercu-pulse { from { opacity: 0.55; } to { opacity: 0.95; } }
 @media (prefers-reduced-motion: reduce) { .barre-pv > .apercu.fantome { animation: none; } }
+
+/* ---------- Râtelier de la guilde (légendaire forgé) ---------- */
+.ratelier { display: flex; gap: 12px; align-items: flex-start; text-align: left; margin-bottom: 4px; }
+.ratelier .case-equipement { width: 80px; height: 80px; }
+.ratelier > div { display: flex; flex-direction: column; gap: 2px; font-size: 12px; line-height: 1.3; }
+.ratelier b { color: #ffc27a; font-size: 14px; }
+.ratelier > div em { color: #b8a690; font-size: 11px; }
+.lien { align-self: flex-start; padding: 2px 0; border: none; background: none; color: var(--or); font: inherit; font-weight: 700; text-decoration: underline; }
+.case-equipement.bloquee { opacity: 0.35; filter: grayscale(1); }

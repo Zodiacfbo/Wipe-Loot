@@ -156,6 +156,8 @@ cd tools/pixel && python3 decor.py                           # régénère le d�
   - Boutons de sortie : écrans pleins du hall → « Retour » en haut à droite ; fenêtres et écrans d'expédition → bouton en bas.
   - Premier lancement : après le choix de la classe, on arrive au hall (pas directement en expédition).
 - **Profil :** les niveaux de difficulté débloqués et les talents sont propres à chaque classe ; le hall retient la dernière classe choisie.
+- **Râtelier :** le légendaire forgé (`legendary` du profil, par classe) est emporté par défaut depuis le hall (`newRun(…, legendary)`), en plus d'un objet du coffre qui n'est alors pas une arme ; sa quête passe à « forged » pour l'expédition (`LEGENDARY_QUEST` dans `run.ts`). Une nouvelle classe → une ligne dans `LEGENDARY_QUEST`.
+- **Décisions de novembre 2026 :** pas de déblocage de cartes par niveau (tout est disponible dès le départ) ; l'amélioration des sorts de barre est rangée dans « Plus tard ».
 - **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
 - **Décisions de design à respecter :**

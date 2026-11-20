@@ -40,8 +40,8 @@
 - [x] Carte de l'acte à embranchements (10 étages, combats, boss secondaires, « ? », coffre, feux de camp, boss)
 - [x] Ajouter le vendeur gobelin sur la carte (au moins un par run)
 - [x] Remplacer le boss provisoire (Brannoc) par Vulkhar
-- [ ] Bénédiction d'entrée de Brégan le Passeur
-- [ ] Écran de fin de run (score, statistiques)
+- [x] Bénédiction d'entrée de Brégan le Passeur (voir 1.5)
+- [x] Écran de fin de run : le bilan (score ligne par ligne, expérience, niveau), voir la phase 2
 
 ### 1.2 Le combat
 - [ ] Tous les ennemis de trash de l'acte 1, et leurs packs
@@ -49,7 +49,7 @@
 - [x] Équilibrer les boss secondaires (voir [l'équilibrage](EQUILIBRAGE.md))
 - [x] Vulkhar, Souverain des flammes (phases, plongée dans la lave, Rejetons de flamme, Marteau des flammes, Éruption)
 - [ ] La quête des Gardiens des Sources qui affaiblit Vulkhar
-- [ ] Cartes-statut de l'acte : Bombe vivante, Paniqué, Fardeau, Cendres
+- [x] Cartes-statut de l'acte : Bombe vivante, Paniqué, Fardeau, Cendres
 - [x] Infobulles des mots-clés, des buffs et des débuffs : mots soulignés sur les cartes et pastilles, appui long sur téléphone (sur une carte : tous ses mots-clés, sans la jouer), survol sur PC (`src/keywords.ts`, `src/aides.ts`)
 - [x] Prévisualisation des dégâts : chiffre corrigé sur la carte (vert s'il monte, rouge s'il baisse), et sur les ennemis les PV perdus et « Achevé » (survol sur PC, carte choisie sur téléphone). Calculée en jouant la carte sur une copie du combat (`src/engine/preview.ts`) ; rien n'est annoncé quand le résultat dépend du hasard
 
@@ -57,10 +57,10 @@
 - [x] Les 52 cartes du Guerrier (les épiques apparaissent rarement chez les boss secondaires, en attendant les talents)
 - [x] Les sorts de barre du Guerrier : les 7 de sa fiche + 2 sorts de loot (Cri de commandement, Vague de choc), 3 emplacements
 - [x] Le 4ᵉ emplacement de la barre (talent Protection)
-- [ ] Améliorer un sort de barre (feu de camp, vendeur) : prévu par le concept, pas encore fait
+- [ ] ~~Améliorer un sort de barre~~ : rangé dans « Plus tard » (novembre 2026)
 - [x] Une illustration en pixel art par carte (62 illustrations, `tools/pixel/illustrations.py`)
 - [x] Le légendaire Brisemonts et sa quête (forge éteinte → Krâgg → Reforger au feu de camp)
-- [ ] Le râtelier de la guilde : garder le légendaire forgé d'une run à l'autre (phase 2)
+- [x] Le râtelier de la guilde : garder le légendaire forgé d'une run à l'autre (voir 3.3)
 
 ### 1.4 Le loot et l'économie
 - [x] L'or (99 au départ, gains après chaque combat, plus sur les boss secondaires)
@@ -68,10 +68,10 @@
 - [x] Les tables de loot des 9 boss secondaires (36 objets), avec les « ??? » jusqu'au premier drop (mémorisé entre les runs)
 - [x] Les coffres donnent un objet (70 % commun, 30 % rare)
 - [x] Les sorts de barre dans les tables de loot (1 chance sur 5 sur un boss secondaire ; en attendant les talents, tous les sorts du Guerrier sont dans ce lot)
-- [ ] Le butin de boss : 1 objet épique parmi 3
+- [x] Le butin de boss : 1 objet épique parmi 3, utile à ta classe (Vulkhar ; celui de Vhaeryx viendra avec l'acte 3)
 - [x] Les potions : 3 emplacements, 8 potions, 40 % de chance après un combat gagné, retrouvées après un wipe
 - [x] Le coffre de la guilde : 6 places, 1 objet déposé après une victoire, 1 objet emporté au départ (perdu si la run échoue)
-- [ ] Les potions dans les événements (Potions de route de Brégan, laboratoire…)
+- [x] Les potions dans les événements (Potions de route de Brégan, laboratoire, trappeur)
 - [x] Le vendeur gobelin : 5 cartes dont une en promo, retrait et amélioration d'une carte (prix croissant)
 - [x] Le vendeur gobelin : 2 objets d'équipement et 3 potions à vendre
 - [x] Le vendeur gobelin : réparation des objets brisés (50 / 75 / 100 or selon la rareté)
@@ -99,7 +99,7 @@
 - [x] Déblocage des autres classes par paliers d'expérience totale (300, 700, 1 200, 1 800, 2 500, 3 300, 4 200, 5 200), au choix du joueur — prêt, il servira avec la 2e classe
 - [x] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint (prêt, il servira avec la 2e classe)
 - [x] Les talents permanents du Guerrier : écran des 3 arbres (27 talents), choix avant la run, respec gratuit, récompenses orientées vers les arbres investis
-- [ ] Les déblocages de cartes et d'objets par niveau
+- [ ] ~~Les déblocages de cartes et d'objets par niveau~~ : abandonné (novembre 2026), chaque niveau donne déjà un point de talent. Des objets nouveaux par niveau sont notés dans « Plus tard »
 - [x] Les niveaux de difficulté (1 à 20) : choix dans le hall, débloqués en gagnant, +5 % de score par niveau
 - [x] Les archives de la guilde : cartes, objets (par source), potions et monstres (histoire, PV, passif, nombre de victoires), « ??? » tant que ce n'est pas découvert
 - [x] Le hall de la guilde comme écran principal : héros (niveau, talents, classes), expédition (continuer ou partir), coffre de la guilde (choisir l'objet à emporter), statistiques
@@ -127,7 +127,7 @@
 Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de barre, ses talents, son légendaire et sa quête, et son sprite.
 
 ### 3.3 Les légendaires
-- [ ] Le légendaire forgé est gardé pour toujours (râtelier de la guilde), à emporter en plus d'un objet du coffre (si on prend le légendaire, l'objet du coffre ne peut pas être une arme)
+- [x] Le légendaire forgé est gardé pour toujours (râtelier de la guilde, au-dessus du coffre dans le hall) : emporté par défaut (on peut le laisser), en plus d'un objet du coffre qui ne peut alors pas être une arme. Quand il est emporté, sa quête est déjà faite pour l'expédition
 - [x] Brisemonts (Guerrier) et le Bâton du Veilleur (Mage, Démoniste) se forgent à l'acte 2
 - [x] Équinoxe (Prêtre)
 - [x] Sillon d'orage (Voleur)
@@ -177,6 +177,8 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [ ] Plusieurs boss possibles par acte (Sythra la Matriarche des cendres, Ekhara le Serpent de sang…)
 - [ ] Nouveaux raids et nouvelles campagnes
 - [ ] Classement en ligne (demanderait une vérification côté serveur contre la triche)
+- [ ] Améliorer un sort de barre (feu de camp, vendeur) : prévu par le concept, à reprendre si le feu de camp paraît pauvre
+- [ ] Des objets nouveaux débloqués par niveau de classe, ajoutés aux coffres et au vendeur (sans rien retirer)
 
 ---
 

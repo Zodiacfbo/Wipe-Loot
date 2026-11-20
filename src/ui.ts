@@ -79,7 +79,7 @@ import { DIFFICULTY_TEXT } from './engine/difficulty';
 import { LORE, recordKills, recordSeen } from './engine/archives';
 import { COMMON_POOL } from './engine/items';
 import { POTION_IDS } from './engine/potions';
-import { MAX_LEVEL, awardRun, classLevel, type RunSummary } from './engine/progression';
+import { MAX_LEVEL, awardRun, classLevel, rackLegendary, type RunSummary } from './engine/progression';
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save';
 // Outil de test (version dev seulement)
@@ -102,6 +102,8 @@ interface UiState {
   devClass?: string;
   /** Objet du coffre choisi dans le hall pour la prochaine expédition (index). */
   heirloom: number | null;
+  /** Le légendaire du râtelier reste à la guilde pour la prochaine expédition (il part par défaut). */
+  leaveLegendary?: boolean;
   pileKind: 'draw' | 'discard' | 'exhaust';
   /** Potion ouverte (emplacement du joueur), ou potion du vendeur regardée. */
   potionSlot: number | null;
@@ -1213,14 +1215,30 @@ function titleScreen(): string {
   const unlocks = unlocksAvailable(profile);
   const chest = profile.guildChest;
   if (ui.heirloom !== null && !chest[ui.heirloom]) ui.heirloom = null;
+  // Le râtelier : le légendaire forgé de la classe, emporté par défaut. Il prend l'emplacement d'Arme.
+  const legendary = rackLegendary(profile, cls);
+  const carried = legendary && !ui.leaveLegendary ? ITEMS[legendary] : null;
+  if (carried && ui.heirloom !== null && ITEMS[chest[ui.heirloom]].slot === 'arme') ui.heirloom = null;
   const tiles = Array.from({ length: CHEST_SIZE }, (_, i) => {
     const id = chest[i];
     if (!id) return '<span class="case-equipement vide case-coffre"></span>';
     const it = ITEMS[id];
-    return `<button type="button" class="case-equipement case-coffre ${it.rarity} ${ui.heirloom === i ? 'choisie' : ''}" data-action="heritage" data-index="${i}" aria-label="${it.name}">
+    const blocked = carried && it.slot === 'arme';
+    return `<button type="button" class="case-equipement case-coffre ${it.rarity} ${ui.heirloom === i ? 'choisie' : ''} ${blocked ? 'bloquee' : ''}" data-action="heritage" data-index="${i}" aria-label="${it.name}${blocked ? ' (ton légendaire occupe l\'emplacement d\'Arme)' : ''}" ${blocked ? 'disabled' : ''}>
       ${SLOT_ICON[it.slot]}${ui.heirloom === i ? '<em>Emporté</em>' : ''}</button>`;
   }).join('');
   const chosen = ui.heirloom !== null ? ITEMS[chest[ui.heirloom]] : null;
+  const rack = legendary ? `<span class="butin-titre">Râtelier · légendaire du ${hero.name}</span>
+      <div class="ratelier">
+        <button type="button" class="case-equipement legendaire ${carried ? 'choisie' : ''}" data-action="ratelier" aria-pressed="${!!carried}" aria-label="${ITEMS[legendary].name} : ${carried ? 'emporté' : 'laissé au râtelier'}">${SLOT_ICON[ITEMS[legendary].slot]}${carried ? '<em>Emporté</em>' : ''}</button>
+        <div><b>${ITEMS[legendary].name}</b><span>${ITEMS[legendary].text}</span>
+          <em>Gardé pour toujours, jamais perdu. Il prend l'emplacement d'Arme ; sa quête est déjà faite.</em>
+          <button type="button" class="lien" data-action="ratelier">${carried ? 'Le laisser au râtelier' : 'L\'emporter'}</button></div>
+      </div>` : '';
+  const takes = [carried ? `<b>${carried.name}</b> (jamais perdu)` : '', chosen ? `<b>${chosen.name}</b> (perdu si l'expédition échoue)` : ''].filter(Boolean);
+  const takeText = takes.length
+    ? `Tu emportes : ${takes.join(' et ')}.${carried && !chosen && chest.length ? ' Tu peux ajouter un objet du coffre (pas une arme).' : ''}`
+    : chest.length ? 'Tu peux emporter un objet du coffre : touche-le.' : '';
   const run = canContinue && saved ? `<div class="run-en-cours">
       <span class="butin-titre">Expédition en cours · ${classInfo(saved.classId).name}</span>
       <p>Acte ${saved.act ?? 1} · ${saved.position === null ? 'Entrée' : `Étage ${saved.map.nodes[saved.position].floor + 1}/${FLOORS}`} · ${ICON.coeur} ${saved.hp}/${saved.maxHp} · ${ICON.piece} ${saved.gold} · ${saved.wipesLeft} wipe${saved.wipesLeft > 1 ? 's' : ''} restant${saved.wipesLeft > 1 ? 's' : ''}</p>
@@ -1251,9 +1269,10 @@ function titleScreen(): string {
       ${run}
       ${difficultyPicker()}
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">${canContinue ? 'Nouvelle expédition' : 'Partir en expédition'}</button>
-      <p class="emporte-texte">${chosen ? `Tu emportes : <b>${chosen.name}</b> (perdu si l'expédition échoue).` : chest.length ? 'Tu peux emporter un objet du coffre : touche-le.' : ''}</p>
+      <p class="emporte-texte">${takeText}</p>
     </section>
     <section class="hall-coffre">
+      ${rack}
       <span class="butin-titre">Coffre de la guilde · ${chest.length}/${CHEST_SIZE}</span>
       ${chest.length ? `<div class="grille-coffre">${tiles}</div>
       ${chosen ? `<div class="fiche-coffre ${chosen.rarity}"><b>${chosen.name}</b> <span class="type-talent r-${chosen.rarity}">${RARITY_LABEL[chosen.rarity]}</span><p>${chosen.text}</p><p class="emporte">Emporté pour la prochaine expédition : il revient au coffre si tu gagnes, il est perdu sinon.</p></div>`
@@ -2157,7 +2176,8 @@ function launchFromHall(): void {
 function startNewRun(heirloom: string | null = null): void {
   ui.depositSlot = null;
   const cls = activeClass();
-  ui.run = newRun(undefined, heirloom, talentIds(myAlloc(), cls), chosenDifficulty(), cls);
+  const legendary = ui.leaveLegendary ? null : rackLegendary(loadProfile(), cls);
+  ui.run = newRun(undefined, heirloom, talentIds(myAlloc(), cls), chosenDifficulty(), cls, legendary);
   offerBlessing(ui.run);
   ui.blessingRemove = false;
   ui.selection = null;
@@ -2257,6 +2277,7 @@ function handleClick(ev: MouseEvent): void {
       render();
       return;
     }
+    case 'ratelier': ui.leaveLegendary = !ui.leaveLegendary; render(); return;
     case 'voir-coffre': ui.overlay = 'coffre'; ui.itemSel = null; render(); return;
     case 'objet-voir': ui.itemSel = el.dataset.id ?? null; render(); return;
     case 'continuer':
