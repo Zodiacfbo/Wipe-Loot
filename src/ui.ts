@@ -100,6 +100,11 @@ const ANIMES: Record<string, number> = {
   'paladin.png': 4,
   'voleur.png': 4,
   'demoniste.png': 4,
+  'familier_diablotin.png': 4,
+  'familier_rodeur.png': 4,
+  'familier_succube.png': 4,
+  'familier_molosse.png': 4,
+  'familier_seigneur.png': 4,
   'pretre.png': 4,
   'pretre_ombre.png': 4,
   'ennemi_molosse.png': 4,
@@ -1225,8 +1230,8 @@ function combatScreen(run: RunState, c: CombatState): string {
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
       <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" data-tenue="${heroSprite(hero.sprite, c)}" ${spriteAttrs(heroSprite(hero.sprite, c))} alt="Le ${hero.name}" width="192" height="192">
-      ${c.pet && !c.petSacrificed ? `<img class="px familier" src="${A(`familier_${c.pet}.png`)}" alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
-      ${c.infernal ? `<img class="px seigneur-infernal" src="${A('familier_seigneur.png')}" alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
+      ${c.pet && !c.petSacrificed ? `<img class="px familier" ${spriteAttrs(`familier_${c.pet}.png`, 1)} alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
+      ${c.infernal ? `<img class="px seigneur-infernal" ${spriteAttrs('familier_seigneur.png', 2)} alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
       <div class="jauges">
         <div class="ligne">
           <div class="bouclier-badge" title="Blocage"><svg width="32" height="32" viewBox="0 0 24 24" fill="#1d2633" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span>${p.block}</span></div>

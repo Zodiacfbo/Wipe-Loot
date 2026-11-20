@@ -4,7 +4,7 @@ jouée en boucle par le jeu comme le feu de camp.
 et dans assets/essais/ : <nom>_anime.gif, un aperçu agrandi.
 Lancer depuis tools/pixel/ : python3 animations.py"""
 import os
-from demoniste_sprites import demoniste, paladin, pretre, voleur
+from demoniste_sprites import demoniste, diablotin, molosse_infernal, paladin, pretre, rodeur, seigneur_infernal, succube, voleur
 from ennemis import etincelle, molosse
 from sprites import apercu_gif, guerrier, mage, planche, vulkhar
 
@@ -18,6 +18,11 @@ ANIMES = {
     'paladin': (paladin, 4, False, 6),
     'voleur': (voleur, 4, False, 6),
     'demoniste': (demoniste, 4, False, 6),
+    'familier_diablotin': (diablotin, 4, False, 8),
+    'familier_rodeur': (rodeur, 4, False, 8),
+    'familier_succube': (succube, 4, False, 8),
+    'familier_molosse': (molosse_infernal, 4, False, 8),
+    'familier_seigneur': (seigneur_infernal, 4, False, 6),
     'pretre': (pretre, 4, False, 6),
     'pretre_ombre': (lambda f: pretre(f, 'ombre'), 4, False, 6),
     'ennemi_molosse': (molosse, 4, False, 6),

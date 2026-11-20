@@ -51,76 +51,103 @@ def demoniste(f=0):
     return s.render()
 
 
-def diablotin():
+# Les familiers : f = image de l'animation (0 à 3), comme les héros.
+VOL = [0, -1, -2, -1]  # flottement des créatures qui volent
+
+
+def diablotin(f=0):
+    """Le diablotin : il voltige en battant de l'aile, sa boule de feu danse."""
     s = Sprite(32, 32)
-    s.poly([(8, 12), (2, 6), (6, 14)], '#8E2A1E')  # aile
-    s.ellipse(8, 12, 22, 26, '#C8402A')
-    s.ellipse(10, 4, 22, 15, '#D8502A')
-    s.poly([(11, 6), (9, 0), (13, 5)], '#2A1C18')
-    s.poly([(20, 6), (22, 0), (18, 5)], '#2A1C18')
-    s.rect(17, 8, 18, 9, JAUNE, glow=True)
-    s.rect(14, 26, 16, 30, '#8E2A1E')
-    s.rect(18, 26, 20, 30, '#8E2A1E')
-    s.ellipse(22, 12, 30, 20, FEU, glow=True)  # boule de feu
-    s.ellipse(24, 14, 28, 18, JAUNE, glow=True)
+    with s.bouge(0, VOL[f] + 1):
+        s.poly([(8, 12), (2, [6, 3, 1, 3][f]), (6, 14)], '#8E2A1E')  # aile qui bat
+        s.ellipse(8, 12, 22, 26, '#C8402A')
+        s.ellipse(10, 4, 22, 15, '#D8502A')
+        s.poly([(11, 6), (9, 0), (13, 5)], '#2A1C18')
+        s.poly([(20, 6), (22, 0), (18, 5)], '#2A1C18')
+        s.rect(17, 8, 18, 9, JAUNE, glow=True)
+        s.rect(14, 26, 16, 29, '#8E2A1E')
+        s.rect(18, 26, 20, 29, '#8E2A1E')
+        g = [0, 1, 0, -1][f]
+        s.poly(danse([(22, 17), (23, 11), (26, 13), (28, 9 - g), (30, 16), (26, 20)], f), FEU, glow=True)  # boule de feu
+        s.ellipse(24, 14, 28, 18, JAUNE, glow=True)
     return s.render()
 
 
-def rodeur():
+def rodeur(f=0):
+    """Le marcheur du Vide : il flotte, ses bandes d'énergie défilent et ses yeux pulsent."""
     s = Sprite(32, 32)
-    s.ellipse(6, 8, 26, 30, '#3A5ACC')  # silhouette du néant
-    s.ellipse(9, 2, 23, 14, '#4A6ADC')
-    s.rect(12, 6, 14, 8, '#E0F0FF', glow=True)
-    s.rect(18, 6, 20, 8, '#E0F0FF', glow=True)
-    s.rect(4, 12, 8, 24, '#2A3A8E')  # bras
-    s.rect(24, 12, 28, 24, '#2A3A8E')
-    for y in (16, 20, 24):
-        s.line([(10, y), (22, y + 1)], '#8AA8FF', glow=True)
+    with s.bouge(0, VOL[f] + 1):
+        s.ellipse(6, 8, 26, 30, '#3A5ACC')  # silhouette du néant
+        s.ellipse(9, 2, 23, 14, '#4A6ADC')
+        yeux = ['#E0F0FF', '#FFFFFF', '#B8D8FF', '#FFFFFF'][f]
+        s.rect(12, 6, 14, 8, yeux, glow=True)
+        s.rect(18, 6, 20, 8, yeux, glow=True)
+        bras = [0, 1, 1, 0][f]
+        s.rect(4, 12 + bras, 8, 24 + bras, '#2A3A8E')  # bras qui balancent
+        s.rect(24, 12 - bras + 1, 28, 24 - bras + 1, '#2A3A8E')
+        for y in (16, 20, 24):  # les bandes d'énergie descendent
+            yy = y + f % 4
+            if yy <= 27:
+                s.line([(10, yy), (22, yy + 1)], '#8AA8FF', glow=True)
     return s.render()
 
 
-def succube():
+def succube(f=0):
+    """La succube : elle flotte, ses ailes battent et son fouet ondule."""
     s = Sprite(32, 32)
-    s.poly([(6, 10), (0, 2), (4, 14)], '#5A2A6E')  # ailes
-    s.poly([(26, 10), (32, 2), (28, 14)], '#5A2A6E')
-    s.poly([(10, 14), (22, 14), (24, 30), (8, 30)], '#8E3A6E')
-    s.ellipse(11, 3, 21, 14, '#C88AA0')
-    s.poly([(12, 4), (9, -1), (14, 4)], '#2A1C18')
-    s.poly([(20, 4), (23, -1), (18, 4)], '#2A1C18')
-    s.rect(17, 7, 18, 8, '#E85AE8', glow=True)
-    s.line([(24, 18), (30, 26)], '#C8A0FF', glow=True)  # fouet
+    with s.bouge(0, [0, 0, 1, 1][f]):
+        w = [2, 0, 1, 3][f]
+        s.poly([(6, 10), (0, w), (4, 14)], '#5A2A6E')  # ailes
+        s.poly([(26, 10), (31, w), (28, 14)], '#5A2A6E')
+        s.poly([(10, 14), (22, 14), (24, 30), (8, 30)], '#8E3A6E')
+        s.ellipse(11, 3, 21, 14, '#C88AA0')
+        s.poly([(12, 4), (9, -1), (14, 4)], '#2A1C18')
+        s.poly([(20, 4), (23, -1), (18, 4)], '#2A1C18')
+        s.rect(17, 7, 18, 8, ['#E85AE8', '#FF8AFF', '#E85AE8', '#C83AC8'][f], glow=True)
+        bout = [(30, 26), (31, 23), (29, 28), (27, 29)][f]  # le fouet ondule
+        s.line([(24, 18), (27, 22), bout], '#C8A0FF', glow=True)
     return s.render()
 
 
-def molosse_infernal():
+def molosse_infernal(f=0):
+    """Le chasseur corrompu : il halète, ses tentacules ondulent et ses taches gangrenées brillent."""
     s = Sprite(32, 32)
-    s.ellipse(4, 12, 24, 24, '#4A6A2A')
+    e = [0, 1, 1, 0][f]
     s.rect(6, 22, 9, 30, '#3A5220')
     s.rect(18, 22, 21, 30, '#3A5220')
-    s.ellipse(18, 8, 30, 20, '#5A7A3A')  # tête
-    s.poly([(26, 14), (32, 14), (30, 19), (26, 18)], '#3A5220')
-    s.rect(25, 11, 26, 12, '#E8402A', glow=True)
-    s.line([(19, 9), (17, 3)], FEL, glow=True)  # tentacules
-    s.line([(22, 8), (22, 2)], FEL, glow=True)
-    s.dots([(8, 14), (14, 13), (11, 18)], FEL_C, glow=True)
+    s.ellipse(4, 12 - e, 24, 24, '#4A6A2A')
+    with s.bouge(0, [0, 1, 1, 0][f]):
+        s.ellipse(18, 8, 30, 20, '#5A7A3A')  # tête
+        s.poly([(26, 14), (32, 14), (30, 19), (26, 18)], '#3A5220')
+        s.rect(25, 11, 26, 12, '#E8402A', glow=True)
+        o = [0, -1, 0, 1][f]  # tentacules qui ondulent
+        s.line([(19, 9), (18 + o, 6), (17 - o, 3)], FEL, glow=True)
+        s.line([(22, 8), (22 - o, 5), (22 + o, 2)], FEL, glow=True)
+    taches = [(8, 14), (14, 13), (11, 18)]
+    s.dots([(x, y - e) for x, y in taches], FEL_C if f % 2 else FEL, glow=True)
     return s.render()
 
 
-def seigneur_infernal():
+def seigneur_infernal(f=0):
+    """L'infernal : il respire au milieu de son cratère, ses poings gangrenés flambent."""
     s = Sprite(48, 48)
+    b = RESPIRE[f]
     s.ellipse(4, 36, 44, 48, FEL, glow=True)  # cratère
+    s.dots([[(10, 42), (34, 45)], [(18, 46), (38, 41)], [(26, 42), (8, 45)], [(14, 40), (30, 46)]][f], FEL_C, glow=True)
     s.rect(12, 30, 20, 44, '#3A3A30')
     s.rect(28, 30, 36, 44, '#3A3A30')
-    s.poly([(10, 10), (38, 10), (40, 32), (8, 32)], '#4A4A3E')
-    s.line([(14, 14), (22, 26)], FEL, glow=True)
-    s.line([(34, 14), (26, 26)], FEL, glow=True)
-    s.ellipse(16, 0, 32, 14, '#5A5A4A')
-    s.rect(19, 5, 21, 7, FEL_C, glow=True)
-    s.rect(27, 5, 29, 7, FEL_C, glow=True)
-    s.ellipse(2, 14, 12, 26, '#4A4A3E')
-    s.ellipse(36, 14, 46, 26, '#4A4A3E')
-    s.ellipse(0, 6, 8, 14, FEL, glow=True)
-    s.ellipse(40, 6, 48, 14, FEL, glow=True)
+    with s.bouge(0, b):
+        s.poly([(10, 10), (38, 10), (40, 32), (8, 32)], '#4A4A3E')
+        fis = FEL_C if f == 2 else FEL
+        s.line([(14, 14), (22, 26)], fis, glow=True)
+        s.line([(34, 14), (26, 26)], fis, glow=True)
+        s.ellipse(16, 0, 32, 14, '#5A5A4A')
+        s.rect(19, 5, 21, 7, FEL_C, glow=True)
+        s.rect(27, 5, 29, 7, FEL_C, glow=True)
+        s.ellipse(2, 14, 12, 26, '#4A4A3E')
+        s.ellipse(36, 14, 46, 26, '#4A4A3E')
+        s.poly(danse([(1, 14), (2, 7), (5, 10), (7, 4), (10, 14)], f, 1.5), FEL, glow=True)  # poings en flammes
+        s.poly(danse([(38, 14), (40, 4), (42, 10), (45, 7), (46, 14)], f + 2, 1.5), FEL, glow=True)
     return s.render()
 
 
