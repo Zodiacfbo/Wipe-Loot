@@ -1812,11 +1812,12 @@ function talentScreen(): string {
         const state = picks[tier] === choice ? 'pris' : tier < picks.length ? 'ecarte' : tier === picks.length ? (left > 0 ? 'dispo' : '') : 'ferme';
         const chosen = sel?.tree === tree.id && sel.tier === tier && sel.choice === choice;
         return `<button type="button" class="noeud-talent k-${talentKind(d)} ${state} ${chosen ? 'choisi' : ''}" data-action="talent-voir" data-tree="${tree.id}" data-tier="${tier}" data-choice="${choice}">
-          <span class="icone-talent"><img class="px" src="${A(talentIcon(d))}" alt=""></span><span class="nom-talent">${d.name}</span></button>`;
+          <span class="icone-talent"><img class="px" src="${A(talentIcon(d))}" alt="">${d.card ? '<span class="cout-palier">3 pts</span>' : ''}</span><span class="nom-talent">${d.name}</span></button>`;
       }).join('');
       return `<div class="palier-icones">${tier ? `<span class="lien-palier ${tier <= picks.length ? 'ouvert' : ''}"></span>` : ''}${nodes}</div>`;
     }).join('');
-    return `<section class="arbre-icones"><h3>${tree.name} <span>${picks.length}/5</span></h3>${tiers}</section>`;
+    const spent = picks.length + (picks.length === 5 ? 2 : 0);
+    return `<section class="arbre-icones"><h3>${tree.name} <span>${spent}/7 points</span></h3>${tiers}</section>`;
   }).join('');
   return `<div class="ecran ecran-talents">
     <div class="tete-talents">
@@ -1849,6 +1850,7 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
       </div>
       <ul>
         <li>1 point par niveau de classe.</li>
+        <li>Un palier coûte 1 point, la carte épique 3 : un arbre complet en coûte 7, tu ne peux en finir qu'un seul.</li>
         <li>Un seul talent par palier.</li>
         <li>Un talent dans un palier ouvre le suivant.</li>
         <li>Changer ses talents est gratuit entre deux expéditions.</li>
@@ -1861,7 +1863,8 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
   const d = tree.tiers[sel.tier][i];
   const other = tree.tiers[sel.tier][1 - i];
   const kind = talentKind(d);
-  const chips = [`<span class="type-talent k-${kind}">${TALENT_KIND_LABEL[kind]}</span>`, `<span class="type-talent">${tree.name} · palier ${sel.tier + 1}</span>`];
+  const cost = d.card ? 3 : 1;
+  const chips = [`<span class="type-talent k-${kind}">${TALENT_KIND_LABEL[kind]}</span>`, `<span class="type-talent">${tree.name} · palier ${sel.tier + 1}</span>`, `<span class="type-talent${cost > 1 ? ' k-epique' : ''}">${cost} point${cost > 1 ? 's' : ''}</span>`];
   let body: string;
   if (d.card) {
     const c = CARDS[d.card];
@@ -1882,16 +1885,19 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
   const act = `data-action="talent" data-tree="${tree.id}" data-tier="${sel.tier}" data-choice="${sel.choice}"`;
   if (taken && sel.tier === picks.length - 1) {
     button = `<button type="button" class="gros-bouton secondaire" ${act}>Retirer ce talent</button>`;
-    note = 'Tu récupères 1 point.';
+    note = `Tu récupères ${cost} point${cost > 1 ? 's' : ''}.`;
   } else if (taken) {
     button = '<button type="button" class="gros-bouton" disabled>Talent pris</button>';
     note = `Pour le retirer, retire d'abord les paliers suivants de ${tree.name}.`;
   } else if (sel.tier < picks.length) {
     button = `<button type="button" class="gros-bouton" ${act}>Prendre à la place</button>`;
     note = `Remplace <b>${other.name}</b>, sans coûter de point.`;
+  } else if (sel.tier === picks.length && left >= cost) {
+    button = `<button type="button" class="gros-bouton" ${act}>Prendre · ${cost} point${cost > 1 ? 's' : ''}</button>`;
+    note = other ? `Un seul talent par palier : l'autre choix est <b>${other.name}</b>.` : 'La carte épique de la spécialisation : un seul arbre peut aller jusque-là.';
   } else if (sel.tier === picks.length && left > 0) {
-    button = `<button type="button" class="gros-bouton" ${act}>Prendre · 1 point</button>`;
-    note = other ? `Un seul talent par palier : l'autre choix est <b>${other.name}</b>.` : '';
+    button = `<button type="button" class="gros-bouton" disabled>Il te faut ${cost} points</button>`;
+    note = `Il t'en reste ${left}. Retire des talents ailleurs pour finir cet arbre.`;
   } else if (sel.tier === picks.length) {
     button = '<button type="button" class="gros-bouton" disabled>Plus de point à placer</button>';
     note = 'Tu gagnes 1 point par niveau de classe.';
