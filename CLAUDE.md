@@ -82,6 +82,7 @@ npm run build
 npm test            # vitest (doit rester vert)
 npm run build       # tsc + vite build
 npx tsc --noEmit -p .
+npm run e2e         # test navigateur, PC + téléphone (après npm run build)
 RUNS=50 PROFIL="Prêtre" npm run balance -- --silent=false   # équilibrage par le bot
 cd tools/pixel && python3 illustrations.py                  # régénère les illustrations de cartes
 cd tools/pixel && python3 icones_talents.py                  # régénère les icônes de talents sans carte proche
@@ -135,8 +136,8 @@ cd tools/pixel && python3 decor.py                           # régénère le d�
 
 1. **Tests automatiques** : `npm test` et `npm run build`, toujours verts avant une publication. Une nouvelle mécanique = de nouveaux tests.
 2. **Équilibrage par le bot** : `RUNS=50`, seulement la classe ou l'acte concerné (ex. `RUNS=50 PROFIL="Voleur" npm run balance -- --silent=false`). Noter le résultat dans `docs/EQUILIBRAGE.md`.
-3. **Navigateur, une seule fois à la fin** : `npm run build`, puis `npx vite preview --port 4173 --strictPort` et un script Playwright, **sur PC et sur téléphone** (petit écran). Le parcours : Commencer → choix de la classe → **hall de la guilde** → Partir en expédition → Brégan (bénédiction) → carte. Pour tester un écran précis (vendeur, feu de camp, butin), générer un état de run avec un test vitest jetable puis l'écrire dans `localStorage` (clé `wipe-and-loot:/:run`) avant de recharger.
-   Aujourd'hui, le script est réécrit à chaque conversation et se perd ensuite. À faire : le garder dans le dépôt (`tools/e2e/`), voir l'issue « 🧰 Outils et entretien ».
+3. **Navigateur, une seule fois à la fin** : `npm run build`, puis `npm run e2e` (script `tools/e2e/parcours.cjs`, captures dans `tools/e2e/captures/`, ignorées par git). Il fait le parcours **sur PC et sur téléphone** : Commencer → choix de la classe → hall de la guilde → Partir en expédition → Brégan → carte → premier combat, et échoue si une étape manque ou si la page montre une erreur JavaScript. Options : `CLASSE=mage`, `ECRANS=telephone`, `URL=…` (serveur déjà lancé).
+   Pour tester un écran précis (vendeur, feu de camp, butin) : générer un état de run avec un test vitest jetable, l'écrire dans un fichier JSON, puis `ETAT=fichier.json npm run e2e` (la run est ouverte depuis le hall, capture « etat »). Un état mal préparé donne un écran vide : le script le signale.
 
 ---
 
