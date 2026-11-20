@@ -732,3 +732,33 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .type-talent.r-legendaire { background: #4a2e12; color: #ffc27a; }
 .type-talent.k-brise { background: #4a1f1c; color: #f08a80; }
 .alerte-brise { font-size: 16px; color: #f08a80 !important; }
+
+/* ---------- Feu de camp : la scène à gauche, les choix en tuiles à droite ---------- */
+.ecran-feu { position: absolute; left: 30px; right: 30px; top: 70px; bottom: 24px; display: flex; gap: 26px; }
+.scene-feu { position: relative; flex: 1; overflow: hidden; border-radius: 16px; border: 1px solid #3a2a1f; background: radial-gradient(ellipse at 50% 72%, rgba(245, 154, 46, 0.28), rgba(232, 70, 30, 0.08) 35%, var(--fond) 70%); }
+.scene-feu::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: var(--fond-bas); border-top: 1px solid #33261c; }
+.heros-feu, .flammes-feu { position: absolute; z-index: 1; }
+.heros-feu { left: 6%; bottom: 60px; width: 200px; height: 200px; }
+.flammes-feu { left: 44%; bottom: 40px; width: 256px; height: 256px; animation: flammes-feu 1.6s ease-in-out infinite; transform-origin: 50% 85%; }
+@keyframes flammes-feu { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.03, 1.06); filter: brightness(1.12); } }
+.choix-du-feu { width: 520px; flex: none; display: flex; flex-direction: column; justify-content: center; gap: 14px; overflow-y: auto; }
+.choix-du-feu h2 { margin: 0; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; }
+.choix-du-feu > p { margin: 0; color: var(--texte-2); font-size: 17px; }
+.choix-feu { display: flex; gap: 16px; align-items: center; padding: 14px 18px; border-radius: 14px; border: 2px solid #6a4f3a; background: var(--panneau); text-align: left; color: var(--texte); }
+.choix-feu:hover:not(:disabled) { border-color: var(--or); }
+.choix-feu > img { width: 64px; height: 64px; flex: none; }
+.choix-feu .case-equipement { width: 64px; height: 64px; }
+.choix-feu .case-equipement svg { width: 34px; height: 34px; }
+.texte-choix { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.texte-choix > b { font-size: 21px; }
+.texte-choix > span { color: var(--texte-2); font-size: 15px; line-height: 1.3; }
+.choix-feu.principal { border-color: var(--accent-clair); background: #3a2414; }
+.choix-feu.legendaire { border-color: #ff9a2a; background: #3a2410; box-shadow: 0 0 14px rgba(255, 154, 42, 0.35); }
+.choix-feu.legendaire .texte-choix > b { color: #ffc27a; }
+.choix-feu.legendaire .texte-choix > span { font-size: 13px; }
+.effet-choix b { color: var(--or-clair); }
+.choix-feu:disabled { opacity: 0.45; filter: grayscale(0.7); }
+.apercu-pv { position: relative; width: 220px; height: 12px; margin-top: 4px; overflow: hidden; border-radius: 6px; background: #3a1a18; }
+.apercu-pv i, .apercu-pv u { position: absolute; top: 0; bottom: 0; }
+.apercu-pv i { left: 0; background: var(--pv); }
+.apercu-pv u { background: var(--vert); }

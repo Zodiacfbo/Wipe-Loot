@@ -1450,21 +1450,36 @@ function campfireScreen(run: RunState): string {
       <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
     </div>`;
   }
-  const heal = campfireHealAmount(run);
-  return `${topbar(run, run.hp)}<div class="ecran">
-    <h2>Feu de camp</h2>
-    <p>La chaleur de la montagne se fait oublier un instant. Prends le temps de souffler, ou de t'entraîner.</p>
-    ${canReforge(run) ? `<p class="texte-evenement classe">Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d'entraînement. L'épée remplacera ton arme actuelle.</p>${itemHtml('brisemonts')}` : ''}
-    ${canForgeEquinoxe(run) ? `<p class="texte-evenement classe">Tu sertis la Larme d'Ysolde au sommet du Bâton nu. La pierre s'illumine, puis s'assombrit, puis s'illumine encore.</p>${itemHtml('equinoxe')}` : ''}
-    ${canForgeAurore(run) ? `<p class="texte-evenement classe">Tu poses la lame purifiée dans les braises. Une lueur d'aube monte de l'acier, comme si elle n'attendait que ce feu-là.</p>${itemHtml('aurore_ardente')}` : ''}
-    ${canBindStaff(run) ? `<p class="texte-evenement classe">Tu poses le Fragment et la Tête du bâton près du feu. Les runes s'éveillent : le Veilleur attend un dernier sacrifice.</p>${itemHtml('baton_veilleur')}` : ''}
-    <div class="actions">
-      ${canReforge(run) ? '<button type="button" class="gros-bouton legendaire" data-action="reforger">Reforger Brisemonts</button>' : ''}
-      ${canBindStaff(run) ? '<button type="button" class="gros-bouton legendaire" data-action="lier-fragments">Lier les fragments</button>' : ''}
-      ${canForgeEquinoxe(run) ? '<button type="button" class="gros-bouton legendaire" data-action="equinoxe">Rituel de l\'équinoxe</button>' : ''}
-      ${canForgeAurore(run) ? '<button type="button" class="gros-bouton legendaire" data-action="aurore">Rallumer l\'Aurore ardente</button>' : ''}
-      ${canRest(run) ? `<button type="button" class="gros-bouton" data-action="repos">Se reposer (+${heal} PV)</button>` : '<button type="button" class="gros-bouton" disabled>Repos impossible (Flamme captive)</button>'}
-      <button type="button" class="gros-bouton secondaire" data-action="feu-ameliorer">Améliorer une carte</button>
+  const heal = Math.min(campfireHealAmount(run), run.maxHp - run.hp);
+  const pct = (n: number) => `${Math.round((100 * n) / run.maxHp)}%`;
+  // Les légendaires à forger : une tuile dorée chacun (le texte de l'étape et l'objet obtenu).
+  const forges = [
+    canReforge(run) && { action: 'reforger', label: 'Reforger Brisemonts', item: 'brisemonts', text: 'Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d\'entraînement. L\'épée remplacera ton arme actuelle.' },
+    canBindStaff(run) && { action: 'lier-fragments', label: 'Lier les fragments', item: 'baton_veilleur', text: 'Tu poses le Fragment et la Tête du bâton près du feu. Les runes s\'éveillent : le Veilleur attend un dernier sacrifice.' },
+    canForgeEquinoxe(run) && { action: 'equinoxe', label: 'Rituel de l\'équinoxe', item: 'equinoxe', text: 'Tu sertis la Larme d\'Ysolde au sommet du Bâton nu. La pierre s\'illumine, puis s\'assombrit, puis s\'illumine encore.' },
+    canForgeAurore(run) && { action: 'aurore', label: 'Rallumer l\'Aurore ardente', item: 'aurore_ardente', text: 'Tu poses la lame purifiée dans les braises. Une lueur d\'aube monte de l\'acier, comme si elle n\'attendait que ce feu-là.' },
+  ].filter((f): f is { action: string; label: string; item: string; text: string } => !!f);
+  const forgeTiles = forges.map((f) => `<button type="button" class="choix-feu legendaire" data-action="${f.action}">
+      <span class="case-equipement legendaire">${SLOT_ICON[ITEMS[f.item].slot]}</span>
+      <span class="texte-choix"><b>${f.label}</b><span>${f.text}</span><span class="effet-choix"><b>${ITEMS[f.item].name} :</b> ${ITEMS[f.item].text}</span></span></button>`).join('');
+  const rest = !canRest(run)
+    ? `<button type="button" class="choix-feu" disabled><img class="px" src="${A('icone_repos.png')}" alt=""><span class="texte-choix"><b>Se reposer</b><span>Repos impossible (Flamme captive).</span></span></button>`
+    : heal <= 0
+      ? `<button type="button" class="choix-feu" disabled><img class="px" src="${A('icone_repos.png')}" alt=""><span class="texte-choix"><b>Se reposer</b><span>Tu as déjà tous tes PV.</span></span></button>`
+      : `<button type="button" class="choix-feu principal" data-action="repos"><img class="px" src="${A('icone_repos.png')}" alt=""><span class="texte-choix"><b>Se reposer</b><span>+${heal} PV : ${run.hp} → ${run.hp + heal}</span>
+          <span class="apercu-pv"><i style="width:${pct(run.hp)}"></i><u style="left:${pct(run.hp)};width:${pct(heal)}"></u></span></span></button>`;
+  const hero = classInfo(run.classId);
+  return `${topbar(run, run.hp)}<div class="ecran-feu">
+    <div class="scene-feu">
+      <img class="px heros-feu" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}">
+      <img class="px flammes-feu" src="${A('feu_camp.png')}" alt="">
+    </div>
+    <div class="choix-du-feu">
+      <h2>Feu de camp</h2>
+      <p>La chaleur de la montagne se fait oublier un instant. Une seule action avant de repartir.</p>
+      ${forgeTiles}
+      ${rest}
+      <button type="button" class="choix-feu" data-action="feu-ameliorer"><img class="px" src="${A('icone_enclume.png')}" alt=""><span class="texte-choix"><b>Améliorer une carte</b><span>Le maître de classe améliore une carte de ton deck.</span></span></button>
     </div>
   </div>`;
 }
@@ -2296,6 +2311,7 @@ function fit(): void {
 
 const PRELOAD = [
   'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'voleur.png', 'paladin.png', 'vendeur_gobelin.png', 'bregan.png',
+  'feu_camp.png', 'icone_repos.png', 'icone_enclume.png',
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',
