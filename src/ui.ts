@@ -82,7 +82,7 @@ import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save
 // Outil de test (version dev seulement)
 import { devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
-import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
+import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotOf, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx } from './fx';
 import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState } from './engine/types';
@@ -121,6 +121,8 @@ interface UiState {
   /** Archives de la guilde : écran ouvert et onglet. */
   archivesScreen: boolean;
   archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres';
+  /** Équipement : la case regardée (emplacement d'objet, ou « sort-<index> » pour la barre de sorts). */
+  equipSel?: string | null;
   /** Carte dont on regarde l'amélioration avant de la confirmer. */
   upgradeUid: number | null;
   /** Objet choisi pour le dépôt, quand le coffre est plein (on choisit ensuite quoi remplacer). */
@@ -226,14 +228,87 @@ function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false)
   }
   const it = ITEMS[id];
   // Effets qui ne servent pas à la classe jouée : on le dit clairement.
+  const useless = uselessNote(id);
+  const note = useless ? `<i class="note-objet">${useless}</i>` : '';
+  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
+}
+
+const RARITY_LABEL: Record<string, string> = { commun: 'commun', rare: 'rare', epique: 'épique', legendaire: 'légendaire' };
+
+/** La remarque « sans effet pour ta classe » d'un objet (vide si tout lui sert). */
+function uselessNote(id: string): string {
   const cls = ui.run?.classId ?? activeClass();
   const name = classInfo(cls).name;
-  const keys = Object.keys(it.fx);
   const useless = uselessFx(id, cls);
-  const note = useless.length === 0 ? '' : useless.length === keys.length
-    ? `<i class="note-objet">Sans effet pour le ${name}.</i>`
-    : `<i class="note-objet">${cls === 'guerrier' || cls === 'voleur' ? 'Le bonus aux Sorts' : 'Le bonus aux Attaques'} ne sert pas au ${name}.</i>`;
-  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
+  if (useless.length === 0) return '';
+  return useless.length === Object.keys(ITEMS[id].fx).length
+    ? `Sans effet pour le ${name}.`
+    : `${cls === 'guerrier' || cls === 'voleur' ? 'Le bonus aux Sorts' : 'Le bonus aux Attaques'} ne sert pas au ${name}.`;
+}
+
+/** Où se place chaque emplacement autour du héros (colonne gauche ou droite, rang 1 à 3). */
+const EQUIP_LAYOUT: Record<SlotKey, [string, number]> = {
+  arme: ['g', 1], bague1: ['g', 2], bijou1: ['g', 3], amulette: ['d', 1], bague2: ['d', 2], bijou2: ['d', 3],
+};
+
+/** L'équipement : le héros entouré de ses 6 emplacements, la barre de sorts dessous, et la fiche de la case touchée à droite. */
+function equipmentOverlay(run: RunState): string {
+  const hero = classInfo(run.classId);
+  const cap = barCapacity(run);
+  const sel = ui.equipSel ?? 'arme';
+  const slots = SLOT_KEYS.map((k) => {
+    const id = run.equipment[k];
+    const broken = run.broken.includes(k);
+    const [col, row] = EQUIP_LAYOUT[k];
+    const cls = id ? `${ITEMS[id].rarity}${broken ? ' brise' : ''}` : 'vide';
+    return `<button type="button" class="case-equipement ${cls} ${sel === k ? 'choisie' : ''}" style="grid-area:${row} / ${col === 'g' ? 1 : 3}" data-action="equip-voir" data-id="${k}" aria-label="${SLOT_LABEL[k]}${id ? ` : ${ITEMS[id].name}` : ' : vide'}">
+      ${SLOT_ICON[slotOf(k)]}${broken ? '<span class="pastille-brise">!</span>' : ''}<span class="nom-case">${SLOT_LABEL[k]}</span></button>`;
+  }).join('');
+  const spells = Array.from({ length: cap }, (_, i) => {
+    const id = run.spells[i];
+    const key = `sort-${i}`;
+    return id
+      ? `<button type="button" class="case-equipement case-sort ${sel === key ? 'choisie' : ''}" data-action="equip-voir" data-id="${key}" aria-label="${SPELLS[id].name}">${ICON[SPELLS[id].icon]}</button>`
+      : `<button type="button" class="case-equipement case-sort vide ${sel === key ? 'choisie' : ''}" data-action="equip-voir" data-id="${key}" aria-label="Emplacement de sort libre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></button>`;
+  }).join('');
+  return `<div class="overlay"><div class="ecran-equipement">
+    <section class="poupee">
+      <h2>Équipement</h2>
+      <div class="poupee-grille">${slots}<img class="px poupee-heros" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}"></div>
+      <div class="poupee-sorts"><span class="titre-rappel">Barre de sorts · ${run.spells.length}/${cap}</span><div>${spells}</div></div>
+    </section>
+    ${equipmentSheet(run, sel)}
+  </div></div>`;
+}
+
+/** La fiche de la case touchée dans l'équipement. */
+function equipmentSheet(run: RunState, sel: string): string {
+  const close = '<div class="bas-fiche"><button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button></div>';
+  if (sel.startsWith('sort-')) {
+    const id = run.spells[Number(sel.slice(5))];
+    if (!id) {
+      return `<aside class="fiche-talent fiche-equipement"><div class="haut-fiche"><span class="case-equipement case-sort vide grande"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></span><div class="titre-fiche">Emplacement libre</div></div>
+        <div class="texte-fiche"><p>Un sort de barre de ta classe peut tomber des boss secondaires : il se range ici.</p></div>${close}</aside>`;
+    }
+    const d = SPELLS[id];
+    return `<aside class="fiche-talent fiche-equipement"><div class="haut-fiche"><span class="case-equipement case-sort grande">${ICON[d.icon]}</span><div><div class="titre-fiche">${d.name}</div>
+      <div class="etiquettes"><span class="type-talent k-sort">Sort de barre</span><span class="type-talent">${d.cost > 0 ? `${d.cost} énergie` : 'gratuit'}</span><span class="type-talent">${d.once ? 'une fois par combat' : `recharge ${d.cooldown} tours`}</span></div></div></div>
+      <div class="texte-fiche"><p>${d.text}</p></div>${close}</aside>`;
+  }
+  const key = sel as SlotKey;
+  const id = run.equipment[key];
+  const icon = SLOT_ICON[slotOf(key)];
+  if (!id) {
+    const what = slotOf(key) === 'bague' || slotOf(key) === 'bijou' ? `Tu peux porter 2 ${SLOT_LABEL[key].toLowerCase()}x.` : '';
+    return `<aside class="fiche-talent fiche-equipement"><div class="haut-fiche"><span class="case-equipement vide grande">${icon}</span><div class="titre-fiche">${SLOT_LABEL[key]} · vide</div></div>
+      <div class="texte-fiche"><p>${what} On trouve des objets chez les boss secondaires, dans les coffres et chez le vendeur gobelin.</p></div>${close}</aside>`;
+  }
+  const it = ITEMS[id];
+  const broken = run.broken.includes(key);
+  const note = uselessNote(id);
+  return `<aside class="fiche-talent fiche-equipement ${broken ? 'brisee' : ''}"><div class="haut-fiche"><span class="case-equipement ${it.rarity}${broken ? ' brise' : ''} grande">${icon}</span><div><div class="titre-fiche">${it.name}</div>
+    <div class="etiquettes"><span class="type-talent">${SLOT_LABEL[key]}</span><span class="type-talent r-${it.rarity}">${RARITY_LABEL[it.rarity]}</span>${broken ? '<span class="type-talent k-brise">brisé</span>' : ''}</div></div></div>
+    <div class="texte-fiche"><p>${it.text}</p>${broken ? `<p class="alerte-brise">Effet désactivé jusqu'à la réparation : ${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin.</p>` : ''}${note ? `<p class="note">${note}</p>` : ''}</div>${close}</aside>`;
 }
 
 /** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
@@ -1662,16 +1737,7 @@ function overlayHtml(run: RunState | null): string {
       </div>
     </div></div>`;
   }
-  if (ui.overlay === 'equipement') {
-    const slots = SLOT_KEYS.map((k) => itemHtml(run.equipment[k], SLOT_LABEL[k], '', run.broken.includes(k))).join('');
-    return `<div class="overlay"><div class="ecran" style="gap:16px">
-      <h2>Équipement</h2>
-      <div class="grille-equipement">${slots}</div>
-      <h3 class="titre-barre">Barre de sorts · ${run.spells.length}/${barCapacity(run)}</h3>
-      <div class="grille-equipement">${run.spells.map((id) => spellHtml(id)).join('')}</div>
-      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
-    </div></div>`;
-  }
+  if (ui.overlay === 'equipement') return equipmentOverlay(run);
   if (ui.overlay === 'loot') {
     const profile = loadProfile();
     const elites = run.map.nodes.filter((n) => n.type === 'elite' && n.elite !== undefined);
@@ -2046,7 +2112,8 @@ function handleClick(ev: MouseEvent): void {
     case 'deck': ui.overlay = 'deck'; render(); return;
     case 'menu': ui.overlay = 'menu'; render(); return;
     case 'fermer': ui.overlay = null; render(); return;
-    case 'equipement': ui.overlay = 'equipement'; render(); return;
+    case 'equipement': ui.overlay = 'equipement'; ui.equipSel = null; render(); return;
+    case 'equip-voir': ui.equipSel = el.dataset.id ?? null; render(); return;
     case 'loot': ui.overlay = 'loot'; render(); return;
     case 'pile': ui.overlay = 'pile'; ui.pileKind = el.dataset.pile as 'draw' | 'discard' | 'exhaust'; render(); return;
     case 'potion': ui.overlay = 'potion'; ui.potionSlot = Number(el.dataset.slot); render(); return;

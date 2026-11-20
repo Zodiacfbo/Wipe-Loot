@@ -688,3 +688,34 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .test-niveaux button.actif { border-color: var(--or); background: #3a2e17; color: var(--or-clair); }
 .test-boutons { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .bouton.danger { border-color: #c8402a; color: #f07a6a; }
+
+/* ---------- Équipement : le héros entouré de ses emplacements, et la fiche à droite ---------- */
+.ecran-equipement { position: absolute; inset: 0; display: flex; gap: 22px; padding: 28px 40px; }
+.poupee { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 24px; border-radius: 16px; border: 1px solid #3a2a1f; background: radial-gradient(ellipse at 50% 45%, #2c2119, var(--fond) 70%); }
+.poupee h2 { align-self: flex-start; margin: 0; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; }
+.poupee-grille { flex: 1; display: grid; grid-template-columns: 110px 1fr 110px; grid-template-rows: repeat(3, 1fr); column-gap: 40px; row-gap: 14px; align-items: center; justify-items: center; width: 640px; }
+.poupee-heros { grid-area: 1 / 2 / 4 / 3; width: 230px; height: 230px; }
+.case-equipement { position: relative; width: 96px; height: 96px; flex: none; padding: 0; display: grid; place-items: center; border-radius: 14px; border: 3px solid #5a4433; background: var(--panneau-sombre); color: #d9c9b4; }
+.case-equipement svg { width: 46px; height: 46px; }
+.case-equipement.vide { border-style: dashed; color: #5d4c3f; }
+.case-equipement.commun { border-color: #5fb86b; color: #8fd49a; }
+.case-equipement.rare { border-color: #4c8fe0; color: #8fb8e8; }
+.case-equipement.epique { border-color: #a66be0; color: #d4b0ff; }
+.case-equipement.legendaire { border-color: #ff9a2a; color: #ffc27a; box-shadow: 0 0 12px rgba(255, 154, 42, 0.35); }
+.case-equipement.brise::after { content: ""; position: absolute; inset: 0; border-radius: 11px; background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(200, 65, 58, 0.28) 8px 11px); }
+.case-equipement.choisie { box-shadow: 0 0 0 3px var(--or), 0 0 18px rgba(230, 195, 106, 0.45); }
+.pastille-brise { position: absolute; top: -10px; right: -10px; z-index: 1; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--fond); background: var(--pv); color: #fff; font-size: 15px; font-weight: 900; line-height: 22px; text-align: center; }
+.nom-case { position: absolute; bottom: -21px; left: 50%; transform: translateX(-50%); font-size: 13px; color: var(--texte-2); white-space: nowrap; }
+.poupee-sorts { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.poupee-sorts > div { display: flex; gap: 12px; }
+.case-sort { width: 72px; height: 72px; border-color: #c9a35a; color: #e6c36a; }
+.case-sort svg { width: 34px; height: 34px; }
+.case-equipement.grande { width: 84px; height: 84px; }
+.fiche-equipement { width: 380px; }
+.fiche-equipement.brisee { border-color: var(--pv); }
+.type-talent.r-commun { background: #213a26; color: #8fd49a; }
+.type-talent.r-rare { background: #1f3347; color: #9cc8f0; }
+.type-talent.r-epique { background: #3a2550; color: #d4b0ff; }
+.type-talent.r-legendaire { background: #4a2e12; color: #ffc27a; }
+.type-talent.k-brise { background: #4a1f1c; color: #f08a80; }
+.alerte-brise { font-size: 16px; color: #f08a80 !important; }
