@@ -1618,7 +1618,7 @@ function classScreen(): string {
   const next = nextUnlockAt(profile);
   const n = unlocksAvailable(profile);
   const [button, note] = {
-    libre: [`<button type="button" class="gros-bouton" data-action="classe-depart" data-id="${c.id}">Commencer avec le ${c.name}</button>`, 'Les autres classes se débloqueront avec l\'expérience.'],
+    libre: [`<button type="button" class="gros-bouton" data-action="classe-depart" data-id="${c.id}">Choisir le ${c.name}</button>`, 'Tu arriveras ensuite au hall de la guilde, d\'où partent les expéditions. Les autres classes se débloqueront avec l\'expérience.'],
     jouee: ['<button type="button" class="gros-bouton" disabled>Classe jouée</button>', 'C\'est la classe de tes prochaines expéditions.'],
     debloquee: [`<button type="button" class="gros-bouton" data-action="classe-active" data-id="${c.id}">Jouer le ${c.name}</button>`, ''],
     'a-debloquer': [`<button type="button" class="gros-bouton" data-action="debloquer" data-id="${c.id}">Débloquer le ${c.name}</button>`, `Tu peux débloquer ${n} classe${n > 1 ? 's' : ''} : c'est toi qui choisis.`],
@@ -2187,8 +2187,10 @@ function handleClick(ev: MouseEvent): void {
     case 'classe-depart': {
       const profile = loadProfile();
       if (chooseStartClass(profile, el.dataset.id!)) saveProfile(profile);
+      // Premier lancement : la classe choisie, on arrive au hall de la guilde (l'expédition se lance de là).
       ui.classScreen = false;
-      startNewRun();
+      ui.run = null;
+      render();
       return;
     }
     case 'classe-active': {
