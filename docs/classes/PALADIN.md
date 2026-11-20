@@ -257,7 +257,7 @@ La quête se termine tard dans la run, mais l'Aurore ardente est faite pour la *
   - Juste châtiment après un tour de gros blocage peut infliger beaucoup de dégâts pour 1 énergie.
   - La survie globale (soins + blocage + Bouclier divin) ne doit pas rendre les combats ennuyeux : l'enrage timer reste le garde-fou.
 - **Tags Mort-vivant et Démon :** il faudra les répartir dans les 4 actes pour que le Paladin ne soit pas fort uniquement dans l'acte bonus.
-- **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 coûte **3 points** (décidé, CONCEPT.md §9 ; pas encore dans le code). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
+- **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 coûte **3 points** (CONCEPT.md §9, en jeu depuis novembre 2026). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
   - **Bouclier du croisé : −7 points** (contre +21 pour 3 talents). Le bot la joue bien (tôt, face à une attaque dans 95 % des cas). Sans les copies reprises en récompense, la victoire revient exactement à la base : **la carte vaut zéro**, et ses copies en plus (1,5 en fin de run) coûtent environ 7 points. 18 blocage pour 2 énergie, Épuisée, riposte d'un seul tour : un profil de peu commune.
   - **Piste :** en faire la carte qui fonde l'arbre : la riposte et le soin **durent tout le combat** (Pouvoir ou effet permanent), quitte à baisser le blocage.
 

@@ -1,4 +1,5 @@
 // Les talents : 3 arbres de 5 paliers par classe, 1 point par niveau de classe (10 au maximum).
+// Le palier 5 (la carte épique) coûte 3 points : un arbre complet en coûte 7, on ne peut en finir qu'un seul.
 // Référence : docs/CONCEPT.md (§9), docs/classes/GUERRIER.md (§7) et docs/classes/MAGE.md (§7)
 import type { ItemEffects } from './items';
 
@@ -370,8 +371,19 @@ export function emptyAlloc(classId = 'guerrier'): TalentAlloc {
   return Object.fromEntries(treesFor(classId).map((tree) => [tree.id, []]));
 }
 
+/** Le coût d'un palier : 1 point, 3 pour le palier 5 (la carte épique). */
+export const EPIC_TIER_COST = 3;
+export function tierCost(tier: number): number {
+  return tier === 4 ? EPIC_TIER_COST : 1;
+}
+
+/** Les points dépensés dans un arbre (7 pour un arbre complet). */
+export function treePoints(picks: Choice[]): number {
+  return picks.reduce((a, _c, tier) => a + tierCost(tier), 0);
+}
+
 export function pointsUsed(alloc: TalentAlloc): number {
-  return Object.values(alloc).reduce((a, picks) => a + picks.length, 0);
+  return Object.values(alloc).reduce((a, picks) => a + treePoints(picks), 0);
 }
 
 /** Les talents choisis, dans l'ordre des arbres et des paliers. */
@@ -400,18 +412,27 @@ export function toggleTalent(alloc: TalentAlloc, tree: TreeId, tier: number, cho
     }
     return false;
   }
-  if (tier !== picks.length || pointsUsed(alloc) >= points) return false;
+  if (tier !== picks.length || pointsUsed(alloc) + tierCost(tier) > points) return false;
   picks.push(choice);
   return true;
 }
 
-/** Ramène la répartition dans les limites (points disponibles), au cas où. */
+/**
+ * Ramène la répartition dans les limites (points disponibles). Sert aussi aux anciennes sauvegardes,
+ * d'avant le palier 5 à 3 points : un 5 + 5 devient 7 + 3 (le premier arbre complet garde sa carte épique).
+ */
 export function clampAlloc(alloc: TalentAlloc, points: number, classId = 'guerrier'): TalentAlloc {
   const ids = treesFor(classId).map((tree) => tree.id);
   const a: TalentAlloc = Object.fromEntries(ids.map((id) => [id, [...(alloc[id] ?? [])]]));
   while (pointsUsed(a) > points) {
-    const longest = ids.reduce((x, y) => (a[x].length >= a[y].length ? x : y));
-    a[longest].pop();
+    const full = ids.filter((id) => a[id].length === 5);
+    // Plus de points que permis : on retire d'abord les cartes épiques en trop (on garde la première),
+    // puis le dernier palier de l'arbre le plus long qui n'est pas complet.
+    const open = ids.filter((id) => a[id].length > 0 && a[id].length < 5);
+    const from = full.length > 1 ? full[full.length - 1]
+      : open.length ? open.reduce((x, y) => (a[x].length >= a[y].length ? x : y))
+        : ids.reduce((x, y) => (a[x].length >= a[y].length ? x : y));
+    a[from].pop();
   }
   return a;
 }

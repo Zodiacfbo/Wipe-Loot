@@ -71,7 +71,7 @@ import {
   repairItem,
 } from './engine/run';
 import { POTIONS } from './engine/potions';
-import { clampAlloc, emptyAlloc, pointsUsed, talentIds, toggleTalent, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
+import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost, toggleTalent, treePoints, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
 import { CLASSES, CLASS_BY_ID, chooseStartClass, classInfo, nextUnlockAt, totalXp, unlockClass, unlocksAvailable } from './engine/classes';
@@ -1809,15 +1809,14 @@ function talentScreen(): string {
     const tiers = tree.tiers.map((options, tier) => {
       const nodes = options.map((d, i) => {
         const choice: Choice = i === 0 ? 'A' : 'B';
-        const state = picks[tier] === choice ? 'pris' : tier < picks.length ? 'ecarte' : tier === picks.length ? (left > 0 ? 'dispo' : '') : 'ferme';
+        const state = picks[tier] === choice ? 'pris' : tier < picks.length ? 'ecarte' : tier === picks.length ? (left >= tierCost(tier) ? 'dispo' : '') : 'ferme';
         const chosen = sel?.tree === tree.id && sel.tier === tier && sel.choice === choice;
         return `<button type="button" class="noeud-talent k-${talentKind(d)} ${state} ${chosen ? 'choisi' : ''}" data-action="talent-voir" data-tree="${tree.id}" data-tier="${tier}" data-choice="${choice}">
-          <span class="icone-talent"><img class="px" src="${A(talentIcon(d))}" alt="">${d.card ? '<span class="cout-palier">3 pts</span>' : ''}</span><span class="nom-talent">${d.name}</span></button>`;
+          <span class="icone-talent"><img class="px" src="${A(talentIcon(d))}" alt="">${d.card ? `<span class="cout-palier">${EPIC_TIER_COST} pts</span>` : ''}</span><span class="nom-talent">${d.name}</span></button>`;
       }).join('');
       return `<div class="palier-icones">${tier ? `<span class="lien-palier ${tier <= picks.length ? 'ouvert' : ''}"></span>` : ''}${nodes}</div>`;
     }).join('');
-    const spent = picks.length + (picks.length === 5 ? 2 : 0);
-    return `<section class="arbre-icones"><h3>${tree.name} <span>${spent}/7 points</span></h3>${tiers}</section>`;
+    return `<section class="arbre-icones"><h3>${tree.name} <span>${treePoints(picks)}/${treePoints(['A', 'A', 'A', 'A', 'A'])} points</span></h3>${tiers}</section>`;
   }).join('');
   return `<div class="ecran ecran-talents">
     <div class="tete-talents">
@@ -1850,7 +1849,7 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
       </div>
       <ul>
         <li>1 point par niveau de classe.</li>
-        <li>Un palier coûte 1 point, la carte épique 3 : un arbre complet en coûte 7, tu ne peux en finir qu'un seul.</li>
+        <li>Un palier coûte 1 point, la carte épique ${EPIC_TIER_COST} : un arbre complet en coûte ${4 + EPIC_TIER_COST}, tu ne peux en finir qu'un seul.</li>
         <li>Un seul talent par palier.</li>
         <li>Un talent dans un palier ouvre le suivant.</li>
         <li>Changer ses talents est gratuit entre deux expéditions.</li>
@@ -1863,7 +1862,7 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
   const d = tree.tiers[sel.tier][i];
   const other = tree.tiers[sel.tier][1 - i];
   const kind = talentKind(d);
-  const cost = d.card ? 3 : 1;
+  const cost = tierCost(sel.tier);
   const chips = [`<span class="type-talent k-${kind}">${TALENT_KIND_LABEL[kind]}</span>`, `<span class="type-talent">${tree.name} · palier ${sel.tier + 1}</span>`, `<span class="type-talent${cost > 1 ? ' k-epique' : ''}">${cost} point${cost > 1 ? 's' : ''}</span>`];
   let body: string;
   if (d.card) {

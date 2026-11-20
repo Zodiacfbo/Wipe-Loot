@@ -168,7 +168,7 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
   - Le butin épique de Vhaeryx arrivera avec l'acte 3 (tant que Vhaeryx termine la run).
   - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
   - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
-- **La suite décidée (novembre 2026) :** d'abord le chantier des talents (le palier 5 coûte 3 points, `CONCEPT.md` §9 : coder la règle, revoir les arbres Arcane, Destruction et Assassinat, refaire les cartes épiques faibles d'après les fiches de classe §11, puis une passe au niveau 10), ensuite finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
+- **La suite décidée (novembre 2026) :** d'abord le chantier des talents (le palier 5 coûte 3 points, `CONCEPT.md` §9, codé : `tierCost` dans `talents.ts` ; restent : revoir les arbres Arcane, Destruction et Assassinat, refaire les cartes épiques faibles d'après les fiches de classe §11, puis une passe au niveau 10), ensuite finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---

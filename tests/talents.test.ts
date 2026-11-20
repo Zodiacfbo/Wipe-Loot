@@ -40,6 +40,30 @@ describe('les arbres de talents', () => {
     a.armes = ['A', 'A', 'A'];
     expect(pointsUsed(clampAlloc(a, 2))).toBe(2);
   });
+
+  it('le palier 5 coûte 3 points : un seul arbre complet avec 10 points', () => {
+    const a = emptyAlloc();
+    for (let tier = 0; tier < 4; tier++) toggleTalent(a, 'armes', tier, 'A', 10);
+    expect(toggleTalent(a, 'armes', 4, 'A', 6)).toBe(false); // 4 + 3 > 6
+    expect(toggleTalent(a, 'armes', 4, 'A', 7)).toBe(true);
+    expect(pointsUsed(a)).toBe(7);
+    for (let tier = 0; tier < 3; tier++) expect(toggleTalent(a, 'fureur', tier, 'A', 10)).toBe(true);
+    expect(pointsUsed(a)).toBe(10);
+    expect(toggleTalent(a, 'fureur', 3, 'A', 10)).toBe(false); // plus de points
+    // Retirer la carte épique rend 3 points.
+    expect(toggleTalent(a, 'armes', 4, 'A', 10)).toBe(true);
+    expect(pointsUsed(a)).toBe(7);
+  });
+
+  it('une ancienne sauvegarde 5 + 5 devient 7 + 3 (le premier arbre garde sa carte épique)', () => {
+    const old = { ...emptyAlloc(), armes: ['A', 'B', 'A', 'B', 'A'], fureur: ['A', 'A', 'A', 'A', 'A'] } as ReturnType<typeof emptyAlloc>;
+    const a = clampAlloc(old, 10);
+    expect(a.armes).toEqual(['A', 'B', 'A', 'B', 'A']);
+    expect(a.fureur).toEqual(['A', 'A', 'A']);
+    expect(pointsUsed(a)).toBe(10);
+    // Niveau 5 avec un arbre complet : la carte épique part, les paliers 1 à 4 restent.
+    expect(clampAlloc({ ...emptyAlloc(), protection: ['A', 'A', 'A', 'A', 'A'] }, 5).protection).toEqual(['A', 'A', 'A', 'A']);
+  });
 });
 
 describe('les talents dans la run', () => {

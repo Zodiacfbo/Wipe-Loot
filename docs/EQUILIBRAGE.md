@@ -294,7 +294,7 @@ Mesuré sur la run complète (actes 1 et 2), difficulté 0, 50 runs par profil.
 
 ## 14. Les talents : le palier 5 à 3 points (novembre 2026)
 
-**La décision** (`CONCEPT.md` §9) : le palier 5 coûte 3 points, un arbre complet en coûte 7, et deux arbres complets deviennent impossibles. Une carte épique doit donc valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. La règle n'est pas encore codée.
+**La décision** (`CONCEPT.md` §9) : le palier 5 coûte 3 points, un arbre complet en coûte 7, et deux arbres complets deviennent impossibles. Une carte épique doit donc valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. La règle est codée (`tierCost` dans `talents.ts`) ; les anciennes sauvegardes 5 + 5 deviennent 7 + 3 au chargement.
 
 **La mesure** (200 runs par build, difficulté 0, option A à chaque palier, mêmes graines) : pour chaque arbre, la carte épique est comparée à 3 talents des paliers 1 à 4, sur la même base (paliers 1 à 4 de l'arbre + 3 paliers d'un autre). Seules 7 cartes épiques sur 18 valent 3 points : Frappe mortelle, Sanguinaire, Seigneur infernal, Égide des anciens, Frénésie meurtrière, Avatar de lumière, Verdict des cieux. Le diagnostic des 11 autres et les pistes sont dans les fiches de classe (§11, « Carte épique à revoir »). Trois arbres sont faibles dans leur ensemble : Arcane, Destruction, Assassinat.
 
@@ -308,3 +308,23 @@ Mesuré sur la run complète (actes 1 et 2), difficulté 0, 50 runs par profil.
 Les 53 % de l'Ombre (§11) étaient donc flatteurs : ils venaient d'un bot qui ne basculait jamais. Jouée, la Forme d'Ombre coûte cher avec le Sacré (soins divisés par deux, plus de Foi). C'est à reprendre avec la carte (fiche du Prêtre, §11).
 
 **Autre limite connue :** le bot ne valorise pas Ténèbres (Voleur), dont l'effet ne joue qu'aux combats suivants.
+
+**Le niveau 10 avec la règle** (profils passés de 5 + 5 à 7 + 3, 50 runs, difficulté 0 ; à ±7 points près). Avant : les chiffres des §§ précédents.
+
+| Profil (7 + 3) | Avant (5 + 5) | Après |
+|---|---|---|
+| Guerrier Protection / Fureur | 64-74 % | **54 %** |
+| Guerrier Armes / Fureur | 64-74 % | **58 %** |
+| Mage Givre / Feu | 64-74 % | **36 %** |
+| Mage Arcane / Feu | 64-74 % | **46 %** |
+| Démoniste Affliction / Destruction | 46 % | **34 %** |
+| Démoniste Démonologie / Destruction | 55 % | **64 %** |
+| Prêtre Discipline / Sacré | 63 % | **58 %** |
+| Prêtre Ombre / Sacré | 37 % (bot corrigé) | **34 %** |
+| Voleur Assassinat / Combat | 72 % | **30 %** |
+| Voleur Finesse / Combat | 66 % | **24 %** |
+| Paladin Vindicte / Sacré | 72 % | **74 %** |
+| Paladin Protection / Sacré | 78 % | **30 %** |
+
+**Ce qu'on en tire :** les builds dont la carte épique gardée est forte tiennent (Démonologie, Vindicte, Armes, Discipline) ; ceux qui perdaient une épique forte du deuxième arbre chutent (Voleur : Frénésie meurtrière ; Paladin Protection : Avatar de lumière). C'est l'effet attendu : la passe sur les cartes épiques faibles (fiches de classe, §11) et sur les arbres Arcane, Destruction et Assassinat doit les ramener vers la cible.
+
