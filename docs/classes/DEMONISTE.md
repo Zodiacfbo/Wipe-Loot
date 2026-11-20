@@ -264,6 +264,8 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 - **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 devrait coûter **3 points** (projet, pas encore dans CONCEPT.md §9). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
   - **Tempête d'afflictions : −4 points** (contre +14 pour 3 talents). Le bot la joue bien, mais tard (tour 5,5 en moyenne), et les DoT posés ne font alors que **6,7 dégâts par tick** au total : environ 13 dégâts pour 2 énergie, le niveau d'une commune. **C'est la carte :** elle multiplie des DoT trop petits. La crainte notée plus haut (tuer un boss d'un coup) ne se voit pas en jeu.
   - **Piste :** 1 énergie, ou en plus « prolonge tous tes DoT de 1 tour », pour qu'elle soit à la fois un déclencheur et un amplificateur.
+  - **Cataclysme de l'âme : −3 points** (contre +4 pour 3 talents). Bien jouée : 36 dégâts répartis sur 2,2 ennemis pour 2 énergie et 2,7 éclats. Mais les éclats se gardent d'un combat à l'autre : les dépenser tous coûte cher pour la suite de la run. **Tout l'arbre Destruction est faible** (3 talents n'y valent que +4) : le problème dépasse la carte.
+  - **Piste :** revoir l'arbre Destruction en premier. Pour la carte : « dépense jusqu'à 3 éclats », ou rend 1 éclat par ennemi tué.
 
 ---
 
