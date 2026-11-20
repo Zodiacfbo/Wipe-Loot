@@ -1,6 +1,7 @@
 // Les ennemis de l'acte 1 (et, dans enemies_acte2.ts, ceux de l'acte 2).
 // Référence : docs/actes/ACTE1_PROFONDEURS_ARDENTES.md
 import { ENEMIES_ACTE2 } from './enemies_acte2';
+import { ENEMIES_ACTE3 } from './enemies_acte3';
 import type { Intent } from './types';
 
 export interface EnemyDef {
@@ -19,7 +20,9 @@ export interface EnemyDef {
   /** Ce que l'ennemi fait en permanence, affiché sous son nom. */
   passive?: string;
   /** Dragon, Mort-vivant, Humanoïde, Expérience (acte 2), Démon. */
-  tags?: ('dragon' | 'mortvivant' | 'humanoide' | 'experience' | 'demon')[];
+  tags?: ('dragon' | 'mortvivant' | 'humanoide' | 'experience' | 'demon' | 'insecte' | 'construct' | 'aberration')[];
+  /** Acte 3 : Résistance, il subit 50 % de dégâts en moins de ce type de cartes. */
+  resist?: 'attaques' | 'sorts';
   /** Mutation : tirée au hasard au début du combat, active sous 50 % de PV. */
   mutation?: boolean;
   /** Commence le combat avec cette part de ses PV (Ysolde). */
@@ -223,7 +226,7 @@ const ENEMIES_ACTE1: Record<string, EnemyDef> = {
   },
 };
 
-export const ENEMIES: Record<string, EnemyDef> = { ...ENEMIES_ACTE1, ...ENEMIES_ACTE2 };
+export const ENEMIES: Record<string, EnemyDef> = { ...ENEMIES_ACTE1, ...ENEMIES_ACTE2, ...ENEMIES_ACTE3 };
 
 /** L'ennemi porte-t-il ce tag (Dragon, Mort-vivant…) ? */
 export function hasTag(id: string, tag: NonNullable<EnemyDef['tags']>[number]): boolean {

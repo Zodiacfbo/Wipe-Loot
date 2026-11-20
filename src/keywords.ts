@@ -28,6 +28,12 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Insaisissable', words: ['Insaisissable'], text: 'Ne peut pas être ciblé jusqu\'à son prochain tour.' },
   { name: 'Mort-vivant', words: ['Mort-vivant', 'Morts-vivants'], text: 'Type d\'ennemi : certaines cartes et certains objets sont plus forts contre lui.' },
   { name: 'Démon', words: ['Démon', 'Démons'], text: 'Type d\'ennemi : certaines cartes et certains objets sont plus forts contre lui.' },
+  // Acte 3
+  { name: 'Folie', words: ['Folie'], text: 'À 5 ou plus, une Hallucination arrive dans ta main à chaque tour. À 10 : Crise de folie, tu perds ton prochain tour. Une Dissipation (Magie) en retire 3. Retombe à 0 après le combat.' },
+  { name: 'Hallucination', words: ['Hallucination', 'Hallucinations'], text: 'Une fausse carte qui imite une carte de ton deck (cadre violacé, texte qui tremble). La jouer : aucun effet et tu perds 2 PV.' },
+  { name: 'Sable', words: ['Sable'], text: 'Une carte injouable qui prend une place dans ta main. Disparaît à la fin du tour.' },
+  { name: 'Enseveli', words: ['Enseveli', 'Ensevelissement'], text: 'Sous le sable : il ne peut pas être ciblé, mais les DoT et les attaques de zone le touchent. Il resurgit en frappant.' },
+  { name: 'Résistance', words: ['Résistance'], text: 'Il subit 50 % de dégâts en moins du type indiqué (Attaques ou Sorts).' },
   // Cartes
   { name: 'Épuisé', words: ['Épuisé', 'Épuisée'], text: 'Une fois jouée, la carte est retirée pour le reste du combat.' },
   { name: 'Éphémère', words: ['Éphémère'], text: 'Si la carte est encore dans ta main à la fin du tour, elle est retirée du combat.' },

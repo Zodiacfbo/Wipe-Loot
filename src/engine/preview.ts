@@ -3,6 +3,7 @@
 // (Puissance, posture, Armure fracassée, objets, talents…), sans rien toucher au vrai combat.
 import { CARDS } from './cards';
 import { canPlayCard, playCard, resolveTarget } from './combat';
+import { ENEMIES } from './enemies';
 import type { CombatState } from './types';
 
 export interface EnemyPreview {
@@ -97,5 +98,7 @@ export function cardHitValue(c: CombatState, index: number): number | null {
 }
 
 function firstTarget(c: CombatState, attack: boolean): number | undefined {
-  return c.enemies.find((e) => !e.dead && !e.submerged && !e.untargetable && !(attack && e.flying))?.uid;
+  const pool = c.enemies.filter((e) => !e.dead && !e.submerged && !e.untargetable && !(attack && e.flying));
+  // Un chiffre « neutre » : de préférence un ennemi sans Résistance (acte 3).
+  return (pool.find((e) => !ENEMIES[e.defId]?.resist) ?? pool[0])?.uid;
 }

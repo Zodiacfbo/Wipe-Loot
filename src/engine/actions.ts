@@ -193,6 +193,9 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (paladinAttack && p.divineShield) dmg *= 0.5; // Bouclier divin
   if (spell && c.favor && isPaladin(c)) dmg *= 2; // Faveur divine
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
+  // Acte 3 : Résistance aux Attaques ou aux Sorts.
+  const resist = ENEMIES[target.defId]?.resist;
+  if ((resist === 'sorts' && spell) || (resist === 'attaques' && !spell)) dmg *= 0.5;
   return Math.max(0, Math.floor(dmg));
 }
 
@@ -561,8 +564,16 @@ export const MUTATION_LABEL: Record<string, string> = {
   regeneration: 'Régénération (+6 PV par tour)',
 };
 
-/** Ce qui se passe quand un ennemi meurt (acte 2). */
+/** Ce qui se passe quand un ennemi meurt (actes 2 et 3). */
 function onEnemyDeath(c: CombatState, target: EnemyState): void {
+  // Nuée (acte 3) : les autres scarabées gagnent 1 Puissance.
+  if (target.defId === 'scarabee') {
+    for (const o of livingEnemies(c)) {
+      if (o.defId !== 'scarabee') continue;
+      o.buffs.puissance += 1;
+      fx(c, { kind: 'buff', who: o.uid, label: 'Nuée : Puissance +1' });
+    }
+  }
   // Fureur de la meute : les autres drakes gagnent 3 Puissance.
   if (target.defId.startsWith('drake_') && target.defId !== 'drake_os') {
     for (const o of livingEnemies(c)) {

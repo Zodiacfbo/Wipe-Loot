@@ -841,3 +841,13 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .ratelier > div em { color: #b8a690; font-size: 11px; }
 .lien { align-self: flex-start; padding: 2px 0; border: none; background: none; color: var(--or); font: inherit; font-weight: 700; text-decoration: underline; }
 .case-equipement.bloquee { opacity: 0.35; filter: grayscale(1); }
+
+/* ---------- Acte 3 : Folie et Hallucinations ---------- */
+.chip.folie { background: #2a1838; border-color: #9a5ad8; color: #e2c8ff; }
+.chip.folie.alerte { border-color: #d86aff; box-shadow: 0 0 8px rgba(200, 90, 255, 0.45); }
+/* Le détail qui trahit une Hallucination : cadre violacé et texte qui tremble (lisible aussi sur téléphone). */
+.carte.hallucination .cadre { filter: hue-rotate(235deg) saturate(1.25); }
+.carte.hallucination .texte > span { display: inline-block; animation: hallucination-tremble 0.35s steps(2) infinite; }
+.tampon-hallucination { border-color: #c87aff; color: #e2c8ff; background: rgba(30, 10, 40, 0.88); }
+@keyframes hallucination-tremble { 0% { transform: translate(0, 0); } 50% { transform: translate(0.8px, -0.6px); } 100% { transform: translate(-0.6px, 0.5px); } }
+@media (prefers-reduced-motion: reduce) { .carte.hallucination .texte > span { animation: none; text-decoration: underline wavy #c87aff 1px; } }

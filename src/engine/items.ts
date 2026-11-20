@@ -17,6 +17,10 @@ export function slotOf(key: SlotKey): Slot {
 
 /** Les effets possibles d'un objet. Tous les effets d'un même type s'additionnent. */
 export interface ItemEffects {
+  // Acte 3 : la Folie
+  folieImmune?: number; // immunisé à la Folie
+  folieLess?: number; // 1 Folie de moins à chaque gain
+  seeHallucinations?: number; // les Hallucinations sont clairement marquées
   attackBonus?: number; // +X dégâts aux Attaques
   lowHpBonus?: number; // +X dégâts aux Attaques contre une cible sous 50 % de PV
   firstAttackBonus?: number; // +X dégâts à la première Attaque de chaque combat

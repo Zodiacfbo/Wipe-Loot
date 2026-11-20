@@ -26,6 +26,7 @@ import { CARDS, energyCost, isEthereal, shardCost, type PlayContext } from './ca
 import { decayCurses, felhunterLock, felhunterStart, petAct, triggerDots } from './demoniste';
 import { BASE_AEGIS, BASE_FAITH, gainAegis, gainFaith } from './pretre';
 import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStrike } from './voleur';
+import { folieStartTurn, gainFolie } from './folie';
 import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
@@ -372,7 +373,10 @@ function applyCurse(c: CombatState, e: EnemyState, curse: PlayerCurse & { label:
     }
   }
   if (curse.lignee && !c.gear?.lineageImmune) lineageCurse(c);
+  // Acte 3 : la Folie, le Sable
+  if (curse.sable) addStatusToDraw(c, 'sable', curse.sable);
   fx(c, { kind: 'buff', who: 'player', label: curse.label });
+  if (curse.folie) gainFolie(c, curse.folie);
   log(c, `${e.name} : ${curse.label}.`);
 }
 
@@ -726,9 +730,13 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
       if (intent.grow) e.counter = (e.counter ?? 0) + 1;
       for (let i = 0; i < times && c.phase === 'player'; i++) {
         const dmg = enemyDamage(c, e, base, intent);
-        const blockBefore = c.player.block;
+        // Frappe perçante (acte 3) : le blocage est ignoré (il reste en place pour les coups suivants).
+        const blockBefore = intent.pierce ? 0 : c.player.block;
+        const kept = intent.pierce ? c.player.block : 0;
+        if (intent.pierce) c.player.block = 0;
         fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(blockBefore, dmg), ranged: !!intent.cast });
         const lost = damagePlayer(c, dmg, true);
+        if (intent.pierce) c.player.block += kept;
         // Paladin : épines sacrées, Pavois, Bouclier du croisé, Fervent, Juste châtiment.
         paladinOnAttacked(c, e, dmg, blockBefore - c.player.block, lost);
         if (intent.stealGold && lost > 0) {
@@ -840,6 +848,13 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
     case 'potion':
       drinkGrizzik(c, e, intent.potion);
       break;
+    case 'burrow':
+      // Ensevelissement : il ne peut plus être ciblé (les DoT et les zones le touchent) jusqu'à ce qu'il resurgisse.
+      e.buried = intent.turns;
+      e.untargetable = true;
+      fx(c, { kind: 'buff', who: e.uid, label: 'S\'enfouit' });
+      log(c, `${e.name} s'enfouit dans le sable : tu ne peux plus le cibler.`);
+      break;
     case 'heal': {
       const allies = intent.self ? [] : livingEnemies(c).filter((o) => o !== e && o.hp < o.maxHp && !o.noHeal);
       const pool = allies.length > 0 ? allies : [e];
@@ -950,6 +965,20 @@ function enemyTurnInner(c: CombatState): void {
       damageEnemy(c, e, burn, true);
       if (!(c.gear?.bossBurnKeep && isBossEnemy(e))) e.buffs.brulure = Math.max(0, burn - 1);
       if (e.dead || c.phase !== 'player') continue;
+    }
+
+    // Ensevelissement (acte 3) : il reste sous le sable, puis resurgit et frappe.
+    if ((e.buried ?? 0) > 0) {
+      e.buried! -= 1;
+      if (e.buried! > 0) {
+        e.untargetable = true;
+        log(c, `${e.name} se déplace sous le sable.`);
+        decayBuffs(e);
+        decayPoison(c, e);
+        continue;
+      }
+      fx(c, { kind: 'buff', who: e.uid, label: 'Surgit !' });
+      log(c, `${e.name} surgit du sable !`);
     }
 
     // Malédiction des langages : l'Incantation prend un tour de plus.
@@ -1196,6 +1225,8 @@ function startTurnAct2(c: CombatState): void {
     log(c, 'Tu es Transformé : tu perds ce tour. Les Afflictions de sang se dissipent.');
     return;
   }
+  // Acte 3 : la Crise de folie fait perdre le tour ; à 5 Folie, une Hallucination arrive.
+  if (folieStartTurn(c)) return;
   // Coup de queue, Projection : des cartes défaussées au hasard.
   if ((d.discard ?? 0) > 0) {
     for (let i = 0; i < d.discard! && c.hand.length > 0; i++) {

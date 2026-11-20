@@ -2,6 +2,7 @@
 // Référence : docs/classes/PRETRE.md (§2 et §3)
 import { damageEnemy, drawCards, fx, livingEnemies, log, power } from './actions';
 import { random } from './rng';
+import { dispelFolie } from './folie';
 import type { CombatState } from './types';
 
 export const BASE_AEGIS = 30;
@@ -41,7 +42,8 @@ export function dispelMagic(c: CombatState): boolean {
   Object.assign(d, { demoralise: 0, impie: 0, arcane: 0, manaBurn: 0, panic: 0, lignee: 0, fracasse: 0 });
   d.afflictions = (d.afflictions ?? []).filter((a) => a !== 'rouge' && a !== 'bleue');
   if (any) log(c, 'Tu dissipes la magie qui pèse sur toi.');
-  return any;
+  // Acte 3 : la Dissipation (Magie) chasse aussi la Folie.
+  return dispelFolie(c) || any;
 }
 
 /** Dissipation (Maladie et Poison) : Toxine, Peste, et les Afflictions verte et noire. */

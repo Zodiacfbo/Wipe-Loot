@@ -29,6 +29,8 @@ export interface CardInstance {
   uid: number;
   id: string;
   upgraded: boolean;
+  /** Hallucination (acte 3) : la carte du deck dont elle prend l'apparence. */
+  mimic?: string;
 }
 
 export interface EnemyBuffs {
@@ -58,6 +60,8 @@ export type AuraId = 'devotion' | 'resistance' | 'epines';
 export type Intent =
   | {
       kind: 'attack'; dmg: number; times?: number; addZone?: number; cast?: string;
+      /** Frappe perçante : ignore le blocage. */
+      pierce?: boolean;
       /** Incantation impossible à interrompre. */
       uninterruptible?: boolean;
       /** Le joueur pioche autant de cartes en moins à son prochain tour. */
@@ -85,7 +89,9 @@ export type Intent =
   /** Des Œufs éclosent : l'ennemi lui-même (`self`), ou `count` Œufs du combat (`all` : tous). */
   | { kind: 'hatch'; label: string; self?: boolean; count?: number | 'all'; cast?: string }
   /** Grizzik : une potion tirée au hasard (annoncée un tour à l'avance). */
-  | { kind: 'potion'; potion: string; label: string; cast?: string };
+  | { kind: 'potion'; potion: string; label: string; cast?: string }
+  /** Acte 3 : l'ennemi s'enfouit dans le sable pendant `turns` tours (Ensevelissement). */
+  | { kind: 'burrow'; turns: number; label: string; cast?: string };
 
 /** Ce qu'une malédiction ennemie fait au joueur. */
 export interface PlayerCurse {
@@ -107,6 +113,9 @@ export interface PlayerCurse {
   energyLoss?: number; // énergie en moins au prochain tour
   affliction?: boolean; // une Affliction de sang au hasard (Prismagor)
   lignee?: boolean; // Malédiction de lignée (Vhaeryx), selon la classe
+  // Acte 3
+  folie?: number; // Folie gagnée (voir folie.ts)
+  sable?: number; // cartes Sable ajoutées à la pioche
 }
 
 /** Les malédictions actives sur le joueur. */
@@ -168,6 +177,8 @@ export interface EnemyState {
   counter?: number;
   /** Clignement : ne peut pas être ciblé jusqu'à son prochain tour. */
   untargetable?: boolean;
+  /** Acte 3, Ensevelissement : tours restants sous le sable (ne peut pas être ciblé ; les DoT et les zones le touchent). */
+  buried?: number;
   /** Molosse de Krâgg : se relève dans ce nombre de tours. */
   reviveIn?: number;
   /** Vulkhar affaibli par l'Eau des profondeurs : son premier Marteau des flammes arrive un tour plus tard. */
@@ -291,6 +302,9 @@ export type FxEvent =
   | { kind: 'banner'; text: string };
 
 export interface CombatState {
+  /** Acte 3 : la Folie du joueur (0 à 10), et la Crise de folie qui lui fera perdre son prochain tour. */
+  folie?: number;
+  crisis?: boolean;
   turn: number;
   phase: CombatPhase;
   player: PlayerState;

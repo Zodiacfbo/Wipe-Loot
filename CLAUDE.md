@@ -87,6 +87,7 @@ RUNS=50 PROFIL="Prêtre" npm run balance -- --silent=false   # équilibrage par 
 cd tools/pixel && python3 illustrations.py                  # régénère les illustrations de cartes
 cd tools/pixel && python3 icones_talents.py                  # régénère les icônes de talents sans carte proche
 cd tools/pixel && python3 decor.py                           # régénère le décor : feu de camp animé (4 images), icônes repos et enclume
+cd tools/pixel && python3 acte3.py                           # sprites des ennemis de l'acte 3, cartes Sable et Hallucination
 ```
 
 ### Le code
@@ -96,7 +97,7 @@ cd tools/pixel && python3 decor.py                           # régénère le d�
   - `cards.ts` (Guerrier, cartes-statut, registre `CARDS`), `cards_mage.ts`, `cards_demoniste.ts`, `cards_pretre.ts`, `cards_voleur.ts`, `cards_paladin.ts`.
   - `spells.ts` (sorts de barre de toutes les classes), `talents.ts` (arbres par classe, `CLASS_TREES`), `classes.ts` (fiches et kits de départ).
   - Mécaniques de classe : `demoniste.ts` (familier, DoT, Malédictions, éclats), `pretre.ts` (Égide, Foi), `voleur.ts` (combo, Camouflage, Poison, Contrôle), `paladin.ts` (Sceaux et Jugement, Auras, Censure).
-  - `enemies.ts` (acte 1) et `enemies_acte2.ts`, `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
+  - `enemies.ts` (acte 1), `enemies_acte2.ts` et `enemies_acte3.ts` (acte 3 : `burrow`, `resist`, `pierce`), `folie.ts` (Folie, Hallucinations, Crise de folie), `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
   - `save.ts` : sauvegarde **versionnée** avec `migrate()` (run) et `loadProfile()` (profil). Tout nouveau champ de `RunState` → incrémenter la version et ajouter une étape de migration, et mettre à jour `expect(run.version)` dans les tests.
   - `talent_icons.ts` : l'icône de chaque talent (illustration d'une carte proche, ou `talent_<id>.png` dessinée par `tools/pixel/icones_talents.py`) et `TALENT_REFS`, les cartes et sorts qu'un talent cite (rappelés dans sa fiche). Un nouveau talent → une ligne ici (vérifié par `tests/talent_icons.test.ts`).
   - `progression.ts` (score, expérience, niveaux ; par classe : victoires `wins` et légendaire forgé `legendary`, retenus depuis novembre 2026), `guild.ts` (coffre), `archives.ts` (lore des monstres).
@@ -147,7 +148,7 @@ cd tools/pixel && python3 decor.py                           # régénère le d�
 
 - **Joueurs :** moi seul (sur PC et sur téléphone). Aucun compte ni aucune donnée en ligne : la sauvegarde reste dans le navigateur. Les comptes (Firebase) sont prévus pour la phase 4.
 - **Classes jouables :** Guerrier, Mage, Paladin, Démoniste, Prêtre, Voleur (52-53 cartes, 9-10 sorts, 27 talents chacune). **Restent, dans l'ordre :** Chasseur, Chaman, Druide.
-- **Actes :** 1 (Profondeurs Ardentes, Vulkhar) et 2 (Aire de Vhaeryx), enchaînés. La run se termine après Vhaeryx. Acte 3 (Irem) à faire, puis l'acte bonus (Nécropole céleste).
+- **Actes :** 1 (Profondeurs Ardentes, Vulkhar) et 2 (Aire de Vhaeryx), enchaînés. La run se termine après Vhaeryx. **Acte 3 (Irem) en cours, en 5 lots** (fiche, §12) : lot 1 fait (Folie, Hallucinations, Sable, Ensevelissement, Résistances, 8 ennemis de trash), pas encore jouable (`LAST_ACT` = 2 jusqu'au lot 3). Ensuite l'acte bonus (Nécropole céleste).
 - **Légendaires faits :** Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor), l'Aurore ardente (Paladin : Reliquaire profané, Ossyrax, feu de camp ; l'étape des Veilleurs viendra avec l'acte 3). Ils se forgent au feu de camp à partir de l'acte 2. Restent : Corde-des-anciens, le Marteau des ancêtres (avec leurs classes).
 - **Interface (refonte des menus faite) :** mêmes règles partout : des icônes plutôt que des phrases (cadre = rareté : vert commun, bleu rare, violet épique, orange légendaire ; pointillés = vide ou pas découvert), le détail quand on touche, une confirmation pour ce qui coûte ou ne s'annule pas.
   - Fiche à droite : talents, classes (avec « Ta progression »), équipement (héros entouré de ses 6 emplacements), archives (grille par groupes, % par onglet), coffre détaillé et tables de loot.

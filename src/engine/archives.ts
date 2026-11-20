@@ -48,6 +48,15 @@ export const LORE: Record<string, string> = {
   vashka: 'La mère de la couvée noire. Elle protège ses œufs avec férocité et peut accélérer leur éclosion.',
   mimique_2: 'Un cousin du gobelin mimique des Profondeurs, plus gros et plus gourmand. Il a avalé un coffre entier de l\'Aire.',
   vhaeryx: '« Des cobayes, enfin. Approchez, approchez. Je me demandais justement ce que donnerait votre sang. » Le dragon-alchimiste fusionne les lignées pour créer une armée invincible.',
+  // Acte 3 : Irem
+  scarabee: 'Les ouvriers de la ruche d\'Irem. Un seul ne pèse rien ; mais chaque scarabée qui tombe rend les autres plus enragés.',
+  soldat_irem: 'Les lanciers de la cité ensevelie, sous une carapace noire comme la nuit du désert. Leur coup le plus vicieux traverse les boucliers.',
+  pretre_insecte: 'Ils ont entendu le Dieu dormant parler dans leurs rêves. Depuis, ils répètent ses murmures à quiconque s\'approche, et l\'esprit des intrus vacille.',
+  momie: 'Les anciens rois et leurs serviteurs, rappelés de leur sommeil par Yzhar. Leurs bandelettes répandent la peste et le sable.',
+  ver_mineur: 'Ils nagent dans le sable comme dans l\'eau. On ne les voit pas venir : on sent seulement le sol trembler, puis la morsure.',
+  gardien_obsidienne: 'Taillés dans la pierre noire par les premiers rois d\'Irem. La magie glisse sur eux ; seul l\'acier les entame vraiment.',
+  tentacule: 'Un œil au bout d\'une tige de chair, né d\'un rêve d\'Yzhar. Les lames ont du mal à le toucher, et son regard trouble l\'esprit.',
+  garde_royale: 'L\'élite de la ruche, chargée de protéger les prêtres et les rois. Son cri galvanise tous les insectes à portée.',
   vulkhar: '« Insectes ! Vous osez troubler mon sommeil ? Vous brûlerez, comme brûle la montagne ! » Arraché à son plan par la Grande Brèche, le Souverain des flammes dort sous le mont Durgal.',
 };
 

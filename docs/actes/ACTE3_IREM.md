@@ -424,3 +424,22 @@ Un joueur « moyen » en fin d'acte 3 a environ :
   - La **Couronne d'Irem** (premier tour sauté) et la **Lame de l'oubli** sont des paris risqués : ils doivent rester tentants.
 - **La Folie** pourra revenir plus tard dans d'autres raids. Elle a été pensée comme une mécanique indépendante du reste.
 - **Les PV d'Yzhar (200 + 340)** sont un premier jet, à mettre en regard de Vulkhar (300) et Vhaeryx (420).
+
+---
+
+## 12. Ce qui est en jeu (novembre 2026)
+
+Le travail est découpé en 5 lots ; l'acte 3 ne sera jouable qu'une fois les lots 1 à 3 faits (`LAST_ACT` reste à 2 d'ici là).
+
+**Lot 1 (fait) : le socle.**
+- **La Folie** (`src/engine/folie.ts`) : un compteur du combat, de 0 à 10. À 5 ou plus, une **Hallucination** arrive dans la main à chaque début de tour ; à 10, **Crise de folie** (le prochain tour est perdu, puis la Folie retombe à 0). Une **Dissipation (Magie)** retire 3 Folie. Objets prévus : `folieLess` (Amulette de lucidité), `folieImmune` (Bandeau de l'oracle, Œil d'Yzhar), `seeHallucinations` (Œil du prophète).
+- **L'Hallucination** imite une carte du deck (même nom, même coût affiché, même texte). Dans la main, elle se trahit par un **cadre violacé et un texte qui tremble** (choix de novembre 2026 : bien visible sur téléphone ; l'appui long ne la dévoile pas). La jouer : aucun effet, 2 PV perdus. Éphémère. Dans la pioche et la défausse, elle apparaît sous son vrai nom.
+- **Le Sable** : carte-statut injouable, disparaît à la fin du tour (Malédiction des sables de la Momie).
+- **L'Ensevelissement** (intention `burrow`) : l'ennemi ne peut plus être ciblé par une carte à cible unique ; **les DoT et les attaques de zone le touchent**. Il resurgit et frappe.
+- **La Résistance** (`resist` : `attaques` ou `sorts`) : 50 % de dégâts en moins. Les sorts de barre du Guerrier, du Voleur et du Paladin comptent comme des Attaques.
+- **La Frappe perçante** (`pierce`) ignore le blocage ; **Nuée** : quand un Scarabée meurt, les autres gagnent 1 Puissance.
+- Les **8 ennemis de trash** et leurs 10 groupes (`src/engine/enemies_acte3.ts`), leurs sprites et les illustrations du Sable et de l'Hallucination (`tools/pixel/acte3.py`), leurs fiches dans les archives, et les nouveaux mots-clés dans les infobulles.
+
+**À venir :** lot 2 (les 7 boss secondaires), lot 3 (Yzhar, puis l'acte enchaîné après Vhaeryx avec son butin épique, et la victoire après Yzhar), lot 4 (événements, combats cachés, les Veilleurs de l'Aurore), lot 5 (équilibrage sur 3 actes et difficulté).
+
+**Décisions de novembre 2026 :** la run se terminera après Yzhar (les difficultés déjà débloquées restent acquises) ; les entrailles d'Yzhar seront faites comme la fiche, puis ajustées au lot 5 ; les compagnons, totems et formes (Chasseur, Chaman, Druide) seront ajoutés avec leurs classes.

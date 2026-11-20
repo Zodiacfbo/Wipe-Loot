@@ -109,7 +109,9 @@ async function parcours(navigateur, url, nomEcran) {
     }, run);
     await page.reload();
     await page.click('[data-action="continuer"]'); // le hall propose de reprendre la run sauvegardée
-    await page.waitForTimeout(500);
+    // Les animations en attente (combat) se jouent avant l'affichage : on attend que le hall disparaisse.
+    await page.waitForFunction(() => !document.querySelector('.hall'), null, { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(800);
     await capture('etat');
     if (!(await page.locator('#stage [data-action]').count())) throw new Error(`[${nomEcran}] la run de ETAT s'ouvre sur un écran vide (état mal préparé ?)`);
     console.log('  ✓ état ouvert');

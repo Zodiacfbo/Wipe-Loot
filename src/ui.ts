@@ -190,7 +190,10 @@ function cardText(text: string, hit: number | null | undefined): string {
   return html;
 }
 
-function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null } = {}): string {
+function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; disguise?: boolean } = {}): string {
+  // Acte 3 : dans la main, une Hallucination a l'apparence de la carte qu'elle imite (cadre violacé, texte qui tremble).
+  const fake = !!opts.disguise && real.id === 'hallucination' && !!real.mimic && !!CARDS[real.mimic];
+  const card = fake ? { ...real, id: real.mimic! } : real;
   const def = CARDS[card.id];
   const frame = `cadre_${RARITY_FRAME[def.rarity]}${def.rageCost !== undefined ? '_rage' : ''}.png`;
   const cost = opts.combat ? energyCost(opts.combat, card.id, card.upgraded) : card.upgraded && def.costUp !== undefined ? def.costUp : def.cost;
@@ -198,12 +201,13 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
   const rage = def.rageCost === 'all' ? 'X' : def.rageCost ?? '';
   const gear = opts.combat?.gear ?? (ui.run ? runGear(ui.run) : undefined);
   const text = def.text(card.upgraded, gear);
-  const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : ''].join(' ');
+  const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : ''].join(' ');
   return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${text}">
     <img class="cadre px" src="${A(frame)}" alt="">
     <img class="icone px" src="${A(`carte_${card.id}.png`)}" alt="">
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
     ${opts.panicked ? '<span class="tampon-panique">Paniquée</span>' : ''}
+    ${fake && opts.combat?.gear?.seeHallucinations ? '<span class="tampon-panique tampon-hallucination">Hallucination</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
@@ -740,7 +744,10 @@ function enemyChips(e: EnemyState): string {
   if (b.gel) chips.push(`<span class="chip gel" title="À ${ui.run?.combat ? freezeThreshold(ui.run.combat) : 5} cumuls : Gelé">Gel ${b.gel}/${ui.run?.combat ? freezeThreshold(ui.run.combat) : 5}</span>`);
   if (e.gele) chips.push(`<span class="chip gel" title="${e.gele === 'skip' ? 'Perd son prochain tour' : 'Prochaine attaque réduite de moitié'}">Gelé${e.gele === 'half' ? ' : attaque ÷ 2' : ''}</span>`);
   if (e.mouton) chips.push(`<span class="chip debuff" title="Ne fait rien ; reprend forme s'il est blessé">Mouton ${e.mouton}</span>`);
-  if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
+  if (e.buried) chips.push(`<span class="chip" title="Ne peut pas être ciblé ; les DoT et les zones le touchent. Resurgit dans ${e.buried} tour${e.buried > 1 ? 's' : ''}">Enseveli</span>`);
+  else if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
+  const resist = ENEMIES[e.defId].resist;
+  if (resist) chips.push(`<span class="chip">Résistance (${resist === 'sorts' ? 'Sorts' : 'Attaques'})</span>`);
   for (const d of e.dots ?? []) chips.push(`<span class="chip ombre" title="${d.dmg} dégâts au début de son tour${d.grow ? `, +${d.grow} à chaque fois` : ''}, encore ${d.turns} tours">${DOT_LABEL[d.id] ?? 'DoT'} ${d.dmg} · ${d.turns}t</span>`);
   if (e.curses?.includes('fatigue')) chips.push(`<span class="chip ombre">Fatigue : −${e.fatigue} dégâts (${e.fatigueTurns}t)</span>`);
   if (e.curses?.includes('elements')) chips.push(`<span class="chip ombre">Éléments : Sorts +${e.elements} % (${e.elementsTurns}t)</span>`);
@@ -784,6 +791,7 @@ function intentShort(i: Intent): string {
     case 'idle': return i.label;
     case 'hatch': return i.label;
     case 'potion': return i.label;
+    case 'burrow': return i.label;
   }
 }
 
@@ -861,6 +869,8 @@ function intentNow(c: CombatState, e: EnemyState): string {
       return `<div class="intention malediction">${ICON.hausse}<span>${i.label}</span></div><div class="effet-intention">${i.self ? 'Il éclôt en Dragonnet noir' : i.count === 'all' ? 'Tous les Œufs éclosent' : `${i.count} Œufs éclosent`}</div>`;
     case 'potion':
       return `<div class="intention soutien">${ICON.hausse}<span>${i.label}</span></div><div class="effet-intention">${GRIZZIK_POTIONS[i.potion].split(' : ')[1] ?? ''}</div>`;
+    case 'burrow':
+      return `<div class="intention malediction">${ICON.charge}<span>${i.label}</span></div><div class="effet-intention">Il s'enfouit dans le sable${i.turns > 1 ? ` pendant ${i.turns} tours` : ''} : tu ne pourras plus le cibler (les DoT et les zones le touchent), puis il resurgira</div>`;
   }
 }
 
@@ -950,6 +960,8 @@ function playerChips(c: CombatState): string {
   const p = c.player;
   const d = p.debuffs;
   const chips: string[] = [];
+  // Acte 3 : la Folie (à 5, des Hallucinations ; à 10, Crise de folie).
+  if (c.folie || c.crisis) chips.push(`<span class="chip folie ${(c.folie ?? 0) >= 5 ? 'alerte' : ''}">Folie ${c.folie ?? 0}/10${c.crisis ? ' · Crise !' : ''}</span>`);
   if (p.puissance > 0) chips.push(`<span class="chip">Puissance ${p.puissance}</span>`);
   if (p.robustesse > 0) chips.push(`<span class="chip">Robustesse ${p.robustesse}</span>`);
   if (d?.demoralise) chips.push(`<span class="chip debuff" title="Tes Attaques infligent 25 % de dégâts en moins">Démoralisé ${d.demoralise}</span>`);
@@ -1139,6 +1151,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     selected: ui.selection?.kind === 'card' && ui.selection.index === i,
     combat: c,
     hit: cardHitValue(c, i),
+    disguise: true,
   })).join('');
 
   let enrage = '';

@@ -110,7 +110,12 @@
 
 ### 3.1 Les actes
 - [x] Acte 2 : l'Aire de Vhaeryx (Souffles, Envol, mutations, morts-vivants, 8 boss secondaires, Vhaeryx en 3 phases, Malédiction de lignée, 9 événements). La run enchaîne désormais les actes 1 et 2, avec les récompenses et le butin de boss de Vulkhar entre les deux
-- [ ] Acte 3 : Irem (Folie, Hallucinations, ensevelissement, immunités)
+- [ ] Acte 3 : Irem (Folie, Hallucinations, ensevelissement, immunités), en 5 lots (voir la fiche, §12)
+  - [x] Lot 1 : le socle (Folie, Hallucinations, Sable, Ensevelissement, Résistances) et les 8 ennemis de trash
+  - [ ] Lot 2 : les 7 boss secondaires
+  - [ ] Lot 3 : Yzhar, l'enchaînement après Vhaeryx et son butin épique
+  - [ ] Lot 4 : événements, combats cachés, les Veilleurs de l'Aurore
+  - [ ] Lot 5 : équilibrage sur 3 actes et difficulté
 - [ ] Acte bonus : la Nécropole céleste (éclats de clé, Gruthak, Sarvok)
 
 ### 3.2 Les classes (dans l'ordre de développement)

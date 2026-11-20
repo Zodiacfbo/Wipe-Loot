@@ -693,6 +693,25 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
     text: () => `Injouable. Disparaît à la fin du tour.`,
     play: () => {},
   },
+  // Acte 3 : le Sable des momies et des vers, les Hallucinations de la Folie.
+  sable: {
+    id: 'sable', name: 'Sable', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
+    unplayable: true, ethereal: true, icon: 'pouvoir',
+    text: () => `Injouable. Disparaît à la fin du tour.`,
+    play: () => {},
+  },
+  hallucination: {
+    // Elle prend l'apparence d'une vraie carte du deck (CardInstance.mimic, voir folie.ts).
+    id: 'hallucination', name: 'Hallucination', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
+    ethereal: true, exhaust: true, icon: 'pouvoir',
+    text: () => `Une fausse carte. La jouer : elle se dissipe sans effet et tu perds 2 PV. Éphémère.`,
+    play: (ctx) => {
+      const c = ctx.c;
+      log(c, 'La carte se dissipe entre tes doigts : c\'était une Hallucination !');
+      fx(c, { kind: 'tick', who: 'player', amount: 2, label: 'Hallucination' });
+      damagePlayer(c, 2, false);
+    },
+  },
   fardeau: {
     id: 'fardeau', name: 'Fardeau', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
     unplayable: true, icon: 'pouvoir',
