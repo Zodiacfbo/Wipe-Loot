@@ -112,6 +112,8 @@ interface UiState {
   shopCard?: number | null;
   /** Brégan : choix de la carte à retirer (Allègement). */
   blessingRemove: boolean;
+  /** Carte touchée dans une liste où le choix est définitif (retirer, sacrifier) : on demande confirmation. */
+  cardConfirm?: number | null;
   /** Écran des talents (avant une run). */
   talentScreen: boolean;
   /** Talent regardé (sa fiche s'affiche à droite). */
@@ -188,6 +190,23 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}</span>
     <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}">${text}</span>
   </button>`;
+}
+
+/** La fenêtre de confirmation d'un choix de carte définitif (retirer, sacrifier) : la carte en grand, le bouton et « Retour ». */
+function cardConfirmWindow(run: RunState, verb: string, button: string, action: string, note: string): string {
+  const card = ui.cardConfirm != null ? run.deck.find((k) => k.uid === ui.cardConfirm) : undefined;
+  if (!card) return '';
+  const def = CARDS[card.id];
+  const name = `${def.name}${card.upgraded ? '+' : ''}`;
+  const copies = run.deck.filter((k) => k.id === card.id && k.upgraded === card.upgraded).length;
+  const tag = (text: string) => `<span class="type-talent">${text}</span>`;
+  return `<div class="fenetre-boutique"><aside class="fiche-talent fiche-boutique">
+    <div class="titre-fiche">${verb} ${name} ?</div>
+    <div class="etiquettes">${tag(def.type)}${tag(CARD_RARITY_LABEL[def.rarity] ?? def.rarity)}${copies > 1 ? tag(`×${copies} dans ton deck`) : ''}</div>
+    <div class="cartes-rappel">${cardHtml(card, { action: 'disabled' })}</div>
+    <p class="note">${note}</p>
+    <div class="boutons-fiche"><button type="button" class="gros-bouton" data-action="${action}" data-uid="${card.uid}">${button}</button><button type="button" class="gros-bouton secondaire" data-action="annuler-confirmation">Retour</button></div>
+  </aside></div>`;
 }
 
 /** Un deck affiché en regroupant les cartes identiques (même carte, même amélioration) : une seule carte, avec « ×N ».
@@ -518,13 +537,13 @@ function eventScreen(run: RunState): string {
 
 function blessingScreen(run: RunState): string {
   if (ui.blessingRemove) {
-    const cards = deckList(run.deck, (card) => cardHtml(card, { action: `data-action="benediction-carte" data-uid="${card.uid}"` }));
+    const cards = deckList(run.deck, (card) => cardHtml(card, { action: `data-action="carte-a-confirmer" data-uid="${card.uid}"` }));
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Allègement</h2>
       <p>Choisis la carte à retirer de ton deck.</p>
       <div class="liste-deck">${cards}</div>
       <button type="button" class="gros-bouton secondaire" data-action="benediction-retour">Retour</button>
-    </div>`;
+    </div>${cardConfirmWindow(run, 'Retirer', 'Retirer', 'benediction-carte', 'La carte disparaît de ton deck pour toute l\'expédition.')}`;
   }
   const choices = run.blessings.map((id) => {
     const b = BLESSINGS[id];
@@ -551,7 +570,7 @@ function shopScreen(run: RunState): string {
     const remove = ui.shopMode === 'remove';
     const cards = deckList(run.deck, (card) => {
       const ok = remove || (!card.upgraded && !CARDS[card.id].unplayable);
-      const action = remove ? 'service-carte' : 'apercu-amelioration';
+      const action = remove ? 'carte-a-confirmer' : 'apercu-amelioration';
       return cardHtml(card, { action: ok ? `data-action="${action}" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
     });
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
@@ -559,7 +578,7 @@ function shopScreen(run: RunState): string {
       <p>${remove ? 'Choisis la carte à retirer définitivement de ton deck.' : 'Choisis la carte à améliorer.'} Prix : ${servicePrice(remove ? run.removals : run.upgradesBought)} or.</p>
       <div class="liste-deck">${cards}</div>
       <button type="button" class="gros-bouton secondaire" data-action="boutique-retour">Retour</button>
-    </div>`;
+    </div>${remove ? cardConfirmWindow(run, 'Retirer', `Retirer · ${servicePrice(run.removals)} or`, 'service-carte', 'La carte disparaît de ton deck pour toute l\'expédition.') : ''}`;
   }
 
   const piece = (price: number, ok: boolean, promo = false) => `<span class="prix ${ok ? '' : 'trop-cher'} ${promo ? 'promo' : ''}">${ICON.piece}${price}${promo ? ' · promo' : ''}</span>`;
@@ -1472,14 +1491,14 @@ function campfireScreen(run: RunState): string {
   if (ui.bindStaff) {
     const cards = deckList(run.deck, (card) => {
       const ok = CARDS[card.id].rarity === 'rare';
-      return cardHtml(card, { action: ok ? `data-action="lier-baton" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
+      return cardHtml(card, { action: ok ? `data-action="carte-a-confirmer" data-uid="${card.uid}"` : 'disabled', disabled: !ok });
     });
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Lier les fragments</h2>
       <p>Le bâton exige un sacrifice : choisis une carte rare de ton deck. Elle disparaît, et le Bâton du Veilleur remplace ton arme.</p>
       <div class="liste-deck">${cards}</div>
       <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
-    </div>`;
+    </div>${cardConfirmWindow(run, 'Sacrifier', 'Sacrifier', 'lier-baton', 'La carte est détruite, et le Bâton du Veilleur remplace ton arme.')}`;
   }
   const heal = Math.min(campfireHealAmount(run), run.maxHp - run.hp);
   const pct = (n: number) => `${Math.round((100 * n) / run.maxHp)}%`;
@@ -2270,13 +2289,15 @@ function handleClick(ev: MouseEvent): void {
     case 'benediction':
       if (el.dataset.id === 'allegement') { ui.blessingRemove = true; render(); break; }
       chooseBlessing(run, el.dataset.id!); commit(); break;
-    case 'benediction-carte': chooseBlessing(run, 'allegement', Number(el.dataset.uid)); ui.blessingRemove = false; commit(); break;
-    case 'benediction-retour': ui.blessingRemove = false; render(); break;
+    case 'carte-a-confirmer': ui.cardConfirm = Number(el.dataset.uid); render(); break;
+    case 'annuler-confirmation': ui.cardConfirm = null; render(); break;
+    case 'benediction-carte': chooseBlessing(run, 'allegement', Number(el.dataset.uid)); ui.blessingRemove = false; ui.cardConfirm = null; commit(); break;
+    case 'benediction-retour': ui.blessingRemove = false; ui.cardConfirm = null; render(); break;
     case 'reforger': campfireReforge(run); commit(); break;
     case 'lier-fragments':
       if (run.classId === 'demoniste') { campfireBindStaff(run); commit(); } else { ui.bindStaff = true; render(); }
       break;
-    case 'lier-baton': ui.bindStaff = false; campfireBindStaff(run, Number(el.dataset.uid)); commit(); break;
+    case 'lier-baton': ui.bindStaff = false; ui.cardConfirm = null; campfireBindStaff(run, Number(el.dataset.uid)); commit(); break;
     case 'acte-suivant': startNextAct(run); commit(); break;
     case 'equinoxe': campfireEquinoxe(run); commit(); break;
     case 'aurore': campfireAurore(run); commit(); break;
@@ -2289,11 +2310,12 @@ function handleClick(ev: MouseEvent): void {
       else if (ui.shopMode === 'upgrade') buyUpgrade(run, Number(el.dataset.uid));
       ui.shopMode = null;
       ui.upgradeUid = null;
+      ui.cardConfirm = null;
       commit();
       break;
     case 'apercu-amelioration': ui.upgradeUid = Number(el.dataset.uid); render(); break;
     case 'annuler-amelioration': ui.upgradeUid = null; render(); break;
-    case 'boutique-retour': ui.shopMode = null; ui.upgradeUid = null; render(); break;
+    case 'boutique-retour': ui.shopMode = null; ui.upgradeUid = null; ui.cardConfirm = null; render(); break;
     case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; ui.shopCard = null; leaveShop(run); commit(); break;
     case 'equiper': equipPending(run, el.dataset.slot as SlotKey, el.dataset.alt === undefined ? undefined : Number(el.dataset.alt)); commit(); break;
     case 'laisser': leavePending(run); commit(); break;
@@ -2328,7 +2350,7 @@ function handleClick(ev: MouseEvent): void {
     case 'reparer': repairItem(run, el.dataset.slot as SlotKey); commit(); break;
     case 'repos': campfireRest(run); commit(); break;
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
-    case 'feu-retour': ui.campfireUpgrade = false; ui.upgradeUid = null; ui.bindStaff = false; render(); break;
+    case 'feu-retour': ui.campfireUpgrade = false; ui.upgradeUid = null; ui.bindStaff = false; ui.cardConfirm = null; render(); break;
     case 'ameliorer': campfireUpgrade(run, Number(el.dataset.uid)); ui.campfireUpgrade = false; ui.upgradeUid = null; commit(); break;
     case 'retenter': retryAfterWipe(run); render(); commit(); break; // on affiche le combat avant la bannière « Objet brisé »
     case 'abandonner': abandonRun(run); commit(); break;
