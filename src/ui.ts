@@ -14,7 +14,7 @@ import {
   useSpell,
 } from './engine/combat';
 import { ENEMIES, TUNING, intentAt, isInterruptible } from './engine/enemies';
-import { AFFLICTIONS, GRIZZIK_POTIONS } from './engine/enemies_acte2';
+import { AFFLICTIONS, ENEMIES_ACTE2, GRIZZIK_POTIONS } from './engine/enemies_acte2';
 import { MUTATION_LABEL } from './engine/actions';
 import { ACTS, actDef } from './engine/acts';
 import { BLESSINGS, EVENTS } from './engine/events';
@@ -121,6 +121,8 @@ interface UiState {
   /** Archives de la guilde : écran ouvert et onglet. */
   archivesScreen: boolean;
   archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres';
+  /** Archives : l'icône regardée (sa fiche s'affiche à droite). */
+  archiveSel?: string | null;
   /** Équipement : la case regardée (emplacement d'objet, ou « sort-<index> » pour la barre de sorts). */
   equipSel?: string | null;
   /** Carte dont on regarde l'amélioration avant de la confirmer. */
@@ -1178,57 +1180,131 @@ function archiveCards(): [string, string[]][] {
   return CLASSES.filter((c) => c.playable).map((c) => [c.name, [...starterCards(c.id), ...rewardPool(c.id)]]);
 }
 
-/** Les archives de la guilde : cartes, objets, potions et monstres découverts. */
-function archivesScreen(): string {
+/** Une entrée des archives : sa clé, si elle est découverte, et le contenu de son icône. */
+interface ArchiveEntry { key: string; seen: boolean; icon: string; cls: string; badge?: string }
+type ArchiveGroup = { title: string; entries: ArchiveEntry[] };
+
+const CARD_RARITY_LABEL: Record<string, string> = { depart: 'départ', commune: 'commune', peu_commune: 'peu commune', rare: 'rare', epique: 'épique' };
+
+/** Les groupes d'icônes d'un onglet des archives. */
+function archiveGroups(tab: UiState['archiveTab']): ArchiveGroup[] {
   const p = loadProfile();
-  const tab = ui.archiveTab;
-  const tabs = ([['cartes', 'Cartes'], ['objets', 'Objets'], ['potions', 'Potions'], ['monstres', 'Monstres']] as const)
-    .map(([id, label]) => `<button type="button" class="onglet ${tab === id ? 'actif' : ''}" data-action="archives-onglet" data-tab="${id}">${label}</button>`).join('');
-  let body = '';
-  let count = '';
   if (tab === 'cartes') {
-    const groups = archiveCards();
-    const ids = groups.flatMap(([, list]) => list);
-    const seen = ids.filter((id) => p.seenCards.includes(id));
-    count = `${seen.length} / ${ids.length} cartes`;
-    body = groups.map(([name, list]) => `<section class="table-loot"><h3>${name} · ${list.filter((id) => p.seenCards.includes(id)).length}/${list.length}</h3><div class="liste-deck archives-cartes">${list.map((id) => p.seenCards.includes(id)
-      ? cardHtml({ uid: 0, id, upgraded: false }, { action: 'disabled' })
-      : '<div class="carte-inconnue">???</div>').join('')}</div></section>`).join('');
-  } else if (tab === 'objets') {
+    return CLASSES.filter((c) => c.playable).map((c) => ({
+      title: c.name,
+      entries: [...starterCards(c.id), ...rewardPool(c.id)].map((id) => ({
+        key: id, seen: p.seenCards.includes(id), cls: `r-${CARDS[id].rarity}`,
+        icon: `<img class="px" src="${A(`carte_${id}.png`)}" alt="">`,
+      })),
+    }));
+  }
+  if (tab === 'objets') {
     const groups: [string, string[]][] = [['Coffres et vendeur gobelin', COMMON_POOL],
       ...ELITE_ENCOUNTERS.map((e) => [e.name, LOOT_TABLES[e.loot!]] as [string, string[]]),
       ['Légendaires', Object.keys(ITEMS).filter((id) => ITEMS[id].rarity === 'legendaire')]];
-    const all = groups.flatMap((g) => g[1]);
-    count = `${all.filter((id) => p.discoveredItems.includes(id)).length} / ${all.length} objets`;
-    body = groups.map(([name, ids]) => `<section class="table-loot"><h3>${name}</h3><div class="liste-objets">${ids.map((id) => p.discoveredItems.includes(id)
-      ? itemHtml(id)
-      : `<div class="objet inconnu"><span class="objet-icone">${SLOT_ICON[ITEMS[id].slot]}</span><div><b>???</b><span>${SLOT_LABEL[slotsFor(id)[0]]} · pas encore découvert</span></div></div>`).join('')}</div></section>`).join('');
-  } else if (tab === 'potions') {
-    count = `${POTION_IDS.filter((id) => p.seenPotions.includes(id)).length} / ${POTION_IDS.length} potions`;
-    body = `<div class="liste-objets">${POTION_IDS.map((id) => p.seenPotions.includes(id)
-      ? potionHtml(id)
-      : `<div class="objet inconnu"><span class="objet-icone">${potionIcon(null, 30)}</span><div><b>???</b><span>Potion pas encore découverte</span></div></div>`).join('')}</div>`;
-  } else {
-    const ids = Object.keys(ENEMIES);
-    count = `${ids.filter((id) => p.seenEnemies.includes(id)).length} / ${ids.length} monstres`;
-    body = `<div class="bestiaire">${ids.map((id) => {
-      const d = ENEMIES[id];
-      const seen = p.seenEnemies.includes(id);
-      const kills = p.kills[id] ?? 0;
-      const kind = d.boss ? 'Boss' : d.elite ? 'Boss secondaire' : 'Monstre';
-      return `<div class="fiche-monstre ${seen ? '' : 'inconnu'}">
-        <img class="px" src="${A(`ennemi_${id}.png`)}" alt="">
-        <div><b>${seen ? d.name : '???'}</b><em>${kind}${seen ? ` · ${d.hpMax} PV · vaincu ${kills} fois` : ''}</em>
-        <span>${seen ? LORE[id] ?? '' : 'Pas encore rencontré.'}</span>${seen && d.passive ? `<span class="passif-ennemi">${d.passive}</span>` : ''}</div>
-      </div>`;
-    }).join('')}</div>`;
+    return groups.map(([title, ids]) => ({
+      title,
+      entries: ids.map((id) => ({ key: `${title}|${id}`, seen: p.discoveredItems.includes(id), cls: ITEMS[id].rarity, icon: SLOT_ICON[ITEMS[id].slot] })),
+    }));
   }
+  if (tab === 'potions') {
+    return [{ title: 'Potions', entries: POTION_IDS.map((id) => ({ key: id, seen: p.seenPotions.includes(id), cls: POTIONS[id].rarity, icon: potionIcon(p.seenPotions.includes(id) ? id : null, 44) })) }];
+  }
+  const groups: ArchiveGroup[] = [];
+  for (const act of [1, 2]) {
+    const ids = Object.keys(ENEMIES).filter((id) => (id in ENEMIES_ACTE2) === (act === 2));
+    const kinds: [string, (id: string) => boolean][] = [
+      ['Monstres', (id) => !ENEMIES[id].elite && !ENEMIES[id].boss],
+      ['Boss secondaires', (id) => !!ENEMIES[id].elite && !ENEMIES[id].boss],
+      ['Boss', (id) => !!ENEMIES[id].boss],
+    ];
+    for (const [kind, test] of kinds) {
+      const list = ids.filter(test);
+      if (list.length === 0) continue;
+      groups.push({
+        title: `Acte ${act} · ${kind}`,
+        entries: list.map((id) => ({
+          key: id, seen: p.seenEnemies.includes(id), cls: ENEMIES[id].boss ? 'boss' : ENEMIES[id].elite ? 'elite' : '',
+          icon: `<img class="px" src="${A(`ennemi_${id}.png`)}" alt="">`,
+          badge: p.kills[id] ? `×${p.kills[id]}` : undefined,
+        })),
+      });
+    }
+  }
+  return groups;
+}
+
+/** La part découverte d'un onglet des archives (en %). */
+function archiveTabProgress(tab: UiState['archiveTab']): { seen: number; total: number; pct: number } {
+  const all = archiveGroups(tab).flatMap((g) => g.entries);
+  // Un objet peut apparaître dans deux groupes : on le compte une fois.
+  const unique = new Map(all.map((e) => [e.key.split('|').pop()!, e.seen]));
+  const total = unique.size;
+  const seen = [...unique.values()].filter(Boolean).length;
+  return { seen, total, pct: total ? Math.floor((100 * seen) / total) : 0 };
+}
+
+/** Les archives de la guilde : une grille d'icônes par onglet, et la fiche de l'icône touchée à droite. */
+function archivesScreen(): string {
+  const tab = ui.archiveTab;
+  const tabs = ([['cartes', 'Cartes'], ['objets', 'Objets'], ['potions', 'Potions'], ['monstres', 'Monstres']] as const)
+    .map(([id, label]) => `<button type="button" class="onglet ${tab === id ? 'actif' : ''}" data-action="archives-onglet" data-tab="${id}">${label} · ${archiveTabProgress(id).pct} %</button>`).join('');
+  const { seen, total } = archiveTabProgress(tab);
+  const groups = archiveGroups(tab);
+  const body = groups.map((g) => `<section class="groupe-archives"><h3>${g.title} · ${g.entries.filter((e) => e.seen).length}/${g.entries.length}</h3><div class="tuiles-archives">${g.entries.map((e) =>
+    `<button type="button" class="tuile-archive ${tab} ${e.cls} ${e.seen ? '' : 'inconnue'} ${ui.archiveSel === e.key ? 'choisie' : ''}" data-action="archives-voir" data-id="${e.key}" aria-label="${e.seen ? archiveName(tab, e.key) : 'Pas encore découvert'}">${e.icon}${e.seen && e.badge ? `<span class="compteur-archive">${e.badge}</span>` : ''}${!e.seen && tab !== 'monstres' ? '<span class="compteur-archive">?</span>' : ''}</button>`).join('')}</div></section>`).join('');
+  const entry = groups.flatMap((g) => g.entries).find((e) => e.key === ui.archiveSel);
   return `<div class="ecran ecran-archives">
-    <div class="tete-talents"><h2>Archives de la guilde</h2><span class="points-talent">${count}</span></div>
-    <div class="onglets">${tabs}</div>
-    <div class="contenu-archives">${body}</div>
-    <button type="button" class="gros-bouton secondaire" data-action="titre">Retour au hall</button>
+    <div class="archives-gauche">
+      <div class="tete-talents"><h2>Archives</h2><div class="onglets">${tabs}</div><span class="points-talent">${seen} / ${total}</span></div>
+      <div class="contenu-archives">${body}</div>
+    </div>
+    <div class="archives-droite">
+      ${entry ? archiveSheet(tab, entry) : `<aside class="fiche-talent vide"><div class="titre-fiche">Archives de la guilde</div><p>Touche une icône pour voir sa fiche.</p><p>Ce que tu n'as pas encore découvert reste caché : une silhouette pour les monstres, un « ? » pour le reste.</p></aside>`}
+      <button type="button" class="gros-bouton secondaire" data-action="titre">Retour au hall</button>
+    </div>
   </div>`;
+}
+
+/** Le nom d'une entrée des archives (pour l'accessibilité). */
+function archiveName(tab: UiState['archiveTab'], key: string): string {
+  const id = key.split('|').pop()!;
+  return tab === 'cartes' ? CARDS[id].name : tab === 'objets' ? ITEMS[id].name : tab === 'potions' ? POTIONS[id].name : ENEMIES[id].name;
+}
+
+/** La fiche d'une entrée des archives. */
+function archiveSheet(tab: UiState['archiveTab'], e: ArchiveEntry): string {
+  const p = loadProfile();
+  const big = `<span class="tuile-archive grande ${tab} ${e.cls} ${e.seen ? '' : 'inconnue'}">${e.icon}</span>`;
+  const head = (title: string, tags: string) => `<div class="haut-fiche">${big}<div><div class="titre-fiche">${title}</div><div class="etiquettes">${tags}</div></div></div>`;
+  const tag = (text: string, cls = '') => `<span class="type-talent ${cls}">${text}</span>`;
+  if (tab === 'cartes') {
+    const def = CARDS[e.key];
+    const cls = CLASSES.find((c) => c.playable && [...starterCards(c.id), ...rewardPool(c.id)].includes(e.key))?.name ?? '';
+    if (!e.seen) return `<aside class="fiche-talent">${head('???', tag(cls) + tag(CARD_RARITY_LABEL[def.rarity] ?? def.rarity))}<div class="texte-fiche"><p class="note">Pas encore vue. Elle apparaîtra ici dès qu'elle te sera proposée (récompense, vendeur, deck).</p></div></aside>`;
+    return `<aside class="fiche-talent fiche-archive-carte"><div class="titre-fiche">${def.name}</div><div class="etiquettes">${tag(cls)}${tag(CARD_RARITY_LABEL[def.rarity] ?? def.rarity)}</div><div class="cartes-rappel">${cardHtml({ uid: 0, id: e.key, upgraded: false }, { action: 'disabled' })}</div></aside>`;
+  }
+  if (tab === 'objets') {
+    const [source, id] = e.key.split('|');
+    const it = ITEMS[id];
+    const tags = tag(SLOT_LABEL[slotsFor(id)[0]]) + tag(RARITY_LABEL[it.rarity], `r-${it.rarity}`);
+    const where = `<p class="note">Où le trouver : <b>${source === 'Légendaires' ? 'à forger pendant une expédition' : source}</b>.</p>`;
+    if (!e.seen) return `<aside class="fiche-talent">${head('???', tags)}<div class="texte-fiche"><p class="note">Pas encore découvert.</p>${where}</div></aside>`;
+    const note = uselessNote(id);
+    return `<aside class="fiche-talent">${head(it.name, tags)}<div class="texte-fiche"><p>${it.text}</p>${note ? `<p class="note">${note}</p>` : ''}${where}</div></aside>`;
+  }
+  if (tab === 'potions') {
+    const d = POTIONS[e.key];
+    if (!e.seen) return `<aside class="fiche-talent">${head('???', tag('Potion'))}<div class="texte-fiche"><p class="note">Pas encore découverte.</p></div></aside>`;
+    return `<aside class="fiche-talent">${head(d.name, tag('Potion') + tag(d.rarity, `r-${d.rarity}`))}<div class="texte-fiche"><p>${d.text}</p></div></aside>`;
+  }
+  const d = ENEMIES[e.key];
+  const act = e.key in ENEMIES_ACTE2 ? 2 : 1;
+  const kind = d.boss ? 'Boss' : d.elite ? 'Boss secondaire' : 'Monstre';
+  const kindTag = tag(`${kind} · acte ${act}`, d.boss ? 'r-legendaire' : d.elite ? 'r-epique' : '');
+  if (!e.seen) return `<aside class="fiche-talent">${head('???', kindTag)}<div class="texte-fiche"><p class="note">Pas encore rencontré.</p></div></aside>`;
+  const kills = p.kills[e.key] ?? 0;
+  return `<aside class="fiche-talent">${head(d.name, kindTag + tag(`${d.hpMax} PV`) + tag(`vaincu ${kills} fois`))}<div class="texte-fiche">${LORE[e.key] ? `<p class="lore-archive">${LORE[e.key]}</p>` : ''}${d.passive ? `<p class="note"><b>Passif :</b> ${d.passive}</p>` : ''}</div></aside>`;
 }
 
 /** Le choix du niveau de difficulté, dans le hall. */
@@ -2056,8 +2132,9 @@ function handleClick(ev: MouseEvent): void {
       void commit();
       return;
     case 'titre': ui.run = null; ui.overlay = null; ui.talentScreen = false; ui.classScreen = false; ui.archivesScreen = false; render(); return;
-    case 'archives': ui.run = null; ui.overlay = null; ui.archivesScreen = true; render(); return;
-    case 'archives-onglet': ui.archiveTab = el.dataset.tab as UiState['archiveTab']; render(); return;
+    case 'archives': ui.run = null; ui.overlay = null; ui.archivesScreen = true; ui.archiveSel = null; render(); return;
+    case 'archives-onglet': ui.archiveTab = el.dataset.tab as UiState['archiveTab']; ui.archiveSel = null; render(); return;
+    case 'archives-voir': ui.archiveSel = el.dataset.id ?? null; render(); return;
     case 'classes': ui.run = null; ui.overlay = null; ui.classScreen = true; ui.classSel = null; render(); return;
     case 'classe-voir': ui.classSel = el.dataset.id!; render(); return;
     case 'classe-depart': {
