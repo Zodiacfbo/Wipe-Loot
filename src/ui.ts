@@ -127,6 +127,8 @@ interface UiState {
   archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres';
   /** Archives : l'icône regardée (sa fiche s'affiche à droite). */
   archiveSel?: string | null;
+  /** Coffre détaillé et tables de loot : l'objet regardé. */
+  itemSel?: string | null;
   /** Équipement : la case regardée (emplacement d'objet, ou « sort-<index> » pour la barre de sorts). */
   equipSel?: string | null;
   /** Carte dont on regarde l'amélioration avant de la confirmer. */
@@ -349,6 +351,29 @@ function equipmentSheet(run: RunState, sel: string): string {
     <div class="texte-fiche"><p>${it.text}</p>${broken ? `<p class="alerte-brise">Effet désactivé jusqu'à la réparation : ${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin.</p>` : ''}${note ? `<p class="note">${note}</p>` : ''}</div>${close}</aside>`;
 }
 
+/** Une fenêtre « grille d'objets + fiche à droite » (coffre détaillé, tables de loot), comme les archives. */
+function itemGridOverlay(title: string, intro: string, groups: { title: string; entries: { key: string; id: string; seen: boolean }[]; spell?: boolean }[]): string {
+  const sel = groups.flatMap((g) => g.entries).find((e) => e.key === ui.itemSel);
+  const body = groups.map((g) => `<section class="groupe-archives"><h3>${g.title}</h3><div class="tuiles-archives">${g.entries.map((e) => {
+    const it = ITEMS[e.id];
+    return `<button type="button" class="tuile-archive ${it.rarity} ${e.seen ? '' : 'inconnue'} ${ui.itemSel === e.key ? 'choisie' : ''}" data-action="objet-voir" data-id="${e.key}" aria-label="${e.seen ? it.name : 'Pas encore découvert'}">${SLOT_ICON[it.slot]}${e.seen ? '' : '<span class="compteur-archive">?</span>'}</button>`;
+  }).join('')}${g.spell ? `<button type="button" class="tuile-archive case-sort ${ui.itemSel === `sort|${g.title}` ? 'choisie' : ''}" data-action="objet-voir" data-id="sort|${g.title}" aria-label="Sort de barre">${ICON.charge}</button>` : ''}</div></section>`).join('') || '<p><i>Rien pour l\'instant.</i></p>';
+  let sheet = `<aside class="fiche-talent vide"><p>${intro}</p><p>Touche une icône pour voir sa fiche.</p></aside>`;
+  if (ui.itemSel?.startsWith('sort|')) {
+    sheet = `<aside class="fiche-talent"><div class="haut-fiche"><span class="tuile-archive case-sort grande">${ICON.charge}</span><div class="titre-fiche">Sort de barre</div></div><div class="texte-fiche"><p>Un sort de barre de ta classe que tu n'as pas encore. Il tombe une fois sur cinq environ.</p></div></aside>`;
+  } else if (sel) {
+    const it = ITEMS[sel.id];
+    const tags = `<span class="type-talent">${SLOT_LABEL[slotsFor(sel.id)[0]]}</span><span class="type-talent r-${it.rarity}">${RARITY_LABEL[it.rarity]}</span>`;
+    const note = sel.seen ? uselessNote(sel.id) : '';
+    sheet = `<aside class="fiche-talent"><div class="haut-fiche"><span class="tuile-archive grande ${it.rarity} ${sel.seen ? '' : 'inconnue'}">${SLOT_ICON[it.slot]}</span><div><div class="titre-fiche">${sel.seen ? it.name : '???'}</div><div class="etiquettes">${tags}</div></div></div>
+      <div class="texte-fiche">${sel.seen ? `<p>${it.text}</p>${note ? `<p class="note">${note}</p>` : ''}` : '<p class="note">Pas encore découvert.</p>'}</div></aside>`;
+  }
+  return `<div class="overlay"><div class="ecran ecran-archives">
+    <div class="archives-gauche"><div class="tete-talents"><h2>${title}</h2></div><div class="contenu-archives">${body}</div></div>
+    <div class="archives-droite">${sheet}<button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button></div>
+  </div></div>`;
+}
+
 /** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
 function equipChoices(run: RunState, id: string, action: string, leave: string): string {
   const buttons = slotsFor(id).map((k) => {
@@ -356,7 +381,10 @@ function equipChoices(run: RunState, id: string, action: string, leave: string):
     const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
     return `<button type="button" class="bouton-objet" ${action} data-slot="${k}">${label}</button>`;
   }).join('');
-  return `<div class="choix-objet">${buttons}${leave}</div>`;
+  // L'effet des objets qui seraient remplacés, pour comparer.
+  const worn = slotsFor(id).map((k) => run.equipment[k]).filter((x, i, a): x is string => !!x && a.indexOf(x) === i);
+  const compare = worn.length ? `<p class="comparaison">${worn.map((w) => `Tu portes <b>${ITEMS[w].name}</b> : ${ITEMS[w].text}`).join('<br>')}</p>` : '';
+  return `<div class="choix-objet">${buttons}${leave}</div>${compare}`;
 }
 
 /** Une fiole, teintée de la couleur de la potion. */
@@ -1169,10 +1197,10 @@ function titleScreen(): string {
   if (ui.heirloom !== null && !chest[ui.heirloom]) ui.heirloom = null;
   const tiles = Array.from({ length: CHEST_SIZE }, (_, i) => {
     const id = chest[i];
-    if (!id) return '<div class="tuile-coffre vide"></div>';
+    if (!id) return '<span class="case-equipement vide case-coffre"></span>';
     const it = ITEMS[id];
-    return `<button type="button" class="tuile-coffre ${it.rarity} ${ui.heirloom === i ? 'emporte' : ''}" data-action="heritage" data-index="${i}" title="${it.name} : ${it.text}">
-      <span class="objet-icone">${SLOT_ICON[it.slot]}</span><b>${it.name}</b>${ui.heirloom === i ? '<em>Emporté</em>' : ''}</button>`;
+    return `<button type="button" class="case-equipement case-coffre ${it.rarity} ${ui.heirloom === i ? 'choisie' : ''}" data-action="heritage" data-index="${i}" aria-label="${it.name}">
+      ${SLOT_ICON[it.slot]}${ui.heirloom === i ? '<em>Emporté</em>' : ''}</button>`;
   }).join('');
   const chosen = ui.heirloom !== null ? ITEMS[chest[ui.heirloom]] : null;
   const run = canContinue && saved ? `<div class="run-en-cours">
@@ -1204,9 +1232,11 @@ function titleScreen(): string {
     </section>
     <section class="hall-coffre">
       <span class="butin-titre">Coffre de la guilde · ${chest.length}/${CHEST_SIZE}</span>
-      <div class="grille-coffre">${tiles}</div>
-      <p>${chest.length ? 'Touche un objet pour l\'emporter lors de la prochaine expédition (un seul). Il revient au coffre si tu gagnes, il est perdu sinon.' : 'Après une expédition gagnée, tu pourras y mettre un objet à l\'abri.'}</p>
-      <button type="button" class="bouton" data-action="voir-coffre">Voir le détail du coffre</button>
+      ${chest.length ? `<div class="grille-coffre">${tiles}</div>
+      ${chosen ? `<div class="fiche-coffre ${chosen.rarity}"><b>${chosen.name}</b> <span class="type-talent r-${chosen.rarity}">${RARITY_LABEL[chosen.rarity]}</span><p>${chosen.text}</p><p class="emporte">Emporté pour la prochaine expédition : il revient au coffre si tu gagnes, il est perdu sinon.</p></div>`
+        : '<p>Touche un objet pour voir son effet et l\'emporter lors de la prochaine expédition (un seul).</p>'}
+      <button type="button" class="bouton" data-action="voir-coffre">Voir le détail du coffre</button>`
+        : '<p>Vide pour l\'instant : après une expédition gagnée, tu pourras y mettre un objet à l\'abri.</p>'}
       <button type="button" class="gros-bouton secondaire" data-action="archives">Archives de la guilde · ${archivesProgress()} %</button>
       <div class="hall-stats">
         <span>Expéditions <b>${stats.runs}</b></span><span>Victoires <b>${stats.wins}</b></span><span>Objets découverts <b>${profile.discoveredItems.length}</b></span>
@@ -1835,12 +1865,9 @@ function overlayHtml(run: RunState | null): string {
   }
   if (ui.overlay === 'coffre') {
     const chest = loadProfile().guildChest;
-    return `<div class="overlay"><div class="ecran" style="gap:16px">
-      <h2>Le coffre de la guilde · ${chest.length}/${CHEST_SIZE}</h2>
-      <p>Après une run gagnée, tu y déposes un objet. Au début d'une run, tu peux en emporter un.</p>
-      ${chest.length > 0 ? `<div class="grille-equipement">${chest.map((id) => itemHtml(id)).join('')}</div>` : '<p><i>Le coffre est vide pour l\'instant.</i></p>'}
-      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
-    </div></div>`;
+    return itemGridOverlay(`Le coffre de la guilde · ${chest.length}/${CHEST_SIZE}`,
+      'Après une expédition gagnée, tu y déposes un objet. Au début d\'une expédition, tu peux en emporter un.',
+      [{ title: 'Objets', entries: chest.map((id, i) => ({ key: `${i}|${id}`, id, seen: true })) }]);
   }
   if (!run) return '';
   if (ui.overlay === 'pile' && run.combat) {
@@ -1884,22 +1911,17 @@ function overlayHtml(run: RunState | null): string {
     const profile = loadProfile();
     const elites = run.map.nodes.filter((n) => n.type === 'elite' && n.elite !== undefined);
     const seen = new Set<number>();
-    const blocks = elites.filter((n) => !seen.has(n.elite!) && seen.add(n.elite!)).map((n) => {
+    const groups = elites.filter((n) => !seen.has(n.elite!) && seen.add(n.elite!)).map((n) => {
       const enc = ELITE_ENCOUNTERS[n.elite!];
       const floors = elites.filter((m) => m.elite === n.elite).map((m) => m.floor + 1).join(', ');
       const table = enc.loot ? LOOT_TABLES[enc.loot] : [];
-      const list = table.map((id) => profile.discoveredItems.includes(id)
-        ? itemHtml(id)
-        : `<div class="objet inconnu"><span class="objet-icone">${SLOT_ICON[ITEMS[id].slot]}</span><div><b>???</b><span>${SLOT_LABEL[slotsFor(id)[0]]} · pas encore découvert</span></div></div>`).join('');
-      const spell = `<div class="objet inconnu"><span class="objet-icone">${ICON.charge}</span><div><b>Sort de barre de ta classe</b><span>Un sort que tu n'as pas encore</span></div></div>`;
-      return `<section class="table-loot"><h3>${enc.name} <span>· étage${floors.includes(',') ? 's' : ''} ${floors}</span></h3><div class="liste-objets">${list}${spell}</div></section>`;
-    }).join('');
-    return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:36px;gap:14px">
-      <h2>Tables de loot</h2>
-      <p>Les boss secondaires de cette carte, et ce qu'ils peuvent faire tomber. Un objet reste caché tant que tu ne l'as jamais obtenu.</p>
-      <div class="tables-loot">${blocks}</div>
-      <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
-    </div></div>`;
+      return {
+        title: `${enc.name} · étage${floors.includes(',') ? 's' : ''} ${floors}`,
+        entries: table.map((id) => ({ key: `${enc.name}|${id}`, id, seen: profile.discoveredItems.includes(id) })),
+        spell: true,
+      };
+    });
+    return itemGridOverlay('Tables de loot', 'Les boss secondaires de cette carte, et ce qu\'ils peuvent faire tomber. Un objet reste caché tant que tu ne l\'as jamais obtenu.', groups);
   }
   if (ui.overlay === 'menu') {
     return `<div class="overlay"><div class="ecran">
@@ -2190,7 +2212,8 @@ function handleClick(ev: MouseEvent): void {
       render();
       return;
     }
-    case 'voir-coffre': ui.overlay = 'coffre'; render(); return;
+    case 'voir-coffre': ui.overlay = 'coffre'; ui.itemSel = null; render(); return;
+    case 'objet-voir': ui.itemSel = el.dataset.id ?? null; render(); return;
     case 'continuer':
       ui.run = localSave.load();
       ui.overlay = null;
@@ -2259,7 +2282,7 @@ function handleClick(ev: MouseEvent): void {
     case 'fermer': ui.overlay = null; render(); return;
     case 'equipement': ui.overlay = 'equipement'; ui.equipSel = null; render(); return;
     case 'equip-voir': ui.equipSel = el.dataset.id ?? null; render(); return;
-    case 'loot': ui.overlay = 'loot'; render(); return;
+    case 'loot': ui.overlay = 'loot'; ui.itemSel = null; render(); return;
     case 'pile': ui.overlay = 'pile'; ui.pileKind = el.dataset.pile as 'draw' | 'discard' | 'exhaust'; render(); return;
     case 'potion': ui.overlay = 'potion'; ui.potionSlot = Number(el.dataset.slot); render(); return;
     case 'plein-ecran': void toggleFullscreen(); return;
