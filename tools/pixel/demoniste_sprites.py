@@ -1,6 +1,6 @@
 """Le Démoniste et ses familiers (ils regardent vers la droite, comme le héros)."""
 import os
-from sprites import RESPIRE, Sprite
+from sprites import RESPIRE, Sprite, danse
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 FEL, FEL_C = '#7ED84A', '#C8FF8A'
@@ -8,36 +8,46 @@ VIOLET, VIOLET_F = '#6A3A9E', '#3E2260'
 FEU, JAUNE = '#F59A2E', '#FFE27A'
 
 
-def demoniste():
+def demoniste(f=0):
+    """Le Démoniste. f = image de l'animation (0 à 3) : il respire, sa cape flotte, la flamme gangrenée
+    danse, ses runes s'allument tour à tour et des braises vertes s'envolent."""
     s = Sprite(64, 64)
-    s.poly([(20, 20), (32, 18), (30, 58), (12, 59)], '#2A1A3A')  # cape
-    s.poly([(24, 26), (40, 26), (46, 59), (18, 59)], VIOLET_F)  # robe
-    s.poly([(29, 30), (35, 30), (38, 59), (26, 59)], '#5A2A4E')
-    s.dots([(30, 40), (34, 48), (28, 54)], FEL, glow=True)  # runes
+    b = RESPIRE[f]
+    c = [0, -1, -2, -1][f]
+    s.poly([(20, 20 + b), (32, 18 + b), (30 + c, 58), (12 + c, 59)], '#2A1A3A')  # cape
+    s.poly([(24, 26 + b), (40, 26 + b), (46, 59), (18, 59)], VIOLET_F)  # robe
+    s.poly([(29, 30 + b), (35, 30 + b), (38, 59), (26, 59)], '#5A2A4E')
+    runes = [(30, 40), (34, 48), (28, 54)]  # les runes s'allument tour à tour
+    s.dots([r for k, r in enumerate(runes) if k != f % 3], FEL, glow=True)
+    s.dots([runes[f % 3]], FEL_C, glow=True)
     s.rect(18, 57, 46, 59, '#8E3A6E', shade=False)
     s.rect(22, 59, 29, 61, '#1E1424')
     s.rect(35, 59, 42, 61, '#2A1A30')
-    s.rect(23, 37, 41, 39, '#3A2430')
-    s.ellipse(30, 36, 34, 40, FEL, glow=True)
-    s.poly([(24, 22), (40, 22), (41, 37), (23, 37)], VIOLET)
-    s.ellipse(16, 20, 27, 28, '#4A2A5E')  # épaulières à pointes
-    s.ellipse(37, 20, 48, 28, '#4A2A5E')
-    s.poly([(17, 21), (14, 13), (21, 20)], '#1E1424')
-    s.poly([(47, 21), (50, 13), (43, 20)], '#1E1424')
-    s.poly([(24, 6), (40, 6), (42, 22), (22, 22)], '#2A1A3A')  # capuche
-    s.ellipse(27, 11, 37, 22, '#C8B0A0')  # visage pâle
-    s.rect(29, 15, 31, 16, FEL, glow=True)
-    s.rect(33, 15, 35, 16, FEL, glow=True)
-    s.poly([(26, 6), (32, 0), (38, 6)], '#2A1A3A')
-    # main gauche : flamme gangrenée
-    s.rect(16, 28, 21, 34, VIOLET)
-    s.ellipse(12, 32, 19, 38, '#C8B0A0')
-    s.poly([(10, 33), (12, 24), (15, 29), (17, 22), (20, 32)], FEL, glow=True)
-    s.poly([(12, 33), (14, 28), (16, 31), (17, 33)], FEL_C, glow=True)
-    # main droite : grimoire
-    s.rect(40, 28, 45, 34, VIOLET)
-    s.poly([(42, 30), (54, 28), (55, 40), (43, 42)], '#4A2A1E')
-    s.rect(46, 32, 51, 37, FEL, glow=True, shade=False)
+    with s.bouge(0, b):
+        s.rect(23, 37, 41, 39, '#3A2430')
+        s.ellipse(30, 36, 34, 40, FEL, glow=True)
+        s.poly([(24, 22), (40, 22), (41, 37), (23, 37)], VIOLET)
+        s.ellipse(16, 20, 27, 28, '#4A2A5E')  # épaulières à pointes
+        s.ellipse(37, 20, 48, 28, '#4A2A5E')
+        s.poly([(17, 21), (14, 13), (21, 20)], '#1E1424')
+        s.poly([(47, 21), (50, 13), (43, 20)], '#1E1424')
+        s.poly([(24, 6), (40, 6), (42, 22), (22, 22)], '#2A1A3A')  # capuche
+        s.ellipse(27, 11, 37, 22, '#C8B0A0')  # visage pâle
+        yeux = FEL_C if f == 2 else FEL
+        s.rect(29, 15, 31, 16, yeux, glow=True)
+        s.rect(33, 15, 35, 16, yeux, glow=True)
+        s.poly([(26, 6), (32, 0), (38, 6)], '#2A1A3A')
+        # main gauche : flamme gangrenée
+        s.rect(16, 28, 21, 34, VIOLET)
+        s.ellipse(12, 32, 19, 38, '#C8B0A0')
+        s.poly(danse([(10, 33), (12, 24), (15, 29), (17, 22), (20, 32)], f, 1.5), FEL, glow=True)
+        s.poly(danse([(12, 33), (14, 28), (16, 31), (17, 33)], f + 1), FEL_C, glow=True)
+        # braises vertes qui s'envolent de la flamme
+        s.dots([(14 + (k + f) % 2 * 3, 20 - 3 * ((k + f) % 4)) for k in range(2)], FEL, glow=True)
+        # main droite : grimoire
+        s.rect(40, 28, 45, 34, VIOLET)
+        s.poly([(42, 30), (54, 28), (55, 40), (43, 42)], '#4A2A1E')
+        s.rect(46, 32, 51, 37, [FEL, FEL_C, FEL_C, FEL][f], glow=True, shade=False)
     return s.render()
 
 
@@ -178,83 +188,104 @@ def pretre(f=0, tenue='lumiere'):
     return s.render()
 
 
-def voleur():
+def voleur(f=0):
+    """Le Voleur. f = image de l'animation (0 à 3) : il sautille d'un pied sur l'autre, prêt à bondir,
+    sa cape flotte et un éclat passe sur une dague puis sur l'autre."""
     s = Sprite(64, 64)
+    b = RESPIRE[f]
+    c = [0, -1, -2, -1][f]
     # cape
-    s.poly([(20, 20), (44, 20), (50, 58), (14, 58)], '#2E2634')
-    # jambes et bottes
+    s.poly([(20, 20 + b), (44, 20 + b), (50 + c, 58), (14 + c, 58)], '#2E2634')
+    # jambes et bottes (fixes)
     s.rect(24, 46, 30, 57, '#3A3440')
     s.rect(34, 46, 40, 57, '#463E4C')
     s.rect(23, 55, 31, 60, '#2A1E16')
     s.rect(33, 55, 41, 60, '#3A2A1E')
-    # tunique de cuir et ceinture
-    s.poly([(24, 24), (40, 24), (42, 46), (22, 46)], '#5A4632')
-    s.line([(25, 26), (39, 44)], '#3A2A1E', width=2)
-    s.rect(22, 40, 42, 42, '#2A1E16')
-    s.rect(31, 40, 33, 42, '#E8D84A', shade=False)
-    # capuche
-    s.ellipse(23, 6, 41, 26, '#3A3040')
-    s.poly([(23, 16), (41, 16), (44, 26), (20, 26)], '#3A3040')
-    s.ellipse(27, 12, 37, 23, '#120E16')
-    s.rect(29, 16, 30, 17, '#E8D84A', glow=True, shade=False)
-    s.rect(34, 16, 35, 17, '#E8D84A', glow=True, shade=False)
-    s.rect(27, 20, 37, 23, '#4A3E54')  # masque
-    # bras et dagues
-    s.rect(16, 28, 21, 36, '#5A4632')
-    s.rect(43, 28, 48, 36, '#5A4632')
-    s.poly([(14, 36), (16, 35), (10, 50), (9, 49)], '#DCE3EC')
-    s.rect(14, 33, 19, 36, '#8A7A5A')
-    s.poly([(48, 36), (50, 35), (58, 22), (57, 21)], '#DCE3EC')
-    s.rect(45, 34, 50, 37, '#8A7A5A')
-    s.dots([(9, 49), (57, 21)], '#F4F7FB', glow=True)
+    with s.bouge(0, b):
+        # tunique de cuir et ceinture
+        s.poly([(24, 24), (40, 24), (42, 46), (22, 46)], '#5A4632')
+        s.line([(25, 26), (39, 44)], '#3A2A1E', width=2)
+        s.rect(22, 40, 42, 42, '#2A1E16')
+        s.rect(31, 40, 33, 42, '#E8D84A', shade=False)
+        # capuche
+        s.ellipse(23, 6, 41, 26, '#3A3040')
+        s.poly([(23, 16), (41, 16), (44, 26), (20, 26)], '#3A3040')
+        s.ellipse(27, 12, 37, 23, '#120E16')
+        # les yeux regardent à gauche puis à droite
+        r = [0, 0, 1, 1][f]
+        s.rect(29 + r, 16, 30 + r, 17, '#E8D84A', glow=True, shade=False)
+        s.rect(34 + r, 16, 35 + r, 17, '#E8D84A', glow=True, shade=False)
+        s.rect(27, 20, 37, 23, '#4A3E54')  # masque
+        # bras et dagues (elles tournent un peu dans les mains)
+        d = [0, 1, 0, -1][f]
+        s.rect(16, 28, 21, 36, '#5A4632')
+        s.rect(43, 28, 48, 36, '#5A4632')
+        s.poly([(14, 36), (16, 35), (10 + d, 50), (9 + d, 49)], '#DCE3EC')
+        s.rect(14, 33, 19, 36, '#8A7A5A')
+        s.poly([(48, 36), (50, 35), (58, 22 - d), (57, 21 - d)], '#DCE3EC')
+        s.rect(45, 34, 50, 37, '#8A7A5A')
+        s.dots([(9 + d, 49), (57, 21 - d)], '#F4F7FB', glow=True)
+        # éclat qui passe sur une dague puis sur l'autre
+        x, y = [(12, 43), (52, 30), (11, 46), (55, 25)][f]
+        s.dots([(x, y), (x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)], '#FFFFFF', glow=True)
+        s.dots([(x - 2, y), (x + 2, y), (x, y - 2), (x, y + 2)], '#E8D84A', glow=True)
     return s.render()
 
 
-def paladin():
-    """Le Paladin : armure de plaques dorée, tabard blanc au soleil, marteau levé et écu."""
+def paladin(f=0):
+    """Le Paladin : armure de plaques dorée, tabard blanc au soleil, marteau levé et écu.
+    f = image de l'animation (0 à 3) : il respire, sa cape flotte, le soleil de sa cuirasse rayonne
+    et le marteau brille."""
     s = Sprite(64, 64)
     import math
+    b = RESPIRE[f]
+    c = [0, -1, -2, -1][f]
     # cape blanche
-    s.poly([(20, 20), (30, 18), (29, 57), (13, 59)], '#D8D2C4')
-    s.rect(13, 57, 29, 59, '#D8B04A', shade=False)
-    # jambes et solerets
+    s.poly([(20, 20 + b), (30, 18 + b), (29 + c, 57), (13 + c, 59)], '#D8D2C4')
+    s.line([(13 + c, 58), (29 + c, 57)], '#D8B04A', width=2)
+    # jambes et solerets (fixes)
     s.rect(24, 46, 30, 57, '#A89060')
     s.rect(33, 46, 39, 57, '#C8A868')
     s.rect(23, 55, 31, 60, '#7A6438')
     s.rect(32, 55, 40, 60, '#8A7244')
-    # tabard
-    s.poly([(24, 38), (40, 38), (42, 51), (22, 51)], '#E8E4DC')
-    s.rect(22, 50, 42, 51, '#D8B04A', shade=False)
-    # cuirasse dorée et soleil
-    s.poly([(23, 23), (41, 23), (42, 41), (22, 41)], '#C8A050')
-    s.ellipse(28, 27, 36, 35, '#FFE27A', glow=True)
-    for t in range(8):
-        a = t / 8 * math.pi * 2
-        s.line([(32 + math.cos(a) * 5, 31 + math.sin(a) * 5), (32 + math.cos(a) * 7, 31 + math.sin(a) * 7)], '#FFE27A', glow=True)
-    s.rect(22, 39, 42, 41, '#6A4A2A')
-    s.rect(31, 39, 33, 41, '#FFE27A', shade=False)
-    # épaulière arrière
-    s.ellipse(18, 20, 28, 28, '#B08A40')
-    # écu
-    s.poly([(8, 25), (24, 25), (24, 40), (16, 49), (8, 40)], '#D8B04A')
-    s.poly([(10, 27), (22, 27), (22, 39), (16, 46), (10, 39)], '#E8E4DC')
-    s.ellipse(12, 30, 20, 38, '#D8B04A')
-    s.ellipse(14, 32, 18, 36, '#FFE27A', glow=True)
-    # casque à visière et crête
-    s.ellipse(25, 8, 39, 24, '#D0A850')
-    s.rect(29, 15, 38, 16, '#1A1210', shade=False)
-    s.rect(31, 13, 32, 19, '#1A1210', shade=False)
-    s.poly([(30, 9), (32, 2), (34, 9)], '#E8E4DC')
-    # épaulière avant
-    s.ellipse(35, 20, 46, 29, '#D8B04A')
-    # bras et gantelet
-    s.rect(38, 27, 43, 35, '#C8A050')
-    s.ellipse(40, 32, 46, 38, '#A88A48')
-    # marteau levé, tête lumineuse
-    s.line([(43, 38), (52, 10)], '#6A4426', width=3)
-    s.poly([(46, 4), (58, 8), (56, 15), (44, 11)], '#E0D8C0')
-    s.poly([(47, 6), (56, 9), (55, 12), (46, 9)], '#FFF2B0', glow=True)
-    s.dots([(60, 4), (42, 2), (61, 14)], '#FFE27A', glow=True)
+    with s.bouge(0, b):
+        # tabard
+        s.poly([(24, 38), (40, 38), (42, 51), (22, 51)], '#E8E4DC')
+        s.rect(22, 50, 42, 51, '#D8B04A', shade=False)
+        # cuirasse dorée et soleil (les rayons s'allongent un sur deux)
+        s.poly([(23, 23), (41, 23), (42, 41), (22, 41)], '#C8A050')
+        s.ellipse(28, 27, 36, 35, '#FFE27A', glow=True)
+        for t in range(8):
+            a = t / 8 * math.pi * 2
+            long = 8 if (t + f) % 2 == 0 and f % 2 == 1 else 7
+            s.line([(32 + math.cos(a) * 5, 31 + math.sin(a) * 5), (32 + math.cos(a) * long, 31 + math.sin(a) * long)], '#FFE27A', glow=True)
+        s.rect(22, 39, 42, 41, '#6A4A2A')
+        s.rect(31, 39, 33, 41, '#FFE27A', shade=False)
+        # épaulière arrière
+        s.ellipse(18, 20, 28, 28, '#B08A40')
+        # écu
+        s.poly([(8, 25), (24, 25), (24, 40), (16, 49), (8, 40)], '#D8B04A')
+        s.poly([(10, 27), (22, 27), (22, 39), (16, 46), (10, 39)], '#E8E4DC')
+        s.ellipse(12, 30, 20, 38, '#D8B04A')
+        s.ellipse(14, 32, 18, 36, ['#FFE27A', '#FFF2B0', '#FFFFFF', '#FFF2B0'][f], glow=True)
+        # casque à visière et crête (la crête traîne un peu)
+        s.ellipse(25, 8, 39, 24, '#D0A850')
+        s.rect(29, 15, 38, 16, '#1A1210', shade=False)
+        s.rect(31, 13, 32, 19, '#1A1210', shade=False)
+        p = [0, -1, -1, 0][f]
+        s.poly([(30, 9), (32 + p, 2), (34, 9)], '#E8E4DC')
+        # épaulière avant
+        s.ellipse(35, 20, 46, 29, '#D8B04A')
+        # bras et gantelet
+        s.rect(38, 27, 43, 35, '#C8A050')
+        s.ellipse(40, 32, 46, 38, '#A88A48')
+        # marteau levé, tête lumineuse
+        s.line([(43, 38), (52, 10)], '#6A4426', width=3)
+        s.poly([(46, 4), (58, 8), (56, 15), (44, 11)], '#E0D8C0')
+        s.poly([(47, 6), (56, 9), (55, 12), (46, 9)], ['#FFF2B0', '#FFFFFF', '#FFF2B0', '#FFE27A'][f], glow=True)
+        # étincelles de lumière autour du marteau
+        tour = [(60, 4), (42, 2), (61, 14), (50, 0)]
+        s.dots([tour[(k + f) % 4] for k in range(3)], '#FFE27A', glow=True)
     return s.render()
 
 

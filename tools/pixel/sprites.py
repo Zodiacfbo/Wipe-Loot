@@ -185,47 +185,57 @@ def guerrier(f=0):
     return s.render()
 
 
-def mage():
+def mage(f=0):
+    """Le Mage. f = image de l'animation (0 à 3) : il respire, sa cape flotte, la flamme de sa main danse,
+    l'orbe du bâton pulse et des étincelles d'arcane tournent autour."""
     s = Sprite(64, 64)
+    b = RESPIRE[f]
+    c = [0, -1, -2, -1][f]  # la cape flotte
+    g = [0, 1, 2, 1][f]  # l'orbe pulse
     # cape arrière
-    s.poly([(20, 20), (30, 18), (28, 58), (13, 59)], '#2A2F6E')
-    # robe (bas évasé)
-    s.poly([(24, 26), (40, 26), (46, 59), (18, 59)], '#3D56B0')
-    s.poly([(30, 30), (34, 30), (37, 59), (27, 59)], '#2E4290')
+    s.poly([(20, 20 + b), (30, 18 + b), (28 + c, 58), (13 + c, 59)], '#2A2F6E')
+    # robe (bas évasé : le haut suit le corps, l'ourlet ne bouge pas)
+    s.poly([(24, 26 + b), (40, 26 + b), (46, 59), (18, 59)], '#3D56B0')
+    s.poly([(30, 30 + b), (34, 30 + b), (37, 59), (27, 59)], '#2E4290')
     s.rect(18, 57, 46, 59, '#C9A8F0', shade=False)
     # bottes
     s.rect(22, 59, 29, 61, '#3A2A3E')
     s.rect(35, 59, 42, 61, '#4A3450')
-    # ceinture et gemme
-    s.rect(23, 37, 41, 39, '#7A4E2A')
-    s.ellipse(30, 36, 34, 40, '#8FE0FF', glow=True)
-    # buste et col
-    s.poly([(24, 22), (40, 22), (41, 37), (23, 37)], '#4766C8')
-    s.poly([(27, 22), (37, 22), (32, 29)], '#C9A8F0')
-    # bras arrière (main qui lance)
-    s.rect(18, 26, 23, 34, '#3D56B0')
-    s.ellipse(15, 32, 22, 38, '#E8C6A4')
-    # flamme dans la main arrière
-    s.poly([(13, 33), (15, 25), (18, 29), (20, 23), (22, 32)], '#F59A2E', glow=True)
-    s.poly([(15, 33), (17, 28), (19, 31), (20, 33)], '#FFD45E', glow=True)
-    # visage et barbe
-    s.ellipse(27, 12, 37, 23, '#E8C6A4')
-    s.rect(30, 16, 32, 17, '#1A1210', shade=False)
-    s.rect(34, 16, 36, 17, '#1A1210', shade=False)
-    s.poly([(27, 19), (37, 19), (35, 27), (32, 30), (29, 27)], '#E6E6EE')
-    # chapeau pointu
-    s.poly([(22, 13), (42, 13), (40, 10), (24, 10)], '#2E4290')
-    s.poly([(25, 11), (39, 11), (35, 4), (30, 0), (28, 6)], '#3D56B0')
-    s.rect(24, 9, 40, 10, '#C9A8F0', shade=False)
-    s.ellipse(31, 4, 34, 7, '#FFE27A', glow=True)
-    # bras avant et main
-    s.rect(39, 26, 44, 33, '#4766C8')
-    s.ellipse(41, 31, 47, 37, '#E8C6A4')
-    # bâton
-    s.line([(44, 60), (47, 14)], '#6A4426', width=3)
-    s.ellipse(43, 6, 53, 16, '#8FB8FF', glow=True)
-    s.ellipse(45, 8, 51, 14, '#E6F2FF', glow=True)
-    s.poly([(43, 16), (47, 12), (52, 16), (47, 19)], '#5A3A22')
+    with s.bouge(0, b):
+        # ceinture et gemme
+        s.rect(23, 37, 41, 39, '#7A4E2A')
+        s.ellipse(30, 36, 34, 40, ['#8FE0FF', '#B8ECFF', '#E6F8FF', '#B8ECFF'][f], glow=True)
+        # buste et col
+        s.poly([(24, 22), (40, 22), (41, 37), (23, 37)], '#4766C8')
+        s.poly([(27, 22), (37, 22), (32, 29)], '#C9A8F0')
+        # bras arrière (main qui lance)
+        s.rect(18, 26, 23, 34, '#3D56B0')
+        s.ellipse(15, 32, 22, 38, '#E8C6A4')
+        # flamme dans la main arrière
+        s.poly(danse([(13, 33), (15, 25), (18, 29), (20, 23), (22, 32)], f, 1.5), '#F59A2E', glow=True)
+        s.poly(danse([(15, 33), (17, 28), (19, 31), (20, 33)], f + 1), '#FFD45E', glow=True)
+        # visage et barbe
+        s.ellipse(27, 12, 37, 23, '#E8C6A4')
+        s.rect(30, 16, 32, 17, '#1A1210', shade=False)
+        s.rect(34, 16, 36, 17, '#1A1210', shade=False)
+        s.poly([(27, 19), (37, 19), (35, 27), (32, 30), (29, 27)], '#E6E6EE')
+        # chapeau pointu (la pointe traîne un peu)
+        s.poly([(22, 13), (42, 13), (40, 10), (24, 10)], '#2E4290')
+        p = [0, -1, -1, 0][f]
+        s.poly([(25, 11), (39, 11), (35 + p, 4), (30 + p, 0), (28, 6)], '#3D56B0')
+        s.rect(24, 9, 40, 10, '#C9A8F0', shade=False)
+        s.ellipse(31 + p, 4, 34 + p, 7, '#FFE27A', glow=True)
+        # bras avant et main
+        s.rect(39, 26, 44, 33, '#4766C8')
+        s.ellipse(41, 31, 47, 37, '#E8C6A4')
+        # bâton et son orbe qui pulse
+        s.line([(44, 60), (47, 14)], '#6A4426', width=3)
+        s.ellipse(43 - g // 2, 6 - g // 2, 53 + g // 2, 16 + g // 2, '#8FB8FF', glow=True)
+        s.ellipse(45, 8, 51, 14, '#E6F2FF', glow=True)
+        s.poly([(43, 16), (47, 12), (52, 16), (47, 19)], '#5A3A22')
+        # étincelles d'arcane qui tournent autour de l'orbe
+        tour = [(48, 1), (56, 6), (55, 16), (40, 12)]
+        s.dots([tour[(k + f) % 4] for k in (0, 2)], '#C9E8FF', glow=True)
     return s.render()
 
 

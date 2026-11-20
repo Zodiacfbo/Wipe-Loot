@@ -96,6 +96,10 @@ const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 // (tools/pixel/animations.py) est jouée en boucle par le CSS, comme le feu de camp.
 const ANIMES: Record<string, number> = {
   'guerrier.png': 4,
+  'mage.png': 4,
+  'paladin.png': 4,
+  'voleur.png': 4,
+  'demoniste.png': 4,
   'pretre.png': 4,
   'pretre_ombre.png': 4,
   'ennemi_molosse.png': 4,
@@ -374,7 +378,7 @@ function equipmentOverlay(run: RunState): string {
   return `<div class="overlay"><div class="ecran-equipement">
     <section class="poupee">
       <h2>Équipement</h2>
-      <div class="poupee-grille">${slots}<img class="px poupee-heros" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}"></div>
+      <div class="poupee-grille">${slots}<img class="px poupee-heros" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}"></div>
       <div class="poupee-sorts"><span class="titre-rappel">Barre de sorts · ${run.spells.length}/${cap}</span><div>${spells}</div></div>
     </section>
     ${equipmentSheet(run, sel)}
@@ -1300,7 +1304,7 @@ function titleScreen(): string {
       <div class="hall-options">${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${fullscreenButton('bouton')}</div></header>
     <section class="hall-heros">
       ${switcher}
-      <img class="px" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:160px;height:160px">
+      <img class="px" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}" width="160" height="160">
       <h3>${hero.name} · niveau ${lvl.level}</h3>
       <div class="description-hall">
         <div><span class="etoiles">${'★'.repeat(hero.difficulty)}<i>${'★'.repeat(3 - hero.difficulty)}</i></span> <em>Difficulté ${DIFFICULTY_WORD[hero.difficulty]}</em></div>
@@ -1744,7 +1748,7 @@ function classScreen(): string {
     return unlocksAvailable(profile) > 0 ? 'a-debloquer' : 'verrouillee';
   };
   const selId = ui.classSel && CLASS_BY_ID[ui.classSel] ? ui.classSel : first ? 'guerrier' : current;
-  const sprite = (c: (typeof CLASSES)[number]) => (c.sprite ? `<img class="px" src="${A(c.sprite)}" alt="">` : '<span class="sprite-inconnu">?</span>');
+  const sprite = (c: (typeof CLASSES)[number]) => (c.sprite ? `<img class="px" ${spriteAttrs(c.sprite)} alt="">` : '<span class="sprite-inconnu">?</span>');
   const cards = CLASSES.map((c) => {
     const st = status(c.id);
     const hidden = st === 'bientot' || st === 'verrouillee' || st === 'a-debloquer';
