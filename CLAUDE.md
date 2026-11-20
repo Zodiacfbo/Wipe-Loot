@@ -156,6 +156,7 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
   - Feu de camp : scène (héros + feu animé) et choix en tuiles ; repos grisé si PV pleins. Deck et choix de carte : copies regroupées « ×N ». Hall : coffre en icônes, description de la classe jouée ; les boutons de classe en texte restent (choix de l'utilisateur).
   - Boutons de sortie : écrans pleins du hall → « Retour » en haut à droite ; fenêtres et écrans d'expédition → bouton en bas.
   - Premier lancement : après le choix de la classe, on arrive au hall (pas directement en expédition).
+  - Combat : infobulles des mots-clés (mots soulignés et pastilles ; appui long sur téléphone, survol sur PC ; l'appui long sur une carte la décrit sans la jouer) et aperçu des dégâts (chiffre corrigé sur la carte, PV perdus et « Achevé » sur les ennemis ; rien quand le résultat dépend du hasard).
 - **Profil :** les niveaux de difficulté débloqués et les talents sont propres à chaque classe ; le hall retient la dernière classe choisie.
 - **Râtelier :** le légendaire forgé (`legendary` du profil, par classe) est emporté par défaut depuis le hall (`newRun(…, legendary)`), en plus d'un objet du coffre qui n'est alors pas une arme ; sa quête passe à « forged » pour l'expédition (`LEGENDARY_QUEST` dans `run.ts`). Une nouvelle classe → une ligne dans `LEGENDARY_QUEST`.
 - **Décisions de novembre 2026 :** pas de déblocage de cartes par niveau (tout est disponible dès le départ) ; l'amélioration des sorts de barre est rangée dans « Plus tard ».
@@ -167,6 +168,7 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
   - Le butin épique de Vhaeryx arrivera avec l'acte 3 (tant que Vhaeryx termine la run).
   - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
   - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
+- **La suite décidée (novembre 2026) :** finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---
