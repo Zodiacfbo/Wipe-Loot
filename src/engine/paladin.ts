@@ -2,7 +2,7 @@
 // Référence : docs/classes/PALADIN.md (§2 et §3)
 import { damageEnemy, fx, gainBlock, healPlayer, livingEnemies, log, playerAttack, power } from './actions';
 import { hasTag } from './enemies';
-import { dispelMagic, dispelPoison } from './pretre';
+import { dispelDraw, dispelMagic, dispelPoison } from './pretre';
 import { random } from './rng';
 import type { AuraId, CombatState, EnemyState, SealId } from './types';
 
@@ -191,10 +191,12 @@ export function setAura(c: CombatState, id: AuraId, value: number): void {
 
 /** Dissipation de tous les types (Lumière purificatrice). */
 export function dispelAll(c: CombatState): void {
-  dispelMagic(c);
-  dispelPoison(c);
-  const d = c.player.debuffs;
-  if (d) Object.assign(d, { ralenti: 0, ombre: 0, discard: 0, transmute: 0, afflictions: [] });
+  dispelDraw(c, () => {
+    dispelMagic(c);
+    dispelPoison(c);
+    const d = c.player.debuffs;
+    if (d) Object.assign(d, { ralenti: 0, ombre: 0, discard: 0, transmute: 0, afflictions: [] });
+  });
 }
 
 /** Le début du tour du Paladin : Sceau de sagesse, Grâce du croisé, Fervent, Ailes de justice. */

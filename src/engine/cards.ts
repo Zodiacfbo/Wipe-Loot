@@ -700,6 +700,24 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
     text: () => `Injouable. Disparaît à la fin du tour.`,
     play: () => {},
   },
+  cristal_obsidienne: {
+    // Sartaq, le Colosse d'obsidienne (acte 3) : le moment de frapper fort.
+    id: 'cristal_obsidienne', name: 'Cristal d\'obsidienne', type: 'Statut', rarity: 'statut', cost: 1, needsTarget: false,
+    exhaust: true, icon: 'pouvoir',
+    text: () => `Sartaq perd tout son blocage et sa Suprématie, et subit 50 % de dégâts en plus pendant 2 tours. Épuisé.`,
+    play: (ctx) => {
+      const c = ctx.c;
+      for (const e of livingEnemies(c)) {
+        if (e.defId !== 'sartaq') continue;
+        e.block = 0;
+        // Suprématie suspendue à son prochain tour : pas de blocage pendant ce tour et le suivant.
+        e.suspended = 1;
+        e.buffs.armureFracassee = Math.max(e.buffs.armureFracassee, 2);
+        fx(c, { kind: 'buff', who: e.uid, label: 'Suprématie brisée !' });
+        log(c, 'Le Cristal se brise : Sartaq perd son blocage, et sa Suprématie vacille.');
+      }
+    },
+  },
   hallucination: {
     // Elle prend l'apparence d'une vraie carte du deck (CardInstance.mimic, voir folie.ts).
     id: 'hallucination', name: 'Hallucination', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
