@@ -92,6 +92,23 @@ import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState }
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
+// Sprites animés : pour ces images, une planche anim_<fichier> de N images côte à côte
+// (tools/pixel/animations.py) est jouée en boucle par le CSS, comme le feu de camp.
+const ANIMES: Record<string, number> = {
+  'guerrier.png': 4,
+  'ennemi_molosse.png': 4,
+  'ennemi_etincelle.png': 4,
+  'ennemi_vulkhar.png': 4,
+};
+
+/** Le src, la classe et le style d'un sprite : la planche animée s'il y en a une, sinon l'image fixe.
+ *  `decale` décale le début de la boucle, pour que deux ennemis ne respirent pas en même temps. */
+function spriteAttrs(file: string, decale = 0): string {
+  const n = ANIMES[file];
+  if (!n) return `src="${A(file)}"`;
+  return `src="${A(`anim_${file}`)}" data-anime style="--images:${n};--decalage:-${((decale * 0.37) % 1).toFixed(2)}"`;
+}
+
 type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: number } | null;
 
 interface UiState {
@@ -1124,7 +1141,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     const tag = canTarget ? 'button' : 'div';
     return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}, ${e.hp} PV">
       ${intentHtml(c, e)}
-      <img class="px" data-fx="${e.uid}" src="${A(sprite)}" alt="" style="width:${size}px;height:${size}px">
+      <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${size}" height="${size}">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${e.hp} / ${e.maxHp}</span></div>
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${enemyChips(e)}</div>
@@ -1183,7 +1200,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     ${enrage}
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
-      <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}" style="width:192px;height:192px">
+      <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}" width="192" height="192">
       ${c.pet && !c.petSacrificed ? `<img class="px familier" src="${A(`familier_${c.pet}.png`)}" alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
       ${c.infernal ? `<img class="px seigneur-infernal" src="${A('familier_seigneur.png')}" alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
       <div class="jauges">
@@ -1606,7 +1623,7 @@ function campfireScreen(run: RunState): string {
   const hero = classInfo(run.classId);
   return `${topbar(run, run.hp)}<div class="ecran-feu">
     <div class="scene-feu">
-      <img class="px heros-feu" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}">
+      <img class="px heros-feu" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}">
       <span class="lueur-feu"></span>
       <span class="flammes-feu" style="background-image:url(${A('feu_camp.png')})"></span>
     </div>
@@ -2472,6 +2489,7 @@ function fit(): void {
 const PRELOAD = [
   'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'voleur.png', 'paladin.png', 'vendeur_gobelin.png', 'bregan.png',
   'feu_camp.png', 'icone_repos.png', 'icone_enclume.png',
+  ...Object.keys(ANIMES).map((file) => `anim_${file}`),
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',

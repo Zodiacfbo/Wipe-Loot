@@ -51,17 +51,37 @@ function floatText(t: FxTarget, text: string, color: string, delay = 0, size = 2
   anim.finished.then(() => d.remove()).catch(() => d.remove());
 }
 
-function shake(t: FxTarget): void {
+/** La cible tremble et flashe. `force` > 1 pour les gros coups. */
+function shake(t: FxTarget, force = 1): void {
+  const k = force;
   node(t)?.animate(
     [
       { transform: 'translateX(0)', filter: 'brightness(1)' },
-      { transform: 'translateX(-8px)', filter: 'brightness(2.4)' },
-      { transform: 'translateX(7px)', filter: 'brightness(1.6)' },
-      { transform: 'translateX(-4px)', filter: 'brightness(1.2)' },
+      { transform: `translateX(${-8 * k}px)`, filter: 'brightness(2.4)' },
+      { transform: `translateX(${7 * k}px)`, filter: 'brightness(1.6)' },
+      { transform: `translateX(${-4 * k}px)`, filter: 'brightness(1.2)' },
       { transform: 'translateX(0)', filter: 'brightness(1)' },
     ],
-    { duration: ms(280) },
+    { duration: ms(280 * Math.sqrt(k)) },
   );
+}
+
+/** Seuil de PV perdus à partir duquel un coup est « gros » : arrêt plus long, tremblement plus fort. */
+const GROS_COUP = 12;
+
+/** Arrêt sur image : au moment du coup, l'attaquant et les cibles se figent un instant
+ *  (leur élan comme leur animation de repos), et les cibles flashent en blanc. */
+async function hitStop(from: FxTarget, hits: Extract<FxEvent, { kind: 'hit' }>[]): Promise<void> {
+  if (reduceMotion || hits.length === 0) return;
+  const targets = hits.map((h) => node(h.to)).filter((el): el is HTMLElement => !!el);
+  const els = [node(from), ...targets].filter((el): el is HTMLElement => !!el);
+  const anims = els.flatMap((el) => el.getAnimations());
+  anims.forEach((a) => a.pause());
+  targets.forEach((el) => (el.style.filter = 'brightness(0) invert(1)'));
+  const gros = hits.some((h) => h.amount - h.blocked >= GROS_COUP);
+  await wait(gros ? 75 : 45);
+  targets.forEach((el) => el.style.removeProperty('filter'));
+  anims.forEach((a) => a.play());
 }
 
 function glow(t: FxTarget, color: string): void {
@@ -127,7 +147,7 @@ async function projectile(from: FxTarget, to: FxTarget, color: string, size = 22
 
 function impact(ev: Extract<FxEvent, { kind: 'hit' }>, delay = 0): void {
   const hpLoss = ev.amount - ev.blocked;
-  shake(ev.to);
+  shake(ev.to, hpLoss >= GROS_COUP ? 1.8 : 1);
   if (hpLoss > 0) floatText(ev.to, `-${hpLoss}`, '#ff6a5a', delay);
   if (ev.blocked > 0) floatText(ev.to, `${ev.blocked} bloqué${ev.blocked > 1 ? 's' : ''}`, '#8fb8e8', delay + 120, 18);
   if (ev.amount === 0) floatText(ev.to, '0', '#c9bcab', delay);
@@ -187,11 +207,13 @@ export async function playFx(events: FxEvent[]): Promise<void> {
           { duration: ms(420), easing: 'ease-in-out' },
         );
         await wait(200);
+        await hitStop('player', hits);
         hits.forEach((h) => impact(h));
         await wait(260);
       } else {
         for (const h of hits) {
           await lunge('player', h.to);
+          await hitStop('player', [h]);
           impact(h);
           await wait(140);
         }
@@ -206,6 +228,7 @@ export async function playFx(events: FxEvent[]): Promise<void> {
       case 'hit':
         if (ev.ranged) await projectile(ev.from, ev.to, '#ff8a2a', 26);
         else await lunge(ev.from, ev.to);
+        await hitStop(ev.from, [ev]);
         impact(ev);
         await wait(220);
         break;

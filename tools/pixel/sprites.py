@@ -8,6 +8,7 @@ Chaque sprite est une pile de formes colorées. Le script ajoute ensuite :
 """
 import colorsys
 import os
+from contextlib import contextmanager
 from PIL import Image, ImageDraw
 
 # Les images sont écrites dans assets/essais/, à la racine du dépôt.
@@ -34,6 +35,18 @@ class Sprite:
         self.w, self.h = w, h
         self.part = [[None] * w for _ in range(h)]
         self.parts = []  # (couleur, lumineux, ombré)
+        self.dx = self.dy = 0  # décalage des formes suivantes (pour animer)
+
+    @contextmanager
+    def bouge(self, dx=0, dy=0):
+        """Décale toutes les formes dessinées dans le bloc (respiration, flottement…)."""
+        self.dx += dx
+        self.dy += dy
+        try:
+            yield
+        finally:
+            self.dx -= dx
+            self.dy -= dy
 
     def _add(self, color, glow, shade):
         self.parts.append((hexrgb(color), glow, shade))
@@ -48,7 +61,9 @@ class Sprite:
         for y in range(self.h):
             for x in range(self.w):
                 if px[x, y]:
-                    self.part[y][x] = pid
+                    X, Y = x + self.dx, y + self.dy
+                    if 0 <= X < self.w and 0 <= Y < self.h:
+                        self.part[Y][X] = pid
 
     def poly(self, pts, color, **kw):
         self._stamp(lambda d: d.polygon(pts, fill=1), color, **kw)
@@ -113,49 +128,60 @@ class Sprite:
         return img
 
 
-def guerrier():
+def guerrier(f=0):
+    """Le Guerrier. f = image de l'animation de repos (0 à 3) : il respire, sa cape flotte,
+    un éclat remonte le long de l'épée."""
     s = Sprite(64, 64)
-    # cape
-    s.poly([(22, 20), (30, 18), (29, 56), (15, 58)], '#7A1F1A')
-    # jambes et bottes
+    b = RESPIRE[f]
+    c = [0, -1, -2, -1][f]  # la cape flotte
+    # cape : le haut suit le corps, le bas flotte
+    s.poly([(22, 20 + b), (30, 18 + b), (29 + c, 56), (15 + c, 58)], '#7A1F1A')
+    # jambes et bottes (elles ne bougent pas)
     s.rect(24, 47, 30, 57, '#5E6670')
     s.rect(23, 55, 31, 60, '#4A2E1E')
     s.rect(32, 47, 38, 57, '#7D8794')
     s.rect(32, 55, 40, 60, '#5A3822')
-    # jupe du tabard
-    s.poly([(24, 40), (40, 40), (42, 51), (22, 51)], '#A8322A')
-    s.rect(22, 50, 42, 51, '#D9A441', shade=False)
-    # torse en plaques
-    s.poly([(24, 24), (40, 24), (42, 42), (22, 42)], '#8C96A3')
-    s.rect(29, 26, 35, 41, '#B8382E')
-    s.poly([(32, 29), (35, 32), (32, 35), (29, 32)], '#E6B84A', shade=False)
-    # ceinture
-    s.rect(22, 40, 42, 42, '#5A3822')
-    s.rect(31, 40, 33, 42, '#E6B84A', shade=False)
-    # épaulière arrière
-    s.ellipse(19, 22, 28, 29, '#7D8794')
-    # bouclier
-    s.poly([(9, 25), (25, 25), (25, 41), (17, 49), (9, 41)], '#D9A441')
-    s.poly([(11, 27), (23, 27), (23, 40), (17, 46), (11, 40)], '#9E2B24')
-    s.ellipse(14, 32, 20, 38, '#C9D2DE')
-    # plumet
-    s.poly([(29, 11), (31, 5), (35, 3), (37, 6), (34, 11)], '#C23A2E')
-    s.poly([(29, 9), (24, 7), (21, 10), (27, 13)], '#A8322A')
-    # casque
-    s.ellipse(26, 10, 38, 24, '#9AA4B1')
-    s.rect(31, 16, 38, 17, '#1A1210', shade=False)
-    s.rect(26, 20, 38, 24, '#7D8794')
-    # épaulière avant
-    s.ellipse(35, 21, 45, 30, '#A9B3C0')
-    # bras avant et gantelet
-    s.rect(38, 28, 43, 35, '#8C96A3')
-    s.ellipse(40, 33, 46, 39, '#6E7884')
-    # épée levée
-    s.poly([(44, 34), (57, 8), (59, 9), (46, 36)], '#DCE3EC')
-    s.poly([(57, 8), (60, 3), (59, 9)], '#F4F7FB')
-    s.poly([(39, 34), (49, 38), (48, 40), (38, 36)], '#E6B84A')
-    s.rect(42, 38, 44, 42, '#5A3822')
-    s.ellipse(41, 42, 45, 45, '#E6B84A')
+    with s.bouge(0, b):
+        # jupe du tabard
+        s.poly([(24, 40), (40, 40), (42, 51), (22, 51)], '#A8322A')
+        s.rect(22, 50, 42, 51, '#D9A441', shade=False)
+        # torse en plaques
+        s.poly([(24, 24), (40, 24), (42, 42), (22, 42)], '#8C96A3')
+        s.rect(29, 26, 35, 41, '#B8382E')
+        s.poly([(32, 29), (35, 32), (32, 35), (29, 32)], '#E6B84A', shade=False)
+        # ceinture
+        s.rect(22, 40, 42, 42, '#5A3822')
+        s.rect(31, 40, 33, 42, '#E6B84A', shade=False)
+        # épaulière arrière
+        s.ellipse(19, 22, 28, 29, '#7D8794')
+        # bouclier
+        s.poly([(9, 25), (25, 25), (25, 41), (17, 49), (9, 41)], '#D9A441')
+        s.poly([(11, 27), (23, 27), (23, 40), (17, 46), (11, 40)], '#9E2B24')
+        s.ellipse(14, 32, 20, 38, '#C9D2DE')
+        # plumet (il traîne un peu derrière le casque)
+        with s.bouge([0, -1, -1, 0][f], [0, -1, -1, 0][f]):
+            s.poly([(29, 11), (31, 5), (35, 3), (37, 6), (34, 11)], '#C23A2E')
+            s.poly([(29, 9), (24, 7), (21, 10), (27, 13)], '#A8322A')
+        # casque
+        s.ellipse(26, 10, 38, 24, '#9AA4B1')
+        s.rect(31, 16, 38, 17, '#1A1210', shade=False)
+        s.rect(26, 20, 38, 24, '#7D8794')
+        # épaulière avant
+        s.ellipse(35, 21, 45, 30, '#A9B3C0')
+        # bras avant et gantelet
+        s.rect(38, 28, 43, 35, '#8C96A3')
+        s.ellipse(40, 33, 46, 39, '#6E7884')
+        # épée levée
+        s.poly([(44, 34), (57, 8), (59, 9), (46, 36)], '#DCE3EC')
+        s.poly([(57, 8), (60, 3), (59, 9)], '#F4F7FB')
+        s.poly([(39, 34), (49, 38), (48, 40), (38, 36)], '#E6B84A')
+        s.rect(42, 38, 44, 42, '#5A3822')
+        s.ellipse(41, 42, 45, 45, '#E6B84A')
+        # éclat qui remonte le long de la lame
+        if f > 0:
+            x, y = [(48, 30), (51, 23), (54, 16)][f - 1]
+            s.dots([(x - 2, y), (x + 2, y), (x, y - 2), (x, y + 2)], '#FFD45E', glow=True)
+            s.dots([(x, y), (x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)], '#FFFFFF', glow=True)
     return s.render()
 
 
@@ -203,62 +229,113 @@ def mage():
     return s.render()
 
 
-def vulkhar():
+def vulkhar(f=0):
+    """Vulkhar. f = image de l'animation (0 à 3) : il monte et descend dans la lave,
+    les flammes dansent, le cœur bat, les braises s'envolent."""
     s = Sprite(96, 96)
+    b = RESPIRE[f]
     # bassin de lave
     s.ellipse(4, 78, 92, 96, '#E8742A', glow=True)
     s.ellipse(18, 82, 78, 94, '#FFC24B', glow=True)
-    # marteau (manche puis tête)
-    s.line([(84, 46), (84, 10)], '#2A1C18', width=3)
-    s.poly([(68, 2), (95, 0), (95, 16), (68, 14)], '#5A4038')
-    s.poly([(64, 4), (68, 3), (68, 13), (64, 12)], '#2A1C18')
-    s.line([(68, 14), (95, 16)], '#FF8A2A', glow=True)
-    s.line([(75, 4), (77, 12)], '#FF8A2A', glow=True)
-    s.line([(87, 3), (85, 13)], '#FF8A2A', glow=True)
-    # corps qui émerge de la lave
-    s.poly([(26, 40), (70, 40), (76, 84), (20, 84)], '#3A2A26')
-    s.poly([(30, 44), (47, 46), (46, 62), (28, 60)], '#4A3630')
-    s.poly([(50, 46), (66, 44), (68, 60), (50, 62)], '#4A3630')
-    # bras gauche (côté spectateur), poing dans la lave
-    s.poly([(14, 46), (25, 46), (23, 72), (12, 72)], '#3A2A26')
-    s.ellipse(7, 66, 25, 82, '#4E3A33')
-    # bras droit qui lève le marteau
-    s.poly([(70, 46), (81, 48), (87, 32), (80, 28)], '#3A2A26')
-    s.ellipse(79, 24, 90, 34, '#4E3A33')
-    # épaules de roche
-    s.ellipse(13, 33, 37, 53, '#4E3A33')
-    s.ellipse(59, 33, 83, 53, '#4E3A33')
-    # flammes des épaules
-    s.poly([(15, 38), (18, 24), (23, 31), (27, 17), (31, 30), (35, 36)], '#F59A2E', glow=True)
-    s.poly([(19, 38), (22, 30), (26, 26), (29, 33), (32, 38)], '#FFD45E', glow=True)
-    s.poly([(61, 36), (65, 30), (69, 17), (73, 31), (78, 24), (81, 38)], '#F59A2E', glow=True)
-    s.poly([(64, 38), (67, 33), (70, 26), (74, 30), (77, 38)], '#FFD45E', glow=True)
-    # fissures de lave et cœur
-    s.line([(48, 63), (48, 82)], '#FF8A2A', glow=True)
-    s.line([(34, 62), (46, 70)], '#FF8A2A', glow=True)
-    s.line([(63, 62), (51, 72)], '#FF8A2A', glow=True)
-    s.line([(28, 74), (40, 81)], '#FF8A2A', glow=True)
-    s.line([(66, 74), (58, 81)], '#FF8A2A', glow=True)
-    s.ellipse(42, 51, 54, 63, '#FF8A2A', glow=True)
-    s.ellipse(45, 54, 51, 60, '#FFE27A', glow=True)
-    # couronne de flammes (derrière la tête)
-    s.poly([(35, 22), (38, 8), (43, 15), (48, 0), (53, 15), (58, 8), (61, 22)], '#F59A2E', glow=True)
-    s.poly([(40, 22), (44, 12), (48, 6), (52, 12), (56, 22)], '#FFD45E', glow=True)
-    # cornes recourbées
-    s.poly([(40, 21), (31, 15), (25, 6), (24, 1), (29, 3), (34, 10), (44, 17)], '#2A1C18')
-    s.poly([(56, 21), (65, 15), (71, 6), (72, 1), (67, 3), (62, 10), (52, 17)], '#2A1C18')
-    # tête anguleuse, arcade et mâchoire
-    s.poly([(36, 24), (40, 16), (56, 16), (60, 24), (59, 37), (53, 45), (43, 45), (37, 37)], '#4A3630')
-    s.poly([(37, 24), (48, 28), (59, 24), (59, 27), (48, 31), (37, 27)], '#33241F')
-    s.poly([(40, 36), (56, 36), (53, 45), (43, 45)], '#3A2A26')
-    # yeux en biais et gueule incandescents
-    s.poly([(40, 28), (46, 30), (46, 32), (40, 30)], '#FFE27A', glow=True)
-    s.poly([(56, 28), (50, 30), (50, 32), (56, 30)], '#FFE27A', glow=True)
-    s.poly([(43, 38), (53, 38), (51, 42), (45, 42)], '#FF8A2A', glow=True)
-    s.dots([(45, 38), (47, 38), (49, 38), (51, 38)], '#FFE27A', glow=True)
-    # braises
-    s.dots([(10, 20), (16, 12), (30, 44), (66, 60), (88, 52), (6, 58), (60, 4), (34, 2), (92, 30)], '#FFC24B', glow=True)
+    # bulles à la surface de la lave
+    s.dots([[(14, 84), (60, 90)], [(30, 88), (74, 84)], [(46, 86), (20, 90)], [(64, 88), (36, 84)]][f], '#FFE27A', glow=True)
+    with s.bouge(0, b):
+        # marteau (manche puis tête)
+        s.line([(84, 46), (84, 10)], '#2A1C18', width=3)
+        s.poly([(68, 2), (95, 0), (95, 16), (68, 14)], '#5A4038')
+        s.poly([(64, 4), (68, 3), (68, 13), (64, 12)], '#2A1C18')
+        s.line([(68, 14), (95, 16)], '#FF8A2A', glow=True)
+        s.line([(75, 4), (77, 12)], '#FF8A2A', glow=True)
+        s.line([(87, 3), (85, 13)], '#FF8A2A', glow=True)
+        # corps qui émerge de la lave
+        s.poly([(26, 40), (70, 40), (76, 84), (20, 84)], '#3A2A26')
+        s.poly([(30, 44), (47, 46), (46, 62), (28, 60)], '#4A3630')
+        s.poly([(50, 46), (66, 44), (68, 60), (50, 62)], '#4A3630')
+        # bras gauche (côté spectateur), poing dans la lave
+        s.poly([(14, 46), (25, 46), (23, 72), (12, 72)], '#3A2A26')
+        s.ellipse(7, 66, 25, 82, '#4E3A33')
+        # bras droit qui lève le marteau
+        s.poly([(70, 46), (81, 48), (87, 32), (80, 28)], '#3A2A26')
+        s.ellipse(79, 24, 90, 34, '#4E3A33')
+        # épaules de roche
+        s.ellipse(13, 33, 37, 53, '#4E3A33')
+        s.ellipse(59, 33, 83, 53, '#4E3A33')
+        # flammes des épaules
+        s.poly(danse([(15, 38), (18, 24), (23, 31), (27, 17), (31, 30), (35, 36)], f, 1.5), '#F59A2E', glow=True)
+        s.poly(danse([(19, 38), (22, 30), (26, 26), (29, 33), (32, 38)], f + 1), '#FFD45E', glow=True)
+        s.poly(danse([(61, 36), (65, 30), (69, 17), (73, 31), (78, 24), (81, 38)], f, 1.5), '#F59A2E', glow=True)
+        s.poly(danse([(64, 38), (67, 33), (70, 26), (74, 30), (77, 38)], f + 1), '#FFD45E', glow=True)
+        # fissures de lave et cœur
+        s.line([(48, 63), (48, 82)], '#FF8A2A', glow=True)
+        s.line([(34, 62), (46, 70)], '#FF8A2A', glow=True)
+        s.line([(63, 62), (51, 72)], '#FF8A2A', glow=True)
+        s.line([(28, 74), (40, 81)], '#FF8A2A', glow=True)
+        s.line([(66, 74), (58, 81)], '#FF8A2A', glow=True)
+        s.ellipse(42, 51, 54, 63, '#FF8A2A', glow=True)
+        g = [0, 1, 2, 1][f]
+        s.ellipse(45 - g, 54 - g, 51 + g, 60 + g, '#FFE27A', glow=True)
+        # couronne de flammes (derrière la tête)
+        s.poly(danse([(35, 22), (38, 8), (43, 15), (48, 0), (53, 15), (58, 8), (61, 22)], f, 1.5), '#F59A2E', glow=True)
+        s.poly(danse([(40, 22), (44, 12), (48, 6), (52, 12), (56, 22)], f + 1), '#FFD45E', glow=True)
+        # cornes recourbées
+        s.poly([(40, 21), (31, 15), (25, 6), (24, 1), (29, 3), (34, 10), (44, 17)], '#2A1C18')
+        s.poly([(56, 21), (65, 15), (71, 6), (72, 1), (67, 3), (62, 10), (52, 17)], '#2A1C18')
+        # tête anguleuse, arcade et mâchoire
+        s.poly([(36, 24), (40, 16), (56, 16), (60, 24), (59, 37), (53, 45), (43, 45), (37, 37)], '#4A3630')
+        s.poly([(37, 24), (48, 28), (59, 24), (59, 27), (48, 31), (37, 27)], '#33241F')
+        s.poly([(40, 36), (56, 36), (53, 45), (43, 45)], '#3A2A26')
+        # yeux en biais et gueule incandescents
+        s.poly([(40, 28), (46, 30), (46, 32), (40, 30)], '#FFE27A', glow=True)
+        s.poly([(56, 28), (50, 30), (50, 32), (56, 30)], '#FFE27A', glow=True)
+        s.poly([(43, 38), (53, 38), (51, 42), (45, 42)], '#FF8A2A', glow=True)
+        s.dots([(45, 38), (47, 38), (49, 38), (51, 38)], '#FFE27A', glow=True)
+    # braises qui s'envolent
+    braises = [(10, 20), (16, 12), (30, 44), (66, 60), (88, 52), (6, 58), (60, 4), (34, 2), (92, 30)]
+    s.dots([(x + (k + f) % 2, y - 3 * ((k + f) % 4)) for k, (x, y) in enumerate(braises)], '#FFC24B', glow=True)
     return s.render()
+
+
+# Animations « marquées », comme le feu de camp : 4 images en boucle.
+RESPIRE = [0, 1, 2, 1]  # le haut du corps descend puis remonte (en pixels)
+FLAMME = [0, -2, 1, -1]  # les pointes de flammes montent et descendent
+
+
+def danse(pts, f, amp=1):
+    """Fait danser les pointes d'une flamme : chaque pointe (point plus haut que ses voisins)
+    monte ou descend selon l'image f, chacune avec son propre temps."""
+    n = len(pts)
+    out = []
+    for i, (x, y) in enumerate(pts):
+        prev, nxt = pts[i - 1][1], pts[(i + 1) % n][1]
+        if y < prev and y < nxt:
+            y += round(FLAMME[(f + i) % 4] * amp)
+        out.append((x, y))
+    return out
+
+
+def planche(fn, n, miroir=False):
+    """Les n images d'une animation côte à côte (fn(f) dessine l'image f), jouées en boucle par le jeu."""
+    imgs = [fn(f) for f in range(n)]
+    if miroir:
+        imgs = [i.transpose(Image.FLIP_LEFT_RIGHT) for i in imgs]
+    w, h = imgs[0].size
+    sheet = Image.new('RGBA', (w * n, h), (0, 0, 0, 0))
+    for k, img in enumerate(imgs):
+        sheet.paste(img, (w * k, 0))
+    return sheet
+
+
+def apercu_gif(fn, n, nom, echelle, duree=200, miroir=False):
+    """Un GIF agrandi de l'animation, dans assets/essais/, pour la valider sans lancer le jeu."""
+    imgs = []
+    for f in range(n):
+        img = fn(f)
+        if miroir:
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        fond = Image.new('RGBA', img.size, (23, 17, 13, 255))
+        fond.alpha_composite(img)
+        imgs.append(fond.convert('RGB').resize((img.width * echelle, img.height * echelle), Image.NEAREST))
+    imgs[0].save(os.path.join(OUT, f'{nom}_anime.gif'), save_all=True, append_images=imgs[1:], duration=duree, loop=0)
 
 
 def save(img, name, scale):
