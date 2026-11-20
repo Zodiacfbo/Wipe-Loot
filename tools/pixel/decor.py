@@ -1,27 +1,46 @@
 """Le décor des écrans hors combat : le feu de camp et les icônes de ses choix.
-Écrit dans public/assets/ : feu_camp.png (64 x 64), icone_repos.png et icone_enclume.png (32 x 32)."""
+Écrit dans public/assets/ : feu_camp.png (4 images de 64 x 64 côte à côte), icone_repos.png et icone_enclume.png (32 x 32)."""
 import os
+from PIL import Image
 from sprites import Sprite
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
 
-def feu():
-    """Le feu de camp : pierres, bûches croisées et flammes."""
+# Les 4 images du feu animé : hauteur des pointes de flammes (plus petit = plus haut) et étincelles.
+FLAMMES = [
+    dict(o=(30, 16, 10, 22), m=(32, 20, 28), i=(36, 28), sp=[(22, 22), (44, 14), (30, 8)]),
+    dict(o=(28, 19, 13, 20), m=(30, 23, 26), i=(38, 30), sp=[(24, 16), (42, 8), (32, 4)]),
+    dict(o=(32, 14, 8, 25), m=(34, 18, 30), i=(35, 27), sp=[(26, 10), (40, 4), (46, 20)]),
+    dict(o=(29, 18, 12, 21), m=(31, 21, 27), i=(37, 29), sp=[(20, 26), (46, 12), (34, 2)]),
+]
+
+
+def feu(f):
+    """Une image du feu de camp : pierres, bûches croisées et flammes."""
     s = Sprite(64, 64)
-    # pierres en cercle
-    for x0 in (6, 16, 28, 40, 50):
+    for x0 in (6, 16, 28, 40, 50):  # pierres en cercle
         s.ellipse(x0, 48, x0 + 9, 56, '#6E6258')
-    # bûches croisées
-    s.poly([(12, 52), (16, 46), (50, 40), (48, 46)], '#6A4426')
+    s.poly([(12, 52), (16, 46), (50, 40), (48, 46)], '#6A4426')  # bûches croisées
     s.poly([(14, 40), (18, 36), (52, 50), (48, 54)], '#5A3820')
     s.ellipse(48, 40, 54, 47, '#C9955A')  # bout de bûche
-    # flammes
-    s.poly([(18, 44), (20, 30), (26, 34), (28, 16), (34, 28), (38, 10), (42, 26), (46, 22), (48, 44)], '#E8461E', glow=True)
-    s.poly([(22, 44), (25, 32), (30, 36), (34, 20), (38, 32), (42, 28), (44, 44)], '#F59A2E', glow=True)
-    s.poly([(27, 44), (30, 36), (33, 38), (36, 28), (39, 38), (41, 44)], '#FFD45E', glow=True)
-    s.dots([(22, 22), (44, 14), (30, 8), (48, 18), (16, 30)], '#FFB04A', glow=True)  # étincelles
+    a, b, c, d = f['o']
+    s.poly([(18, 44), (20, a), (26, 34), (28, b), (34, 28), (38, c), (42, 26), (46, d), (48, 44)], '#E8461E', glow=True)
+    m1, m2, m3 = f['m']
+    s.poly([(22, 44), (25, m1), (30, 36), (34, m2), (38, 32), (42, m3), (44, 44)], '#F59A2E', glow=True)
+    i1, i2 = f['i']
+    s.poly([(27, 44), (30, i1), (33, 38), (36, i2), (39, 38), (41, 44)], '#FFD45E', glow=True)
+    s.dots(f['sp'], '#FFB04A', glow=True)  # étincelles
     return s.render()
+
+
+def feu_anime():
+    """Les 4 images du feu côte à côte (256 x 64), jouées en boucle par le jeu."""
+    sheet = Image.new('RGBA', (64 * len(FLAMMES), 64), (0, 0, 0, 0))
+    for k, f in enumerate(FLAMMES):
+        sheet.paste(feu(f), (64 * k, 0))
+    return sheet
+
 
 def enclume():
     """L'enclume du maître de classe (Améliorer une carte)."""
@@ -46,7 +65,7 @@ def couchage():
 
 if __name__ == '__main__':
     os.makedirs(DEST, exist_ok=True)
-    feu().save(os.path.join(DEST, 'feu_camp.png'))
+    feu_anime().save(os.path.join(DEST, 'feu_camp.png'))
     couchage().save(os.path.join(DEST, 'icone_repos.png'))
     enclume().save(os.path.join(DEST, 'icone_enclume.png'))
     print('ok')

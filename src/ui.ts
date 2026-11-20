@@ -1472,7 +1472,8 @@ function campfireScreen(run: RunState): string {
   return `${topbar(run, run.hp)}<div class="ecran-feu">
     <div class="scene-feu">
       <img class="px heros-feu" src="${A(hero.sprite ?? 'guerrier.png')}" alt="Le ${hero.name}">
-      <img class="px flammes-feu" src="${A('feu_camp.png')}" alt="">
+      <span class="lueur-feu"></span>
+      <span class="flammes-feu" style="background-image:url(${A('feu_camp.png')})"></span>
     </div>
     <div class="choix-du-feu">
       <h2>Feu de camp</h2>
