@@ -50,8 +50,8 @@
 - [x] Vulkhar, Souverain des flammes (phases, plongée dans la lave, Rejetons de flamme, Marteau des flammes, Éruption)
 - [ ] La quête des Gardiens des Sources qui affaiblit Vulkhar
 - [ ] Cartes-statut de l'acte : Bombe vivante, Paniqué, Fardeau, Cendres
-- [ ] Infobulles des mots-clés, des buffs et des débuffs (appui long sur téléphone, survol sur PC)
-- [ ] Prévisualisation des dégâts sur les cartes (en tenant compte de la Puissance, de la posture, de l'Armure fracassée)
+- [x] Infobulles des mots-clés, des buffs et des débuffs : mots soulignés sur les cartes et pastilles, appui long sur téléphone (sur une carte : tous ses mots-clés, sans la jouer), survol sur PC (`src/keywords.ts`, `src/aides.ts`)
+- [x] Prévisualisation des dégâts : chiffre corrigé sur la carte (vert s'il monte, rouge s'il baisse), et sur les ennemis les PV perdus et « Achevé » (survol sur PC, carte choisie sur téléphone). Calculée en jouant la carte sur une copie du combat (`src/engine/preview.ts`) ; rien n'est annoncé quand le résultat dépend du hasard
 
 ### 1.3 Le Guerrier complet
 - [x] Les 52 cartes du Guerrier (les épiques apparaissent rarement chez les boss secondaires, en attendant les talents)

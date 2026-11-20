@@ -16,6 +16,9 @@ import {
 import { ENEMIES, TUNING, intentAt, isInterruptible } from './engine/enemies';
 import { AFFLICTIONS, ENEMIES_ACTE2, GRIZZIK_POTIONS } from './engine/enemies_acte2';
 import { MUTATION_LABEL } from './engine/actions';
+import { cardHitValue } from './engine/preview';
+import { afterRender, initAides } from './aides';
+import { markKeywords } from './keywords';
 import { ACTS, actDef } from './engine/acts';
 import { BLESSINGS, EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
@@ -171,7 +174,21 @@ const POSTURES: { id: Posture; label: string; aide: string }[] = [
 
 const SCHOOL_LABEL = { arcane: 'Arcane', feu: 'Feu', givre: 'Givre', sacre: 'Sacré', ombre: 'Ombre' } as const;
 
-function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean } = {}): string {
+/**
+ * Le texte d'une carte : mots-clés soulignés (infobulles) et, en combat, le chiffre de dégâts corrigé
+ * (Puissance, posture, objets, cible…), en vert s'il monte et en rouge s'il baisse.
+ */
+function cardText(text: string, hit: number | null | undefined): string {
+  let html = markKeywords(text);
+  const nums = [...html.matchAll(/(\d+)([\s\u00a0]+dégâts?)(?![\s\u00a0]+par)/g)];
+  if (hit !== null && hit !== undefined && nums.length === 1 && Number(nums[0][1]) !== hit) {
+    const m = nums[0];
+    html = `${html.slice(0, m.index)}<span class="valeur ${hit > Number(m[1]) ? 'plus' : 'moins'}">${hit}</span>${html.slice(m.index! + m[1].length)}`;
+  }
+  return html;
+}
+
+function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null } = {}): string {
   const def = CARDS[card.id];
   const frame = `cadre_${RARITY_FRAME[def.rarity]}${def.rageCost !== undefined ? '_rage' : ''}.png`;
   const cost = opts.combat ? energyCost(opts.combat, card.id, card.upgraded) : card.upgraded && def.costUp !== undefined ? def.costUp : def.cost;
@@ -190,7 +207,7 @@ function cardHtml(card: CardInstance, opts: { action?: string; disabled?: boolea
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}</span>
-    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}">${text}</span>
+    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${cardText(text, opts.hit)}</span></span>
   </button>`;
 }
 
@@ -1119,6 +1136,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     disabled: !canPlayCard(c, i),
     selected: ui.selection?.kind === 'card' && ui.selection.index === i,
     combat: c,
+    hit: cardHitValue(c, i),
   })).join('');
 
   let enrage = '';
@@ -2056,6 +2074,7 @@ export function render(): void {
   if (!run) {
     stage.dataset.acte = '1';
     stage.innerHTML = ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null);
+    afterRender();
     return;
   }
   stage.dataset.acte = String(run.act ?? 1);
@@ -2074,6 +2093,7 @@ export function render(): void {
     case 'gameover': html = endScreen(run, false); break;
   }
   stage.innerHTML = html + overlayHtml(run);
+  afterRender();
 }
 
 async function commit(): Promise<void> {
@@ -2428,6 +2448,7 @@ export function mount(root: HTMLElement): void {
   for (const file of PRELOAD) new Image().src = A(file);
   stage = root;
   initFx(root);
+  initAides(root, () => ui.run?.combat, () => (ui.selection?.kind === 'card' ? ui.selection.index : null));
   stage.addEventListener('click', handleClick);
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', () => {

@@ -802,3 +802,33 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .fiche-classe-detail.avec-progression .infos-classe { gap: 2px 10px; font-size: 15px; }
 .fiche-classe-detail.avec-progression .infos-classe img { width: 22px; height: 22px; }
 .bouton-retour { align-self: flex-end; }
+
+/* ---------- Aides : infobulles des mots-clés et aperçu des dégâts ---------- */
+.carte, .chip { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.mot { text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+.chip { cursor: help; }
+.bulle {
+  position: absolute; z-index: 90; max-width: 280px; padding: 9px 12px; border-radius: 10px; pointer-events: none;
+  background: #f3e6cf; color: #24170d; font-size: 13px; font-weight: 500; line-height: 1.35; text-align: left;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+.bulle b { display: block; font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.bulle hr { border: none; border-top: 1px solid #cdb894; margin: 7px 0; }
+.bulle::after { content: ""; position: absolute; left: var(--fleche, 50%); margin-left: -8px; border: 8px solid transparent; }
+.bulle.dessus::after { top: 100%; border-top-color: #f3e6cf; border-bottom: 0; }
+.bulle.dessous::after { bottom: 100%; border-bottom-color: #f3e6cf; border-top: 0; }
+.carte .valeur.plus { color: #5fd877; }
+.carte .valeur.moins { color: #ff7a6a; }
+.barre-pv > .apercu.fantome {
+  position: absolute; top: 0; height: 100%;
+  background: repeating-linear-gradient(45deg, #fff 0 4px, #ffc9bd 4px 8px); opacity: 0.85;
+  animation: apercu-pulse 1s ease-in-out infinite alternate;
+}
+.barre-pv:has(.apercu) span { z-index: 1; color: #1a0f08; text-shadow: 0 0 3px #fff; }
+.apercu.perte {
+  position: absolute; left: 50%; top: 38%; transform: translateX(-50%); z-index: 3; pointer-events: none; white-space: nowrap;
+  font-size: 22px; font-weight: 900; color: #ff6a5a; text-shadow: 0 2px 0 #000, 0 0 6px #000;
+}
+.apercu.perte.mortel { color: #ffd27a; }
+@keyframes apercu-pulse { from { opacity: 0.55; } to { opacity: 0.95; } }
+@media (prefers-reduced-motion: reduce) { .barre-pv > .apercu.fantome { animation: none; } }
