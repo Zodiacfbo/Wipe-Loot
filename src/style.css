@@ -801,3 +801,4 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .fiche-classe-detail.avec-progression .portrait-classe img { width: 104px; height: 104px; }
 .fiche-classe-detail.avec-progression .infos-classe { gap: 2px 10px; font-size: 15px; }
 .fiche-classe-detail.avec-progression .infos-classe img { width: 22px; height: 22px; }
+.bouton-retour { align-self: flex-end; }

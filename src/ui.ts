@@ -1345,8 +1345,8 @@ function archivesScreen(): string {
       <div class="contenu-archives">${body}</div>
     </div>
     <div class="archives-droite">
+      <button type="button" class="bouton bouton-retour" data-action="titre">Retour</button>
       ${entry ? archiveSheet(tab, entry) : `<aside class="fiche-talent vide"><div class="titre-fiche">Archives de la guilde</div><p>Touche une icône pour voir sa fiche.</p><p>Ce que tu n'as pas encore découvert reste caché : une silhouette pour les monstres, un « ? » pour le reste.</p></aside>`}
-      <button type="button" class="gros-bouton secondaire" data-action="titre">Retour au hall</button>
     </div>
   </div>`;
 }
