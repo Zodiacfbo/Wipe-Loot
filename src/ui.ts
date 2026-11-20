@@ -96,6 +96,7 @@ const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
 // Sprites animés : pour ces images, une planche anim_<fichier> de N images côte à côte
 // (tools/pixel/animations.py) est jouée en boucle par le CSS, comme le feu de camp.
+// Tous les ennemis (ennemi_*.png) sont animés, sur 4 images (vérifié par tests/animations.test.ts).
 const ANIMES: Record<string, number> = {
   'guerrier.png': 4,
   'mage.png': 4,
@@ -135,7 +136,7 @@ function verifierTenue(): void {
 /** Le src, la classe et le style d'un sprite : la planche animée s'il y en a une, sinon l'image fixe.
  *  `decale` décale le début de la boucle, pour que deux ennemis ne respirent pas en même temps. */
 function spriteAttrs(file: string, decale = 0): string {
-  const n = ANIMES[file];
+  const n = ANIMES[file] ?? (file.startsWith('ennemi_') ? 4 : 0);
   if (!n) return `src="${A(file)}"`;
   return `src="${A(`anim_${file}`)}" data-anime style="--images:${n};--decalage:-${((decale * 0.37) % 1).toFixed(2)}"`;
 }
@@ -2562,6 +2563,7 @@ const PRELOAD = [
   'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'voleur.png', 'paladin.png', 'vendeur_gobelin.png', 'bregan.png',
   'feu_camp.png', 'icone_repos.png', 'icone_enclume.png',
   ...Object.keys(ANIMES).map((file) => `anim_${file}`),
+  ...[...Object.keys(ENEMIES), 'vhaeryx_dragon'].map((id) => `anim_ennemi_${id}.png`),
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',

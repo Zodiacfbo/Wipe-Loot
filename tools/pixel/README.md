@@ -71,3 +71,9 @@ def mon_heros(f=0):          # f = numéro de l'image, de 0 à 3
 ```
 
 Puis l'ajouter à `ANIMES` dans `animations.py` et lancer `python3 animations.py` depuis `tools/pixel/` : la planche va dans `public/assets/`, l'image fixe (l'image 0) aussi, et un GIF agrandi dans `assets/essais/` pour vérifier. Enfin, déclarer le fichier dans `ANIMES` de `src/ui.ts`.
+
+### Les ennemis : animation automatique
+
+Les ennemis n'ont pas besoin d'être redessinés : `anime_auto(fn, profil)` rejoue les formes de leur sprite image par image. Le haut du corps respire, le bas (pattes, socle) reste au sol, les pointes des flammes dansent et les grandes lueurs pulsent. Profils : `sol` (par défaut), `vol` (tout le sprite flotte), `fixe` (seules les lueurs vivent). Ils sont réglés dans `PROFILS` de `animations.py`.
+
+**Après avoir ajouté un ennemi**, lancer `python3 animations.py` : sa planche `anim_ennemi_<nom>.png` est créée. Sans elle, `tests/animations.test.ts` échoue.

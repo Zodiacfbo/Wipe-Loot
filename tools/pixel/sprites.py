@@ -17,6 +17,8 @@ os.makedirs(OUT, exist_ok=True)
 
 
 def hexrgb(h):
+    if isinstance(h, tuple):
+        return h
     h = h.lstrip('#')
     return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
@@ -36,6 +38,7 @@ class Sprite:
         self.part = [[None] * w for _ in range(h)]
         self.parts = []  # (couleur, lumineux, ombré)
         self.dx = self.dy = 0  # décalage des formes suivantes (pour animer)
+        self.journal = []  # les formes dessinées, pour que l'animateur automatique les rejoue
 
     @contextmanager
     def bouge(self, dx=0, dy=0):
@@ -66,21 +69,27 @@ class Sprite:
                         self.part[Y][X] = pid
 
     def poly(self, pts, color, **kw):
+        self.journal.append(('poly', pts, color, kw, {}, self.dx, self.dy))
         self._stamp(lambda d: d.polygon(pts, fill=1), color, **kw)
 
     def rect(self, x0, y0, x1, y1, color, **kw):
+        self.journal.append(('rect', (x0, y0, x1, y1), color, kw, {}, self.dx, self.dy))
         self._stamp(lambda d: d.rectangle([x0, y0, x1, y1], fill=1), color, **kw)
 
     def ellipse(self, x0, y0, x1, y1, color, **kw):
+        self.journal.append(('ellipse', (x0, y0, x1, y1), color, kw, {}, self.dx, self.dy))
         self._stamp(lambda d: d.ellipse([x0, y0, x1, y1], fill=1), color, **kw)
 
     def line(self, pts, color, width=1, **kw):
+        self.journal.append(('line', pts, color, kw, {'width': width}, self.dx, self.dy))
         self._stamp(lambda d: d.line(pts, fill=1, width=width), color, **kw)
 
     def dots(self, pts, color, **kw):
+        self.journal.append(('dots', pts, color, kw, {}, self.dx, self.dy))
         self._stamp(lambda d: [d.point(p, fill=1) for p in pts], color, **kw)
 
     def render(self):
+        Sprite.dernier = self  # pour l'animateur automatique
         img = Image.new('RGBA', (self.w, self.h), (0, 0, 0, 0))
         px = img.load()
         P = self.part
@@ -321,6 +330,62 @@ def danse(pts, f, amp=1):
             y += round(FLAMME[(f + i) % 4] * amp)
         out.append((x, y))
     return out
+
+
+def _boite(kind, geom):
+    """Le rectangle (x0, y0, x1, y1) qui contient une forme du journal."""
+    if kind in ('rect', 'ellipse'):
+        x0, y0, x1, y1 = geom
+        return min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)
+    xs = [p[0] for p in geom]
+    ys = [p[1] for p in geom]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def anime_auto(fn, profil='sol'):
+    """Anime un sprite déjà dessiné, sans le redessiner : rejoue ses formes image par image.
+    - profil 'sol' : le haut du corps respire (descend de 2 pixels), le bas (pattes, socle) reste au sol ;
+      'vol' : tout le sprite flotte ; 'fixe' : rien ne bouge (un œuf, un objet).
+    - Dans tous les cas, les formes lumineuses vivent : les pointes des flammes dansent,
+      les grandes lueurs pulsent, les fissures et les petits éclats brillent tour à tour.
+    Renvoie une fonction f -> image, à donner à planche() ou apercu_gif()."""
+    fn()
+    src = Sprite.dernier
+    journal = list(src.journal)
+    boites = [_boite(k, g) for k, g, *_ in journal]
+    haut = min(b[1] for b in boites)
+    sol = max(b[3] for b in boites)
+    seuil = sol - 0.28 * (sol - haut)  # en dessous : les pattes, qui ne bougent pas
+
+    def image(f):
+        s = Sprite(src.w, src.h)
+        for i, ((kind, geom, color, kw, extra, ox, oy), (x0, y0, x1, y1)) in enumerate(zip(journal, boites)):
+            if profil == 'vol':
+                dy = [1, 0, -1, 0][f]
+            elif profil == 'sol':
+                dy = 0 if y0 >= seuil else RESPIRE[f]
+            else:
+                dy = 0
+            phase = (f + i) % 4
+            if kw.get('glow'):
+                if kind == 'poly' and y1 - y0 >= 4:
+                    geom = danse(geom, f + i, 1.5 if y1 - y0 >= 10 else 1)
+                elif kind == 'ellipse' and min(x1 - x0, y1 - y0) >= 6:
+                    g = [0, 1, 1, 0][phase]
+                    geom = (x0 - g, y0 - g, x1 + g, y1 + g)
+                elif kind in ('line', 'dots', 'rect', 'ellipse') and phase == 2:
+                    color = shift(hexrgb(color), 0.14, 0)
+            with s.bouge(ox, oy + dy):
+                if kind == 'rect':
+                    s.rect(*geom, color, **kw)
+                elif kind == 'ellipse':
+                    s.ellipse(*geom, color, **kw)
+                elif kind == 'line':
+                    s.line(geom, color, **extra, **kw)
+                else:
+                    getattr(s, kind)(geom, color, **kw)
+        return s.render()
+    return image
 
 
 def planche(fn, n, miroir=False):

@@ -140,6 +140,8 @@ Le style est **marqué, comme le feu de camp** : 4 images en boucle, 0,2 s par i
 - sa fonction de dessin prend le numéro de l'image `f` (0 à 3) ; l'image 0 sert aussi d'image fixe (archives, fiches) ;
 - `s.bouge(dx, dy)` décale un groupe de formes, `danse(points, f)` fait danser les pointes d'une flamme, `RESPIRE[f]` donne le décalage de la respiration ;
 - on l'ajoute à `ANIMES` dans `tools/pixel/animations.py` (qui exporte la planche `anim_<nom>.png` et un GIF d'aperçu dans `assets/essais/`) et dans `ANIMES` de `src/ui.ts`.
+- **les ennemis sont animés automatiquement** : `anime_auto` rejoue les formes du sprite (le haut du corps respire, les pattes restent au sol, les flammes dansent, la magie pulse). Il suffit de leur donner un profil dans `PROFILS` (`sol` par défaut, `vol`, `fixe`) et de relancer `python3 animations.py`. Un boss peut ensuite recevoir une animation dessinée à la main (comme Vulkhar), qui remplace l'automatique ;
+- **un nouvel ennemi** : l'ajouter au `SPRITES` de son acte, puis lancer `python3 animations.py` depuis `tools/pixel/`. Le test `tests/animations.test.ts` échoue si un ennemi ou une classe jouable n'a pas sa planche.
 
 ---
 

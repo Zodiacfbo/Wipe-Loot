@@ -6,7 +6,7 @@ Lancer depuis tools/pixel/ : python3 animations.py"""
 import os
 from demoniste_sprites import demoniste, diablotin, molosse_infernal, paladin, pretre, rodeur, seigneur_infernal, succube, voleur
 from ennemis import etincelle, molosse
-from sprites import apercu_gif, guerrier, mage, planche, vulkhar
+from sprites import anime_auto, apercu_gif, guerrier, mage, planche, vulkhar
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
@@ -30,10 +30,39 @@ ANIMES = {
     'ennemi_vulkhar': (vulkhar, 4, True, 4),
 }
 
+# Les autres ennemis sont animés automatiquement (anime_auto) : on leur donne juste un profil.
+# 'sol' par défaut ; 'vol' pour ceux qui flottent ; 'fixe' pour ceux qui ne bougent pas.
+PROFILS = {
+    'eclat': 'vol', 'rejeton': 'vol', 'vorra': 'vol',
+    'oeuf': 'fixe', 'oeuf_skarn': 'fixe', 'oeuf_vashka': 'fixe',
+}
+# Les copies : même dessin qu'un autre ennemi.
+COPIES = {'mimique_2': 'mimique', 'mehkar_copie': 'mehkar'}
+
+
+def ennemis_auto():
+    """Tous les ennemis qui n'ont pas d'animation dessinée à la main : nom -> fonction de dessin."""
+    import acte3
+    import ennemis
+    import ennemis_acte2
+    tous = {name: getattr(ennemis, name) for name in ('eclaireur', 'seigneur', 'lieutenant', 'brannoc', 'cendrine', 'rejeton')}
+    tous.update(ennemis.ELITES)
+    tous.update(ennemis_acte2.SPRITES)
+    tous.update(acte3.SPRITES)
+    for copie, modele in COPIES.items():
+        tous.setdefault(copie, tous[modele])
+    return {n: fn for n, fn in tous.items() if f'ennemi_{n}' not in ANIMES}
+
+
 if __name__ == '__main__':
     for nom, (fn, n, miroir, echelle) in ANIMES.items():
         planche(fn, n, miroir).save(os.path.join(DEST, f'anim_{nom}.png'))
         fixe = fn(0).transpose(0) if miroir else fn(0)
         fixe.save(os.path.join(DEST, f'{nom}.png'))
         apercu_gif(fn, n, nom.replace('ennemi_', ''), echelle, miroir=miroir)
+    auto = ennemis_auto()
+    for nom, fn in auto.items():
+        anime = anime_auto(fn, PROFILS.get(nom, 'sol'))
+        planche(anime, 4).save(os.path.join(DEST, f'anim_ennemi_{nom}.png'))
+    print(len(ANIMES), 'animations dessinées,', len(auto), 'ennemis animés automatiquement')
     print('ok')
