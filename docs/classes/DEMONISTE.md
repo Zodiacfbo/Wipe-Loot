@@ -261,6 +261,9 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
   - Cataclysme de l'âme à 5 éclats : 40 dégâts à tous les ennemis (55 amélioré).
   - Le cumul Tourment + Siphon de vie + Armure démoniaque pourrait rendre le Démoniste presque immortel dans les combats longs.
 - **Complexité :** familier, éclats, DoT et malédictions, c'est beaucoup. Le tutoriel de la classe devra présenter le familier en premier.
+- **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 devrait coûter **3 points** (projet, pas encore dans CONCEPT.md §9). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
+  - **Tempête d'afflictions : −4 points** (contre +14 pour 3 talents). Le bot la joue bien, mais tard (tour 5,5 en moyenne), et les DoT posés ne font alors que **6,7 dégâts par tick** au total : environ 13 dégâts pour 2 énergie, le niveau d'une commune. **C'est la carte :** elle multiplie des DoT trop petits. La crainte notée plus haut (tuer un boss d'un coup) ne se voit pas en jeu.
+  - **Piste :** 1 énergie, ou en plus « prolonge tous tes DoT de 1 tour », pour qu'elle soit à la fois un déclencheur et un amplificateur.
 
 ---
 

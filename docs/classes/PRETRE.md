@@ -250,6 +250,9 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
   - Ascension lumineuse combinée à Esprit de guérison crée beaucoup de valeur sur chaque soin.
   - Bénédiction de vigueur donne des PV max permanents : il faudra vérifier qu'elle reste rare.
 - **Forme d'Ombre :** le choix de basculer doit rester une vraie décision. Si elle est trop forte, plus personne ne jouera la Lumière.
+- **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 devrait coûter **3 points** (projet, pas encore dans CONCEPT.md §9). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
+  - **Forme d'Ombre : −6 points** (contre +32 pour 3 talents). Le bot ne la jouait **jamais** : il compte les Pouvoirs par `c.powers`, et la Forme d'Ombre passe par `c.shadowForm` (à corriger dans `tools/balance/bot.ts`). Mais une fois le bot corrigé (jouée 842 fois), elle reste à −6 : le contrecoup (soins ÷2, plus de Foi) coûte plus que +30 % aux sorts d'Ombre et DoT +1, et elle n'a aucun effet immédiat. Avec des points en Discipline (l'arbre de la Foi), elle coupe la ressource dont cet arbre vit.
+  - **Piste :** coût 1 (0 améliorée), un contrecoup plus doux (soins −25 %, ou la Foi se garde mais ne se dépense plus), et un effet immédiat (par exemple : tes DoT actifs infligent un tick tout de suite). Garder l'esprit de la note ci-dessus : basculer doit rester une décision.
 
 ---
 
