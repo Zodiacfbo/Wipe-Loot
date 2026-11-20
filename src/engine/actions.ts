@@ -190,6 +190,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (rogueAttack && target.vendetta) dmg *= 1.5;
   if (rogueAttack && c.coldBlood) dmg *= 2;
+  if (rogueAttack && c.stealth && power(c, 'seigneur_ombres')) dmg *= 1.5; // Seigneur des ombres
   if (paladinAttack && p.divineShield) dmg *= 0.5; // Bouclier divin
   if (spell && c.favor && isPaladin(c)) dmg *= 2; // Faveur divine
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;

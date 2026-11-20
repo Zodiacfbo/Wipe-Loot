@@ -130,6 +130,28 @@ describe('le Camouflage', () => {
   });
 });
 
+describe('les cartes épiques', () => {
+  it('Seigneur des ombres : Camouflé à chaque tour, et +50 % de dégâts tant qu\'on l\'est', () => {
+    const c = fight(['lieutenant'], ['seigneur_ombres', 'coup_dans_le_dos', 'tir_pistolet']);
+    const e = c.enemies[0];
+    play(c, 'seigneur_ombres');
+    let hp = e.hp;
+    play(c, 'coup_dans_le_dos'); // 9 × 2 (Camouflé) × 1,5
+    expect(hp - e.hp).toBe(27);
+    expect(c.stealth).toBe(false);
+    hp = e.hp;
+    play(c, 'tir_pistolet'); // plus Camouflé : pas de bonus
+    expect(hp - e.hp).toBe(8);
+    endTurn(c);
+    expect(c.stealth).toBe(true);
+  });
+
+  it('Vendetta coûte 1 (0 améliorée)', () => {
+    expect(CARDS.vendetta.cost).toBe(1);
+    expect(CARDS.vendetta.costUp).toBe(0);
+  });
+});
+
 describe('les Poisons', () => {
   it('un seul Poison d\'arme ; chaque Attaque qui touche fait les dégâts du Poison', () => {
     const c = fight(['lieutenant'], ['poison_mortel', 'poison_affaiblissant', 'attaque_sinistre', 'double_frappe']);

@@ -147,7 +147,7 @@ Le Voleur frappe vite, frappe juste, et disparaît. Il **enchaîne de petites at
 | **Égorgement** | 2 | Attaque (Ouverture) | R | Inflige 24 dégâts. +2 combo. | 32 dégâts |
 | **Opportuniste** | 1 | Pouvoir | R | Tes Attaques infligent +4 dégâts aux ennemis Contrôlés ou Apeurés. | +6 dégâts |
 | **Ténèbres** | 1 | Pouvoir | R | Au début de chaque combat, ton Camouflage dure 2 tours. Ce pouvoir est actif pour les combats suivants s'il est joué une fois (jusqu'à la fin de la run). **Épuisé.** | Coûte 0 |
-| **Seigneur des ombres** | 2 | Pouvoir | É | Au début de chacun de tes tours, tu es **Camouflé** jusqu'à ta première Attaque qui n'est pas une Ouverture. | Coûte 1 |
+| **Seigneur des ombres** | 2 | Pouvoir | É | Au début de chacun de tes tours, tu es **Camouflé** jusqu'à ta première Attaque qui n'est pas une Ouverture. **Tant que tu es Camouflé, tes Attaques infligent +50 % de dégâts.** | Coûte 1 |
 
 ---
 
@@ -252,15 +252,16 @@ Il faut affronter deux boss secondaires précis dans l'acte 1 : c'est un objecti
 - **Ténèbres** est la seule carte qui reste active d'un combat à l'autre. Si l'idée plaît, on pourra en faire une petite famille de cartes « de run ».
 - **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 coûte **3 points** (CONCEPT.md §9, en jeu depuis novembre 2026). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
   - **Vendetta : +5 points** (contre +10 pour 3 talents ; +7 sans les copies). Jouée tôt (tour 2,1). La marquer sur l'ennemi le plus solide ne change rien (+3). Tout l'Assassinat est assez faible (+10 pour 3 talents). La carte a été baissée de coût 1 à 2 parce qu'avec Impitoyable l'Assassinat passait 80 % : ce cas ne se voit plus.
-  - **Piste :** revenir à 1 énergie (0 améliorée) maintenant que le palier coûtera 3 points, ou la garder à 2 mais sans Épuisé.
-  - **Seigneur des ombres : +4 points** (contre +32 pour 3 talents ; +8 sans les copies). Pouvoir à 2 énergie, posé au tour 2,9 en moyenne. Le Camouflé ne sert qu'aux **5 Ouvertures** du Voleur (et à Coup dans le dos, qui double ses dégâts) : sans Ouvertures en main, le tour de Camouflé est perdu. **C'est la carte :** elle dépend d'une densité d'Ouvertures que le deck a rarement. L'arbre Finesse, lui, est fort.
-  - **Piste :** que le Camouflé donne aussi un bonus à toutes les Attaques (par exemple +3 dégâts à la première Attaque du tour), ou que la carte pioche une Ouverture au début de chaque tour.
+  - **Fait (novembre 2026) :** retour à **coût 1 (0 améliorée)**, toujours Épuisée : la carte vaut **+17** (Assassinat 7 + Combat 3 : 33 → 45 %). Sans Épuisé, c'était moins bien (41 %).
+  - **Seigneur des ombres : +4 points** (contre +32 pour 3 talents ; +8 sans les copies). Pouvoir à 2 énergie, posé au tour 2,9 en moyenne. Le Camouflé ne sert qu'aux **5 Ouvertures** du Voleur (et à Coup dans le dos, qui double ses dégâts) : sans Ouvertures en main, le tour de Camouflé est perdu. **C'est la carte :** elle dépend d'une densité d'Ouvertures que le deck a rarement. L'arbre Finesse est faible lui aussi (Finesse 7 + Combat 3 : 22 %).
+  - **Fait (novembre 2026) :** **tant que tu es Camouflé, tes Attaques infligent +50 %** (donc la première Attaque normale de chaque tour, et toutes les Ouvertures). Coût 2 (1) inchangé. La carte vaut **+20** (Finesse 7 + Combat 3 : 22 → 43 %). Écartés : coût 1 seul (+6), +1 ou +2 combo par tour (+2 à +7), ×2 (trop fort à coût 1 : 74 %).
+  - **Reste à faire :** les paliers 1 à 4 d'Assassinat et de Finesse (palier 2 d'Assassinat, Maître de la discrétion, Préparation, palier 4 de Finesse sont à environ 0), puis peut-être Combat 7 + Finesse 3 (79 %, porté par Disparition).
 
 ---
 
 ## 12. Ce qui est en jeu dans le prototype
 
-**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §12) : Esquive donne 6 blocage (9 améliorée), Éviscération 4 + 6 par point (4 + 8), Maître de la discrétion +4 aux Ouvertures, et Vendetta coûte 2 (1 améliorée). Le reste suit la fiche.
+**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §12) : Esquive donne 6 blocage (9 améliorée), Éviscération 4 + 6 par point (4 + 8), Maître de la discrétion +4 aux Ouvertures. Vendetta coûtait 2 (1 améliorée) ; elle revient à 1 (0) avec le palier 5 à 3 points (§11). Le reste suit la fiche.
 
 - **Les points de combo** se gardent d'un tour à l'autre et repartent à 0 (ou à 2 avec Agression) à chaque combat. On peut jouer un finisher à 0 point : il ne fait presque rien. Impitoyable ajoute 1 point à chaque finisher, même à 0.
 - **Le Camouflage** dure le premier tour (2 tours avec Ombres profondes ou Ténèbres, qui ne s'additionnent pas). Le sprite du Voleur devient transparent tant qu'il est Camouflé. Une Ouverture Compétence (Assommer, Préméditation) ne profite pas de Bond de l'ombre, qui ne vaut que pour une Attaque.

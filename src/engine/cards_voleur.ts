@@ -228,7 +228,7 @@ const LIST: RogueCard[] = [
     },
   },
   {
-    id: 'vendetta', name: 'Vendetta', type: 'Compétence', rarity: 'epique', cost: 2, costUp: 1, needsTarget: true, exhaust: true, icon: 'pouvoir',
+    id: 'vendetta', name: 'Vendetta', type: 'Compétence', rarity: 'epique', cost: 1, costUp: 0, needsTarget: true, exhaust: true, icon: 'pouvoir',
     text: () => 'Marque la cible pour tout le combat : tes Attaques contre elle infligent 50 % de dégâts en plus et appliquent 2 Poison de plus. Épuisé.',
     play: (ctx) => {
       if (!ctx.target) return;
@@ -453,7 +453,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'seigneur_ombres', name: 'Seigneur des ombres', type: 'Pouvoir', rarity: 'epique', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Au début de chacun de tes tours, tu es Camouflé jusqu\'à ta première Attaque qui n\'est pas une Ouverture.',
+    text: () => 'Au début de chacun de tes tours, tu es Camouflé jusqu\'à ta première Attaque qui n\'est pas une Ouverture. Tant que tu es Camouflé, tes Attaques infligent +50 % de dégâts.',
     play: (ctx) => {
       powerCard(ctx, 'seigneur_ombres', 1, 'Seigneur des ombres');
       enterStealth(ctx.c, 1);

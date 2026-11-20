@@ -328,3 +328,12 @@ Les 53 % de l'Ombre (§11) étaient donc flatteurs : ils venaient d'un bot qui n
 
 **Ce qu'on en tire :** les builds dont la carte épique gardée est forte tiennent (Démonologie, Vindicte, Armes, Discipline) ; ceux qui perdaient une épique forte du deuxième arbre chutent (Voleur : Frénésie meurtrière ; Paladin Protection : Avatar de lumière). C'est l'effet attendu : la passe sur les cartes épiques faibles (fiches de classe, §11) et sur les arbres Arcane, Destruction et Assassinat doit les ramener vers la cible.
 
+**Voleur, cartes épiques (novembre 2026).** Diagnostic (200 runs) : Combat 7 + Finesse 3 = 79 %, Combat 7 + Assassinat 3 = 54 %, Assassinat 7 + Combat 3 = 33 %, Finesse 7 + Combat 3 = 22 %. Le bot n'y est pour rien (valeur du Camouflé et poids des récompenses testés : pas d'écart au-delà de ±5).
+
+| Carte | Avant | Après | Valeur de la carte |
+|---|---|---|---|
+| Vendetta | coût 2 (1) | **coût 1 (0)** | +5 → **+17** |
+| Seigneur des ombres | Camouflé à chaque tour | **+50 % aux Attaques tant que tu es Camouflé** | −1 → **+20** |
+
+Profils du banc (100 runs) : Voleur niveau 10 Assassinat 7 + Combat 3 : 30 → **45 %** ; Finesse 7 + Combat 3 : 24 → **50 %**. Restent les paliers 1 à 4 d'Assassinat et de Finesse (fiche du Voleur, §11).
+
