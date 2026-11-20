@@ -1,6 +1,6 @@
 # L'équilibrage
 
-> Wipe & Loot · Document vivant · Dernière passe : l'acte 2
+> Wipe & Loot · Document vivant · Dernière passe : les talents (palier 5 à 3 points)
 
 ## 1. La méthode
 
@@ -289,3 +289,22 @@ Mesuré sur la run complète (actes 1 et 2), difficulté 0, 50 runs par profil.
 **Le bot :** il valorise chaque Sceau actif (5), l'Aura (8), la Censure posée et la Consécration à venir. Il prend la Lame ternie au Reliquaire et rallume toujours l'Aurore ardente au feu de camp.
 
 **À surveiller :** Protection + Sacré reste un peu au-dessus de la cible (78 %) : c'est la classe ⭐ la plus facile, c'est attendu. À regarder sur des runs de joueurs : Double sceau avec Verdict des cieux (deux Jugements gratuits), Juste châtiment après un gros tour de blocage, et la Censure qui ne diminue pas dans les longs combats.
+
+---
+
+## 14. Les talents : le palier 5 à 3 points (novembre 2026)
+
+**La décision** (`CONCEPT.md` §9) : le palier 5 coûte 3 points, un arbre complet en coûte 7, et deux arbres complets deviennent impossibles. Une carte épique doit donc valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. La règle n'est pas encore codée.
+
+**La mesure** (200 runs par build, difficulté 0, option A à chaque palier, mêmes graines) : pour chaque arbre, la carte épique est comparée à 3 talents des paliers 1 à 4, sur la même base (paliers 1 à 4 de l'arbre + 3 paliers d'un autre). Seules 7 cartes épiques sur 18 valent 3 points : Frappe mortelle, Sanguinaire, Seigneur infernal, Égide des anciens, Frénésie meurtrière, Avatar de lumière, Verdict des cieux. Le diagnostic des 11 autres et les pistes sont dans les fiches de classe (§11, « Carte épique à revoir »). Trois arbres sont faibles dans leur ensemble : Arcane, Destruction, Assassinat.
+
+**Le bot, corrigé :** il ne jouait **jamais** la Forme d'Ombre (elle passe par `c.shadowForm`, pas par `c.powers`). Elle vaut maintenant un Pouvoir posé (8). Effet sur le Prêtre (100 runs) :
+
+| Profil | Avant la correction | Après |
+|---|---|---|
+| Niveau 10 (Discipline 5, Sacré 5) | 63 % | 63 % |
+| Niveau 10 (Ombre 5, Sacré 5) | 53 % | **37 %** |
+
+Les 53 % de l'Ombre (§11) étaient donc flatteurs : ils venaient d'un bot qui ne basculait jamais. Jouée, la Forme d'Ombre coûte cher avec le Sacré (soins divisés par deux, plus de Foi). C'est à reprendre avec la carte (fiche du Prêtre, §11).
+
+**Autre limite connue :** le bot ne valorise pas Ténèbres (Voleur), dont l'effet ne joue qu'aux combats suivants.
