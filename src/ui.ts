@@ -87,7 +87,7 @@ import { devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClas
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
 import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotOf, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
-import { initFx, playFx } from './fx';
+import { initFx, playFx, transformation } from './fx';
 import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
@@ -107,6 +107,18 @@ const ANIMES: Record<string, number> = {
 function heroSprite(sprite: string | undefined, c: CombatState): string {
   if (sprite === 'pretre.png' && c.shadowForm) return 'pretre_ombre.png';
   return sprite ?? 'guerrier.png';
+}
+
+/** Couleur du flash quand le héros change de tenue, selon la nouvelle tenue. */
+const FLASH_TENUE: Record<string, string> = { 'pretre_ombre.png': '#9a5af0', 'pretre.png': '#ffe27a' };
+let tenueHeros: string | null = null;
+
+/** Après chaque affichage : si la tenue du héros a changé depuis le dernier, flash de transformation. */
+function verifierTenue(): void {
+  const el = stage.querySelector<HTMLElement>('[data-fx="player"]');
+  const tenue = el?.dataset.tenue ?? null;
+  if (el && tenue && tenueHeros && tenue !== tenueHeros) transformation(el, FLASH_TENUE[tenue] ?? '#ffffff');
+  tenueHeros = tenue;
 }
 
 /** Le src, la classe et le style d'un sprite : la planche animée s'il y en a une, sinon l'image fixe.
@@ -1208,7 +1220,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     ${enrage}
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
-      <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" ${spriteAttrs(heroSprite(hero.sprite, c))} alt="Le ${hero.name}" width="192" height="192">
+      <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" data-tenue="${heroSprite(hero.sprite, c)}" ${spriteAttrs(heroSprite(hero.sprite, c))} alt="Le ${hero.name}" width="192" height="192">
       ${c.pet && !c.petSacrificed ? `<img class="px familier" src="${A(`familier_${c.pet}.png`)}" alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
       ${c.infernal ? `<img class="px seigneur-infernal" src="${A('familier_seigneur.png')}" alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
       <div class="jauges">
@@ -2150,6 +2162,7 @@ export function render(): void {
     case 'gameover': html = endScreen(run, false); break;
   }
   stage.innerHTML = html + overlayHtml(run);
+  verifierTenue();
   afterRender();
 }
 

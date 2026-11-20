@@ -182,6 +182,36 @@ async function banner(text: string): Promise<void> {
   d.remove();
 }
 
+/** Le héros change d'apparence (le Prêtre entre en Forme d'Ombre ou en sort) :
+ *  un flash de la couleur de la nouvelle tenue et une onde qui part de lui. */
+export function transformation(el: HTMLElement, color: string): void {
+  if (reduceMotion) return;
+  el.animate(
+    [
+      { filter: `brightness(3) drop-shadow(0 0 0 ${color})`, transform: 'scale(1.08)' },
+      { filter: `brightness(1.6) drop-shadow(0 0 22px ${color})`, transform: 'scale(1.03)', offset: 0.35 },
+      { filter: 'brightness(1) drop-shadow(0 0 0 transparent)', transform: 'scale(1)' },
+    ],
+    { duration: ms(520), easing: 'ease-out' },
+  );
+  const c = center(el);
+  const onde = document.createElement('div');
+  onde.className = 'fx-onde';
+  onde.style.left = `${c.x}px`;
+  onde.style.top = `${c.y}px`;
+  onde.style.borderColor = color;
+  onde.style.boxShadow = `0 0 18px ${color}, inset 0 0 18px ${color}`;
+  stage.appendChild(onde);
+  const anim = onde.animate(
+    [
+      { transform: 'translate(-50%, -50%) scale(0.2)', opacity: 1 },
+      { transform: 'translate(-50%, -50%) scale(1.6)', opacity: 0 },
+    ],
+    { duration: ms(480), easing: 'ease-out' },
+  );
+  anim.finished.then(() => onde.remove()).catch(() => onde.remove());
+}
+
 /** Joue une liste d'événements, dans l'ordre. */
 export async function playFx(events: FxEvent[]): Promise<void> {
   let i = 0;

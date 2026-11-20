@@ -39,6 +39,7 @@ img[data-anime] {
   animation: sprite-anime calc(var(--images) * 0.2s) steps(var(--images), jump-none) infinite;
   animation-delay: calc(var(--decalage, 0) * var(--images) * 0.2s);
 }
+.fx-onde { position: absolute; width: 220px; height: 220px; border-radius: 50%; border: 6px solid; pointer-events: none; z-index: 30; }
 @keyframes sprite-anime { to { object-position: 100% 0; } }
 @media (prefers-reduced-motion: reduce) { img[data-anime] { animation: none; } }
 

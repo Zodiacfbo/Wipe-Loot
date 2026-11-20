@@ -53,3 +53,21 @@ s.render().save('mon_icone.png')
 Le générateur produit une **bonne base**, mais pas un sprite fini : les visages, les mains et les petits détails gagneront à être retouchés pixel par pixel dans un éditeur (Aseprite, Piskel, LibreSprite…).
 
 - `illustrations.py` : les illustrations des cartes (32 × 32), une par carte, exportées en `public/assets/carte_<id>.png`. Lancer `python3 illustrations.py` depuis `tools/pixel/`.
+
+## Animer un sprite
+
+Les sprites animés sont des **planches de 4 images côte à côte** (`public/assets/anim_<nom>.png`), jouées en boucle par le jeu comme le feu de camp. Les règles sont dans la [direction artistique](../../docs/DIRECTION_ARTISTIQUE.md), §7.
+
+```python
+from sprites import RESPIRE, Sprite, danse
+
+def mon_heros(f=0):          # f = numéro de l'image, de 0 à 3
+    s = Sprite(64, 64)
+    s.rect(24, 47, 38, 60, '#5E6670')              # les jambes ne bougent pas
+    with s.bouge(0, RESPIRE[f]):                    # le haut du corps respire
+        s.rect(22, 24, 42, 46, '#8C96A3')
+        s.poly(danse([(30, 20), (33, 8), (36, 20)], f), '#F59A2E', glow=True)  # une flamme qui danse
+    return s.render()
+```
+
+Puis l'ajouter à `ANIMES` dans `animations.py` et lancer `python3 animations.py` depuis `tools/pixel/` : la planche va dans `public/assets/`, l'image fixe (l'image 0) aussi, et un GIF agrandi dans `assets/essais/` pour vérifier. Enfin, déclarer le fichier dans `ANIMES` de `src/ui.ts`.
