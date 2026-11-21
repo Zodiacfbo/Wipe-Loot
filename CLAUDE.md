@@ -122,7 +122,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
 8. UI : jauge de ressource dans `combatScreen` (voir `demonResource`, `priestResource`), chips, `POWER_LABEL`, préchargement du sprite.
 9. Sprite **animé** (fonction de dessin avec `f`, ligne dans `ANIMES` de `tools/pixel/animations.py` et de `src/ui.ts` ; vérifié par `tests/animations.test.ts`) + illustrations (`tools/pixel/illustrations_<classe>.py`, ajouté dans `illustrations.py`).
 10. Tests `tests/<classe>.test.ts` ; mettre à jour `tests/classes.test.ts` et le compte de talents dans `tests/talents.test.ts`.
-11. Bot : valeur de la ressource dans `evaluate()` ; profils dans `balance.sim.ts`. Cibles (run complète, difficulté 0) : niveau 1 ≈ 0-10 %, niveau 5 ≈ 15-30 %, niveau 10 ≈ 50-75 %. Le sort de départ est gratuit (comme Charge, Contresort, Pacte de sang, Égide sacrée) et le deck de départ un peu renforcé par rapport à la fiche.
+11. Bot : valeur de la ressource dans `evaluate()` ; profils dans `balance.sim.ts`. Cibles (run complète, difficulté 0) : niveau 1 ≈ 0-10 %, niveau 5 ≈ 15-30 %, niveau 10 ≈ 50-75 %. Le palier 5 coûte 3 points : chaque carte épique doit apporter environ +15 à +25 points, et chaque arbre complet (7 + 3) doit se situer à peu près au niveau des deux autres. Le sort de départ est gratuit (comme Charge, Contresort, Pacte de sang, Égide sacrée) et le deck de départ un peu renforcé par rapport à la fiche.
 12. Docs : fiche de classe (chiffres retenus + §« Ce qui est en jeu »), `EQUILIBRAGE.md`, `ROADMAP.md`.
 
 ### Pièges connus
