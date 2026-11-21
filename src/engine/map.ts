@@ -13,6 +13,8 @@ export interface MapNode {
   next: number[]; // ids des nœuds de l'étage suivant
   /** Boss secondaire de ce nœud (index dans la liste des boss secondaires de l'acte), choisi dès la création de la carte. */
   elite?: number;
+  /** Un indice des Veilleurs de l'Aurore : ce « ? » cache un combat, ou un vrai événement. */
+  hint?: 'combat' | 'event';
 }
 
 export interface ActMap {

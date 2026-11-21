@@ -189,6 +189,7 @@ img[data-anime] {
 .sort.recharge { border-color: var(--bordure); background: #1a1410; color: #8e7c6a; }
 .sort.recharge b { font-size: 22px; font-weight: 800; color: #c9bcab; }
 .sort.choisi { box-shadow: 0 0 0 4px #4a3a1a; }
+.sort:disabled:not(.recharge) { border-color: var(--bordure); opacity: 0.55; filter: grayscale(0.6); }
 
 .main { position: absolute; left: 150px; right: 260px; bottom: 6px; height: 230px; display: flex; justify-content: center; align-items: flex-end; }
 
@@ -258,6 +259,8 @@ img[data-anime] {
   display: flex; align-items: center; justify-content: center; transition: transform 0.12s ease;
 }
 .noeud.elite { color: #e88a7a; }
+.noeud .indice { position: absolute; right: -6px; top: -6px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; background: #3a2a14; border: 2px solid var(--or); color: var(--or-clair); }
+.noeud .indice.combat { border-color: #e88a7a; color: #ffb0a0; }
 .noeud.boss { color: var(--or); border-width: 4px; }
 .noeud.campfire { color: #f59a2e; }
 .noeud.chest { color: var(--or-clair); }

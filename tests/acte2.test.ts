@@ -49,10 +49,8 @@ describe('l\'enchaînement des actes', () => {
     expect(run.floorsDone).toBe(1);
   });
 
-  it('l\'acte 2 a ses propres rencontres, et Vhaeryx termine la run', () => {
+  it('l\'acte 2 a ses propres rencontres ; Vhaeryx vaincu : son butin, puis l\'acte 3', () => {
     const run = newRun(9);
-    run.act = 2;
-    run.screen = 'act';
     run.act = 1;
     run.screen = 'act';
     startNextAct(run);
@@ -62,8 +60,25 @@ describe('l\'enchaînement des actes', () => {
     expect(ACTS[2].easy.some((enc) => enc.enemies.every((id) => ids.includes(id)))).toBe(true);
     run.combat = null;
     run.screen = 'map';
-    expect(LAST_ACT).toBe(2);
+    expect(LAST_ACT).toBe(3);
     beatBoss(run);
+    expect(run.bossStage).toBe('loot');
+    expect(run.pendingItem ? BOSS_LOOT[2].table.includes(run.pendingItem) : !!run.pendingSpell).toBe(true);
+    chooseReward(run, null);
+    expect(run.bossStage).toBe('epic');
+    expect([run.pendingItem, ...run.pendingAlts].every((id) => BOSS_LOOT[2].epics.includes(id!))).toBe(true);
+    leavePending(run);
+    chooseReward(run, null);
+    expect(run.screen).toBe('act');
+    expect(startNextAct(run)).toBe(true);
+    expect(run.act).toBe(3);
+    // Yzhar vaincu : son butin, puis la victoire.
+    beatBoss(run);
+    expect(run.bossStage).toBe('loot');
+    chooseReward(run, null);
+    expect(run.bossStage).toBe('epic');
+    leavePending(run);
+    chooseReward(run, null);
     expect(run.screen).toBe('victory');
   });
 

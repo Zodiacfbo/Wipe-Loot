@@ -369,3 +369,67 @@ Profils du banc (100 runs) : Voleur niveau 10 Assassinat 7 + Combat 3 : 30 → *
 | Voleur | Assassinat 7 + Combat 3 : 55 % | Finesse 7 + Combat 3 : 49 % |
 | Paladin | Vindicte 7 + Sacré 3 : 71 % | Protection 7 + Sacré 3 : 70 % |
 
+---
+
+## 15. Les trois actes (acte 3, lot 5)
+
+> **Attention :** ces mesures ont été faites **avant** la réforme des talents (§14 : palier 5 à 3 points). Les profils de niveau 10 étaient alors en 5 + 5 ; elles sont à refaire avec les profils 7 + 3.
+
+Depuis l'acte 3, **gagner une expédition, c'est vaincre Vulkhar, Vhaeryx puis Yzhar**, toujours avec 3 wipes pour toute la run. Les chiffres ne sont donc plus comparables à ceux des sections précédentes (deux actes).
+
+**Yzhar d'après sa fiche était infaisable pour le bot :** 84 à 100 % de wipe au premier essai avec des personnages de niveau 10, et 0 à 20 % de runs gagnées. Les morts venaient du Corps : avec −75 % de dégâts, ses 340 PV en valaient 1 360, et les Tentacules oculaires restés en jeu achevaient les classes fragiles. Ce qui a changé (détail dans la fiche de l'acte 3, §12) : Corps à 260 PV, Carapace à −50 % (les dégâts dans le temps passent dessous), Tentacules oculaires qui se ferment avec l'Œil (1 tous les 2 tours, 3 au plus), Rayon 8, Regard sombre 10, Coup de tentacule géant 12, Murmures +2 Folie, Tentacule géant de 30 PV qui frappe à 10, 1 à la fois, tous les 3 tours.
+
+**Yzhar seul** (`tools/balance/yzhar.sim.ts` : le combat rejoué avec les PV pleins, sur 15 runs réelles du bot de niveau 10) :
+
+| Classe | Fiche | Après réglages |
+|---|---|---|
+| Guerrier | 3 / 15 | **13 / 15** |
+| Mage | 0 / 15 | **10 / 15** |
+| Voleur | 2 / 15 | **13 / 15** |
+| Paladin | 1 / 15 | **10 / 15** |
+| Prêtre | — | **11 / 15** |
+| Démoniste (Démonologie) | — | **6 / 15** |
+| Démoniste (Affliction) | — | **1 / 15** |
+
+**La run complète** (40 runs par profil, difficulté 0) :
+
+| Profil | Vulkhar vaincu | Vhaeryx vaincu | Run gagnée |
+|---|---|---|---|
+| Guerrier niveau 1 / 5 | 15 % / 70 % | 5 % / 35 % | 0 % / **20 %** |
+| Guerrier niveau 10 (Protection + Fureur) | 98 % | 63 % | **58 %** |
+| Guerrier niveau 10 (Armes + Fureur) | 98 % | 78 % | **58 %** |
+| Mage niveau 1 / 5 | 13 % / 70 % | 3 % / 35 % | 0 % / **15 %** |
+| Mage niveau 10 (Givre + Feu) | 88 % | 70 % | **48 %** |
+| Mage niveau 10 (Arcane + Feu) | 100 % | 83 % | **40 %** |
+| Démoniste niveau 1 / 5 | 33 % / 100 % | 0 % / 23 % | 0 % / **5 %** |
+| Démoniste niveau 10 (Affliction + Destruction) | 95 % | 40 % | **5 %** |
+| Démoniste niveau 10 (Démonologie + Destruction) | 100 % | 65 % | **23 %** |
+| Voleur niveau 1 / 5 | 3 % / 58 % | 0 % / 15 % | 0 % / **0 %** |
+| Voleur niveau 10 (Assassinat + Combat) | 83 % | 70 % | **60 %** |
+| Voleur niveau 10 (Finesse + Combat) | 83 % | 70 % | **48 %** |
+| Prêtre niveau 1 / 5 | 28 % / 65 % | 8 % / 15 % | 8 % / **13 %** |
+| Prêtre niveau 10 (Discipline + Sacré) | 95 % | 55 % | **50 %** |
+| Prêtre niveau 10 (Ombre + Sacré) | 100 % | 70 % | **65 %** |
+| Paladin niveau 1 / 5 | 15 % / 70 % | 3 % / 25 % | 3 % / **15 %** |
+| Paladin niveau 10 (Vindicte + Sacré) | 98 % | 73 % | **63 %** |
+| Paladin niveau 10 (Protection + Sacré) | 93 % | 78 % | **63 %** |
+
+**Les niveaux de difficulté** (personnages de niveau 10, 25 runs par case ; entre parenthèses, l'acte 2 atteint) :
+
+| Difficulté | Guerrier Protection + Fureur | Guerrier Armes + Fureur | Mage Givre + Feu | Mage Arcane + Feu |
+|---|---|---|---|---|
+| 0 | 64 % (96 %) | 52 % (96 %) | 40 % (84 %) | 32 % (100 %) |
+| 10 | 40 % (92 %) | 36 % (88 %) | 36 % (68 %) | 8 % (72 %) |
+| 15 | 28 % (80 %) | 12 % (64 %) | 16 % (48 %) | 8 % (52 %) |
+| 20 | 4 % (40 %) | 4 % (36 %) | 8 % (32 %) | 0 % (12 %) |
+
+La courbe garde sa forme : chaque palier se sent, et le niveau 20 reste le défi ultime. Les contraintes « boss de fin d'acte » (niveaux 16, 17, 20) s'appliquent aussi à Yzhar.
+
+**Le bot :** il se met à couvert sous le Regard sombre, vise en priorité les Tentacules intérieurs quand il est avalé, garde ses DoT pour le boss plutôt que pour les adds, et choisit dans les événements d'Irem (il prend la purification des Veilleurs avec le Paladin).
+
+**À surveiller :**
+- **Le Démoniste Affliction** tombe très bas (5 %). Le journal montre un bot qui arrive au Corps avec peu de PV, que la Folie fait tomber en Crise, et qui joue défensif. C'est en partie une faiblesse du bot (il ne voit qu'une action à l'avance), mais c'est la classe à regarder en premier sur des runs de joueurs. Le Démoniste ⭐⭐⭐ a le droit d'être un cran en dessous, pas autant.
+- **Le Mage** a peu de PV max dans les runs du bot (55 à 80) : Vhaeryx et Yzhar sont ses murs.
+- **La Folie** fait perdre des tours entiers contre Yzhar (+1 par tour, Murmures, Tentacules). C'est le cœur de l'acte, mais à surveiller avec des joueurs.
+
+Mesures : `npm run balance` (tous les bancs), `tools/balance/yzhar.sim.ts` (Yzhar seul, variable `CLASSES`), `tools/balance/difficulte.sim.ts`.

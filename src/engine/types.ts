@@ -123,6 +123,12 @@ export interface PlayerCurse {
   sableHand?: number; // cartes Sable ajoutées à la main (Tempête de sable)
   hallucinations?: number; // Hallucinations ajoutées à la main (Vision partagée)
   domination?: boolean; // Domination mentale : pendant ton prochain tour, ta première Attaque te vise toi-même
+  // Yzhar
+  petStun?: number; // le Rayon oculaire rebondit sur ton familier, qui est étourdi X tour
+  regard?: number; // Regard sombre : X tours, 12 dégâts à la fin de ton tour si tu ne te mets pas à couvert
+  swallow?: boolean; // Avaler : tu passes 2 tours dans les entrailles d'Yzhar
+  /** Incantation impossible à interrompre (Regard sombre, Avaler). */
+  uninterruptible?: boolean;
 }
 
 /** Les malédictions actives sur le joueur. */
@@ -180,6 +186,8 @@ export interface EnemyState {
   phase?: number;
   /** Tours restants sous la lave : l'ennemi ne peut pas être ciblé ni blessé. */
   submerged?: number;
+  /** Yzhar : l'ennemi est resté dehors pendant que tu es dans ses entrailles. */
+  outside?: boolean;
   /** Compteur d'utilisations (attaques qui grandissent). */
   counter?: number;
   /** Clignement : ne peut pas être ciblé jusqu'à son prochain tour. */
@@ -334,6 +342,16 @@ export interface CombatState {
   crisis?: boolean;
   /** Domination mentale (Méhkar) : ta prochaine Attaque te vise toi-même. */
   dominated?: boolean;
+  /** Yzhar : tours restants dans ses entrailles, Regard sombre, mise à couvert, Carapace tombée, familier étourdi. */
+  swallowed?: number;
+  /** Les dégâts dans le temps sont en train de tomber (ils passent sous la Carapace divine). */
+  dotTicking?: boolean;
+  regard?: number;
+  covered?: boolean;
+  carapaceDown?: number;
+  petStunned?: number;
+  /** Couronne d'Irem : le premier tour du combat est sauté. */
+  skipTurn?: boolean;
   /** Butin d'Irem, une fois par tour ou par combat : Bague du lien royal, Bague des reflets, Larme du rêveur. */
   mixDrawUsed?: boolean;
   spellTwiceUsed?: boolean;
@@ -529,7 +547,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 22;
+  version: 23;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -591,7 +609,13 @@ export interface RunState {
   /** Voleur : Ténèbres a été joué, le Camouflage de début de combat dure 2 tours jusqu'à la fin de la run. */
   tenebres: boolean;
   /** Quête légendaire du Paladin : l'Aurore ardente (la Lame ternie, purifiée par la mort d'Ossyrax, puis forgée). */
-  aurore: 'lame' | 'purifiee' | 'forged' | null;
+  aurore: 'lame' | 'purifiee' | 'benie' | 'forged' | null;
+  /** Acte 3 : bonus pour toute la run (bénédiction des Veilleurs de l'Aurore). */
+  runBuffs: ItemEffects;
+  /** Le Gong des Sables a été frappé : le prochain combat est un pack difficile avec un ennemi de plus. */
+  gong: boolean;
+  /** Le Rêve d'Yzhar : Folie au début du prochain combat. */
+  nextFolie: number;
   /** Les monstres vaincus pendant la run (pour les archives de la guilde). */
   kills: Record<string, number>;
   /** Niveau de difficulté (0 à 20) et nombre de wipes autorisés au départ. */

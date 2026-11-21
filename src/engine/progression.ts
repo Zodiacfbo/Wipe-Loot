@@ -88,7 +88,8 @@ export function scoreRun(run: RunState): ScoreLine[] {
     { label: `Boss secondaires vaincus (${run.stats.elites})`, points: run.stats.elites * 25 },
   ];
   if (victory || (run.act ?? 1) >= 2) lines.push({ label: 'Vulkhar vaincu', points: 100 });
-  if (victory && (run.act ?? 1) >= 2) lines.push({ label: 'Vhaeryx vaincu', points: 150 });
+  if ((run.act ?? 1) >= 3) lines.push({ label: 'Vhaeryx vaincu', points: 150 });
+  if (victory && (run.act ?? 1) >= 3) lines.push({ label: 'Yzhar vaincu', points: 200 });
   if (run.sourcesQuest === 'done') lines.push({ label: 'Quête : les Gardiens des Sources', points: 20 });
   if (victory && wipes === 0) lines.push({ label: 'Aucun wipe', points: 30 });
   if (wipes > 0) lines.push({ label: `Wipes (${wipes})`, points: -15 * wipes });

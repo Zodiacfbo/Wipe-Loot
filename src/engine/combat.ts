@@ -28,6 +28,7 @@ import { BASE_AEGIS, BASE_FAITH, gainAegis, gainFaith } from './pretre';
 import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStrike } from './voleur';
 import { addHallucination, folieStartTurn, gainFolie } from './folie';
 import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
+import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
 import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
@@ -133,6 +134,15 @@ export function createCombat(
   if (c.enrageTurn !== null && gear.enrageDelay) c.enrageTurn += gear.enrageDelay;
   if (gear.startFardeau) addStatusToDraw(c, 'fardeau', gear.startFardeau);
   log(c, `Combat : ${encounter.name}.`);
+  // Le Gong des Sables : un ennemi de plus.
+  if (encounter.extraEnemy && c.enemies.length > 0) {
+    const model = c.enemies[Math.floor(random(c) * c.enemies.length)];
+    const extra = makeEnemy(c, model.defId);
+    extra.maxHp = extra.hp = model.maxHp;
+    extra.buffs.puissance = model.buffs.puissance;
+    c.enemies.push(extra);
+    fixIntent(c, extra);
+  }
   // L'Eau des profondeurs affaiblit Vulkhar.
   if (encounter.weakened) {
     for (const e of c.enemies.filter((x) => x.defId === 'vulkhar')) {
@@ -167,6 +177,21 @@ export function createCombat(
   // Maître invocateur : le familier agit dès le début du combat.
   if (gear.petOpening) petAct(c, gear.petOpening);
   if (gear.startFiole) addStatusToHand(c, 'fiole_instable', gear.startFiole);
+  // Butin d'Yzhar : Bague du dieu dormant, Lame de l'oubli.
+  for (let i = 0; i < (gear.startCopyUp ?? 0); i++) {
+    const pool = deck.filter((card) => CARDS[card.id].type !== 'Statut' && CARDS[card.id].type !== 'Malédiction');
+    if (pool.length === 0) break;
+    const model = pool[Math.floor(random(c) * pool.length)];
+    const copy = { uid: c.nextUid++, id: model.id, upgraded: true };
+    if (c.hand.length < 10) c.hand.push(copy);
+    else c.discard.push(copy);
+    log(c, `Bague du dieu dormant : une copie améliorée de ${CARDS[model.id].name} arrive dans ta main.`);
+  }
+  for (let i = 0; i < (gear.startExhaust ?? 0) && c.draw.length > 0; i++) {
+    const [card] = c.draw.splice(Math.floor(random(c) * c.draw.length), 1);
+    c.exhaust.push(card);
+    log(c, `Lame de l'oubli : ${CARDS[card.id].name} est oubliée pour ce combat.`);
+  }
   if (gear.startRandomBonus) {
     for (let i = 0; i < gear.startRandomBonus; i++) {
       const roll = gear.luck && random(c) < 0.5 ? 2 : Math.floor(random(c) * 4);
@@ -181,6 +206,17 @@ export function createCombat(
   c.fx = [];
   if (encounter.rune) c.fx.push({ kind: 'banner', text: 'Ce boss porte la rune des Sources !' });
   if (encounter.weakened) c.fx.push({ kind: 'banner', text: 'L\'Eau des profondeurs affaiblit Vulkhar !' });
+  // Acte 3 : la Folie de départ (le Cauchemar, la Statue qui murmure, le Rêve d'Yzhar).
+  if ((encounter.startFolie ?? 0) + (gear.startFolie ?? 0) > 0) gainFolie(c, (encounter.startFolie ?? 0) + (gear.startFolie ?? 0));
+  // Couronne d'Irem : le premier tour est sauté (la main retourne sur la pioche).
+  if (gear.skipFirstTurn && !encounter.ambush) {
+    c.draw.unshift(...c.hand.filter((card) => !isEthereal(card)));
+    c.hand = [];
+    c.player.energy = 0;
+    c.skipTurn = true;
+    c.fx.push({ kind: 'banner', text: 'Couronne d\'Irem : ton premier tour est sauté' });
+    log(c, 'La Couronne d\'Irem pèse sur ta tête : tu perds ton premier tour.');
+  }
   // Embuscade : les ennemis frappent avant ton premier tour.
   if (encounter.ambush) {
     c.fx.push({ kind: 'banner', text: 'Embuscade !' });
@@ -274,7 +310,10 @@ export function startPlayerTurn(c: CombatState): void {
   p.drawPenalty = 0;
   const d = (p.debuffs ??= emptyDebuffs());
   startTurnAct2(c);
-  if (c.player.energy > 0 || c.hand.length > 0) iremPlayerTurn(c);
+  if (c.player.energy > 0 || c.hand.length > 0) {
+    iremPlayerTurn(c);
+    yzharPlayerTurn(c);
+  }
   // Embrasement de mana (Baron Vossk)
   if (d.manaBurn > 0) {
     p.energy = Math.max(0, p.energy - d.manaBurn);
@@ -348,6 +387,10 @@ function applyCurse(c: CombatState, e: EnemyState, curse: PlayerCurse & { label:
   const d = (c.player.debuffs ??= emptyDebuffs());
   const less = c.gear?.debuffReduce ?? 0;
   const turns = (n?: number) => Math.max(0, (n ?? 0) - less);
+  // Écaille de Prismagor : les débuffs magiques glissent sur toi.
+  if (c.gear?.magicImmune) {
+    curse = { ...curse, demoralise: 0, impie: 0, arcane: 0, manaBurn: 0, energyLoss: 0, affliction: false, lignee: false };
+  }
   if (curse.demoralise) d.demoralise = Math.max(d.demoralise, turns(curse.demoralise));
   if (curse.impie) d.impie = Math.max(d.impie, turns(curse.impie));
   if (curse.arcane) d.arcane = Math.max(d.arcane, turns(curse.arcane));
@@ -385,6 +428,13 @@ function applyCurse(c: CombatState, e: EnemyState, curse: PlayerCurse & { label:
   if (curse.sableHand) addStatusToHand(c, 'sable', curse.sableHand);
   for (let i = 0; i < (curse.hallucinations ?? 0); i++) addHallucination(c);
   if (curse.domination) c.dominated = true;
+  // Yzhar
+  if (curse.petStun) stunPet(c, curse.petStun);
+  if (curse.regard) {
+    c.regard = curse.regard;
+    fx(c, { kind: 'banner', text: 'Regard sombre : mets-toi à couvert !' });
+  }
+  if (curse.swallow) swallow(c);
   fx(c, { kind: 'buff', who: 'player', label: curse.label });
   if (curse.folie) gainFolie(c, curse.folie);
   log(c, `${e.name} : ${curse.label}.`);
@@ -579,6 +629,8 @@ export function canUseSpell(c: CombatState, index: number): boolean {
   const s = c.spells[index];
   if (!s || c.phase !== 'player') return false;
   const def = SPELLS[s.id];
+  // Dans les entrailles d'Yzhar, pas de barre de sorts.
+  if (c.swallowed) return false;
   if (def.usable && !def.usable(c)) return false;
   return s.cooldown === 0 && def.cost <= c.player.energy && (def.shardCost ?? 0) <= (c.shards ?? 0);
 }
@@ -620,6 +672,9 @@ export function changePosture(c: CombatState, posture: Posture): boolean {
 export function endTurn(c: CombatState): void {
   if (c.phase !== 'player') return;
   const p = c.player;
+  // Yzhar : le Regard sombre, la Carapace qui se reforme, la sortie des entrailles.
+  yzharEndTurn(c);
+  if (c.phase !== 'player') return;
 
   // Les Zones de feu encore en main brûlent le joueur.
   const zones = c.hand.filter((card) => card.id === 'zone_de_feu');
@@ -681,6 +736,12 @@ export function endTurn(c: CombatState): void {
     c.adrenaline += 2;
     if (p.hp <= 0) c.phase = 'defeat';
   }
+  // Fiole de démesure : des PV perdus à la fin de chaque tour.
+  if (c.gear?.endTurnLoss && c.phase === 'player') {
+    fx(c, { kind: 'tick', who: 'player', amount: c.gear.endTurnLoss, label: 'Démesure' });
+    log(c, `La Fiole de démesure te consume : ${c.gear.endTurnLoss} PV.`);
+    damagePlayer(c, c.gear.endTurnLoss, false);
+  }
   // Surcharge : à 4 charges arcaniques ou plus, le Mage perd 2 PV.
   if ((p.charges ?? 0) >= 4 && !c.gear?.noOverload && c.phase === 'player') {
     p.hp = Math.max(0, p.hp - 2);
@@ -741,6 +802,8 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent
   if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
   // Amulette gélatineuse : les grosses attaques sont amorties.
   if (intent.kind === 'attack' && c.gear?.bigHitReduce && dmg >= 10) dmg -= c.gear.bigHitReduce;
+  // Écaille de Prismagor, Carapace divine : un pourcentage de dégâts en plus ou en moins.
+  if (c.gear?.hurtPct) dmg *= 1 + c.gear.hurtPct / 100;
   return Math.max(0, Math.floor(dmg));
 }
 
@@ -942,6 +1005,7 @@ function enemyTurn(c: CombatState): void {
 
 function enemyTurnInner(c: CombatState): void {
   for (const e of [...c.enemies]) {
+    c.dotTicking = false;
     if (c.phase !== 'player') break;
     // Molosse de Krâgg : se relève au bout de 2 tours, tant que Krâgg vit.
     if (e.dead && e.reviveIn) {
@@ -964,6 +1028,7 @@ function enemyTurnInner(c: CombatState): void {
     enemyPassivesAct2(c, e);
     if (e.dead) continue;
     const frozen = iremEnemyStart(c, e);
+    yzharEnemyStart(c, e);
     if (c.phase !== 'player') break;
     // Passifs de début de tour
     if (e.defId === 'gardien') {
@@ -995,6 +1060,8 @@ function enemyTurnInner(c: CombatState): void {
       addStatusToHand(c, 'zone_de_feu', 1);
     }
 
+    // Les dégâts dans le temps (Saignement, Censure, DoT, Brûlure) passent sous la Carapace divine d'Yzhar.
+    c.dotTicking = true;
     // Saignement
     if (e.buffs.saignementTours > 0 && e.buffs.saignement > 0) {
       const bleed = e.buffs.saignement + hiddenDotBonus(c, e);
@@ -1026,6 +1093,8 @@ function enemyTurnInner(c: CombatState): void {
       if (!(c.gear?.bossBurnKeep && isBossEnemy(e))) e.buffs.brulure = Math.max(0, burn - 1);
       if (e.dead || c.phase !== 'player') continue;
     }
+
+    c.dotTicking = false;
 
     // Ensevelissement (acte 3) : il reste sous le sable, puis resurgit et frappe.
     if ((e.buried ?? 0) > 0) {
@@ -1267,6 +1336,8 @@ function startTurnAct2(c: CombatState): void {
     fx(c, { kind: 'tick', who: 'player', amount: c.gear.turnSelfDamage, label: 'Magma' });
     damagePlayer(c, c.gear.turnSelfDamage, false);
   }
+  // Cœur d'Yzhar : un peu de Folie à chaque tour.
+  if (c.gear?.turnFolie) gainFolie(c, c.gear.turnFolie);
   // Aura de résistance (Paladin) : les DoT ennemis font moitié moins mal.
   const dot = c.aura?.id === 'resistance' ? 1 : 2;
   if ((d.toxine ?? 0) > 0) {

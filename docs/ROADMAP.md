@@ -111,12 +111,12 @@
 
 ### 3.1 Les actes
 - [x] Acte 2 : l'Aire de Vhaeryx (Souffles, Envol, mutations, morts-vivants, 8 boss secondaires, Vhaeryx en 3 phases, Malédiction de lignée, 9 événements). La run enchaîne désormais les actes 1 et 2, avec les récompenses et le butin de boss de Vulkhar entre les deux
-- [ ] Acte 3 : Irem (Folie, Hallucinations, ensevelissement, immunités), en 5 lots (voir la fiche, §12)
+- [x] Acte 3 : Irem (Folie, Hallucinations, ensevelissement, immunités), en 5 lots (voir la fiche, §12). La run enchaîne les trois actes et se termine après Yzhar
   - [x] Lot 1 : le socle (Folie, Hallucinations, Sable, Ensevelissement, Résistances) et les 8 ennemis de trash
   - [x] Lot 2 : les 7 boss secondaires et leurs 28 objets (lancés par l'outil de test en attendant le lot 3)
-  - [ ] Lot 3 : Yzhar, l'enchaînement après Vhaeryx et son butin épique
-  - [ ] Lot 4 : événements, combats cachés, les Veilleurs de l'Aurore
-  - [ ] Lot 5 : équilibrage sur 3 actes et difficulté
+  - [x] Lot 3 : Yzhar, l'enchaînement après Vhaeryx et son butin épique
+  - [x] Lot 4 : événements, combats cachés, les Veilleurs de l'Aurore
+  - [x] Lot 5 : équilibrage sur 3 actes et difficulté
 - [ ] Acte bonus : la Nécropole céleste (éclats de clé, Gruthak, Sarvok)
 
 ### 3.2 Les classes (dans l'ordre de développement)
@@ -137,7 +137,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [x] Brisemonts (Guerrier) et le Bâton du Veilleur (Mage, Démoniste) se forgent à l'acte 2
 - [x] Équinoxe (Prêtre)
 - [x] Sillon d'orage (Voleur)
-- [x] L'Aurore ardente (Paladin) : le Reliquaire profané, Ossyrax, puis le feu de camp ; l'étape des Veilleurs de l'Aurore viendra avec l'acte 3
+- [x] L'Aurore ardente (Paladin) : le Reliquaire profané, puis Ossyrax et le feu de camp, ou les Veilleurs de l'Aurore et un boss secondaire d'Irem
 - [ ] Les légendaires restants et leurs quêtes (Corde-des-anciens, le Marteau des ancêtres), avec leurs classes
 - [x] Refaire la passe sur les niveaux de difficulté pour deux actes (voir l'équilibrage, §9)
 

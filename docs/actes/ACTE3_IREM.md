@@ -449,6 +449,35 @@ Le travail est découpé en 5 lots ; l'acte 3 ne sera jouable qu'une fois les lo
 - **Larme du rêveur :** une Hallucination qui quitte ta main, jouée ou retirée par un effet (Bague du sable mouvant).
 - Premier passage du bot (`tools/balance/irem.sim.ts`, classes niveau 10, PV pleins, la run qu'il a devant Vhaeryx) : 70 à 100 % de victoires. Nebet et Sartaq tombent vite (3 à 5 tours), Méhkar et le Limon durent (jusqu'à 15-30 tours). À reprendre au lot 5.
 
-**À venir :** lot 3 (Yzhar, puis l'acte enchaîné après Vhaeryx avec son butin épique, et la victoire après Yzhar), lot 4 (événements, combats cachés, les Veilleurs de l'Aurore), lot 5 (équilibrage sur 3 actes et difficulté).
+**Lot 3 (fait) : Yzhar, et l'acte jouable.** `LAST_ACT` = 3 : la run enchaîne les trois actes et se termine après Yzhar.
+- **Yzhar** (`src/engine/yzhar.ts`, réglages dans `YZHAR` de `enemies_acte3.ts`) : la fiche (§7), réglée au lot 5 (voir plus bas). L'Œil (200 PV) tombe à 0 : il se ferme, **ses Tentacules oculaires avec lui**, et le Corps se réveille (PV multipliés par la difficulté). Choix de novembre 2026 :
+  - **Regard sombre :** les dégâts tombent **à la fin de ton tour**, pour que « Se mettre à couvert » (coût 1, Éphémère, ajoutée à ta main à chacun des 3 tours) puisse être jouée avant. Il n'est pas interruptible, Avaler non plus.
+  - **Tentacules :** au plus 3 Tentacules oculaires (phase 1) et 1 Tentacule géant (phase 2) en vie.
+  - **Ce qui ronge de l'intérieur passe sous la Carapace :** la Brûlure, le Saignement, les DoT du Démoniste et du Prêtre, la Censure ne sont pas réduits (et sont doublés quand elle est tombée).
+  - **Entrailles :** ce qui est dehors disparaît de l'écran et n'agit pas ; la main est ramenée à 3 cartes (le reste retourne sur la pioche) ; les sorts de barre sont grisés ; 4 dégâts au début de chacun de tes 2 tours. Tu es recraché à la fin de ton 2e tour. Les Tentacules intérieurs (25 PV) frappent de 5.
+  - **Rayon oculaire :** il étourdit le familier du Démoniste (il ne fait rien à la fin du tour suivant). Les compagnons et totems viendront avec leurs classes.
+  - Sprites dessinés à la main et animés : l'Œil (la pupille cherche sa proie) et le Corps (la gueule s'ouvre).
+- **Les butins :** la table de Vhaeryx et ses 6 objets épiques (fiche de l'acte 2, §6), puis la table d'Yzhar et ses 4 épiques (§7). Après Yzhar, son butin reste équipé (il peut aller au coffre de la guilde), puis la victoire. Écarts avec les fiches : la Couronne de l'alchimiste met ses 2 Fioles instables **dans la main** ; la Fiole de démesure fait perdre 2 PV à la fin de chaque tour (la main est de toute façon défaussée) ; l'Écaille de Prismagor protège des débuffs « magiques » : Démoralisé, Impie, Arcanes, mana brûlé, Afflictions de sang, Malédiction de lignée.
+- **Score :** Vhaeryx vaincu (150) compte dès qu'on atteint l'acte 3 ; Yzhar vaincu : 200.
+
+**Lot 4 (fait) : les événements, les combats cachés et les Veilleurs.**
+- Les **10 événements** de la fiche (§8.1) et les **4 combats cachés** (§8.2). Écarts : « Te baigner » (l'oasis) retire les **Malédictions** du deck (les Fardeaux n'existent qu'en combat) ; le marchand des sables échange **ton objet commun ou rare le moins précieux** (pas de choix d'objet), contre un objet du même emplacement d'une rareté au-dessus ; le gong et le joueur qui fonce donnent un **épique de boss** au hasard (utile à ta classe) ; l'indice des Veilleurs marque un « ? » de la carte (⚔ un combat, ✓ un vrai événement).
+- **L'Aurore ardente** suit maintenant la fiche du Paladin : Lame ternie (acte 2) → les Veilleurs la bénissent → le premier boss secondaire d'Irem vaincu l'embrase et l'équipe. Le raccourci de l'acte 2 (Ossyrax la purifie, puis le feu de camp) est gardé.
+- Sauvegarde version 23 : `runBuffs` (bonus pour toute la run), `gong`, `nextFolie`.
+
+**Lot 5 (fait) : l'équilibrage sur trois actes.** Le détail des mesures est dans `docs/EQUILIBRAGE.md` (§15). Yzhar, tel que la fiche le décrivait, faisait wiper le bot au premier essai 84 à 100 % des fois (personnages de niveau 10) :
+
+| Réglage d'Yzhar | Fiche | En jeu |
+|---|---|---|
+| Rayon oculaire | 10 | **8** |
+| Tentacules oculaires | 2 tous les 2 tours | **1 tous les 2 tours (3 au plus), qui se ferment avec l'Œil** |
+| Regard sombre | 12 | **10** |
+| PV du Corps | 340 | **260** |
+| Carapace divine | −75 % | **−50 %** (les dégâts dans le temps passent dessous) |
+| Coup de tentacule géant | 16 | **12** |
+| Murmures | +3 Folie | **+2 Folie** |
+| Tentacule géant | 40 PV, coup de 12, tous les 2 tours | **30 PV, coup de 10, tous les 3 tours (1 à la fois)** |
+
+Banc d'essai : `tools/balance/yzhar.sim.ts` (le combat rejoué seul, PV pleins, sur des runs réelles du bot).
 
 **Décisions de novembre 2026 :** la run se terminera après Yzhar (les difficultés déjà débloquées restent acquises) ; les entrailles d'Yzhar seront faites comme la fiche, puis ajustées au lot 5 ; les compagnons, totems et formes (Chasseur, Chaman, Druide) seront ajoutés avec leurs classes.

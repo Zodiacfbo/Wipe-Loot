@@ -19,6 +19,8 @@ export interface EnemyDef {
   cycleLow?: Intent[];
   /** Ce que l'ennemi fait en permanence, affiché sous son nom. */
   passive?: string;
+  /** Le passif affiché en phase 2 (boss qui change de forme). */
+  passive2?: string;
   /** Dragon, Mort-vivant, Humanoïde, Expérience (acte 2), Démon. */
   tags?: ('dragon' | 'mortvivant' | 'humanoide' | 'experience' | 'demon' | 'insecte' | 'construct' | 'aberration')[];
   /** Acte 3 : Résistance, il subit 50 % de dégâts en moins de ce type de cartes. */
@@ -247,7 +249,7 @@ export function intentAt(def: EnemyDef, step: number, phase = 1, low = false): I
 
 /** Une incantation peut-elle être interrompue ? */
 export function isInterruptible(intent: Intent): boolean {
-  return !!intent.cast && !(intent.kind === 'attack' && intent.uninterruptible);
+  return !!intent.cast && !((intent.kind === 'attack' || intent.kind === 'curse') && intent.uninterruptible);
 }
 
 export interface Encounter {
@@ -262,7 +264,7 @@ export interface Encounter {
   /** Or gagné en plus (Gobelin mimique). */
   goldReward?: [number, number];
   /** Un objet d'équipement en plus après la victoire. */
-  bonusItem?: 'commun' | 'rare';
+  bonusItem?: 'commun' | 'rare' | 'epique';
   /** Ce boss secondaire porte la rune des Gardiens des Sources. */
   rune?: boolean;
   /** Vulkhar est affaibli par l'Eau des profondeurs (−15 % de PV, Marteau des flammes retardé). */
@@ -271,6 +273,10 @@ export interface Encounter {
   doubleMutation?: boolean;
   /** Les œufs laissés : Vhaeryx appelle ce nombre d'adds en plus par vague. */
   extraAdds?: number;
+  /** Acte 3 : tu commences le combat avec cette Folie (le Cauchemar, la Statue qui murmure). */
+  startFolie?: number;
+  /** Un ennemi de plus, tiré parmi ceux du combat (le Gong des Sables). */
+  extraEnemy?: boolean;
 }
 
 /** Packs faciles (étages 1 à 4). */
