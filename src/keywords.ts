@@ -8,6 +8,8 @@ export interface Keyword {
   /** Les formes du mot reconnues dans les textes (sensible à la casse : « Charge », le sort, n'est pas « charge »). */
   words: string[];
   text: string;
+  /** Mot trop courant pour être souligné (il reste expliqué à l'appui long sur la carte). */
+  discret?: boolean;
 }
 
 export const KEYWORDS: Keyword[] = [
@@ -60,8 +62,8 @@ export const KEYWORDS: Keyword[] = [
   // Voleur
   { name: 'Camouflé', words: ['Camouflé', 'Camouflage'], text: 'Tu commences chaque combat Camouflé. Tant que tu l\'es, tu peux jouer les Ouvertures. Une Attaque qui n\'est pas une Ouverture te fait sortir de l\'ombre.' },
   { name: 'Ouverture', words: ['Ouverture', 'Ouvertures'], text: 'Une Attaque très forte, jouable seulement quand tu es Camouflé.' },
-  { name: 'Points de combo', words: ['points de combo', 'point de combo', 'combo'], text: 'De 0 à 5. Tes Attaques en donnent ; les finishers les dépensent tous.' },
-  { name: 'Finisher', words: ['Finisher', 'finisher'], text: 'Consomme tous tes points de combo : plus tu en as, plus l\'effet est fort.' },
+  { name: 'Points de combo', words: ['points de combo', 'point de combo', 'combo'], text: 'De 0 à 5. Tes Attaques en donnent ; les finishers les dépensent tous.', discret: true },
+  { name: 'Finisher', words: ['Finisher', 'finisher'], text: 'Consomme tous tes points de combo : plus tu en as, plus l\'effet est fort. Un finisher qui inflige des dégâts est une Attaque (il profite des bonus aux Attaques) ; les autres sont des Compétences.' },
   { name: 'Poison', words: ['Poison'], text: 'Chaque Attaque qui touche la cible lui inflige ce nombre de dégâts en plus. Baisse de 1 à la fin de son tour.' },
   // Prêtre
   { name: 'Égide', words: ['Égide'], text: 'Un bouclier qui absorbe les dégâts après le blocage et ne disparaît pas d\'un tour à l\'autre. 30 au plus.' },
@@ -99,7 +101,7 @@ export function keywordsIn(text: string): Keyword[] {
 
 /** Souligne les mots-clés d'un texte (déjà sûr pour le HTML). */
 export function markKeywords(text: string): string {
-  return text.replace(PATTERN, (w) => `<span class="mot" data-mot="${BY_WORD.get(w)!.name}">${w}</span>`);
+  return text.replace(PATTERN, (w) => (BY_WORD.get(w)!.discret ? w : `<span class="mot" data-mot="${BY_WORD.get(w)!.name}">${w}</span>`));
 }
 
 /** Le mot-clé d'une pastille (« Saignement 3 », « Gel 2/5 », « Poison mortel 2 »…) : le plus long mot reconnu au début. */

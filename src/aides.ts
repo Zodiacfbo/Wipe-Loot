@@ -41,7 +41,16 @@ function bubbleContent(el: HTMLElement): string | null {
     return text ? `<b>${esc(label)}</b>${esc(text)}` : null;
   }
   if (el.classList.contains('carte')) {
-    const text = el.querySelector('.texte')?.textContent ?? '';
+    // Le bandeau compte aussi (« Finisher »), et un finisher dit s'il est une Attaque ou une Compétence.
+    const type = el.querySelector<HTMLElement>('.type');
+    const text = `${type?.textContent ?? ''} ${el.querySelector('.texte')?.textContent ?? ''}`;
+    const kind = type?.dataset.type;
+    if (kind) {
+      const ks = keywordsIn(text);
+      const head = `<b>Finisher (${esc(kind)})</b>${esc(keywordByName('Finisher')!.text)}`;
+      const rest = ks.filter((k) => k.name !== 'Finisher').map((k) => `<b>${esc(k.name)}</b>${esc(k.text)}`);
+      return [head, ...rest].join('<hr>');
+    }
     const ks = keywordsIn(text);
     return ks.length ? ks.map((k) => `<b>${esc(k.name)}</b>${esc(k.text)}`).join('<hr>') : null;
   }

@@ -247,9 +247,11 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
   const reduced = cost < def.cost;
   const rage = def.rageCost === 'all' ? 'X' : def.rageCost ?? '';
   const gear = opts.combat?.gear ?? (ui.run ? runGear(ui.run) : undefined);
-  const text = def.text(card.upgraded, gear);
+  // Un finisher : « Finisher » dans le bandeau, et le texte sans son « Finisher : » (de la place sur téléphone).
+  const fullText = def.text(card.upgraded, gear);
+  const text = def.finisher ? fullText.replace(/^Finisher[\s\u00a0]*:[\s\u00a0]*/, '').replace(/^\p{Ll}/u, (m) => m.toUpperCase()) : fullText;
   const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : ''].join(' ');
-  return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${text}">
+  return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${fullText}">
     <img class="cadre px" src="${A(frame)}" alt="">
     <img class="icone px" src="${A(`carte_${card.id}.png`)}" alt="">
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
@@ -259,7 +261,7 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
     ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
-    <span class="type">${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}</span>
+    <span class="type" ${def.finisher ? `data-type="${def.type}"` : ''}>${def.finisher ? 'Finisher' : `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
     <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${cardText(text, opts.hit)}</span></span>
   </button>`;
 }
