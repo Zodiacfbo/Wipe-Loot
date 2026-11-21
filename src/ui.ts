@@ -90,7 +90,7 @@ import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save
 // Outil de test (version dev seulement)
 import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
-import { BOSS_LOOT, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotOf, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
+import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
 import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState } from './engine/types';
@@ -354,7 +354,7 @@ function itemHtml(id: string | null, slotLabel = '', extra = '', broken = false)
   // Effets qui ne servent pas à la classe jouée : on le dit clairement.
   const useless = uselessNote(id);
   const note = useless ? `<i class="note-objet">${useless}</i>` : '';
-  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
+  return `<div class="objet ${it.rarity} ${broken ? 'brise' : ''}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${it.family ? FAMILY_LABEL[it.family] : it.slot === 'arme' && it.rarity !== 'legendaire' ? 'Arme (trophée)' : SLOT_LABEL[slotsFor(id)[0]]} · ${it.rarity === 'commun' ? 'commun' : it.rarity === 'rare' ? 'rare' : it.rarity === 'epique' ? 'épique' : 'légendaire'}${broken ? ' · <strong class="mention-brise">brisé</strong>' : ''}</em><span>${broken ? `Effet désactivé jusqu'à la réparation (${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin). ` : ''}${it.text}</span>${note}</div>${extra}</div>`;
 }
 
 const RARITY_LABEL: Record<string, string> = { commun: 'commun', rare: 'rare', epique: 'épique', legendaire: 'légendaire' };
@@ -1455,10 +1455,11 @@ function archiveGroups(tab: UiState['archiveTab']): ArchiveGroup[] {
     }));
   }
   if (tab === 'objets') {
-    const groups: [string, string[]][] = [['Coffres et vendeur gobelin', COMMON_POOL],
-      ...[...ELITE_ENCOUNTERS, ...ELITE_ENCOUNTERS_2, ...ELITE_ENCOUNTERS_3].map((e) => [e.name, LOOT_TABLES[e.loot!]] as [string, string[]]),
+    // Chaque arme est suivie de sa jumelle (mêlée et incantation).
+    const groups: [string, string[]][] = [['Coffres et vendeur gobelin', withTwins(COMMON_POOL)],
+      ...[...ELITE_ENCOUNTERS, ...ELITE_ENCOUNTERS_2, ...ELITE_ENCOUNTERS_3].map((e) => [e.name, withTwins(LOOT_TABLES[e.loot!])] as [string, string[]]),
       // Les boss de fin d'acte : leur table, puis leur butin épique.
-      ...[1, 2, 3].map((n) => [`${ACTS[n].boss.name.split(',')[0]} (fin de l'acte ${n})`, [...BOSS_LOOT[n].table, ...BOSS_LOOT[n].epics]] as [string, string[]]),
+      ...[1, 2, 3].map((n) => [`${ACTS[n].boss.name.split(',')[0]} (fin de l'acte ${n})`, withTwins([...BOSS_LOOT[n].table, ...BOSS_LOOT[n].epics])] as [string, string[]]),
       ['Légendaires', Object.keys(ITEMS).filter((id) => ITEMS[id].rarity === 'legendaire')]];
     return groups.map(([title, ids]) => ({
       title,
@@ -2154,7 +2155,8 @@ function overlayHtml(run: RunState | null): string {
     const groups = elites.filter((n) => !seen.has(n.elite!) && seen.add(n.elite!)).map((n) => {
       const enc = ELITE_ENCOUNTERS[n.elite!];
       const floors = elites.filter((m) => m.elite === n.elite).map((m) => m.floor + 1).join(', ');
-      const table = enc.loot ? LOOT_TABLES[enc.loot] : [];
+      // Les armes montrées dans la version de ta classe.
+      const table = enc.loot ? [...new Set(LOOT_TABLES[enc.loot].map((id) => itemFor(id, run.classId)))] : [];
       return {
         title: `${enc.name} · étage${floors.includes(',') ? 's' : ''} ${floors}`,
         entries: table.map((id) => ({ key: `${enc.name}|${id}`, id, seen: profile.discoveredItems.includes(id) })),

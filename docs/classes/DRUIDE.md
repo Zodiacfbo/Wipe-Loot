@@ -217,6 +217,9 @@ Cet arbre couvre **deux formes**, comme dans les MMO où le druide farouche est 
 
 ---
 
+
+> **Armes (préparé en novembre 2026) :** famille mêlée **et** incantation (une arme de l'une ou l'autre au hasard). Déjà réglé dans `WEAPON_FAMILIES` et `KEY_CLASSES` (`items.ts`) : aucun objet de la réserve commune ne lui sera inutile.
+
 ## 8. Le légendaire : le Bâton du Veilleur (version Druide)
 
 > *Le Veilleur avait appris des druides que toute chose change de forme. Le bâton, entre leurs mains, se souvient de la sève qui coulait en lui.*

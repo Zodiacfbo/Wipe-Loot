@@ -5,7 +5,7 @@ import { createCombat } from './combat';
 import { type Encounter } from './enemies';
 import { LAST_ACT, actDef } from './acts';
 import { BLESSINGS, EVENTS, HIDDEN_FIGHTS, tradeable } from './events';
-import { BOSS_LOOT, COMMON_POOL, ITEMS, uselessFor, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
+import { BOSS_LOOT, COMMON_POOL, ITEMS, itemFor, uselessFor, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
 import { POTIONS, POTION_IDS, POTION_SLOTS, drinkInCombat } from './potions';
 import { BAR_SLOTS, lootSpells } from './spells';
@@ -82,15 +82,22 @@ function bossDefeated(run: RunState): void {
   run.gold += gold;
   run.rewardGold = gold;
   // Sa table : 4 objets et un sort de barre de ta classe.
-  const roll = Math.floor(random(run) * (loot.table.length + 1));
+  rollTable(run, loot.table);
+}
+
+/** Un objet d'une table de boss, ou un sort de barre de ta classe. Les armes viennent dans la version de ta famille,
+ * et un objet qui ne te sert à rien (bague du familier pour un Guerrier…) n'est pas tiré. */
+function rollTable(run: RunState, table: string[]): void {
+  const useful = table.map((id) => itemFor(id, run.classId, () => random(run))).filter((id) => !uselessFor(id, run.classId));
+  const roll = Math.floor(random(run) * (useful.length + 1));
   const spells = lootSpells(run.classId).filter((id) => !run.spells.includes(id));
-  if (roll === loot.table.length && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
-  else run.pendingItem = loot.table[roll % loot.table.length];
+  if ((roll === useful.length || useful.length === 0) && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
+  else if (useful.length > 0) run.pendingItem = useful[roll % useful.length];
 }
 
 /** Le butin de boss : un objet épique au choix parmi 3 (utile à ta classe). */
 function offerEpics(run: RunState): void {
-  const pool = BOSS_LOOT[run.act].epics.filter((id) => !uselessFor(id, run.classId));
+  const pool = [...new Set(BOSS_LOOT[run.act].epics.map((id) => itemFor(id, run.classId, () => random(run))))].filter((id) => !uselessFor(id, run.classId));
   const picks: string[] = [];
   while (picks.length < 3 && picks.length < pool.length) {
     const id = pool[Math.floor(random(run) * pool.length)];
@@ -156,8 +163,9 @@ export function runGear(run: RunState): ItemEffects {
   if ((run.stargazing ?? 0) > 0) g.seeTwoIntents = 1;
   if (run.tenebres) g.longStealth = 1; // Ténèbres (Voleur)
   if (run.weaponUpgrade && run.equipment.arme === run.weaponUpgrade && !run.broken.includes('arme')) {
-    // Le renfort profite aux Attaques du Guerrier, ou aux Sorts du Mage.
-    if (run.classId === 'mage') g.spellBonus = (g.spellBonus ?? 0) + 2;
+    // Le renfort suit la famille de l'arme : les Sorts pour une arme d'incantation, les Attaques pour la mêlée.
+    const fam = ITEMS[run.equipment.arme]?.family;
+    if (fam === 'incant' || (!fam && ['mage', 'pretre', 'demoniste'].includes(run.classId))) g.spellBonus = (g.spellBonus ?? 0) + 2;
     else g.attackBonus = (g.attackBonus ?? 0) + 2;
   }
   return g;
@@ -362,10 +370,7 @@ export function afterCombatAction(run: RunState): void {
       const table = run.encounter?.loot ? LOOT_TABLES[run.encounter.loot] : null;
       if (table) {
         // 5 entrées : les 4 objets du boss, et un sort de barre de ta classe.
-        const roll = Math.floor(random(run) * (table.length + 1));
-        const spells = lootSpells(run.classId).filter((id) => !run.spells.includes(id));
-        if (roll === table.length && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
-        else run.pendingItem = table[roll % table.length];
+        rollTable(run, table);
       }
       if (random(run) < mods(run).potionChance) run.pendingPotion = rollPotion(run);
       const enc = run.encounter;
@@ -576,7 +581,7 @@ export function buyItem(run: RunState, index: number, slot: SlotKey): boolean {
 /** Un objet au hasard parmi ceux des coffres et du vendeur (70 % communs, 30 % rares), ou un épique de boss. */
 function rollItem(run: RunState, forced?: 'commun' | 'rare' | 'epique'): string {
   if (forced === 'epique') {
-    const epics = Object.values(BOSS_LOOT).flatMap((l) => l.epics).filter((id) => !uselessFor(id, run.classId));
+    const epics = Object.values(BOSS_LOOT).flatMap((l) => l.epics).map((id) => itemFor(id, run.classId)).filter((id) => !uselessFor(id, run.classId));
     return epics[Math.floor(random(run) * epics.length)];
   }
   const rarity = forced ?? (random(run) < 0.7 ? 'commun' : 'rare');
@@ -1310,3 +1315,5 @@ export function campfireUpgrade(run: RunState, uid: number): void {
   card.upgraded = true;
   backToMap(run);
 }
+/** Pour les tests. */
+export const rollTableForTest = rollTable;

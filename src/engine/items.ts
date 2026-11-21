@@ -34,6 +34,7 @@ export interface ItemEffects {
   bigHitReduce?: number; // −X dégâts des attaques ennemies de 10 ou plus
   debuffLonger?: number; // tes débuffs durent X tour de plus
   pierceBonus?: number; // tes Attaques qui ignorent le blocage infligent +X dégâts
+  vsBlockBonus?: number; // tes coups infligent +X dégâts à une cible qui a du blocage (Poing et Sceptre d'obsidienne)
   keepFirstBlock?: number; // ton blocage n'est pas retiré à la fin de ton premier tour
   dispelDraw?: number; // tes Dissipations piochent X carte
   hallucinationEnergy?: number; // une Hallucination quitte ta main : +X énergie (1 fois par tour)
@@ -227,6 +228,9 @@ export interface ItemDef {
   rarity: ItemRarity;
   text: string;
   fx: ItemEffects;
+  /** Armes : la famille (mêlée ou incantation) et l'arme jumelle de l'autre famille, au même effet. Sans famille : un trophée, pour toutes les classes. */
+  family?: WeaponFamily;
+  twin?: string;
 }
 
 const item = (id: string, name: string, slot: Slot, rarity: ItemRarity, text: string, fx: ItemEffects): ItemDef =>
@@ -246,7 +250,7 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
   item('charme_epines', 'Charme d\'épines', 'bijou', 'commun', 'Quand tu bloques entièrement une attaque, renvoie 2 dégâts à l\'attaquant.', { blockReflect: 2 }),
   item('talisman_rage', 'Talisman de rage', 'bijou', 'rare', 'Commence chaque combat avec 3 rage.', { startRage: 3 }),
   item('baguette_apprenti', 'Baguette d\'apprenti', 'arme', 'commun', 'Tes Sorts infligent +1 dégât.', { spellBonus: 1 }),
-  item('baton_braises', 'Bâton de braises', 'arme', 'rare', 'Tes Sorts infligent +1 dégât, et tes Brûlures sont augmentées de 1.', { spellBonus: 1, burnBonus: 1 }),
+  item('baton_braises', 'Bâton de braises', 'arme', 'rare', 'Tes Sorts infligent +1 dégât, et +3 contre une cible sous 50 % de PV.', { spellBonus: 1, lowHpBonus: 2 }),
   item('pierre_arcanique', 'Pierre arcanique', 'bijou', 'rare', 'Commence chaque combat avec 1 charge arcanique.', { startCharges: 1 }),
 
   // --- Morvax le Maudisseur ---
@@ -276,13 +280,13 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
   // --- Le Baron Vossk ---
   item('coeur_bombe', 'Cœur de la bombe', 'bijou', 'rare', 'Quand tu perds 10 PV ou plus en une fois, inflige 8 dégâts à tous les ennemis.', { bigHitAoe: 8 }),
   item('bague_mana_brulant', 'Bague de mana brûlant', 'bague', 'rare', '+1 énergie au premier tour de chaque combat.', { firstTurnEnergy: 1 }),
-  item('sceptre_baron', 'Sceptre du Baron', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Tes Saignements sont augmentés de 1.', { spellBonus: 2, bleedBonus: 1 }),
+  item('sceptre_baron', 'Sceptre du Baron', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts et appliquent Brûlure 1.', { spellBonus: 2, attackBurn: 1 }),
   item('amulette_inferno', 'Amulette de l\'inferno', 'amulette', 'rare', 'Les dégâts qui ne viennent pas d\'une attaque (feu, explosions, poisons) sont réduits de 2.', { nonAttackReduce: 2 }),
 
   // --- Zhaal le Tisseur d'arcanes ---
   item('bague_tisseur', 'Bague du tisseur', 'bague', 'rare', 'La première carte que tu joues dans chaque combat coûte 0.', { firstCardFree: 1 }),
   item('orbe_distorsion', 'Orbe de distorsion', 'bijou', 'rare', 'Une fois par combat, la première incantation ennemie qui se termine est annulée.', { castCancel: 1 }),
-  item('dague_arcanique', 'Dague arcanique', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Pioche 1 carte de plus au premier tour de chaque combat.', { spellBonus: 2, firstTurnDraw: 1 }),
+  item('dague_arcanique', 'Dague arcanique', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Pioche 1 carte de plus au premier tour de chaque combat.', { attackBonus: 2, firstTurnDraw: 1 }),
   item('amulette_clairvoyance', 'Amulette de clairvoyance', 'amulette', 'rare', 'Tu vois les deux prochaines intentions de chaque ennemi.', { seeTwoIntents: 1 }),
 
   // --- Le Héraut Brannoc ---
@@ -298,7 +302,7 @@ export const ITEMS: Record<string, ItemDef> = Object.fromEntries([
   item('bague_molosses', 'Bague des molosses', 'bague', 'rare', 'Tes alliés (familier, compagnon, totems, invocations) infligent +2 dégâts.', { allyBonus: 2 }),
 
   // --- Le Grand Intendant Saldris ---
-  item('baton_intendant', 'Bâton de l\'intendant', 'arme', 'rare', 'Tes Attaques infligent +1 dégât, et tes cartes de blocage donnent +2 blocage.', { attackBonus: 1, blockBonus: 2 }),
+  item('baton_intendant', 'Bâton de l\'intendant', 'arme', 'rare', 'Tes Sorts infligent +1 dégât, et tes cartes de blocage donnent +2 blocage.', { spellBonus: 1, blockBonus: 2 }),
   item('miroir_intendant', 'Miroir de l\'intendant', 'bijou', 'rare', 'Quand tu bloques entièrement une attaque, renvoie 4 dégâts à l\'attaquant.', { blockReflect: 4 }),
   item('trousseau_intendant', 'Trousseau de l\'intendant', 'bijou', 'rare', 'Les coffres te proposent 2 objets au choix au lieu d\'un.', { chestChoice: 1 }),
   // --- Légendaires de classe ---
@@ -322,7 +326,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('marteau_profondeurs', 'Marteau des profondeurs', 'arme', 'epique', 'Tes Attaques infligent +5 dégâts. Tes Compétences coûtent 1 de plus.', { attackBonus: 5, skillCost: 1 }),
   item('couronne_cendres', 'Couronne de cendres', 'amulette', 'epique', '+1 énergie par tour. Les récompenses ne proposent plus que 2 cartes.', { turnEnergy: 1, fewerCards: 1 }),
   // Skarn
-  item('sceptre_gardien', 'Sceptre du gardien', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Quand tu tues un ennemi, gagne 1 énergie (1 fois par tour).', { attackBonus: 2, killEnergy: 1 }),
+  item('sceptre_gardien', 'Sceptre du gardien', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Quand tu tues un ennemi, gagne 1 énergie (1 fois par tour).', { spellBonus: 2, killEnergy: 1 }),
   item('oeuf_petrifie', 'Œuf pétrifié', 'bijou', 'rare', 'Au début de chaque combat, gagne 6 blocage par ennemi.', { startBlockPerEnemy: 6 }),
   item('bague_dompteur', 'Bague du dompteur', 'bague', 'rare', 'Tes alliés (familier, compagnon, totems, invocations) infligent +3 dégâts.', { allyBonus: 3 }),
   item('amulette_couvoirs', 'Amulette des couvoirs', 'amulette', 'rare', '+8 PV max.', { maxHp: 8 }),
@@ -402,7 +406,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('amulette_gelatineuse', 'Amulette gélatineuse', 'amulette', 'rare', 'Tu subis 2 dégâts de moins de chaque attaque ennemie qui inflige 10 dégâts ou plus.', { bigHitReduce: 2 }),
   item('bague_primordiale', 'Bague primordiale', 'bague', 'rare', 'Tes débuffs durent 1 tour de plus.', { debuffLonger: 1 }),
   // Sartaq, le Colosse d'obsidienne
-  item('poing_obsidienne', 'Poing d\'obsidienne', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Tes Attaques qui ignorent le blocage infligent 5 dégâts de plus.', { attackBonus: 2, pierceBonus: 5 }),
+  item('poing_obsidienne', 'Poing d\'obsidienne', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts, et +5 contre une cible qui a du blocage.', { attackBonus: 2, vsBlockBonus: 5 }),
   item('coeur_colosse', 'Cœur de colosse', 'amulette', 'rare', '+15 PV max.', { maxHp: 15 }),
   item('eclat_supremacie', 'Éclat de suprématie', 'bijou', 'rare', 'Au début de chaque combat, gagne 15 blocage. Ton blocage n\'est pas retiré à la fin de ton premier tour.', { startBlock: 15, keepFirstBlock: 1 }),
   item('bague_obsidienne', 'Bague d\'obsidienne', 'bague', 'rare', 'Gagne 1 Robustesse au début de chaque combat.', { startRobustesse: 1 }),
@@ -428,9 +432,85 @@ Object.assign(ITEMS, Object.fromEntries([
   item('lame_oubli', 'Lame de l\'oubli', 'arme', 'epique', 'Tes Attaques infligent +8 dégâts. Au début de chaque combat, 2 cartes au hasard de ta pioche sont Épuisées.', { attackBonus: 8, startExhaust: 2 }),
   item('couronne_irem', 'Couronne d\'Irem', 'amulette', 'epique', '+1 énergie par tour. Ton premier tour de chaque combat est sauté.', { turnEnergy: 1, skipFirstTurn: 1 }),
   item('larme_reveur', 'Larme du rêveur', 'bijou', 'rare', 'Quand une Hallucination quitte ta main (jouée, ou retirée par un effet), gagne 1 énergie (1 fois par tour).', { hallucinationEnergy: 1 }),
+  // --- Armes jumelles (novembre 2026) : chaque arme de boss existe en mêlée et en incantation, au même effet ---
+  item('baton_maudit', 'Bâton maudit', 'arme', 'rare', 'Tes Sorts infligent +3 dégâts. Au début de chaque combat, un Fardeau est ajouté à ta pioche.', { spellBonus: 3, startFardeau: 1 }),
+  item('baton_molosse', 'Bâton du molosse', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts, et +4 contre une cible sous 50 % de PV.', { spellBonus: 2, lowHpBonus: 2 }),
+  item('sceptre_cendrine', 'Sceptre de Cendrine', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts.', { spellBonus: 2 }),
+  item('baton_basalte', 'Bâton de basalte', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Ton premier Sort de chaque combat inflige +10 dégâts.', { spellBonus: 2, firstAttackBonus: 10 }),
+  item('masse_baron', 'Masse du Baron', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts et appliquent Brûlure 1.', { attackBonus: 2, attackBurn: 1 }),
+  item('orbe_zhaal', 'Orbe de Zhaal', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Pioche 1 carte de plus au premier tour de chaque combat.', { spellBonus: 2, firstTurnDraw: 1 }),
+  item('sceptre_brannoc', 'Sceptre de Brannoc', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts et te soignent de 1 PV.', { spellBonus: 2, healOnAttack: 1 }),
+  item('orbe_kragg', 'Orbe de Krâgg', 'arme', 'rare', 'Tes Sorts qui coûtent 2 énergie ou plus infligent +6 dégâts.', { heavyAttackBonus: 6 }),
+  item('masse_intendant', 'Masse de l\'intendant', 'arme', 'rare', 'Tes Attaques infligent +1 dégât, et tes cartes de blocage donnent +2 blocage.', { attackBonus: 1, blockBonus: 2 }),
+  item('hallebarde_gardien', 'Hallebarde du gardien', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Quand tu tues un ennemi, gagne 1 énergie (1 fois par tour).', { attackBonus: 2, killEnergy: 1 }),
+  item('baton_flammes', 'Bâton des flammes', 'arme', 'rare', 'Tes Sorts infligent +3 dégâts et appliquent Brûlure 1.', { spellBonus: 3, attackBurn: 1 }),
+  item('baton_profondeurs', 'Bâton des profondeurs', 'arme', 'epique', 'Tes Sorts infligent +5 dégâts. Tes Compétences coûtent 1 de plus.', { spellBonus: 5, skillCost: 1 }),
+  item('baton_ecaille_rouge', 'Bâton d\'écaille rouge', 'arme', 'rare', 'Tes Sorts infligent +3 dégâts.', { spellBonus: 3 }),
+  item('baguette_fioles', 'Baguette à fioles', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Au début de chaque combat, une Fiole instable arrive dans ta main.', { spellBonus: 2, startFiole: 1 }),
+  item('baton_os_dragon', 'Bâton d\'os de dragon', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts, et +5 contre les Morts-vivants.', { spellBonus: 2, undeadBonus: 5 }),
+  item('sceptre_couvee', 'Sceptre de la couvée', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts, et +4 contre les Dragons.', { spellBonus: 2, dragonBonus: 4 }),
+  item('sceptre_alchimiste', 'Sceptre du Dragon-Alchimiste', 'arme', 'rare', 'Tes Attaques et tes Sorts infligent +3 dégâts.', { attackBonus: 3, spellBonus: 3 }),
+  item('sceptre_lignee', 'Sceptre de la lignée', 'arme', 'epique', 'Tes Sorts infligent +6 dégâts. −8 PV max.', { spellBonus: 6, maxHp: -8 }),
+  item('glaive_prophete', 'Glaive du prophète', 'arme', 'rare', 'Tes Attaques infligent +3 dégâts. Tes effets de zone infligent +2 dégâts.', { attackBonus: 3, aoeBonus: 2 }),
+  item('orbe_sismique', 'Orbe sismique', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Ton premier Sort contre un ennemi qui vient de resurgir inflige double dégâts.', { spellBonus: 2, surfaceDouble: 1 }),
+  item('baguette_tazz', 'Baguette de Tazz', 'arme', 'rare', 'Tes Sorts appliquent Toxine aux ennemis (2 dégâts pendant 2 tours).', { attackToxine: 2 }),
+  item('orbe_visqueux', 'Orbe visqueux', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts et appliquent Ralenti 1 tour.', { spellBonus: 2, attackSlow: 1 }),
+  item('sceptre_obsidienne', 'Sceptre d\'obsidienne', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts, et +5 contre une cible qui a du blocage.', { spellBonus: 2, vsBlockBonus: 5 }),
+  item('kriss_nebet', 'Kriss de Nebet', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Au début de chaque combat, pioche 1 carte de plus.', { attackBonus: 2, firstTurnDraw: 1 }),
+  item('baton_oubli', 'Bâton de l\'oubli', 'arme', 'epique', 'Tes Sorts infligent +8 dégâts. Au début de chaque combat, 2 cartes au hasard de ta pioche sont Épuisées.', { spellBonus: 8, startExhaust: 2 }),
 ].map((d) => [d.id, d])));
 
 /** La table de loot de chaque boss de fin d'acte, et son butin épique (un au choix parmi 3). */
+/** Les familles d'armes : la mêlée (bonus aux Attaques) et l'incantation (bonus aux Sorts). */
+export type WeaponFamily = 'melee' | 'incant';
+export const FAMILY_LABEL: Record<WeaponFamily, string> = { melee: 'Arme de mêlée', incant: 'Arme d\'incantation' };
+
+/** Les familles d'armes de chaque classe (classes à venir comprises). Une nouvelle classe → une ligne ici (vérifié par les tests). */
+export const WEAPON_FAMILIES: Record<string, WeaponFamily[]> = {
+  guerrier: ['melee'], voleur: ['melee'], chasseur: ['melee'],
+  mage: ['incant'], pretre: ['incant'], demoniste: ['incant'],
+  paladin: ['melee', 'incant'], chaman: ['melee', 'incant'], druide: ['melee', 'incant'],
+};
+
+/** Les armes jumelles : [mêlée, incantation], au même effet. */
+export const WEAPON_TWINS: [string, string][] = [
+  ['epee_longue', 'baguette_apprenti'], ['hache_de_guerre', 'baton_braises'],
+  ['lame_maudite', 'baton_maudit'], ['hache_molosse', 'baton_molosse'], ['fleau_cendrine', 'sceptre_cendrine'],
+  ['masse_basalte', 'baton_basalte'], ['masse_baron', 'sceptre_baron'], ['dague_arcanique', 'orbe_zhaal'],
+  ['marteau_brannoc', 'sceptre_brannoc'], ['poing_kragg', 'orbe_kragg'], ['masse_intendant', 'baton_intendant'],
+  ['hallebarde_gardien', 'sceptre_gardien'], ['masse_flammes', 'baton_flammes'], ['marteau_profondeurs', 'baton_profondeurs'],
+  ['griffe_rouge', 'baton_ecaille_rouge'], ['cle_grizzik', 'baguette_fioles'], ['os_dragon', 'baton_os_dragon'],
+  ['lance_couvee', 'sceptre_couvee'], ['lame_alchimiste', 'sceptre_alchimiste'], ['lame_lignee', 'sceptre_lignee'],
+  ['glaive_prophete', 'baton_prophete'], ['lame_asheth', 'sceptre_neshet'], ['dent_gharul', 'orbe_sismique'],
+  ['dard_tazz', 'baguette_tazz'], ['masse_visqueuse', 'orbe_visqueux'], ['poing_obsidienne', 'sceptre_obsidienne'],
+  ['kriss_nebet', 'baton_visions'], ['lame_oubli', 'baton_oubli'],
+];
+for (const [m, i] of WEAPON_TWINS) {
+  Object.assign(ITEMS[m], { family: 'melee', twin: i });
+  Object.assign(ITEMS[i], { family: 'incant', twin: m });
+}
+
+/** La classe peut-elle manier cette arme ? (les trophées et les objets hors arme : oui) */
+export function canWield(id: string, classId = 'guerrier'): boolean {
+  const fam = ITEMS[id]?.family;
+  return !fam || (WEAPON_FAMILIES[classId] ?? ['melee', 'incant']).includes(fam);
+}
+
+/** L'objet qui tombe vraiment pour cette classe : une arme d'une famille qu'elle ne manie pas devient sa jumelle.
+ * Une classe qui manie les deux familles reçoit l'une ou l'autre au hasard (si `rnd` est donné). */
+export function itemFor(id: string, classId = 'guerrier', rnd?: () => number): string {
+  const it = ITEMS[id];
+  if (!it?.twin) return id;
+  if (!canWield(id, classId)) return it.twin;
+  if (rnd && canWield(it.twin, classId) && rnd() < 0.5) return it.twin;
+  return id;
+}
+
+/** Une liste d'objets avec, après chaque arme, sa jumelle (sans doublon). */
+export function withTwins(ids: string[]): string[] {
+  return [...new Set(ids.flatMap((id) => (ITEMS[id]?.twin ? [id, ITEMS[id].twin!] : [id])))];
+}
+
 export const BOSS_LOOT: Record<number, { table: string[]; epics: string[] }> = {
   1: {
     table: ['coeur_vulkhar', 'masse_flammes', 'collier_souverain', 'anneau_lave'],
@@ -457,16 +537,17 @@ export const COMMON_POOL: string[] = [
 const KEY_CLASSES: Partial<Record<keyof ItemEffects, string[]>> = {};
 for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage'] as const) KEY_CLASSES[k] = ['guerrier'];
 // Les bonus aux Attaques servent au Guerrier, au Voleur et au Paladin.
-for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus', 'surfaceDouble', 'attackToxine', 'attackSlow', 'pierceBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin'];
+// Les effets secondaires des armes (sous 50 %, premier coup, Brûlure, Dragons…) valent pour les Attaques et les Sorts : seuls ces bonus-ci restent propres aux Attaques.
+for (const k of ['attackBonus', 'bleedFirstAttack', 'bleedBonus', 'pierceBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin', 'chasseur', 'chaman', 'druide'];
 for (const k of ['wisdomBonus', 'purifyFree', 'blessedHealBlock', 'devotionBonus', 'consecrationLong', 'retributionFree', 'judgeCd', 'sealsFree', 'holyBonus', 'vengeanceDivine', 'doubleSeal', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
 for (const k of ['sinisterBonus', 'poisonBonus', 'finisherBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
 for (const k of ['startCharges', 'burnBonus', 'firstSpellFree', 'chargeBonus'] as const) KEY_CLASSES[k] = ['mage'];
-KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin'];
+KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin', 'chaman', 'druide'];
 KEY_CLASSES.firstSpellTwice = KEY_CLASSES.spellBonus;
 KEY_CLASSES.dispelDraw = ['pretre', 'paladin'];
 for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
 KEY_CLASSES.healBonus = ['pretre', 'paladin'];
-KEY_CLASSES.allyBonus = ['demoniste'];
+KEY_CLASSES.allyBonus = ['demoniste', 'chasseur', 'chaman']; // familier, compagnon, totems
 KEY_CLASSES.freePact = ['demoniste'];
 KEY_CLASSES.dotDuration = ['demoniste', 'pretre'];
 KEY_CLASSES.dotBonus = ['demoniste'];
@@ -479,6 +560,7 @@ export function uselessFx(id: string, classId = 'guerrier'): (keyof ItemEffects)
 
 /** L'objet ne sert à rien à cette classe. */
 export function uselessFor(id: string, classId = 'guerrier'): boolean {
+  if (!canWield(id, classId)) return true;
   const keys = Object.keys(ITEMS[id]?.fx ?? {});
   return keys.length > 0 && uselessFx(id, classId).length === keys.length;
 }

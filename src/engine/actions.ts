@@ -150,16 +150,19 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   const spell = c.playing?.type === 'Sort';
   // Les bonus « aux Attaques » ne s'appliquent pas aux Sorts, qui ont leurs propres bonus.
   let dmg = base + p.puissance + (spell ? g.spellBonus ?? 0 : g.attackBonus ?? 0);
-  if (!c.firstAttackDone && !spell) dmg += g.firstAttackBonus ?? 0;
-  if (c.playing && c.playing.cost >= 2 && !spell) dmg += g.heavyAttackBonus ?? 0;
+  // Les effets secondaires des armes valent pour les Attaques et les Sorts (armes jumelles).
+  const hit = !!c.playing && (c.playing.type === 'Attaque' || spell);
+  if (!c.firstAttackDone && hit) dmg += g.firstAttackBonus ?? 0;
+  if (c.playing && c.playing.cost >= 2 && hit) dmg += g.heavyAttackBonus ?? 0;
   // Mage : charges arcaniques, Pyromanie, Impact.
   if (c.playing?.school === 'arcane') dmg += (2 + (g.chargeBonus ?? 0)) * (p.charges ?? 0);
   if (c.playing?.school === 'feu' && c.playing.cost >= 2) dmg += power(c, 'pyromanie');
   if (c.playing?.id === 'boule_de_feu') dmg += g.fireballBonus ?? 0;
   // Acte 2 : Fouet du contremaître, armes contre les Dragons et les Morts-vivants, Bague de la mère.
   if (c.playing && (c.playing.type === 'Attaque' || spell)) dmg += (g.comboBonus ?? 0) * ((c.attacksThisTurn ?? 0) + (c.mageSpellsThisTurn ?? 0));
-  if (!spell && hasTag(target.defId, 'mortvivant')) dmg += g.undeadBonus ?? 0;
-  if (!spell && hasTag(target.defId, 'dragon')) dmg += g.dragonBonus ?? 0;
+  if (hasTag(target.defId, 'mortvivant')) dmg += g.undeadBonus ?? 0;
+  if (hasTag(target.defId, 'dragon')) dmg += g.dragonBonus ?? 0;
+  if (target.block > 0) dmg += g.vsBlockBonus ?? 0; // Poing et Sceptre d'obsidienne
   if (c.playing?.aoe) dmg += g.aoeBonus ?? 0;
   // Démoniste : Ruine, Ombre et flammes, Trait de l'ombre amélioré.
   if (spell && c.playing && c.playing.cost >= 2) dmg += power(c, 'ruine');
@@ -206,7 +209,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   const resist = ENEMIES[target.defId]?.resist;
   if ((resist === 'sorts' && spell) || (resist === 'attaques' && !spell)) dmg *= 0.5;
   // Dent de Gharul : la première Attaque contre un ennemi qui vient de resurgir inflige double dégâts.
-  if (!spell && target.surfaced && g.surfaceDouble) dmg *= 2;
+  if (target.surfaced && g.surfaceDouble) dmg *= 2;
   // Rois-Jumeaux : immunisé aux Attaques ou aux Sorts (les effets de zone passent).
   if (immuneTo(target, spell, !!c.playing?.aoe)) return 0;
   // Carapace divine (objet) : tes coups sont un peu plus faibles.
@@ -223,7 +226,7 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
   const ev = c.fx![c.fx!.length - 1] as { blocked: number };
   damageEnemy(c, target, dmg, opts.ignoreBlock ?? false);
   ev.blocked = opts.ignoreBlock ? 0 : Math.min(blockBefore, dmg);
-  if (dmg > 0 && c.playing?.type !== 'Sort' && c.gear?.surfaceDouble) target.surfaced = false;
+  if (dmg > 0 && c.gear?.surfaceDouble) target.surfaced = false;
   if (target.defId === 'gardien' && blockBefore > 0) reflectToPlayer(c, target, 3);
   // Saldris : son bouclier renvoie la moitié des coups, ou la moitié des Sorts.
   const spell = c.playing?.type === 'Sort';

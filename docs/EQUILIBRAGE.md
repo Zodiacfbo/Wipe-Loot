@@ -433,3 +433,17 @@ La courbe garde sa forme : chaque palier se sent, et le niveau 20 reste le défi
 - **La Folie** fait perdre des tours entiers contre Yzhar (+1 par tour, Murmures, Tentacules). C'est le cœur de l'acte, mais à surveiller avec des joueurs.
 
 Mesures : `npm run balance` (tous les bancs), `tools/balance/yzhar.sim.ts` (Yzhar seul, variable `CLASSES`), `tools/balance/difficulte.sim.ts`.
+
+## 16. Les armes jumelles (novembre 2026)
+
+Chaque arme de boss existe en mêlée et en incantation (`CONCEPT.md` §12.2). Les classes de Sorts ne tombent plus sur des armes inutiles. Mesure rapide, 30 runs, difficulté 0, profils 7 + 3 du bot :
+
+| Profil | Avant | Après |
+|---|---|---|
+| Prêtre niveau 1 | 7 % | 7 % |
+| Prêtre niveau 5 (Discipline 3, Sacré 2) | 17 % | 33 % |
+| Prêtre niveau 10 (Discipline 7, Sacré 3) | 67 % | 73 % |
+| Prêtre niveau 10 (Ombre 7, Sacré 3) | 67 % | 83 % |
+| Mage niveau 10 (Givre 7, Feu 3 / Arcane 7, Feu 3) | — | 50 % / 47 % |
+
+Les classes de Sorts gagnent environ 5 à 15 points (30 runs : marge d'erreur large). Le Prêtre passe un peu au-dessus de la cible au niveau 10. À reprendre dans l'équilibrage des trois actes avec les talents en 7 + 3, prévu en priorité.

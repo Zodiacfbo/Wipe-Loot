@@ -4,7 +4,7 @@ import type { Encounter } from '../src/engine/enemies';
 import { afterCombatAction, chooseNode, learnSpell, newRun } from '../src/engine/run';
 import { BAR_SLOTS, SPELLS, WARRIOR_LOOT_SPELLS, spellClass } from '../src/engine/spells';
 import { ELITE_ENCOUNTERS } from '../src/engine/enemies';
-import { LOOT_TABLES } from '../src/engine/items';
+import { LOOT_TABLES, itemFor } from '../src/engine/items';
 import { migrate } from '../src/engine/save';
 import type { CardInstance, CombatState } from '../src/engine/types';
 
@@ -109,7 +109,7 @@ describe('trouver des sorts', () => {
         expect(WARRIOR_LOOT_SPELLS).toContain(run.pendingSpell);
       } else {
         items++;
-        expect(LOOT_TABLES[ELITE_ENCOUNTERS[node.elite!].loot!]).toContain(run.pendingItem);
+        expect(LOOT_TABLES[ELITE_ENCOUNTERS[node.elite!].loot!].map((id) => itemFor(id, 'guerrier'))).toContain(run.pendingItem);
       }
     }
     expect(spells).toBeGreaterThan(3);

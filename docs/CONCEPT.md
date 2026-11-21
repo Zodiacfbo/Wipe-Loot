@@ -523,6 +523,14 @@ Après chaque combat, le joueur choisit une carte parmi 3, ou n'en prend aucune.
 
 **Où trouver de l'équipement :** dans les coffres, sur les tables de loot des boss (voir §12.7), chez le vendeur gobelin et dans certains événements.
 
+**Les armes jumelles (novembre 2026).** Pour que toutes les classes soient servies de la même façon, chaque arme de boss existe en deux versions, au même effet :
+- **mêlée** (épées, haches, masses, lances, poings) : le bonus va aux **Attaques** ;
+- **incantation** (bâtons, sceptres, baguettes, orbes) : le même bonus va aux **Sorts**.
+
+Chaque classe manie une famille, ou les deux : Guerrier, Voleur et Chasseur la mêlée ; Mage, Prêtre et Démoniste l'incantation ; Paladin, Chaman et Druide les deux (l'une ou l'autre au hasard). Un boss donne toujours la version de ta famille. Les effets secondaires (sous 50 % de PV, premier coup, Brûlure, Ralenti, Toxine, Dragons, Morts-vivants…) valent pour les Attaques **et** les Sorts. Quelques armes sans famille sont des **trophées** (Fouet du contremaître, Crocs, Tentacule pétrifié) : leur effet sert à tout le monde.
+
+Les bijoux et bagues liés à une mécanique de classe (Talisman de rage, bagues du familier, Pierre arcanique…) gardent leur caractère, mais ne tombent jamais chez une classe à qui ils ne servent pas : le boss donne un autre objet de sa table. Dans le code : `WEAPON_FAMILIES`, `WEAPON_TWINS`, `itemFor` (`items.ts`), `rollTable` (`run.ts`).
+
 ### 12.3 Les légendaires de classe
 
 Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.

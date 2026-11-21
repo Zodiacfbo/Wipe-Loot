@@ -210,6 +210,9 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 ---
 
+
+> **Armes (préparé en novembre 2026) :** famille mêlée (épées, haches, lances… : le bonus va aux Attaques). Les objets « alliés » (bagues du familier) lui servent pour son compagnon. Déjà réglé dans `WEAPON_FAMILIES` et `KEY_CLASSES` (`items.ts`) : aucun objet de la réserve commune ne lui sera inutile.
+
 ## 8. Le légendaire : Corde-des-anciens
 
 > *L'arc du premier chasseur d'Eldrava, taillé dans le cœur d'un arbre millénaire et tendu avec un tendon de drake.*

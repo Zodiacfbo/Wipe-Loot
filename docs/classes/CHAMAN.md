@@ -197,6 +197,9 @@ Le Chaman est l'intermédiaire entre les mortels et les **esprits des éléments
 
 ---
 
+
+> **Armes (préparé en novembre 2026) :** famille mêlée **et** incantation (une arme de l'une ou l'autre au hasard). Les objets « alliés » lui servent pour ses totems. Déjà réglé dans `WEAPON_FAMILIES` et `KEY_CLASSES` (`items.ts`) : aucun objet de la réserve commune ne lui sera inutile.
+
 ## 8. Le légendaire : le Marteau des ancêtres
 
 > *Le marteau du premier chaman, qui fit alliance avec les quatre éléments. Les esprits obéissent encore à celui qui le porte.*

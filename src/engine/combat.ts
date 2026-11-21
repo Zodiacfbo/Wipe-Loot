@@ -627,7 +627,9 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     }
     if (g.healOnAttack) healPlayer(c, g.healOnAttack);
   }
-  if (def.type === 'Attaque') c.firstAttackDone = true;
+  // Sceptre de Brannoc : la version incantation soigne quand un Sort touche.
+  if (def.type === 'Sort' && ctx.dealt && c.gear?.healOnAttack) healPlayer(c, c.gear.healOnAttack);
+  if (def.type === 'Attaque' || def.type === 'Sort') c.firstAttackDone = true;
   // Bague du lien royal : une Attaque et un Sort dans le même tour, pioche 1 (1 fois par tour).
   if (c.gear?.mixDraw && !c.mixDrawUsed && (c.attacksThisTurn ?? 0) > 0 && (c.mageSpellsThisTurn ?? 0) > 0) {
     c.mixDrawUsed = true;
@@ -1414,7 +1416,7 @@ function startTurnAct2(c: CombatState): void {
 function onHitItems(c: CombatState, target: EnemyState, type: string): void {
   const g = c.gear ?? {};
   if (type !== 'Attaque' && type !== 'Sort') return;
-  if (g.attackBurn && type === 'Attaque') {
+  if (g.attackBurn) {
     target.buffs.brulure = (target.buffs.brulure ?? 0) + g.attackBurn;
   }
   if (g.attackCycle) {
@@ -1425,8 +1427,8 @@ function onHitItems(c: CombatState, target: EnemyState, type: string): void {
     c.fangStep = step + 1;
   }
   // Butin d'Irem : Masse visqueuse (Ralenti), Dard de Tazz (Toxine, un DoT de 2 tours).
-  if (g.attackSlow && type === 'Attaque') target.buffs.ralenti = Math.max(target.buffs.ralenti, g.attackSlow);
-  if (g.attackToxine && type === 'Attaque') {
+  if (g.attackSlow) target.buffs.ralenti = Math.max(target.buffs.ralenti, g.attackSlow);
+  if (g.attackToxine) {
     const dots = (target.dots ??= []);
     const tox = dots.find((d) => d.id === 'toxine');
     if (tox) tox.turns = Math.max(tox.turns, 2);
