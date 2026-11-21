@@ -347,10 +347,14 @@ Profils du banc (100 runs) : Voleur niveau 10 Assassinat 7 + Combat 3 : 30 → *
 | Mage | Arcane 27 · Feu 55 · Givre 24 | Arcane **58** · Feu 55 · Givre **63** |
 | Démoniste | Affliction 9 · Démonologie 48 · Destruction 19 | Affliction **66** · Démonologie 59 · Destruction **65** |
 | Prêtre | Discipline 57 · Ombre 45 · Sacré 63 | Discipline 57 · Ombre **74** · Sacré 63 |
+| Paladin | Protection 53 · Sacré 58 · Vindicte 65 | Protection **73** · Sacré 58 · Vindicte 65 |
+| Voleur | Assassinat 33 · Combat 79 · Finesse 22 | Assassinat **55** · Combat 80 · Finesse **49** |
 
 **Mage :** Fracas glaciaire (Gel 3 sur la cible, puis 8 dégâts à tous, doublés sur chaque ennemi fracassable), Tempête arcanique (ne consomme plus les charges), Subtilité arcanique (3 charges), Stabilité (+3 par charge au lieu de +2).
 
 **Démoniste :** Tempête d'afflictions (coût 1, prolonge les DoT), Cataclysme de l'âme (ne dépense plus les éclats, 5 par éclat possédé), Corruption améliorée (tous les DoT +2), Contagion naturelle (DoT +1 tour), Trait de l'ombre amélioré (+5). Le bot n'utilise pas Amplifier la malédiction : l'Affliction se mesure avec Spirale mortelle (palier 3 B).
 
 **Prêtre :** Forme d'Ombre (coût 1 (0), tick immédiat des DoT, Sorts d'Ombre +50 %, DoT +2, soins −25 % au lieu de −50 %, la Foi reste). Mesuré avec les choix des profils du bot (Ombre avec le palier 3 B), pas avec l'option A partout.
+
+**Paladin :** Bouclier du croisé n'est plus Épuisé (12 blocage, renvoi de 4 dégâts, 2 PV). Non Épuisé avec ses anciens chiffres, il portait la Protection à 89 %.
 

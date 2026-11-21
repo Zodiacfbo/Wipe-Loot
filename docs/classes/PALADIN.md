@@ -135,7 +135,7 @@ Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes d
 | **Aura d'épines sacrées** | 1 | Pouvoir (Aura) | PC | Chaque fois qu'un ennemi t'attaque, il subit 3 dégâts. | 5 dégâts |
 | **Dernier serment** | 1 | Pouvoir | R | La première fois de ce combat que tu passerais sous 20 % de tes PV max, soigne 15 PV. | Coûte 0 |
 | **Juste châtiment** | 1 | Attaque | R | Inflige des dégâts égaux au **total des dégâts que tu as bloqués** depuis ton dernier tour. | Coûte 0 |
-| **Bouclier du croisé** | 2 | Compétence | É | Gagne 20 blocage. Jusqu'à ton prochain tour, chaque attaque bloquée inflige 6 dégâts à l'attaquant et te soigne de 2 PV. | 26 blocage |
+| **Bouclier du croisé** | 2 | Compétence | É | Gagne 12 blocage. Jusqu'à ton prochain tour, chaque attaque bloquée inflige 4 dégâts à l'attaquant et te soigne de 2 PV. | 16 blocage |
 
 ### 5.4 Arbre Vindicte (14 cartes) : la croisade
 
@@ -261,6 +261,8 @@ La quête se termine tard dans la run, mais l'Aurore ardente est faite pour la *
   - **Bouclier du croisé : −7 points** (contre +21 pour 3 talents). Le bot la joue bien (tôt, face à une attaque dans 95 % des cas). Sans les copies reprises en récompense, la victoire revient exactement à la base : **la carte vaut zéro**, et ses copies en plus (1,5 en fin de run) coûtent environ 7 points. 18 blocage pour 2 énergie, Épuisée, riposte d'un seul tour : un profil de peu commune.
   - **Piste :** en faire la carte qui fonde l'arbre : la riposte et le soin **durent tout le combat** (Pouvoir ou effet permanent), quitte à baisser le blocage.
 
+  - **Fait (novembre 2026) :** Bouclier du croisé n'est plus Épuisé, avec 12 blocage (16) et un renvoi de 4 dégâts (2 PV de soin inchangés). Non Épuisé avec 18 blocage et 6 dégâts, il était bien trop fort (Protection 89 %).
+  - **Résultat (150 runs, choix des profils du bot) :** Protection 7 + Vindicte 3 **73 %**, Sacré 7 + Vindicte 3 **58 %**, Vindicte 7 + Sacré 3 **65 %** (avant : 53, 58 et 65 %). Avatar de lumière et Verdict des cieux n'ont pas bougé.
 ---
 
 ## 12. Ce qui est en jeu dans le prototype
@@ -276,7 +278,7 @@ La quête se termine tard dans la run, mais l'Aurore ardente est faite pour la *
 | Bouclier divin | recharge 6 | **recharge 7** |
 | Verdict des cieux (épique) | coût 2, 12 × 2 (16 × 2) | **coût 3 (2 amélioré), 8 × 2** |
 | Avatar de lumière (épique) | coût 2 (1), soins +50 %, chaque soin en dégâts | **coût 3 (2), soins +25 %, la moitié du soin en dégâts** |
-| Bouclier du croisé (épique) | 20 blocage (26), 6 dégâts et 2 PV | **18 blocage (24), 6 dégâts et 2 PV, Épuisé** |
+| Bouclier du croisé (épique) | 20 blocage (26), 6 dégâts et 2 PV | **18 blocage (24), 6 dégâts et 2 PV, Épuisé** ; depuis le palier 5 à 3 points : **12 blocage (16), 4 dégâts et 2 PV, plus Épuisé** (§11) |
 | Lumière améliorée | tes soins +2 | **tes cartes de soin +2** (pas le Sceau de lumière, le Jugement ni Grâce du croisé) |
 | Lumière bénie | la moitié du soin en blocage | **un quart du soin en blocage** |
 | Bouclier amélioré | +2 blocage | **+1 blocage** (comme le Guerrier) |

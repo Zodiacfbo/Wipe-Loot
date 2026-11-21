@@ -279,11 +279,11 @@ const LIST: PaladinCard[] = [
     play: (ctx) => hit(ctx, ctx.c.blockedSince ?? 0),
   },
   {
-    id: 'bouclier_croise', name: 'Bouclier du croisé', type: 'Compétence', rarity: 'epique', cost: 2, needsTarget: false, exhaust: true, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 24 : 18} blocage. Jusqu'à ton prochain tour, chaque attaque bloquée inflige 6 dégâts à l'attaquant et te soigne de 2 PV. Épuisé.`,
+    id: 'bouclier_croise', name: 'Bouclier du croisé', type: 'Compétence', rarity: 'epique', cost: 2, needsTarget: false, icon: 'bouclier',
+    text: (up) => `Gagne ${up ? 16 : 12} blocage. Jusqu'à ton prochain tour, chaque attaque bloquée inflige 4 dégâts à l'attaquant et te soigne de 2 PV.`,
     play: (ctx) => {
-      gainBlock(ctx.c, ctx.up ? 24 : 18);
-      ctx.c.crusaderShield = { dmg: 6, heal: 2 };
+      gainBlock(ctx.c, ctx.up ? 16 : 12);
+      ctx.c.crusaderShield = { dmg: 4, heal: 2 };
     },
   },
 
