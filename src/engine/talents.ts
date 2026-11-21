@@ -1,4 +1,5 @@
 // Les talents : 3 arbres de 5 paliers par classe, 1 point par niveau de classe (10 au maximum).
+// Le palier 5 (la carte épique) coûte 3 points : un arbre complet en coûte 7, on ne peut en finir qu'un seul.
 // Référence : docs/CONCEPT.md (§9), docs/classes/GUERRIER.md (§7) et docs/classes/MAGE.md (§7)
 import type { ItemEffects } from './items';
 
@@ -92,9 +93,9 @@ export const MAGE_TREES: TreeDef[] = [
   {
     id: 'arcane', name: 'Arcane', theme: 'Puissance brute et pioche',
     tiers: [
-      [t('subtilite_arcanique', 'Subtilité arcanique', 'Commence chaque combat avec 2 charges arcaniques.', { fx: { startCharges: 2 } }),
+      [t('subtilite_arcanique', 'Subtilité arcanique', 'Commence chaque combat avec 3 charges arcaniques.', { fx: { startCharges: 3 } }),
         t('meditation', 'Méditation', 'Pioche 1 carte de plus au premier tour de chaque combat.', { fx: { firstTurnDraw: 1 } })],
-      [t('stabilite', 'Stabilité', 'La Surcharge ne te fait plus perdre de PV.', { fx: { noOverload: 1 } }),
+      [t('stabilite', 'Stabilité', 'La Surcharge ne te fait plus perdre de PV, et chaque charge arcanique donne +3 dégâts au lieu de +2.', { fx: { noOverload: 1, chargeBonus: 1 } }),
         t('esprit_clair', 'Esprit clair', 'Barrage arcanique pioche 1 carte de plus.', { fx: { barrageDraw: 1 } })],
       [t('t_evocation', 'Évocation', 'Ajoute ce sort à ta barre : +2 énergie et pioche 1 carte.', { spell: 'evocation' }),
         t('t_pouvoir_arcanes', 'Pouvoir des arcanes', 'Ajoute ce sort à ta barre : tes Sorts infligent +50 % ce tour-ci.', { spell: 'pouvoir_arcanes' })],
@@ -144,13 +145,13 @@ export const DEMONISTE_TREES: TreeDef[] = [
   {
     id: 'affliction', name: 'Affliction', theme: 'DoT et Malédictions',
     tiers: [
-      [t('corruption_amelioree', 'Corruption améliorée', 'Corruption inflige +2 dégâts par tour.', { fx: { corruptionBonus: 2 } }),
+      [t('corruption_amelioree', 'Corruption améliorée', 'Tes DoT infligent +2 dégâts par tour.', { fx: { dotBonus: 2 } }),
         t('malediction_durable', 'Malédictions durables', 'Tes Malédictions durent 2 tours de plus.', { fx: { curseDuration: 2 } })],
       [t('moisson_ames', 'Moisson d\'âmes', 'Quand un ennemi meurt avec un de tes DoT, gagne 1 éclat d\'âme de plus.', { fx: { harvestShard: 1 } }),
         t('double_malediction', 'Double malédiction', 'Chaque ennemi peut porter 2 de tes Malédictions au lieu d\'une.', { fx: { doubleCurse: 1 } })],
       [t('t_amplifier', 'Amplifier la malédiction', 'Ajoute ce sort à ta barre : l\'effet de ta prochaine Malédiction est doublé.', { spell: 'amplifier' }),
         t('t_spirale_mortelle', 'Spirale mortelle', 'Ajoute ce sort à ta barre : 8 dégâts, soigne 8 PV, Apeuré.', { spell: 'spirale_mortelle' })],
-      [t('contagion_naturelle', 'Contagion naturelle', 'Quand un ennemi meurt, ses DoT passent à un autre ennemi.', { fx: { naturalContagion: 1 } }),
+      [t('contagion_naturelle', 'Contagion naturelle', 'Tes DoT durent 1 tour de plus, et quand un ennemi meurt, ses DoT passent à un autre ennemi.', { fx: { naturalContagion: 1, dotDuration: 1 } }),
         t('d_quatrieme_emplacement_a', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
       [t('t_tempete_afflictions', 'Tempête d\'afflictions', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'tempete_afflictions' })],
     ],
@@ -176,7 +177,7 @@ export const DEMONISTE_TREES: TreeDef[] = [
   {
     id: 'destruction', name: 'Destruction', theme: 'Ombre et flammes',
     tiers: [
-      [t('trait_ombre_ameliore', 'Trait de l\'ombre amélioré', 'Trait de l\'ombre inflige +3 dégâts.', { fx: { shadowBoltBonus: 3 } }),
+      [t('trait_ombre_ameliore', 'Trait de l\'ombre amélioré', 'Trait de l\'ombre inflige +5 dégâts.', { fx: { shadowBoltBonus: 5 } }),
         t('devastation', 'Dévastation', 'Immolation inflige +3 dégâts par tour.', { fx: { immolationBonus: 3 } })],
       [t('pyroclasme', 'Pyroclasme', 'Pluie de feu et Déflagration d\'ombre démoralisent (1 tour).', { fx: { pyroclasm: 1 } }),
         t('intensite', 'Intensité', 'Pacte de sang ne coûte que 3 PV.', { fx: { bloodPactCost: 2 } })],
@@ -250,7 +251,7 @@ export const VOLEUR_TREES: TreeDef[] = [
     tiers: [
       [t('lames_malicieuses', 'Lames malicieuses', 'Attaque sinistre inflige +2 dégâts.', { fx: { sinisterBonus: 2 } }),
         t('poison_renforce', 'Poison renforcé', 'Tes applications de Poison sont augmentées de 1.', { fx: { poisonBonus: 1 } })],
-      [t('finesse_meurtriere', 'Finesse meurtrière', 'Éviscération inflige +2 dégâts par point de combo.', { fx: { evisBonus: 2 } }),
+      [t('finesse_meurtriere', 'Finesse meurtrière', 'Tes finishers qui infligent des dégâts infligent +3 dégâts par point de combo.', { fx: { finisherBonus: 3 } }),
         t('reflexes', 'Réflexes', 'Coup aux reins retarde aussi l\'Incantation en cours d\'un boss.', { fx: { kidneyDelay: 1 } })],
       [t('t_coup_de_pied', 'Coup de pied', 'Ajoute ce sort à ta barre : Interruption, 3 dégâts.', { spell: 'coup_de_pied' }),
         t('t_voile_obscur', 'Voile de l\'ombre', 'Ajoute ce sort à ta barre : retire tous tes débuffs, une fois par combat.', { spell: 'voile_obscur' })],
@@ -280,7 +281,7 @@ export const VOLEUR_TREES: TreeDef[] = [
   {
     id: 'finesse', name: 'Finesse', theme: 'Ombres et ouvertures',
     tiers: [
-      [t('maitre_discretion', 'Maître de la discrétion', 'Tes Ouvertures infligent +4 dégâts.', { fx: { openerBonus: 4 } }),
+      [t('maitre_discretion', 'Maître de la discrétion', 'Tes Ouvertures et Coup dans le dos infligent +4 dégâts.', { fx: { openerBonus: 4 } }),
         t('pas_de_velours', 'Pas de velours', 'La première carte que tu joues dans chaque combat coûte 0.', { fx: { firstCardFree: 1 } })],
       [t('prepare', 'Préparé', 'Tes Ouvertures donnent +1 combo.', { fx: { openerCombo: 1 } }),
         t('insaisissable', 'Insaisissable', 'Esquive et Esquive agile donnent +2 blocage.', { fx: { evadeBonus: 2 } })],
@@ -370,8 +371,19 @@ export function emptyAlloc(classId = 'guerrier'): TalentAlloc {
   return Object.fromEntries(treesFor(classId).map((tree) => [tree.id, []]));
 }
 
+/** Le coût d'un palier : 1 point, 3 pour le palier 5 (la carte épique). */
+export const EPIC_TIER_COST = 3;
+export function tierCost(tier: number): number {
+  return tier === 4 ? EPIC_TIER_COST : 1;
+}
+
+/** Les points dépensés dans un arbre (7 pour un arbre complet). */
+export function treePoints(picks: Choice[]): number {
+  return picks.reduce((a, _c, tier) => a + tierCost(tier), 0);
+}
+
 export function pointsUsed(alloc: TalentAlloc): number {
-  return Object.values(alloc).reduce((a, picks) => a + picks.length, 0);
+  return Object.values(alloc).reduce((a, picks) => a + treePoints(picks), 0);
 }
 
 /** Les talents choisis, dans l'ordre des arbres et des paliers. */
@@ -400,18 +412,27 @@ export function toggleTalent(alloc: TalentAlloc, tree: TreeId, tier: number, cho
     }
     return false;
   }
-  if (tier !== picks.length || pointsUsed(alloc) >= points) return false;
+  if (tier !== picks.length || pointsUsed(alloc) + tierCost(tier) > points) return false;
   picks.push(choice);
   return true;
 }
 
-/** Ramène la répartition dans les limites (points disponibles), au cas où. */
+/**
+ * Ramène la répartition dans les limites (points disponibles). Sert aussi aux anciennes sauvegardes,
+ * d'avant le palier 5 à 3 points : un 5 + 5 devient 7 + 3 (le premier arbre complet garde sa carte épique).
+ */
 export function clampAlloc(alloc: TalentAlloc, points: number, classId = 'guerrier'): TalentAlloc {
   const ids = treesFor(classId).map((tree) => tree.id);
   const a: TalentAlloc = Object.fromEntries(ids.map((id) => [id, [...(alloc[id] ?? [])]]));
   while (pointsUsed(a) > points) {
-    const longest = ids.reduce((x, y) => (a[x].length >= a[y].length ? x : y));
-    a[longest].pop();
+    const full = ids.filter((id) => a[id].length === 5);
+    // Plus de points que permis : on retire d'abord les cartes épiques en trop (on garde la première),
+    // puis le dernier palier de l'arbre le plus long qui n'est pas complet.
+    const open = ids.filter((id) => a[id].length > 0 && a[id].length < 5);
+    const from = full.length > 1 ? full[full.length - 1]
+      : open.length ? open.reduce((x, y) => (a[x].length >= a[y].length ? x : y))
+        : ids.reduce((x, y) => (a[x].length >= a[y].length ? x : y));
+    a[from].pop();
   }
   return a;
 }

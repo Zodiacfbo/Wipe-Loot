@@ -20,7 +20,7 @@ export function gainAegis(c: CombatState, amount: number, fromCard = true): void
 
 /** Le Prêtre gagne de la Foi (pas en Forme d'Ombre). Chant de lumière : chaque gain frappe un ennemi. */
 export function gainFaith(c: CombatState, n: number): void {
-  if (c.faith === undefined || n <= 0 || c.shadowForm) return;
+  if (c.faith === undefined || n <= 0) return;
   const before = c.faith;
   c.faith = Math.min(c.maxFaith ?? BASE_FAITH, c.faith + n);
   const chant = power(c, 'chant_lumiere');

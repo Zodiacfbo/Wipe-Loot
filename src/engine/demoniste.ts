@@ -74,7 +74,7 @@ export function applyDot(c: CombatState, e: EnemyState, id: string, dmg: number,
 /** Les dégâts d'un tick de DoT (Étreinte de l'ombre, Hantise). */
 export function dotTick(c: CombatState, e: EnemyState, base: number): number {
   // Étreinte de l'ombre, Ténèbres intérieures, Forme d'Ombre, Équinoxe (Ombre).
-  let dmg = base + power(c, 'etreinte') + power(c, 'tenebres') + (c.shadowForm ? 1 + (c.gear?.equinoxe ? 2 : 0) : 0);
+  let dmg = base + power(c, 'etreinte') + power(c, 'tenebres') + (c.gear?.dotBonus ?? 0) + (c.shadowForm ? 2 + (c.gear?.equinoxe ? 2 : 0) : 0);
   if ((e.haunted ?? 0) > 0) dmg = Math.floor(dmg * 1.5);
   // Tambour sismique : un ennemi enseveli.
   if ((e.buried ?? 0) > 0 || e.untargetable) dmg += c.gear?.dotUntargetable ?? 0;

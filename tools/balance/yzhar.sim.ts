@@ -1,5 +1,5 @@
 // Les combats contre Yzhar : à quel tour et dans quelle phase le bot meurt, et ce qu'il reste à Yzhar.
-// On copie la run à l'entrée du boss de l'acte 3 (personnage de niveau 10), puis on rejoue le combat seul.
+// On copie la run à l'entrée du boss de l'acte 3 (personnage de niveau 10, 7 + 3 points), puis on rejoue le combat seul.
 // Lancer : RUNS=40 npx vitest run --config tools/balance/vitest.config.ts --root . tools/balance/yzhar.sim.ts
 import { it } from 'vitest';
 import { afterCombatAction, startEncounter } from '../../src/engine/run';
@@ -10,13 +10,13 @@ import { playTurn, simulateRun } from './bot';
 
 const alloc = (a: Partial<TalentAlloc>, cls: string) => talentIds({ ...emptyAlloc(cls), ...a } as TalentAlloc, cls);
 const PROFILES: [string, string[], string][] = [
-  ['Guerrier', alloc({ protection: ['A', 'A', 'A', 'A', 'A'], fureur: ['A', 'B', 'A', 'B', 'A'] }, 'guerrier'), 'guerrier'],
-  ['Mage', alloc({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }, 'mage'), 'mage'],
-  ['Voleur', alloc({ assassinat: ['A', 'A', 'A', 'A', 'A'], combat: ['A', 'A', 'A', 'B', 'A'] }, 'voleur'), 'voleur'],
-  ['Paladin', alloc({ vindicte: ['A', 'A', 'A', 'A', 'A'], sacre_pal: ['A', 'B', 'A', 'A', 'A'] }, 'paladin'), 'paladin'],
-  ['Démoniste', alloc({ demonologie: ['A', 'B', 'B', 'A', 'A'], destruction: ['A', 'B', 'A', 'A', 'A'] }, 'demoniste'), 'demoniste'],
-  ['Affliction', alloc({ affliction: ['A', 'A', 'B', 'A', 'A'], destruction: ['A', 'B', 'A', 'A', 'A'] }, 'demoniste'), 'demoniste'],
-  ['Prêtre', alloc({ discipline: ['A', 'A', 'A', 'A', 'A'], sacre: ['A', 'B', 'A', 'B', 'A'] }, 'pretre'), 'pretre'],
+  ['Guerrier', alloc({ protection: ['A', 'A', 'A', 'A', 'A'], fureur: ['A', 'B', 'A'] }, 'guerrier'), 'guerrier'],
+  ['Mage', alloc({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A'] }, 'mage'), 'mage'],
+  ['Voleur', alloc({ assassinat: ['A', 'A', 'A', 'A', 'A'], combat: ['A', 'A', 'A'] }, 'voleur'), 'voleur'],
+  ['Paladin', alloc({ vindicte: ['A', 'A', 'A', 'A', 'A'], sacre_pal: ['A', 'B', 'A'] }, 'paladin'), 'paladin'],
+  ['Démoniste', alloc({ demonologie: ['A', 'B', 'B', 'A', 'A'], destruction: ['A', 'B', 'A'] }, 'demoniste'), 'demoniste'],
+  ['Affliction', alloc({ affliction: ['A', 'A', 'B', 'A', 'A'], destruction: ['A', 'B', 'A'] }, 'demoniste'), 'demoniste'],
+  ['Prêtre', alloc({ discipline: ['A', 'A', 'A', 'A', 'A'], sacre: ['A', 'B', 'A'] }, 'pretre'), 'pretre'],
 ];
 const ONLY = process.env.CLASSES?.split(',');
 

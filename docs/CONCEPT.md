@@ -422,13 +422,18 @@ Le jeu proposera **9 classes**, chacune avec une **mécanique principale** qui l
 - Chaque classe a un **niveau de classe, de 1 à 10**, qui monte avec l'expérience gagnée à la fin de chaque run (voir §15.2).
 - **Chaque niveau donne 1 point de talent**. Une classe de niveau 1 a 1 point, une classe de niveau 10 en a **10, le maximum**.
 - On atteint le niveau 10 en environ **10 à 15 runs** avec cette classe.
-- **10 points pour 15 paliers** : on ne peut pas tout prendre. Une fois au maximum, on peut par exemple compléter un arbre (5 points) et en monter un deuxième jusqu'au palier 5, ou répartir ses points sur les trois arbres.
+- **10 points, et un arbre complet en coûte 7** (paliers 1 à 4 : 1 point chacun ; palier 5 : 3 points, voir §9.2). On ne peut donc **compléter qu'un seul arbre**. Une fois au maximum, les répartitions naturelles sont :
+  - **7 + 3** : une spécialisation complète et une touche d'un autre arbre ;
+  - **7 + 2 + 1** : la même chose, en piochant dans les deux autres arbres ;
+  - **4 + 4 + 2** : un vrai hybride, sans carte épique, qui garde les meilleurs talents des paliers 1 à 4.
 
 ### 9.2 Les arbres
 - Chaque classe possède **3 arbres de talents** (Guerrier : Armes / Fureur / Protection ; Mage : Arcane / Feu / Givre ; etc.).
 - Chaque arbre compte **5 paliers**. Il faut avoir un point dans un palier pour accéder au suivant.
 - **Paliers 1 à 4 :** chaque point permet de choisir **1 talent parmi 2**.
-- **Palier 5 :** la **carte épique** de la spécialisation (Frappe mortelle, Sanguinaire, Heurt de bouclier, Pyrolance, Forme d'Ombre…). Elle est **ajoutée au deck de départ** de chaque run, et peut aussi apparaître dans les récompenses.
+- **Palier 5 :** la **carte épique** de la spécialisation (Frappe mortelle, Sanguinaire, Heurt de bouclier, Pyrolance, Forme d'Ombre…). Il **coûte 3 points**. La carte est **ajoutée au deck de départ** de chaque run, et peut aussi apparaître dans les récompenses.
+- **Pourquoi 3 points (décidé en novembre 2026) :** à 1 point, deux arbres complets (5 + 5) étaient toujours le meilleur choix au niveau 10, avec deux cartes épiques : la spécialisation se brouillait et le choix se résumait à « quel arbre je laisse tomber ». Dès 2 points, deux cartes épiques deviennent impossibles ; 3 points laisse une vraie touche d'hybride (7 + 3) sans offrir tout un deuxième arbre (6 + 4 à 2 points).
+- **Ce que ça demande à une carte épique :** elle doit valoir environ **3 talents des paliers 1 à 4**, sinon le 4 + 4 + 2 sans carte épique l'emporte et plus personne ne finit son arbre. Repère du bot : **+15 à +25 points** de victoire par rapport au même build sans la carte. La mesure de novembre 2026 et les pistes pour les cartes trop faibles sont dans les fiches de classe (§11, « Carte épique à revoir »).
 - Certains paliers donnent un **sort de barre** (voir §6.6) au lieu d'un bonus passif. Par exemple, le palier 3 de l'arbre Givre donne Carapace de glace. Ces sorts sont dans la barre **dès le début de la run**.
 
 ### 9.3 Choisir sa spécialisation
@@ -438,7 +443,7 @@ Le jeu proposera **9 classes**, chacune avec une **mécanique principale** qui l
 - Plus le joueur a de points dans un arbre, plus les **récompenses de cartes** proposées après les combats penchent vers cet arbre. La spécialisation oriente le deck **dès le premier combat**.
 - Les **builds hybrides** sont possibles et encouragés.
 
-> **Exemple :** un Guerrier de niveau 7 met 5 points en Protection et 2 en Fureur. Il commence chaque run avec Heurt de bouclier dans son deck, Rempart dans sa barre, et voit surtout des cartes de blocage après les combats. C'est un « tank qui tape ».
+> **Exemple :** un Guerrier de niveau 10 met 7 points en Protection (l'arbre complet) et 3 en Fureur. Il commence chaque run avec Heurt de bouclier dans son deck, Rempart dans sa barre, et voit surtout des cartes de blocage après les combats. C'est un « tank qui tape ».
 
 ### 9.4 Ce que ça change pour l'équilibrage
 - Le jeu devient un **roguelite** : le joueur devient **plus fort d'une run à l'autre** tant que sa classe n'est pas au niveau 10.
@@ -904,7 +909,7 @@ Le joueur doit pouvoir **arrêter et reprendre sa partie quand il veut**, sans r
 | **Mode de jeu** | **Solo pur** : un seul héros. Les familiers, compagnons et totems sont les seules entités alliées. |
 | **Énergie** | **3 par tour, commune à toutes les classes**, plus une **ressource de classe** propre à chacune |
 | **Structure** | **3 actes de 10 étages**, plus un acte bonus (la Nécropole céleste) |
-| **Spécialisation** | **Talents permanents** choisis avant la run : 3 arbres de 5 paliers, 1 point par niveau de classe, 10 points maximum, respec gratuit entre les runs |
+| **Spécialisation** | **Talents permanents** choisis avant la run : 3 arbres de 5 paliers (le palier 5, la carte épique, coûte 3 points : un seul arbre complet), 1 point par niveau de classe, 10 points maximum, respec gratuit entre les runs |
 | **Récompense de boss** | Un objet de la table de loot (et, pour un boss de fin d'acte, un choix parmi 3 objets épiques) |
 | **Reliques** | **Aucune** : tous les effets passifs passent par l'équipement |
 | **Amélioration de cartes** | Au feu de camp (à la place du repos) ou contre de l'or chez le vendeur |

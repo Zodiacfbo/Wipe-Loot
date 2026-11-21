@@ -48,11 +48,12 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 ### Lumière ou Ombre
 - Par défaut, le Prêtre est dans la **Lumière**.
 - La carte épique **Forme d'Ombre** le fait basculer dans l'**Ombre** pour le reste du combat :
-  - ses Sorts d'Ombre infligent **30 % de dégâts en plus** et ses DoT **+1 dégât** ;
-  - en contrepartie, ses **soins sont réduits de moitié** et il **ne gagne plus de Foi**.
+  - en la jouant, ses DoT se déclenchent **tout de suite une fois** ;
+  - ses Sorts d'Ombre infligent **50 % de dégâts en plus** et ses DoT **+2 dégâts** ;
+  - en contrepartie, ses **soins sont réduits de 25 %**. Il garde sa Foi (depuis novembre 2026 : la perdre rendait la carte négative).
 - Le légendaire **Équinoxe** change d'effet selon la voie (voir §8).
 
-**L'intérêt :** un Prêtre de Lumière accumule la Foi en se protégeant, puis la libère. Un Prêtre d'Ombre renonce à cette sécurité pour des dégâts continus.
+**L'intérêt :** un Prêtre de Lumière accumule la Foi en se protégeant, puis la libère. Un Prêtre d'Ombre accepte des soins plus faibles pour des dégâts continus.
 
 ---
 
@@ -149,7 +150,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 | **Peste mentale** | 2 | Sort | R | Applique DoT 5 pendant 4 tours. À chaque fois qu'il inflige des dégâts, soigne 2 PV. | DoT 7 |
 | **Contrôle mental** | 2 | Compétence | R | Un ennemi (sauf boss) attaque un autre ennemi à la place de toi ce tour-ci. **Épuisé.** | Coûte 1 |
 | **Ténèbres intérieures** | 1 | Pouvoir | R | Tes DoT infligent +1 dégât. | +2 dégâts |
-| **Forme d'Ombre** | 2 | Pouvoir | É | Tu entres en **Forme d'Ombre** pour le reste du combat (voir §3). | Coûte 1 |
+| **Forme d'Ombre** | 1 | Pouvoir | É | Tes DoT se déclenchent tout de suite une fois, puis tu entres en **Forme d'Ombre** pour le reste du combat (voir §3). | Coûte 0 |
 
 ---
 
@@ -250,6 +251,13 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
   - Ascension lumineuse combinée à Esprit de guérison crée beaucoup de valeur sur chaque soin.
   - Bénédiction de vigueur donne des PV max permanents : il faudra vérifier qu'elle reste rare.
 - **Forme d'Ombre :** le choix de basculer doit rester une vraie décision. Si elle est trop forte, plus personne ne jouera la Lumière.
+- **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 coûte **3 points** (CONCEPT.md §9, en jeu depuis novembre 2026). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
+  - **Forme d'Ombre : −6 points** (contre +32 pour 3 talents). Le bot ne la jouait **jamais** : il compte les Pouvoirs par `c.powers`, et la Forme d'Ombre passe par `c.shadowForm` (corrigé en novembre 2026 dans `tools/balance/bot.ts`). Mais une fois le bot corrigé (jouée 842 fois), elle reste à −6 : le contrecoup (soins ÷2, plus de Foi) coûte plus que +30 % aux sorts d'Ombre et DoT +1, et elle n'a aucun effet immédiat. Avec des points en Discipline (l'arbre de la Foi), elle coupe la ressource dont cet arbre vit.
+  - **Piste :** coût 1 (0 améliorée), un contrecoup plus doux (soins −25 %, ou la Foi se garde mais ne se dépense plus), et un effet immédiat (par exemple : tes DoT actifs infligent un tick tout de suite). Garder l'esprit de la note ci-dessus : basculer doit rester une décision.
+  - **Ascension lumineuse : +3 points** (contre +18 pour 3 talents ; +6 sans les copies reprises en récompense). C'est un Pouvoir à **3 énergie** : le bot finit 5 492 tours avec la carte en main, presque toujours faute d'énergie, et ne la pose qu'au tour 3,9 en moyenne. Une fois posée, elle attend des soins pour rapporter. **C'est la carte :** trop chère pour un effet lent.
+  - **Piste :** coût 2 (1 améliorée), et un effet immédiat (par exemple : te soigne de 5 PV, ce qui déclenche déjà l'Ascension).
+  - **Fait (novembre 2026), arbres à peu près équivalents :** Forme d'Ombre coûte 1 (0), déclenche les DoT une fois en la jouant, Sorts d'Ombre +50 % et DoT +2, soins −25 %, la Foi reste. Ascension lumineuse n'a pas bougé (Sacré déjà au niveau).
+  - **Résultat (150 runs, meilleur complément, choix des profils du bot) :** Discipline 7 + Sacré 3 **57 %**, Ombre 7 + Sacré 3 **74 %**, Sacré 7 + Ombre 3 **63 %** (avant : 57, 45 et 63 %). L'Ombre est un peu au-dessus : accepté.
 
 ---
 

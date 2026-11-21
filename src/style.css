@@ -482,6 +482,8 @@ img[data-anime] {
 .k-epique > .icone-talent, .icone-talent.k-epique { border-radius: 12px; border-color: #a66be0; background: #2a1f38; }
 .noeud-talent.k-epique .icone-talent { width: 66px; height: 66px; }
 .noeud-talent.k-epique .icone-talent img { width: 50px; height: 50px; }
+.cout-palier { position: absolute; top: -9px; right: -14px; padding: 1px 6px; border-radius: 9px; background: #a66be0; color: #fff; font-size: 11px; font-weight: 900; line-height: 16px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.noeud-talent.ferme .cout-palier { filter: none; }
 .nom-talent { font-size: 12px; font-weight: 800; line-height: 1.1; text-align: center; }
 .noeud-talent:hover .icone-talent { border-color: var(--or-clair); }
 .noeud-talent.dispo .icone-talent { border-color: #a8834a; box-shadow: 0 0 8px rgba(230, 195, 106, 0.25); }

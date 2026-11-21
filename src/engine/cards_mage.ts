@@ -5,7 +5,6 @@ import {
   addStatusToHand,
   applyBrulure,
   applyGel,
-  canShatter,
   drawCards,
   freeze,
   fx,
@@ -248,9 +247,9 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'tempete_arcanique', name: 'Tempête arcanique', type: 'Sort', rarity: 'epique', cost: 2, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Consomme tes charges : ${up ? 8 : 6} dégâts à tous les ennemis par charge.`,
+    text: (up) => `Inflige ${up ? 8 : 6} dégâts à tous les ennemis par charge arcanique, sans les consommer.`,
     play: (ctx) => {
-      const n = spendCharges(ctx.c);
+      const n = ctx.c.player.charges ?? 0;
       if (n > 0) nova(ctx, (ctx.up ? 8 : 6) * n);
     },
   },
@@ -448,19 +447,16 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'fracas_glaciaire', name: 'Fracas glaciaire', type: 'Sort', school: 'givre', rarity: 'epique', cost: 2, needsTarget: true, icon: 'bouclier',
-    text: (up, g) => `Inflige ${(up ? 18 : 14) + (g?.shatterBonus ?? 0)} dégâts. Fracasser. Si la cible est Gelée : les mêmes dégâts à tous les autres ennemis.`,
+    text: (up, g) => `Applique Gel 3 à la cible, puis inflige ${(up ? 11 : 8) + (g?.shatterBonus ?? 0)} dégâts à tous les ennemis. Fracasser (chaque ennemi fracassable subit double dégâts).`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
-      const frozen = !!t.gele;
       const others = livingEnemies(ctx.c).filter((e) => e !== t && !e.submerged);
-      const doubled = canShatter(ctx.c, t);
-      shatter(ctx, ctx.up ? 18 : 14);
-      if (frozen) {
-        const base = (ctx.up ? 18 : 14) + (ctx.c.gear?.shatterBonus ?? 0);
-        const dmg = doubled ? base * (ctx.c.powers?.fragmentation ? 3 : 2) : base;
-        for (const e of others) zap(ctx, dmg, e);
-      }
+      const base = ctx.up ? 11 : 8;
+      // Les autres d'abord : la cible garde son Gel jusqu'à son propre Fracasser.
+      for (const e of others) zap(ctx, shatterDamage(ctx.c, e, base), e);
+      applyGel(ctx.c, t, 3);
+      shatter(ctx, base);
     },
   },
 

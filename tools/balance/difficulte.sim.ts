@@ -8,10 +8,10 @@ const RUNS = Number(process.env.RUNS ?? 100);
 const LEVELS = (process.env.NIVEAUX ?? '0,5,10,15,20').split(',').map(Number);
 const alloc = (a: Partial<TalentAlloc>, cls = 'guerrier') => talentIds({ ...emptyAlloc(cls), ...a } as TalentAlloc, cls);
 const PROFILES: [string, string[], string][] = [
-  ['Guerrier Prot/Fur', alloc({ protection: ['A', 'A', 'A', 'A', 'A'], fureur: ['A', 'B', 'A', 'B', 'A'] }), 'guerrier'],
-  ['Guerrier Armes/Fur', alloc({ armes: ['A', 'B', 'B', 'B', 'A'], fureur: ['A', 'B', 'A', 'B', 'A'] }), 'guerrier'],
-  ['Mage Givre/Feu', alloc({ givre: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }, 'mage'), 'mage'],
-  ['Mage Arcane/Feu', alloc({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A', 'A', 'A'] }, 'mage'), 'mage'],
+  ['Guerrier Prot/Fur', alloc({ protection: ['A', 'A', 'A', 'A', 'A'], fureur: ['A', 'B', 'A'] }), 'guerrier'],
+  ['Guerrier Armes/Fur', alloc({ armes: ['A', 'B', 'B', 'B', 'A'], fureur: ['A', 'B', 'A'] }), 'guerrier'],
+  ['Mage Givre/Feu', alloc({ givre: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A'] }, 'mage'), 'mage'],
+  ['Mage Arcane/Feu', alloc({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A'] }, 'mage'), 'mage'],
 ];
 
 it('difficulté', () => {

@@ -100,6 +100,15 @@ describe('le Mage : le Feu', () => {
 });
 
 describe('le Mage : le Givre', () => {
+  it('Fracas glaciaire : Gel 3 sur la cible, puis 8 dégâts à tous, doublés sur chaque ennemi fracassable', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['fracas_glaciaire']);
+    const [t, o] = c.enemies;
+    const [ht, ho] = [t.hp, o.hp];
+    play(c, 'fracas_glaciaire', t.uid);
+    expect(ht - t.hp).toBe(16); // Gel 3 : fracassable
+    expect(ho - o.hp).toBe(8);
+  });
+
   it('à 5 Gel, un ennemi normal est Gelé et perd son tour', () => {
     const c = fight(['lieutenant'], ['gelure', 'eclair_de_givre']);
     const e = c.enemies[0];
@@ -177,6 +186,19 @@ describe('le Mage : l\'Arcane', () => {
     expect(e.hp).toBe(hp - (7 + 4));
   });
 
+  it('Stabilité : chaque charge donne +3 dégâts aux Sorts arcaniques au lieu de +2', () => {
+    const base = fight(['lieutenant'], ['trait_de_magie']);
+    base.player.charges = 2;
+    let hp = base.enemies[0].hp;
+    play(base, 'trait_de_magie');
+    const normal = hp - base.enemies[0].hp;
+    const c = fight(['lieutenant'], ['trait_de_magie'], { chargeBonus: 1 });
+    c.player.charges = 2;
+    hp = c.enemies[0].hp;
+    play(c, 'trait_de_magie');
+    expect(hp - c.enemies[0].hp).toBe(normal + 2);
+  });
+
   it('Surcharge : à 4 charges, le Mage perd 2 PV en fin de tour (sauf Stabilité)', () => {
     const c = fight(['etincelle'], []);
     c.player.charges = 4;
@@ -192,12 +214,12 @@ describe('le Mage : l\'Arcane', () => {
     expect(d.player.hp).toBe(hp2);
   });
 
-  it('Tempête arcanique consomme les charges : 6 dégâts à tous par charge', () => {
+  it('Tempête arcanique : 6 dégâts à tous par charge, sans les consommer', () => {
     const c = fight(['lieutenant', 'lieutenant'], ['tempete_arcanique']);
     c.player.charges = 3;
     const [a, b] = c.enemies.map((e) => e.hp);
     play(c, 'tempete_arcanique');
-    expect(c.player.charges).toBe(0);
+    expect(c.player.charges).toBe(3);
     expect(c.enemies[0].hp).toBe(a - 18);
     expect(c.enemies[1].hp).toBe(b - 18);
   });

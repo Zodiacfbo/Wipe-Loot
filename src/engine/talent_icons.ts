@@ -119,7 +119,8 @@ export const TALENT_REFS: Record<string, { cards?: string[]; spells?: string[] }
   faim_vampirique: { cards: ['etreinte_vampirique'] },
   // Voleur
   lames_malicieuses: { cards: ['attaque_sinistre'] },
-  finesse_meurtriere: { cards: ['evisceration'] },
+  finesse_meurtriere: { cards: ['evisceration', 'envenimer', 'coup_au_coeur', 'embrocher'] },
+  maitre_discretion: { cards: ['coup_dans_le_dos'] },
   reflexes: { cards: ['coup_aux_reins'] },
   maitre_d_armes: { cards: ['double_frappe', 'valse_lames'] },
   insaisissable: { cards: ['esquive', 'esquive_agile'] },

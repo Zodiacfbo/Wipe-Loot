@@ -465,7 +465,7 @@ Le travail est découpé en 5 lots ; l'acte 3 ne sera jouable qu'une fois les lo
 - **L'Aurore ardente** suit maintenant la fiche du Paladin : Lame ternie (acte 2) → les Veilleurs la bénissent → le premier boss secondaire d'Irem vaincu l'embrase et l'équipe. Le raccourci de l'acte 2 (Ossyrax la purifie, puis le feu de camp) est gardé.
 - Sauvegarde version 23 : `runBuffs` (bonus pour toute la run), `gong`, `nextFolie`.
 
-**Lot 5 (fait) : l'équilibrage sur trois actes.** Le détail des mesures est dans `docs/EQUILIBRAGE.md` (§14). Yzhar, tel que la fiche le décrivait, faisait wiper le bot au premier essai 84 à 100 % des fois (personnages de niveau 10) :
+**Lot 5 (fait) : l'équilibrage sur trois actes.** Le détail des mesures est dans `docs/EQUILIBRAGE.md` (§15). Yzhar, tel que la fiche le décrivait, faisait wiper le bot au premier essai 84 à 100 % des fois (personnages de niveau 10) :
 
 | Réglage d'Yzhar | Fiche | En jeu |
 |---|---|---|

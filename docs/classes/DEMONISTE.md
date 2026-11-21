@@ -122,7 +122,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 | **Contagion** | 1 | Compétence | R | Copie tous tes DoT et ta Malédiction de la cible sur un autre ennemi. | Sur tous les autres ennemis |
 | **Moisson sombre** | 2 | Sort | R | Inflige à chaque ennemi 4 dégâts par DoT et Malédiction actifs sur lui. | 6 par effet |
 | **Tourment** | 1 | Pouvoir | R | Chaque fois qu'un de tes DoT inflige des dégâts, soigne 1 PV. | Coûte 0 |
-| **Tempête d'afflictions** | 2 | Sort | É | **Déclenche immédiatement deux fois** tous tes DoT sur tous les ennemis (sans réduire leur durée). | Trois fois |
+| **Tempête d'afflictions** | 1 | Sort | É | **Déclenche immédiatement deux fois** tous tes DoT sur tous les ennemis (sans réduire leur durée), puis les **prolonge de 1 tour**. | Trois fois |
 
 ### 5.3 Arbre Démonologie (14 cartes) : le familier
 
@@ -160,7 +160,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 | **Trait du chaos** | 2 | Sort | R | Inflige 18 dégâts. **Ignore le blocage.** | 24 dégâts |
 | **Pacte de destruction** | 1 | Compétence | R | Perds 6 PV. Ton prochain Sort inflige double dégâts. | Perds 3 PV |
 | **Ruine** | 1 | Pouvoir | R | Tes Sorts qui coûtent 2 énergie ou plus infligent +6 dégâts. | +9 dégâts |
-| **Cataclysme de l'âme** | 2 + tous tes éclats | Sort | É | Inflige 8 dégâts à **tous les ennemis** par éclat dépensé. | 11 par éclat |
+| **Cataclysme de l'âme** | 2 | Sort | É | Inflige 5 dégâts à **tous les ennemis** par éclat que tu possèdes, **sans les dépenser**. | 7 par éclat |
 
 ---
 
@@ -186,10 +186,10 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Corruption améliorée** : Corruption inflige +2 dégâts par tour. | **Malédictions durables** : tes Malédictions durent 2 tours de plus. |
+| **1** | **Corruption améliorée** : tes DoT infligent +2 dégâts par tour. | **Malédictions durables** : tes Malédictions durent 2 tours de plus. |
 | **2** | **Moisson d'âmes** : quand un ennemi meurt avec un de tes DoT, gagne 1 éclat supplémentaire. | **Double malédiction** : chaque ennemi peut porter 2 de tes Malédictions au lieu d'une. |
 | **3** | **Amplifier la malédiction** : ajoute ce sort à ta barre. | **Spirale mortelle** : ajoute ce sort à ta barre. |
-| **4** | **Contagion naturelle** : quand un ennemi meurt, ses DoT passent à un autre ennemi. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
+| **4** | **Contagion naturelle** : tes DoT durent 1 tour de plus, et quand un ennemi meurt, ses DoT passent à un autre ennemi. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
 | **5** | **Tempête d'afflictions** (carte épique) | — |
 
 ### 7.2 Arbre Démonologie
@@ -206,7 +206,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Trait de l'ombre amélioré** : Trait de l'ombre inflige +3 dégâts. | **Dévastation** : Immolation inflige +3 dégâts par tour. |
+| **1** | **Trait de l'ombre amélioré** : Trait de l'ombre inflige +5 dégâts. | **Dévastation** : Immolation inflige +3 dégâts par tour. |
 | **2** | **Pyroclasme** : Pluie de feu et Déflagration d'ombre appliquent Démoralisé (1 tour). | **Intensité** : Pacte de sang ne coûte que 3 PV. |
 | **3** | **Brûlure de l'ombre** : ajoute ce sort à ta barre. | **Rempart d'ombre** : ajoute ce sort à ta barre. |
 | **4** | **Ruine améliorée** : Feu de l'âme coûte 0 énergie (il coûte toujours 1 éclat). | **Embrasement durable** : Conflagration ne consomme plus l'Immolation. |
@@ -261,6 +261,14 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
   - Cataclysme de l'âme à 5 éclats : 40 dégâts à tous les ennemis (55 amélioré).
   - Le cumul Tourment + Siphon de vie + Armure démoniaque pourrait rendre le Démoniste presque immortel dans les combats longs.
 - **Complexité :** familier, éclats, DoT et malédictions, c'est beaucoup. Le tutoriel de la classe devra présenter le familier en premier.
+- **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 coûte **3 points** (CONCEPT.md §9, en jeu depuis novembre 2026). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
+  - **Tempête d'afflictions : −4 points** (contre +14 pour 3 talents). Le bot la joue bien, mais tard (tour 5,5 en moyenne), et les DoT posés ne font alors que **6,7 dégâts par tick** au total : environ 13 dégâts pour 2 énergie, le niveau d'une commune. **C'est la carte :** elle multiplie des DoT trop petits. La crainte notée plus haut (tuer un boss d'un coup) ne se voit pas en jeu.
+  - **Piste :** 1 énergie, ou en plus « prolonge tous tes DoT de 1 tour », pour qu'elle soit à la fois un déclencheur et un amplificateur.
+  - **Cataclysme de l'âme : −3 points** (contre +4 pour 3 talents). Bien jouée : 36 dégâts répartis sur 2,2 ennemis pour 2 énergie et 2,7 éclats. Mais les éclats se gardent d'un combat à l'autre : les dépenser tous coûte cher pour la suite de la run. **Tout l'arbre Destruction est faible** (3 talents n'y valent que +4) : le problème dépasse la carte.
+  - **Piste :** revoir l'arbre Destruction en premier. Pour la carte : « dépense jusqu'à 3 éclats », ou rend 1 éclat par ennemi tué.
+  - **Fait (novembre 2026), arbres à peu près équivalents :** Tempête d'afflictions coûte 1 et prolonge les DoT de 1 tour ; Cataclysme de l'âme ne dépense plus les éclats (5 dégâts par éclat possédé ; en les dépensant, il faisait perdre 16 points à la Destruction) ; Corruption améliorée vaut pour tous les DoT ; Contagion naturelle allonge aussi les DoT de 1 tour ; Trait de l'ombre amélioré passe à +5.
+  - **Attention aux mesures :** le bot ne sait pas utiliser Amplifier la malédiction (palier 3 A d'Affliction). Avec Spirale mortelle (palier 3 B), l'Affliction est bien plus forte : on mesure donc avec B.
+  - **Résultat (150 runs, meilleur complément) :** Affliction 7 + Démonologie 3 **66 %**, Démonologie 7 + Destruction 3 **59 %**, Destruction 7 + Démonologie 3 **65 %** (avant, avec l'option A partout : 9, 48 et 19 %).
 
 ---
 

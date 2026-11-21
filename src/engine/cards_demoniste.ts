@@ -253,10 +253,11 @@ const LIST: DemoCard[] = [
     play: (ctx) => powerCard(ctx, 'tourment', 1, 'Tourment'),
   },
   {
-    id: 'tempete_afflictions', name: 'Tempête d\'afflictions', type: 'Sort', rarity: 'epique', cost: 2, needsTarget: false, icon: 'sang',
-    text: (up) => `Déclenche ${up ? 'trois' : 'deux'} fois tous tes DoT sur tous les ennemis (sans réduire leur durée).`,
+    id: 'tempete_afflictions', name: 'Tempête d\'afflictions', type: 'Sort', rarity: 'epique', cost: 1, needsTarget: false, icon: 'sang',
+    text: (up) => `Déclenche ${up ? 'trois' : 'deux'} fois tous tes DoT sur tous les ennemis (sans réduire leur durée), puis prolonge-les de 1 tour.`,
     play: (ctx) => {
       for (let i = 0; i < (ctx.up ? 3 : 2); i++) for (const e of livingEnemies(ctx.c)) triggerDots(ctx.c, e, false);
+      for (const e of livingEnemies(ctx.c)) for (const d of e.dots ?? []) d.turns += 1;
       ctx.dealt = true;
     },
   },
@@ -458,11 +459,11 @@ const LIST: DemoCard[] = [
     play: (ctx) => powerCard(ctx, 'ruine', ctx.up ? 9 : 6, 'Ruine'),
   },
   {
-    id: 'cataclysme', name: 'Cataclysme de l\'âme', type: 'Sort', rarity: 'epique', cost: 2, shardCost: 'all', needsTarget: false, icon: 'feu',
-    text: (up) => `Dépense tous tes éclats : ${up ? 11 : 8} dégâts à tous les ennemis par éclat.`,
+    id: 'cataclysme', name: 'Cataclysme de l\'âme', type: 'Sort', rarity: 'epique', cost: 2, needsTarget: false, icon: 'feu',
+    text: (up) => `Inflige ${up ? 7 : 5} dégâts à tous les ennemis par éclat d'âme que tu possèdes (sans les dépenser).`,
     play: (ctx) => {
-      const n = ctx.shardsSpent ?? 0;
-      if (n > 0) nova(ctx, (ctx.up ? 11 : 8) * n);
+      const n = ctx.c.shards ?? 0;
+      if (n > 0) nova(ctx, (ctx.up ? 7 : 5) * n);
     },
   },
 ];

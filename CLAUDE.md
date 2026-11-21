@@ -122,7 +122,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
 8. UI : jauge de ressource dans `combatScreen` (voir `demonResource`, `priestResource`), chips, `POWER_LABEL`, préchargement du sprite.
 9. Sprite **animé** (fonction de dessin avec `f`, ligne dans `ANIMES` de `tools/pixel/animations.py` et de `src/ui.ts` ; vérifié par `tests/animations.test.ts`) + illustrations (`tools/pixel/illustrations_<classe>.py`, ajouté dans `illustrations.py`).
 10. Tests `tests/<classe>.test.ts` ; mettre à jour `tests/classes.test.ts` et le compte de talents dans `tests/talents.test.ts`.
-11. Bot : valeur de la ressource dans `evaluate()` ; profils dans `balance.sim.ts`. Cibles (run complète, difficulté 0) : niveau 1 ≈ 0-10 %, niveau 5 ≈ 15-30 %, niveau 10 ≈ 50-75 %. Le sort de départ est gratuit (comme Charge, Contresort, Pacte de sang, Égide sacrée) et le deck de départ un peu renforcé par rapport à la fiche.
+11. Bot : valeur de la ressource dans `evaluate()` ; profils dans `balance.sim.ts`. Cibles (run complète, difficulté 0) : niveau 1 ≈ 0-10 %, niveau 5 ≈ 15-30 %, niveau 10 ≈ 50-75 %. Le palier 5 coûte 3 points : chaque carte épique doit apporter environ +15 à +25 points, et chaque arbre complet (7 + 3) doit se situer à peu près au niveau des deux autres. Le sort de départ est gratuit (comme Charge, Contresort, Pacte de sang, Égide sacrée) et le deck de départ un peu renforcé par rapport à la fiche.
 12. Docs : fiche de classe (chiffres retenus + §« Ce qui est en jeu »), `EQUILIBRAGE.md`, `ROADMAP.md`.
 
 ### Pièges connus
@@ -165,12 +165,13 @@ cd tools/pixel && python3 animations.py                      # planches animées
 - **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
 - **Décisions de design à respecter :**
+  - Équilibrage des talents (novembre 2026) : les 3 arbres d'une classe doivent se valoir **à peu près** ; une classe ou un arbre un peu plus fort est accepté, on ne cherche pas la perfection. Mesurer avec les choix des profils du bot, pas l'option A partout (le bot n'utilise pas certains sorts, comme Amplifier la malédiction).
   - Le Guerrier n'a volontairement que très peu de soins (Sanguinaire, Dernier rempart, objets). Pas de « Second souffle » ni de vol de vie. Si on en ajoute un jour, le réserver à un seul arbre.
   - Une classe de difficulté ⭐⭐⭐ (comme le Démoniste) peut rester un cran en dessous des autres en taux de victoire du bot : c'est accepté.
   - Yzhar a été allégé par rapport à sa fiche (lot 5) : les Tentacules oculaires se ferment avec l'Œil, et les dégâts dans le temps passent sous la Carapace divine (voir la fiche de l'acte 3, §12).
   - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
   - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
-- **La suite décidée (novembre 2026) :** l'acte 3 est fini ; ensuite les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
+- **La suite décidée (novembre 2026) :** le chantier des talents est fait (le palier 5 coûte 3 points, `CONCEPT.md` §9, `tierCost` dans `talents.ts` ; niveau 10 entre 49 et 74 % : `EQUILIBRAGE.md` §14), l'acte 3 aussi (`EQUILIBRAGE.md` §15). Ensuite les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---

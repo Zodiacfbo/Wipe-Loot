@@ -154,13 +154,33 @@ describe('DoT, Malédictions et éclats', () => {
     expect(e.hp).toBe(hp - Math.floor(7 * 1.3));
   });
 
-  it('Cataclysme de l\'âme dépense tous les éclats : 8 dégâts à tous par éclat', () => {
+  it('Cataclysme de l\'âme : 5 dégâts à tous par éclat possédé, sans les dépenser', () => {
     const c = fight(['lieutenant', 'lieutenant'], ['cataclysme'], { shards: 3 });
     const hp = c.enemies.map((e) => e.hp);
     play(c, 'cataclysme');
-    expect(c.shards).toBe(0);
-    expect(c.enemies[0].hp).toBe(hp[0] - 24);
-    expect(c.enemies[1].hp).toBe(hp[1] - 24);
+    expect(c.shards).toBe(3);
+    expect(c.enemies[0].hp).toBe(hp[0] - 15);
+    expect(c.enemies[1].hp).toBe(hp[1] - 15);
+  });
+
+  it('Corruption améliorée : tes DoT infligent +2 par tour', () => {
+    const c = fight(['lieutenant'], ['tempete_afflictions'], { gear: { dotBonus: 2 } });
+    const e = c.enemies[0];
+    e.dots = [{ id: 'corruption', dmg: 4, turns: 2 }];
+    const hp = e.hp;
+    play(c, 'tempete_afflictions');
+    expect(hp - e.hp).toBe(12);
+  });
+
+  it('Tempête d\'afflictions coûte 1, déclenche deux fois les DoT et les prolonge de 1 tour', () => {
+    expect(CARDS.tempete_afflictions.cost).toBe(1);
+    const c = fight(['lieutenant'], ['tempete_afflictions']);
+    const e = c.enemies[0];
+    e.dots = [{ id: 'corruption', dmg: 4, turns: 2 }];
+    const hp = e.hp;
+    play(c, 'tempete_afflictions');
+    expect(hp - e.hp).toBe(8);
+    expect(e.dots[0].turns).toBe(3);
   });
 
   it('Conflagration consomme l\'Immolation : 3 fois ce qu\'il lui restait', () => {

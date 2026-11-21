@@ -130,6 +130,49 @@ describe('le Camouflage', () => {
   });
 });
 
+describe('les cartes épiques', () => {
+  it('Seigneur des ombres : Camouflé à chaque tour, et +50 % de dégâts tant qu\'on l\'est', () => {
+    const c = fight(['lieutenant'], ['seigneur_ombres', 'coup_dans_le_dos', 'tir_pistolet']);
+    const e = c.enemies[0];
+    play(c, 'seigneur_ombres');
+    let hp = e.hp;
+    play(c, 'coup_dans_le_dos'); // 9 × 2 (Camouflé) × 1,5
+    expect(hp - e.hp).toBe(27);
+    expect(c.stealth).toBe(false);
+    hp = e.hp;
+    play(c, 'tir_pistolet'); // plus Camouflé : pas de bonus
+    expect(hp - e.hp).toBe(8);
+    endTurn(c);
+    expect(c.stealth).toBe(true);
+  });
+
+  it('Finesse meurtrière : +3 par point de combo sur les finishers qui frappent', () => {
+    const c = fight(['lieutenant'], ['evisceration', 'embrocher'], { finisherBonus: 3 });
+    const e = c.enemies[0];
+    c.combo = 3;
+    let hp = e.hp;
+    play(c, 'evisceration'); // 4 + (6 + 3) × 3
+    expect(hp - e.hp).toBe(31);
+    c.combo = 2;
+    hp = e.hp;
+    play(c, 'embrocher'); // (6 + 3) × 2 sur la cible
+    expect(hp - e.hp).toBe(18);
+  });
+
+  it('Maître de la discrétion compte aussi pour Coup dans le dos', () => {
+    const c = fight(['lieutenant'], ['coup_dans_le_dos'], { openerBonus: 4 });
+    const e = c.enemies[0];
+    const hp = e.hp;
+    play(c, 'coup_dans_le_dos'); // 9 × 2 en Camouflage, + 4
+    expect(hp - e.hp).toBe(22);
+  });
+
+  it('Vendetta coûte 1 (0 améliorée)', () => {
+    expect(CARDS.vendetta.cost).toBe(1);
+    expect(CARDS.vendetta.costUp).toBe(0);
+  });
+});
+
 describe('les Poisons', () => {
   it('un seul Poison d\'arme ; chaque Attaque qui touche fait les dégâts du Poison', () => {
     const c = fight(['lieutenant'], ['poison_mortel', 'poison_affaiblissant', 'attaque_sinistre', 'double_frappe']);

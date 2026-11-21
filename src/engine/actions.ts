@@ -79,7 +79,7 @@ export function healPlayer(c: CombatState, amount: number): number {
   if (priest && heal > 0) {
     heal += c.gear?.healBonus ?? 0; // Soins améliorés
     if (c.gear?.equinoxe && !c.shadowForm) heal += 3; // Équinoxe (Lumière)
-    if (c.shadowForm) heal = Math.floor(heal / 2); // Forme d'Ombre
+    if (c.shadowForm) heal = Math.floor(heal * 0.75); // Forme d'Ombre
     // Malédiction de lignée du Prêtre : ses soins le blessent.
     if ((d?.lignee ?? 0) > 0) {
       p.hp = Math.max(c.undying ? 1 : 0, p.hp - heal);
@@ -153,7 +153,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (!c.firstAttackDone && !spell) dmg += g.firstAttackBonus ?? 0;
   if (c.playing && c.playing.cost >= 2 && !spell) dmg += g.heavyAttackBonus ?? 0;
   // Mage : charges arcaniques, Pyromanie, Impact.
-  if (c.playing?.school === 'arcane') dmg += 2 * (p.charges ?? 0);
+  if (c.playing?.school === 'arcane') dmg += (2 + (g.chargeBonus ?? 0)) * (p.charges ?? 0);
   if (c.playing?.school === 'feu' && c.playing.cost >= 2) dmg += power(c, 'pyromanie');
   if (c.playing?.id === 'boule_de_feu') dmg += g.fireballBonus ?? 0;
   // Acte 2 : Fouet du contremaître, armes contre les Dragons et les Morts-vivants, Bague de la mère.
@@ -176,7 +176,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   const rogueAttack = c.combo !== undefined && c.playing?.type === 'Attaque';
   if (rogueAttack) {
     dmg += c.bladeDance && c.bladeDance.turns > 0 ? c.bladeDance.bonus : 0;
-    if (c.playing!.opener) dmg += g.openerBonus ?? 0;
+    if (c.playing!.opener || c.playing!.id === 'coup_dans_le_dos') dmg += g.openerBonus ?? 0; // Maître de la discrétion
     if ((target.stun ?? 0) > 0 || (target.sap ?? 0) > 0 || (target.buffs.peur ?? 0) > 0 || (target.mouton ?? 0) > 0) dmg += power(c, 'opportuniste');
   }
   // Paladin : les Sceaux, Croisade, Conviction, Vengeance divine.
@@ -194,10 +194,11 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (spell && (target.elements ?? 0) > 0) dmg *= 1 + target.elements! / 100;
   if (spell && c.doubleNext) dmg *= 2;
   // Forme d'Ombre : les Sorts d'Ombre +30 %. Châtiment amélioré, Esprit sombre.
-  if (c.shadowForm && c.playing?.school === 'ombre') dmg *= 1.3;
+  if (c.shadowForm && c.playing?.school === 'ombre') dmg *= 1.5;
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (rogueAttack && target.vendetta) dmg *= 1.5;
   if (rogueAttack && c.coldBlood) dmg *= 2;
+  if (rogueAttack && c.stealth && power(c, 'seigneur_ombres')) dmg *= 1.5; // Seigneur des ombres
   if (paladinAttack && p.divineShield) dmg *= 0.5; // Bouclier divin
   if (spell && c.favor && isPaladin(c)) dmg *= 2; // Faveur divine
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;

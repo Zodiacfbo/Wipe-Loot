@@ -1,6 +1,6 @@
 # L'équilibrage
 
-> Wipe & Loot · Document vivant · Dernière passe : l'acte 2
+> Wipe & Loot · Document vivant · Dernière passe : les talents (palier 5 à 3 points)
 
 ## 1. La méthode
 
@@ -290,7 +290,90 @@ Mesuré sur la run complète (actes 1 et 2), difficulté 0, 50 runs par profil.
 
 **À surveiller :** Protection + Sacré reste un peu au-dessus de la cible (78 %) : c'est la classe ⭐ la plus facile, c'est attendu. À regarder sur des runs de joueurs : Double sceau avec Verdict des cieux (deux Jugements gratuits), Juste châtiment après un gros tour de blocage, et la Censure qui ne diminue pas dans les longs combats.
 
-## 14. Les trois actes (acte 3, lot 5)
+---
+
+## 14. Les talents : le palier 5 à 3 points (novembre 2026)
+
+**La décision** (`CONCEPT.md` §9) : le palier 5 coûte 3 points, un arbre complet en coûte 7, et deux arbres complets deviennent impossibles. Une carte épique doit donc valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. La règle est codée (`tierCost` dans `talents.ts`) ; les anciennes sauvegardes 5 + 5 deviennent 7 + 3 au chargement.
+
+**La mesure** (200 runs par build, difficulté 0, option A à chaque palier, mêmes graines) : pour chaque arbre, la carte épique est comparée à 3 talents des paliers 1 à 4, sur la même base (paliers 1 à 4 de l'arbre + 3 paliers d'un autre). Seules 7 cartes épiques sur 18 valent 3 points : Frappe mortelle, Sanguinaire, Seigneur infernal, Égide des anciens, Frénésie meurtrière, Avatar de lumière, Verdict des cieux. Le diagnostic des 11 autres et les pistes sont dans les fiches de classe (§11, « Carte épique à revoir »). Trois arbres sont faibles dans leur ensemble : Arcane, Destruction, Assassinat.
+
+**Le bot, corrigé :** il ne jouait **jamais** la Forme d'Ombre (elle passe par `c.shadowForm`, pas par `c.powers`). Elle vaut maintenant un Pouvoir posé (8). Effet sur le Prêtre (100 runs) :
+
+| Profil | Avant la correction | Après |
+|---|---|---|
+| Niveau 10 (Discipline 5, Sacré 5) | 63 % | 63 % |
+| Niveau 10 (Ombre 5, Sacré 5) | 53 % | **37 %** |
+
+Les 53 % de l'Ombre (§11) étaient donc flatteurs : ils venaient d'un bot qui ne basculait jamais. Jouée, la Forme d'Ombre coûte cher avec le Sacré (soins divisés par deux, plus de Foi). C'est à reprendre avec la carte (fiche du Prêtre, §11).
+
+**Autre limite connue :** le bot ne valorise pas Ténèbres (Voleur), dont l'effet ne joue qu'aux combats suivants.
+
+**Le niveau 10 avec la règle** (profils passés de 5 + 5 à 7 + 3, 50 runs, difficulté 0 ; à ±7 points près). Avant : les chiffres des §§ précédents.
+
+| Profil (7 + 3) | Avant (5 + 5) | Après |
+|---|---|---|
+| Guerrier Protection / Fureur | 64-74 % | **54 %** |
+| Guerrier Armes / Fureur | 64-74 % | **58 %** |
+| Mage Givre / Feu | 64-74 % | **36 %** |
+| Mage Arcane / Feu | 64-74 % | **46 %** |
+| Démoniste Affliction / Destruction | 46 % | **34 %** |
+| Démoniste Démonologie / Destruction | 55 % | **64 %** |
+| Prêtre Discipline / Sacré | 63 % | **58 %** |
+| Prêtre Ombre / Sacré | 37 % (bot corrigé) | **34 %** |
+| Voleur Assassinat / Combat | 72 % | **30 %** |
+| Voleur Finesse / Combat | 66 % | **24 %** |
+| Paladin Vindicte / Sacré | 72 % | **74 %** |
+| Paladin Protection / Sacré | 78 % | **30 %** |
+
+**Ce qu'on en tire :** les builds dont la carte épique gardée est forte tiennent (Démonologie, Vindicte, Armes, Discipline) ; ceux qui perdaient une épique forte du deuxième arbre chutent (Voleur : Frénésie meurtrière ; Paladin Protection : Avatar de lumière). C'est l'effet attendu : la passe sur les cartes épiques faibles (fiches de classe, §11) et sur les arbres Arcane, Destruction et Assassinat doit les ramener vers la cible.
+
+**Voleur, cartes épiques (novembre 2026).** Diagnostic (200 runs) : Combat 7 + Finesse 3 = 79 %, Combat 7 + Assassinat 3 = 54 %, Assassinat 7 + Combat 3 = 33 %, Finesse 7 + Combat 3 = 22 %. Le bot n'y est pour rien (valeur du Camouflé et poids des récompenses testés : pas d'écart au-delà de ±5).
+
+| Carte | Avant | Après | Valeur de la carte |
+|---|---|---|---|
+| Vendetta | coût 2 (1) | **coût 1 (0)** | +5 → **+17** |
+| Seigneur des ombres | Camouflé à chaque tour | **+50 % aux Attaques tant que tu es Camouflé** | −1 → **+20** |
+
+Profils du banc (100 runs) : Voleur niveau 10 Assassinat 7 + Combat 3 : 30 → **45 %** ; Finesse 7 + Combat 3 : 24 → **50 %**. Restent les paliers 1 à 4 d'Assassinat et de Finesse (fiche du Voleur, §11).
+
+**Voleur, paliers (novembre 2026).** Finesse meurtrière : +3 par point de combo pour tous les finishers qui frappent (Assassinat 7 + Combat 3 : 45 → 55 % ; Combat 7 + Assassinat 3 : 54 → 64 %). Maître de la discrétion : aussi sur Coup dans le dos (Finesse 7 + Combat 3 : 43 → 51 %). Banc (100 runs) : Assassinat 7 + 3 **55 %**, Finesse 7 + 3 **49 %**, Combat 7 + Finesse 3 ≈ 80 % (accepté).
+
+**Les arbres de chaque classe (novembre 2026).** Consigne : des arbres à peu près équivalents dans chaque classe, sans chercher la perfection ; une classe peut rester un peu plus forte qu'une autre. Diagnostic (150 runs, chaque arbre à 7 points avec son meilleur complément à 3) :
+
+| Classe | Avant | Après |
+|---|---|---|
+| Guerrier | Armes 71 · Fureur 57 · Protection 71 | inchangé (acceptable) |
+| Mage | Arcane 27 · Feu 55 · Givre 24 | Arcane **58** · Feu 55 · Givre **63** |
+| Démoniste | Affliction 9 · Démonologie 48 · Destruction 19 | Affliction **66** · Démonologie 59 · Destruction **65** |
+| Prêtre | Discipline 57 · Ombre 45 · Sacré 63 | Discipline 57 · Ombre **74** · Sacré 63 |
+| Paladin | Protection 53 · Sacré 58 · Vindicte 65 | Protection **73** · Sacré 58 · Vindicte 65 |
+| Voleur | Assassinat 33 · Combat 79 · Finesse 22 | Assassinat **55** · Combat 80 · Finesse **49** |
+
+**Mage :** Fracas glaciaire (Gel 3 sur la cible, puis 8 dégâts à tous, doublés sur chaque ennemi fracassable), Tempête arcanique (ne consomme plus les charges), Subtilité arcanique (3 charges), Stabilité (+3 par charge au lieu de +2).
+
+**Démoniste :** Tempête d'afflictions (coût 1, prolonge les DoT), Cataclysme de l'âme (ne dépense plus les éclats, 5 par éclat possédé), Corruption améliorée (tous les DoT +2), Contagion naturelle (DoT +1 tour), Trait de l'ombre amélioré (+5). Le bot n'utilise pas Amplifier la malédiction : l'Affliction se mesure avec Spirale mortelle (palier 3 B).
+
+**Prêtre :** Forme d'Ombre (coût 1 (0), tick immédiat des DoT, Sorts d'Ombre +50 %, DoT +2, soins −25 % au lieu de −50 %, la Foi reste). Mesuré avec les choix des profils du bot (Ombre avec le palier 3 B), pas avec l'option A partout.
+
+**Paladin :** Bouclier du croisé n'est plus Épuisé (12 blocage, renvoi de 4 dégâts, 2 PV). Non Épuisé avec ses anciens chiffres, il portait la Protection à 89 %.
+
+**Le banc au niveau 10 après tout le chantier** (profils 7 + 3, 100 runs, difficulté 0) — tous dans la cible de 50 à 75 % (à ±5 près) :
+
+| Classe | Profil 1 | Profil 2 |
+|---|---|---|
+| Guerrier | Protection 7 + Fureur 3 : 56 % | Armes 7 + Fureur 3 : 53 % |
+| Mage | Givre 7 + Feu 3 : 74 % | Arcane 7 + Feu 3 : 58 % |
+| Démoniste | Affliction 7 + Destruction 3 : 71 % | Démonologie 7 + Destruction 3 : 69 % |
+| Prêtre | Discipline 7 + Sacré 3 : 54 % | Ombre 7 + Sacré 3 : 71 % |
+| Voleur | Assassinat 7 + Combat 3 : 55 % | Finesse 7 + Combat 3 : 49 % |
+| Paladin | Vindicte 7 + Sacré 3 : 71 % | Protection 7 + Sacré 3 : 70 % |
+
+---
+
+## 15. Les trois actes (acte 3, lot 5)
+
+> **Attention :** ces mesures ont été faites **avant** la réforme des talents (§14 : palier 5 à 3 points). Les profils de niveau 10 étaient alors en 5 + 5 ; elles sont à refaire avec les profils 7 + 3.
 
 Depuis l'acte 3, **gagner une expédition, c'est vaincre Vulkhar, Vhaeryx puis Yzhar**, toujours avec 3 wipes pour toute la run. Les chiffres ne sont donc plus comparables à ceux des sections précédentes (deux actes).
 

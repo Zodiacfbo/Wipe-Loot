@@ -78,6 +78,7 @@ export interface ItemEffects {
   // Talents du Mage
   startCharges?: number; // charges arcaniques au début du combat
   noOverload?: number; // la Surcharge ne coûte plus de PV
+  chargeBonus?: number; // Stabilité : +X dégâts par charge arcanique (en plus des 2)
   barrageDraw?: number; // Barrage arcanique pioche X de plus
   burnBonus?: number; // +X à chaque application de Brûlure
   fireballBonus?: number; // Boule de feu +X dégâts
@@ -88,6 +89,7 @@ export interface ItemEffects {
   gelBonus?: number; // +X à chaque application de Gel
   // Talents du Démoniste
   corruptionBonus?: number; // Corruption inflige +X par tour
+  dotBonus?: number; // Corruption améliorée : tes DoT +X par tour
   curseDuration?: number; // tes Malédictions durent X tours de plus
   harvestShard?: number; // +X éclat quand un ennemi meurt avec un de tes DoT
   doubleCurse?: number; // chaque ennemi peut porter 2 de tes Malédictions
@@ -123,7 +125,7 @@ export interface ItemEffects {
   // Talents du Voleur
   sinisterBonus?: number; // Attaque sinistre +X dégâts
   poisonBonus?: number; // tes applications de Poison +X
-  evisBonus?: number; // Éviscération +X dégâts par point de combo
+  finisherBonus?: number; // Finesse meurtrière : finishers qui frappent, +X dégâts par point de combo
   kidneyDelay?: number; // Coup aux reins retarde l'Incantation d'un boss
   ruthless?: number; // tes finishers comptent X points de combo de plus
   startCombo?: number; // points de combo au début du combat
@@ -457,8 +459,8 @@ for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnR
 // Les bonus aux Attaques servent au Guerrier, au Voleur et au Paladin.
 for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus', 'surfaceDouble', 'attackToxine', 'attackSlow', 'pierceBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin'];
 for (const k of ['wisdomBonus', 'purifyFree', 'blessedHealBlock', 'devotionBonus', 'consecrationLong', 'retributionFree', 'judgeCd', 'sealsFree', 'holyBonus', 'vengeanceDivine', 'doubleSeal', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
-for (const k of ['sinisterBonus', 'poisonBonus', 'evisBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
-for (const k of ['startCharges', 'burnBonus', 'firstSpellFree'] as const) KEY_CLASSES[k] = ['mage'];
+for (const k of ['sinisterBonus', 'poisonBonus', 'finisherBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
+for (const k of ['startCharges', 'burnBonus', 'firstSpellFree', 'chargeBonus'] as const) KEY_CLASSES[k] = ['mage'];
 KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin'];
 KEY_CLASSES.firstSpellTwice = KEY_CLASSES.spellBonus;
 KEY_CLASSES.dispelDraw = ['pretre', 'paladin'];
@@ -467,6 +469,7 @@ KEY_CLASSES.healBonus = ['pretre', 'paladin'];
 KEY_CLASSES.allyBonus = ['demoniste'];
 KEY_CLASSES.freePact = ['demoniste'];
 KEY_CLASSES.dotDuration = ['demoniste', 'pretre'];
+KEY_CLASSES.dotBonus = ['demoniste'];
 
 /** Les effets d'un objet qui ne servent pas à cette classe. */
 export function uselessFx(id: string, classId = 'guerrier'): (keyof ItemEffects)[] {

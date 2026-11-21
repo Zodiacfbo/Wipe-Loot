@@ -1,7 +1,7 @@
 // Les cartes du Prêtre : le deck de départ, le tronc commun, et les arbres Discipline, Sacré et Ombre.
 // Référence : docs/classes/PRETRE.md (§4 et §5)
 import { addPower, drawCards, fx, gainBlock, healPlayer, isBossEnemy, livingEnemies, playerAttack } from './actions';
-import { applyDot, loseHp } from './demoniste';
+import { applyDot, loseHp, triggerDots } from './demoniste';
 import { dispelMagic, dispelPoison, gainAegis, gainFaith } from './pretre';
 import type { CardDef, PlayContext } from './cards';
 import type { EnemyState } from './types';
@@ -399,10 +399,12 @@ const LIST: PriestCard[] = [
     play: (ctx) => powerCard(ctx, 'tenebres', ctx.up ? 2 : 1, 'Ténèbres intérieures'),
   },
   {
-    id: 'forme_ombre', name: 'Forme d\'Ombre', type: 'Pouvoir', rarity: 'epique', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => `Forme d'Ombre jusqu'à la fin du combat : Sorts d'Ombre +30 %, DoT +1. Tes soins sont réduits de moitié, et tu ne gagnes plus de Foi.`,
+    id: 'forme_ombre', name: 'Forme d\'Ombre', type: 'Pouvoir', rarity: 'epique', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
+    text: () => `Tes DoT se déclenchent tout de suite une fois. Forme d'Ombre jusqu'à la fin du combat : Sorts d'Ombre +30 %, DoT +1. Tes soins sont réduits de 25 %, et tu ne gagnes plus de Foi.`,
     play: (ctx) => {
       ctx.c.shadowForm = true;
+      for (const e of livingEnemies(ctx.c)) triggerDots(ctx.c, e, false);
+      ctx.dealt = true;
       fx(ctx.c, { kind: 'banner', text: 'Forme d\'Ombre !' });
     },
   },

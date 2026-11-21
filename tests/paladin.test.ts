@@ -190,6 +190,14 @@ describe('les autres cartes', () => {
     expect(200 - man.hp).toBe(9);
   });
 
+  it('Bouclier du croisé : 12 blocage, renvoi de 4 dégâts et soin de 2 PV par attaque bloquée, pas Épuisé', () => {
+    const c = fight(['lieutenant'], ['bouclier_croise']);
+    play(c, 'bouclier_croise');
+    expect(c.player.block).toBe(12);
+    expect(c.crusaderShield).toEqual({ dmg: 4, heal: 2 });
+    expect(c.discard.some((k) => k.id === 'bouclier_croise')).toBe(true);
+  });
+
   it('Juste châtiment rend les dégâts bloqués depuis ton dernier tour', () => {
     const c = fight(['lieutenant'], ['bouclier_beni']);
     play(c, 'bouclier_beni');
