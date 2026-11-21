@@ -1,5 +1,5 @@
 // Les ennemis de l'acte 3 : Irem, la cité ensevelie.
-// Référence : docs/actes/ACTE3_IREM.md (§4 et §6 ; Yzhar viendra ensuite)
+// Référence : docs/actes/ACTE3_IREM.md (§4, §6, §7 et §8.2)
 import type { EnemyDef, Encounter } from './enemies';
 
 const peste = { label: 'Peste', peste: 3 };
@@ -168,6 +168,33 @@ export const ENEMIES_ACTE3: Record<string, EnemyDef> = {
       { kind: 'attack', dmg: 8, label: 'Regard du dieu', madBonus: 12 },
     ],
   },
+
+  // --- Le boss final (§7) : la mécanique est dans yzhar.ts ---
+  yzhar: {
+    id: 'yzhar', name: 'L\'Œil d\'Yzhar', hpMin: 200, hpMax: 200, boss: true, tags: ['aberration'],
+    passive: 'Te donne 1 Folie à chacun de ses tours. Tous les 2 tours, un Tentacule oculaire. Quand l\'Œil se ferme, ses Tentacules aussi, et le Corps se réveille.',
+    passive2: 'Quand il t\'avale, tue les 2 Tentacules intérieurs : sa Carapace divine tombe 3 tours (double dégâts).',
+    cycle: [
+      { kind: 'attack', dmg: 8, label: 'Rayon oculaire', effect: { label: 'Rayon oculaire', petStun: 1 } },
+      { kind: 'attack', dmg: 8, label: 'Rayon oculaire', effect: { label: 'Rayon oculaire', petStun: 1 } },
+      { kind: 'curse', label: 'Regard sombre', cast: 'Regard sombre', regard: 3, uninterruptible: true },
+    ],
+    cycle2: [
+      { kind: 'attack', dmg: 12, label: 'Coup de tentacule géant' },
+      { kind: 'curse', label: 'Murmures', folie: 2 },
+      { kind: 'attack', dmg: 12, label: 'Coup de tentacule géant' },
+      { kind: 'curse', label: 'Avaler', cast: 'Avaler', swallow: true, uninterruptible: true },
+    ],
+  },
+  tentacule_geant: {
+    id: 'tentacule_geant', name: 'Tentacule géant', hpMin: 30, hpMax: 30, tags: ['aberration'], resist: 'sorts',
+    cycle: [{ kind: 'attack', dmg: 10, label: 'Coup' }],
+  },
+  tentacule_interieur: {
+    id: 'tentacule_interieur', name: 'Tentacule intérieur', hpMin: 25, hpMax: 25, tags: ['aberration'],
+    passive: 'Tue les deux avant d\'être recraché : la Carapace divine tombe pendant 3 tours.',
+    cycle: [{ kind: 'attack', dmg: 5, label: 'Étreinte' }],
+  },
 };
 
 export const EASY_ENCOUNTERS_3: Encounter[] = [
@@ -195,6 +222,43 @@ export const ELITE_ENCOUNTERS_3: Encounter[] = [
   { kind: 'combat', name: 'Sartaq, le Colosse d\'obsidienne', enemies: ['sartaq'], enrageTurn: 10, loot: 'sartaq' },
   { kind: 'combat', name: 'Nebet, l\'Oracle aveugle', enemies: ['nebet'], enrageTurn: 10, loot: 'nebet' },
 ];
+
+export const BOSS_ENCOUNTER_3: Encounter = {
+  kind: 'combat', name: 'Yzhar, le Dieu dormant', enemies: ['yzhar'], enrageTurn: 18,
+};
+
+/** Les combats cachés derrière un « ? » (§8.2). */
+export const HIDDEN_FIGHTS_3: Encounter[] = [
+  { kind: 'combat', name: 'L\'embuscade du sable', enemies: ['ver_mineur', 'ver_mineur'], ambush: true },
+  { kind: 'combat', name: 'Le gobelin mimique', enemies: ['mimique_3'], goldReward: [150, 220] },
+  { kind: 'combat', name: 'Le cauchemar', enemies: ['tentacule', 'tentacule', 'pretre_insecte', 'tentacule', 'tentacule'], startFolie: 4, bonusItem: 'commun' },
+  { kind: 'combat', name: 'La garde du temple', enemies: ['garde_royale', 'gardien_obsidienne'], bonusItem: 'rare' },
+];
+
+// Le Gobelin mimique de l'acte 3 : encore plus solide.
+ENEMIES_ACTE3.mimique_3 = {
+  id: 'mimique_3', name: 'Gobelin mimique', hpMin: 75, hpMax: 75,
+  passive: 'S\'il te fait perdre des PV avec Avaler, il te vole 25 or.',
+  cycle: [{ kind: 'attack', dmg: 13, label: 'Morsure' }, { kind: 'attack', dmg: 13, label: 'Avaler', stealGold: 25 }],
+};
+
+/** Les réglages d'Yzhar (à ajuster au lot 5). */
+export const YZHAR = {
+  bodyHp: 260, // le Corps (l'Œil : les PV de sa fiche) ; la fiche disait 340
+  folie: 1, // Folie à chacun de ses tours
+  eyeTentacles: 1, // Tentacules oculaires tous les 2 tours (phase 1) ; la fiche disait 2
+  maxTentacles: 3,
+  maxGiants: 1, // Tentacules géants en vie au maximum (phase 2)
+  giantEvery: 3, // un Tentacule géant tous les N tours (la fiche disait 2)
+  regardDmg: 10, // Regard sombre, si tu ne te mets pas à couvert
+  carapace: 0.5, // le Corps ne subit que 50 % des dégâts (la fiche disait 25 %)
+  carapaceDownMult: 2, // … et double dégâts quand la Carapace est tombée
+  carapaceDownTurns: 3,
+  swallowTurns: 2,
+  swallowHand: 3, // cartes en main dans les entrailles
+  sucs: 4, // dégâts des Sucs digestifs à chacun de tes tours dans les entrailles
+  innerTentacles: 2,
+};
 
 /** Les réglages des boss secondaires d'Irem (à ajuster au lot 5). */
 export const IREM = {

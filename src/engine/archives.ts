@@ -69,6 +69,10 @@ export const LORE: Record<string, string> = {
   limon_mineur: 'Un morceau du Limon primordial, détaché quand on l\'a frappé sans le figer. Petit, mais tout aussi vorace.',
   sartaq: 'Un colosse taillé dans l\'obsidienne par les premiers rois d\'Irem. Tant que sa suprématie tient, rien ne l\'entame ; mais un cristal mal taillé peut tout faire céder.',
   nebet: 'Une prêtresse qui s\'est arraché les yeux pour mieux voir les rêves d\'Yzhar. Elle partage ce qu\'elle voit, et ceux qui l\'écoutent perdent la raison.',
+  yzhar: '« Tu… es… déjà… à moi. » Le dieu qui dort sous Irem. Son Œil cherche ceux qui l\'approchent ; quand il se ferme, son Corps se réveille et avale les imprudents.',
+  tentacule_geant: 'Un bras d\'Yzhar, large comme une colonne du temple. La magie glisse sur sa chair, mais l\'acier y mord.',
+  tentacule_interieur: 'Ce qui vit dans les entrailles du dieu. Tranchez-les tous deux, et sa carapace se fend de l\'intérieur.',
+  mimique_3: 'Le plus gros des gobelins mimiques, qui a suivi l\'odeur de l\'or jusque dans les tombeaux d\'Irem. Ses dents ont la couleur du sable.',
   vulkhar: '« Insectes ! Vous osez troubler mon sommeil ? Vous brûlerez, comme brûle la montagne ! » Arraché à son plan par la Grande Brèche, le Souverain des flammes dort sous le mont Durgal.',
 };
 

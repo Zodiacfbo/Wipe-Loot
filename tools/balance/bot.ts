@@ -45,6 +45,9 @@ function evaluate(c: CombatState): number {
     if (e.defId === 'vulkhar' && (e.phase ?? 1) === 1) enemyHp += e.submerged ? 40 : 260;
     // Chaque Rejeton encore en vie soignera Vulkhar de 15 PV quand il refera surface.
     if (e.defId === 'rejeton') enemyHp += 15;
+    // Yzhar : l'Œil ouvert, il reste tout le Corps ; dans les entrailles, les Tentacules intérieurs passent avant tout.
+    if (e.defId === 'yzhar' && (e.phase ?? 1) === 1) enemyHp += 300;
+    if (e.defId === 'tentacule_interieur') enemyHp += e.hp * 2;
     threat += 6 + (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss ? 10 : 0);
     // Débuffs posés : ils valent quelque chose pour la suite.
     enemyHp -= e.buffs.saignement * Math.min(3, e.buffs.saignementTours) * 0.8;
@@ -54,14 +57,18 @@ function evaluate(c: CombatState): number {
     enemyHp -= (burn * (burn + 1)) / 2 * 0.6;
     enemyHp -= (e.buffs.gel ?? 0) * 1.5;
     // Démoniste : les DoT à venir et les Malédictions.
-    for (const d of e.dots ?? []) enemyHp -= d.dmg * Math.min(4, d.turns) * 0.7;
+    // Un DoT vaut moins sur un add quand un boss est là : c'est le boss qu'il faut ronger.
+    const addWithBoss = !ENEMIES[e.defId].boss && c.enemies.some((o) => !o.dead && ENEMIES[o.defId].boss);
+    for (const d of e.dots ?? []) enemyHp -= d.dmg * Math.min(4, d.turns) * (addWithBoss ? 0.3 : 0.7);
     enemyHp -= (e.curses?.length ?? 0) * 3;
     // Voleur : le Poison posé, la Vendetta.
     enemyHp -= (e.buffs.poison ?? 0) * 2 + (e.vendetta ? 12 : 0);
   }
   // Ce qui brûlera en fin de tour : Zones de feu et Bombes vivantes gardées en main.
   const burn = c.hand.filter((k) => k.id === 'zone_de_feu').length * (c.fireProof ? 0 : 6)
-    + c.hand.filter((k) => k.id === 'bombe_vivante').length * 15;
+    + c.hand.filter((k) => k.id === 'bombe_vivante').length * 15
+    // Le Regard sombre d'Yzhar, si l'on ne s'est pas mis à couvert.
+    + ((c.regard ?? 0) > 0 && !c.covered ? 12 : 0);
   // Le Prêtre : l'Égide encaisse aussi, et elle reste pour les tours suivants.
   const unblocked = Math.max(0, incoming - p.block - (c.aegis ?? 0)) * (p.rempart ? 0.5 : 1) + burn;
   const powers = Object.values(c.powers ?? {}).length;
@@ -241,6 +248,17 @@ const EVENT_CHOICE: Record<string, (run: RunState) => number> = {
   fantome_raideur: (r) => (r.hp < r.maxHp * 0.6 ? 1 : 0),
   fonceur2: (r) => (r.hp > r.maxHp * 0.6 ? 0 : 1),
   ventor: () => 0,
+  // Acte 3
+  gong: (r) => (r.hp > r.maxHp * 0.7 ? 0 : 1),
+  veilleurs: (r) => (r.classId === 'paladin' && r.aurore === 'lame' ? 0 : 1),
+  oasis: (r) => (r.deck.some((k) => k.id === 'malediction') ? 2 : r.hp < r.maxHp * 0.7 ? 0 : 1),
+  bibliotheque: (r) => (r.hp > 30 ? 0 : 1),
+  statue: (r) => (r.hp > 30 ? 1 : 2),
+  marchand_sables: (r) => (eventChoiceLock(r, 0) ? (r.gold >= 160 ? 1 : 2) : 0),
+  tombeau: (r) => (r.hp > r.maxHp * 0.6 ? 0 : 1),
+  reve: () => 0,
+  fantome_raideur3: (r) => (r.hp < r.maxHp * 0.6 ? 1 : 0),
+  fonceur3: (r) => (r.hp > r.maxHp * 0.6 ? 0 : 1),
 };
 
 const BLESSING_ORDER = ['pari', 'entrainement', 'provisions', 'potions', 'pret', 'bourse', 'allegement', 'marche'];

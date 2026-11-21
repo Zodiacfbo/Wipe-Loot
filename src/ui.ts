@@ -15,13 +15,13 @@ import {
 } from './engine/combat';
 import { ENEMIES, TUNING, intentAt, isInterruptible } from './engine/enemies';
 import { AFFLICTIONS, ENEMIES_ACTE2, ELITE_ENCOUNTERS_2, GRIZZIK_POTIONS } from './engine/enemies_acte2';
-import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM } from './engine/enemies_acte3';
+import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM, YZHAR } from './engine/enemies_acte3';
 import { turnsBeforeSwap } from './engine/irem';
 import { MUTATION_LABEL } from './engine/actions';
 import { cardHitValue } from './engine/preview';
 import { afterRender, initAides } from './aides';
 import { markKeywords } from './keywords';
-import { ACTS, actDef } from './engine/acts';
+import { ACTS, LAST_ACT, actDef } from './engine/acts';
 import { BLESSINGS, EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
@@ -85,9 +85,9 @@ import { MAX_LEVEL, awardRun, classLevel, rackLegendary, type RunSummary } from 
 import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settleChest, takeHeirloom } from './engine/guild';
 import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save';
 // Outil de test (version dev seulement)
-import { devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
+import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
-import { ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotOf, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
+import { BOSS_LOOT, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, slotOf, slotsFor, uselessFx, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
 import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState } from './engine/types';
@@ -553,7 +553,8 @@ function questTracker(run: RunState): string {
   if (run.equinoxe === 'baton') lines.push(run.act >= 2 ? '<b>Équinoxe</b> : bats Ysolde la Rouge (boss secondaire de l\'acte 2) pour sa Larme.' : '<b>Équinoxe</b> : garde le Bâton nu. La pierre qu\'il lui faut est gardée par Ysolde la Rouge, à l\'acte 2.');
   if (run.sillon === 'gauche' || run.sillon === 'droit') lines.push(run.act > 1 ? '<b>Sillon d\'orage</b> : il te manquait un fermoir. La quête ne pourra pas être terminée cette fois.' : `<b>Sillon d'orage</b> : bats ${run.sillon === 'gauche' ? 'le Baron Vossk' : 'Gorlok le Fragmenté'} (boss secondaire) pour le second fermoir.`);
   if (run.sillon === 'deux') lines.push(run.act >= 2 ? '<b>Sillon d\'orage</b> : Ventor t\'attend derrière un « ? » de cet acte.' : '<b>Sillon d\'orage</b> : les deux fermoirs sont réunis. Ventor t\'attendra derrière un « ? » de l\'acte 2.');
-  if (run.aurore === 'lame') lines.push('<b>L\'Aurore ardente</b> : bats Ossyrax, le Drake ressuscité (boss secondaire de l\'acte 2), pour purifier la Lame ternie.');
+  if (run.aurore === 'lame') lines.push(run.act >= 3 ? '<b>L\'Aurore ardente</b> : les Veilleurs de l\'Aurore campent derrière un « ? » de cet acte. Ils peuvent bénir la Lame ternie.' : '<b>L\'Aurore ardente</b> : bats Ossyrax, le Drake ressuscité (boss secondaire de l\'acte 2), pour purifier la Lame ternie. Sinon, les Veilleurs de l\'Aurore t\'attendront à l\'acte 3.');
+  if (run.aurore === 'benie') lines.push('<b>L\'Aurore ardente</b> : la lame est bénie. Bats un boss secondaire d\'Irem : elle s\'embrasera.');
   if (run.aurore === 'purifiee') lines.push('<b>L\'Aurore ardente</b> : rallume la lame au prochain feu de camp.');
   if (run.equinoxe === 'larme') lines.push('<b>Équinoxe</b> : accomplis le Rituel de l\'équinoxe au prochain feu de camp.');
   if (run.veilleur === 'tete') lines.push('<b>Bâton du Veilleur</b> : lie les fragments au prochain feu de camp (une carte rare à sacrifier).');
@@ -590,8 +591,10 @@ function mapScreen(run: RunState): string {
     const state = can.has(n.id) ? 'accessible' : visited.has(n.id) ? 'visite' : run.position === n.id ? 'ici' : '';
     const size = n.type === 'boss' ? 84 : 58;
     const label = n.type === 'boss' ? 'Boss' : NODE_LABEL[n.type];
+    // L'indice des Veilleurs de l'Aurore : ce « ? » cache un combat, ou un vrai événement.
+    const hint = n.hint ? `<span class="indice ${n.hint}" title="${n.hint === 'combat' ? 'Indice des Veilleurs : un combat' : 'Indice des Veilleurs : un vrai événement'}">${n.hint === 'combat' ? '⚔' : '✓'}</span>` : '';
     return `<button type="button" class="noeud ${n.type} ${state} ${run.position === n.id ? 'ici' : ''}" style="left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px"
-      ${can.has(n.id) ? `data-action="noeud" data-id="${n.id}"` : 'disabled'} aria-label="Étage ${n.floor + 1} : ${label}">${NODE_ICON[n.type]}</button>`;
+      ${can.has(n.id) ? `data-action="noeud" data-id="${n.id}"` : 'disabled'} aria-label="Étage ${n.floor + 1} : ${label}${n.hint ? (n.hint === 'combat' ? ' (un combat)' : ' (un événement)') : ''}">${NODE_ICON[n.type]}${hint}</button>`;
   }).join('');
 
   const floorsLabels = Array.from({ length: FLOORS }, (_, f) => `<span class="etage-num" style="left:${80 + f * 124 - 30}px">${f + 1}</span>`).join('');
@@ -793,6 +796,10 @@ function enemyChips(e: EnemyState): string {
   if (b.gel) chips.push(`<span class="chip gel" title="À ${ui.run?.combat ? freezeThreshold(ui.run.combat) : 5} cumuls : Gelé">Gel ${b.gel}/${ui.run?.combat ? freezeThreshold(ui.run.combat) : 5}</span>`);
   if (e.gele) chips.push(`<span class="chip gel" title="${e.gele === 'skip' ? 'Perd son prochain tour' : 'Prochaine attaque réduite de moitié'}">Gelé${e.gele === 'half' ? ' : attaque ÷ 2' : ''}</span>`);
   if (e.mouton) chips.push(`<span class="chip debuff" title="Ne fait rien ; reprend forme s'il est blessé">Mouton ${e.mouton}</span>`);
+  if (e.defId === 'yzhar' && (e.phase ?? 1) >= 2) {
+    const down = ui.run?.combat?.carapaceDown;
+    chips.push(down ? `<span class="chip debuff" title="La Carapace est tombée : double dégâts">Carapace tombée · ×2</span>` : `<span class="chip" title="Le Corps ne subit que ${Math.round(100 * YZHAR.carapace)} % des dégâts. Fais-la tomber en tuant les 2 Tentacules intérieurs quand il t'avale">Carapace divine · −${Math.round(100 * (1 - YZHAR.carapace))} %</span>`);
+  }
   if (e.buried) chips.push(`<span class="chip" title="Ne peut pas être ciblé ; les DoT et les zones le touchent. Resurgit dans ${e.buried} tour${e.buried > 1 ? 's' : ''}">Enseveli</span>`);
   else if (e.untargetable) chips.push('<span class="chip">Insaisissable</span>');
   const resist = ENEMIES[e.defId].resist;
@@ -1038,6 +1045,11 @@ function playerChips(c: CombatState): string {
   // Acte 3 : la Folie (à 5, des Hallucinations ; à 10, Crise de folie).
   if (c.dominated) chips.push('<span class="chip debuff alerte" title="Ce tour-ci, ta première Attaque te frappe toi-même : tu subis ses dégâts, ses autres effets sont perdus">Domination mentale</span>');
   if (c.folie || c.crisis) chips.push(`<span class="chip folie ${(c.folie ?? 0) >= 5 ? 'alerte' : ''}">Folie ${c.folie ?? 0}/10${c.crisis ? ' · Crise !' : ''}</span>`);
+  // Yzhar : le Regard sombre, les entrailles, la Carapace tombée, le familier étourdi.
+  if ((c.regard ?? 0) > 0) chips.push(`<span class="chip ${c.covered ? '' : 'debuff alerte'}" title="À la fin de ton tour : ${YZHAR.regardDmg} dégâts, sauf si tu joues « Se mettre à couvert ». Encore ${c.regard} tour${c.regard! > 1 ? 's' : ''}">${c.covered ? 'À couvert' : 'Regard sombre'} · ${c.regard}t</span>`);
+  if (c.swallowed) chips.push(`<span class="chip debuff alerte" title="${YZHAR.swallowHand} cartes en main, pas de sorts de barre, ${YZHAR.sucs} dégâts par tour. Tue les 2 Tentacules intérieurs avant d'être recraché : la Carapace divine tombera">Dans les entrailles · ${c.swallowed}t</span>`);
+  if (c.carapaceDown) chips.push(`<span class="chip alerte" title="Le Corps d'Yzhar subit double dégâts">Carapace tombée · ${c.carapaceDown}t</span>`);
+  if (c.petStunned) chips.push('<span class="chip debuff" title="Ton familier ne fera rien à la fin de ce tour">Familier étourdi</span>');
   if (p.puissance > 0) chips.push(`<span class="chip">Puissance ${p.puissance}</span>`);
   if (p.robustesse > 0) chips.push(`<span class="chip">Robustesse ${p.robustesse}</span>`);
   if (d?.demoralise) chips.push(`<span class="chip debuff" title="Tes Attaques infligent 25 % de dégâts en moins">Démoralisé ${d.demoralise}</span>`);
@@ -1197,8 +1209,10 @@ function combatScreen(run: RunState, c: CombatState): string {
     // La Triade de la Ruche : trois boss côte à côte, un peu plus petits pour laisser la place aux incantations.
     const big = e.defId === 'seigneur' || (def.elite && e.defId !== 'croc' && !['kesh', 'vorra', 'tazz'].includes(e.defId));
     const small = ['etincelle', 'rejeton', 'eclat', 'dragonnet', 'oeuf', 'oeuf_skarn', 'oeuf_vashka', 'serviteur_os'].includes(e.defId);
-    const size = e.defId === 'vulkhar' ? 240 : e.defId === 'vhaeryx' ? 208 : big ? 192 : small ? 96 : 144;
-    const sprite = e.defId === 'vhaeryx' && (e.phase ?? 1) >= 2 ? 'ennemi_vhaeryx_dragon.png' : `ennemi_${def.id}.png`;
+    const size = e.defId === 'vulkhar' ? 240 : e.defId === 'vhaeryx' || e.defId === 'yzhar' ? 208 : big ? 192 : small ? 96 : 144;
+    // Les boss qui changent de forme : Vhaeryx en dragon, le Corps d'Yzhar.
+    const sprite = e.defId === 'vhaeryx' && (e.phase ?? 1) >= 2 ? 'ennemi_vhaeryx_dragon.png'
+      : e.defId === 'yzhar' && (e.phase ?? 1) >= 2 ? 'ennemi_yzhar_corps.png' : `ennemi_${def.id}.png`;
     const pct = masked ? 100 : Math.max(0, (e.hp / e.maxHp) * 100);
     const canTarget = targeting && !e.untargetable;
     const tag = canTarget ? 'button' : 'div';
@@ -1208,7 +1222,7 @@ function combatScreen(run: RunState, c: CombatState): string {
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}</div>
-      ${def.passive ? `<div class="passif-ennemi">${def.passive}</div>` : ''}
+      ${def.passive ? `<div class="passif-ennemi">${(e.phase ?? 1) >= 2 && def.passive2 ? def.passive2 : def.passive}</div>` : ''}
     </${tag}>`;
   }).join('');
 
@@ -1242,7 +1256,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   }
 
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
-  const underLava = c.enemies.find((e) => !e.dead && e.submerged);
+  const underLava = c.enemies.find((e) => !e.dead && e.submerged && !e.outside);
   const reviving = c.enemies.filter((e) => e.dead && e.reviveIn);
   const selSpell = ui.selection?.kind === 'spell' ? SPELLS[c.spells[ui.selection.index].id] : null;
   const spellInfo = selSpell
@@ -1252,6 +1266,8 @@ function combatScreen(run: RunState, c: CombatState): string {
     ? ''
     : targeting
     ? `<div class="consigne">Choisis une cible</div>`
+    : c.swallowed
+      ? `<div class="consigne lave">Yzhar t'a avalé : tue les 2 Tentacules intérieurs avant d'être recraché (encore ${c.swallowed} tour${c.swallowed > 1 ? 's' : ''}). Sa Carapace tombera.</div>`
     : underLava
       ? `<div class="consigne lave">${underLava.name} est sous la lave : il refait surface dans ${underLava.submerged} tour${underLava.submerged! > 1 ? 's' : ''}. Chaque Rejeton encore en vie le soignera de ${TUNING.rejetonHeal} PV !</div>`
       : reviving.length > 0
@@ -1416,6 +1432,8 @@ function archiveGroups(tab: UiState['archiveTab']): ArchiveGroup[] {
   if (tab === 'objets') {
     const groups: [string, string[]][] = [['Coffres et vendeur gobelin', COMMON_POOL],
       ...[...ELITE_ENCOUNTERS, ...ELITE_ENCOUNTERS_2, ...ELITE_ENCOUNTERS_3].map((e) => [e.name, LOOT_TABLES[e.loot!]] as [string, string[]]),
+      // Les boss de fin d'acte : leur table, puis leur butin épique.
+      ...[1, 2, 3].map((n) => [`${ACTS[n].boss.name.split(',')[0]} (fin de l'acte ${n})`, [...BOSS_LOOT[n].table, ...BOSS_LOOT[n].epics]] as [string, string[]]),
       ['Légendaires', Object.keys(ITEMS).filter((id) => ITEMS[id].rarity === 'legendaire')]];
     return groups.map(([title, ids]) => ({
       title,
@@ -1998,13 +2016,13 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
 function endScreen(run: RunState, victory: boolean): string {
   if (victory && !run.chestDone) {
     return `<div class="ecran" style="gap:14px">
-      <h1>Vhaeryx est vaincu !</h1>
+      <h1>Yzhar est vaincu !</h1>
       ${chestPanel(run)}
     </div>`;
   }
   return `<div class="ecran" style="gap:14px">
-    <h1>${victory ? 'Vhaeryx est vaincu !' : 'Fin de la run'}</h1>
-    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes et l'Aire de Vhaeryx avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} wipe${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : `${actDef(run.act).name} ${run.act === 1 ? 'ont' : 'a'} eu raison de toi. La guilde enverra un autre champion.`}</p>
+    <h1>${victory ? 'Yzhar est vaincu !' : 'Fin de la run'}</h1>
+    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes, l'Aire de Vhaeryx et Irem avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} wipe${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : `${actDef(run.act).name} ${run.act === 1 ? 'ont' : 'a'} eu raison de toi. La guilde enverra un autre champion.`}</p>
     ${run.summary ? summaryHtml(run.summary, run.classId) : ''}
     ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
     <div class="actions"><button type="button" class="gros-bouton" data-action="titre">Retour au hall de la guilde</button></div>
@@ -2119,10 +2137,10 @@ function devPanelHtml(run: RunState | null): string {
         <button type="button" class="bouton" data-action="test-or">+500 or</button>
         <button type="button" class="bouton" data-action="test-pv">PV au maximum</button>
         ${run.screen === 'combat' && run.combat?.phase === 'player' ? '<button type="button" class="bouton" data-action="test-gagner">Gagner le combat</button>' : ''}
-        ${run.act < 2 && run.screen !== 'combat' ? '<button type="button" class="bouton" data-action="test-acte">Passer à l\'acte 2</button>' : ''}
+        ${run.act < LAST_ACT && run.screen !== 'combat' ? `<button type="button" class="bouton" data-action="test-acte">Passer à l'acte ${run.act + 1}</button>` : ''}
       </div>
-      ${run.screen === 'map' ? `<span class="butin-titre">Boss secondaires d'Irem (acte 3 en construction)</span>
-      <div class="test-boutons">${ELITE_ENCOUNTERS_3.map((e, i) => `<button type="button" class="bouton" data-action="test-irem" data-index="${i}">${e.name}</button>`).join('')}</div>` : ''}
+      ${run.screen === 'map' ? `<span class="butin-titre">Boss d'Irem (depuis la carte, sans changer d'acte)</span>
+      <div class="test-boutons">${DEV_IREM_FIGHTS.map((e, i) => `<button type="button" class="bouton" data-action="test-irem" data-index="${i}">${e.name}</button>`).join('')}</div>` : ''}
     </div>` : '';
   return `<div class="overlay"><div class="ecran panneau-test">
     <h2>🛠 Outil de test</h2>
@@ -2563,10 +2581,10 @@ const PRELOAD = [
   'guerrier.png', 'mage.png', 'demoniste.png', 'pretre.png', 'voleur.png', 'paladin.png', 'vendeur_gobelin.png', 'bregan.png',
   'feu_camp.png', 'icone_repos.png', 'icone_enclume.png',
   ...Object.keys(ANIMES).map((file) => `anim_${file}`),
-  ...[...Object.keys(ENEMIES), 'vhaeryx_dragon'].map((id) => `anim_ennemi_${id}.png`),
+  ...[...Object.keys(ENEMIES), 'vhaeryx_dragon', 'yzhar_corps'].map((id) => `anim_ennemi_${id}.png`),
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
-  ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png',
+  ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png', 'ennemi_yzhar_corps.png',
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),
 ];
 

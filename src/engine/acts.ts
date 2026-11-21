@@ -2,6 +2,7 @@
 // Référence : docs/CONCEPT.md (§4) et docs/actes/
 import { BOSS_ENCOUNTER, EASY_ENCOUNTERS, ELITE_ENCOUNTERS, HARD_ENCOUNTERS, type Encounter } from './enemies';
 import { BOSS_ENCOUNTER_2, EASY_ENCOUNTERS_2, ELITE_ENCOUNTERS_2, HARD_ENCOUNTERS_2, HIDDEN_FIGHTS_2 } from './enemies_acte2';
+import { BOSS_ENCOUNTER_3, EASY_ENCOUNTERS_3, ELITE_ENCOUNTERS_3, HARD_ENCOUNTERS_3, HIDDEN_FIGHTS_3 } from './enemies_acte3';
 import type { NodeType } from './map';
 
 export interface ActDef {
@@ -35,10 +36,17 @@ export const ACTS: Record<number, ActDef> = {
     earlyNodes: [['combat', 50], ['event', 36], ['shop', 14]],
     lateNodes: [['combat', 40], ['event', 26], ['shop', 8], ['campfire', 8]],
   },
+  3: {
+    num: 3, name: 'Irem, la cité ensevelie',
+    intro: 'Sous les sables, la cité d\'Irem prie un dieu qui dort. Ses murmures rendent fou : garde la tête froide jusqu\'à Yzhar, le Dieu dormant.',
+    easy: EASY_ENCOUNTERS_3, hard: HARD_ENCOUNTERS_3, elites: ELITE_ENCOUNTERS_3, boss: BOSS_ENCOUNTER_3, hidden: HIDDEN_FIGHTS_3,
+    earlyNodes: [['combat', 48], ['event', 38], ['shop', 14]],
+    lateNodes: [['combat', 42], ['event', 26], ['shop', 8], ['campfire', 8]],
+  },
 };
 
-/** Le dernier acte jouable dans cette version. */
-export const LAST_ACT = 2;
+/** Le dernier acte jouable dans cette version : la run se termine après son boss. */
+export const LAST_ACT = 3;
 
 export function actDef(num: number): ActDef {
   return ACTS[num] ?? ACTS[1];

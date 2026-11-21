@@ -4,7 +4,7 @@ import { CLASSES } from './classes';
 import { MAX_DIFFICULTY } from './difficulty';
 import { MAX_LEVEL, XP_PER_LEVEL } from './progression';
 import { LAST_ACT } from './acts';
-import { ELITE_ENCOUNTERS_3 } from './enemies_acte3';
+import { BOSS_ENCOUNTER_3, ELITE_ENCOUNTERS_3 } from './enemies_acte3';
 import { startEncounter, startNextAct } from './run';
 import { clampAlloc, emptyAlloc } from './talents';
 import type { Profile } from './save';
@@ -75,9 +75,12 @@ export function devNextAct(run: RunState): boolean {
   return startNextAct(run);
 }
 
-/** Acte 3 (en construction) : affronte un boss secondaire d'Irem depuis la carte, avec son butin. */
+/** Les boss d'Irem que l'outil de test lance depuis la carte : les 7 boss secondaires, puis Yzhar. */
+export const DEV_IREM_FIGHTS = [...ELITE_ENCOUNTERS_3, BOSS_ENCOUNTER_3];
+
+/** Acte 3 : affronte un boss d'Irem depuis la carte (les boss secondaires avec leur butin). */
 export function devFightIrem(run: RunState, index: number): boolean {
-  const enc = ELITE_ENCOUNTERS_3[index];
+  const enc = DEV_IREM_FIGHTS[index];
   if (!enc || run.screen !== 'map') return false;
   startEncounter(run, enc);
   return true;

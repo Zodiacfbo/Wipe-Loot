@@ -8,7 +8,7 @@ describe('les sprites animés', () => {
   const files = new Set(Object.keys(import.meta.glob('../public/assets/*.png')).map((f) => f.replace('../public/assets/', '')));
 
   it('chaque ennemi a sa planche animée (lancer python3 animations.py depuis tools/pixel/)', () => {
-    const ids = [...Object.keys(ENEMIES), 'vhaeryx_dragon'];
+    const ids = [...Object.keys(ENEMIES), 'vhaeryx_dragon', 'yzhar_corps'];
     expect(ids.filter((id) => !files.has(`anim_ennemi_${id}.png`))).toEqual([]);
   });
 

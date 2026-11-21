@@ -2,6 +2,7 @@
 // Référence : docs/actes/ACTE1_PROFONDEURS_ARDENTES.md (§7)
 // Les conséquences des choix sont appliquées dans run.ts (resolveEvent, chooseBlessing).
 import type { Encounter } from './enemies';
+import { ITEMS } from './items';
 import type { RunState } from './types';
 
 export interface EventChoice {
@@ -237,6 +238,122 @@ export const EVENTS: Record<string, EventDef> = {
     ],
   },
 };
+
+// --- Acte 3 : Irem (docs/actes/ACTE3_IREM.md §8) ---
+Object.assign(EVENTS, {
+  gong: {
+    id: 'gong', act: 3,
+    title: 'Le gong des Sables',
+    text: 'Devant les portes d\'Irem, un gong immense pend entre deux colonnes. Son bronze est couvert de prières. Le frapper réveillerait toute la cité.',
+    choices: [
+      { label: 'Le frapper', detail: 'Un objet d\'équipement épique au hasard. Mais ton prochain combat sera un pack difficile, avec un ennemi de plus.' },
+      { label: 'Passer ton chemin', detail: 'Rien ne se passe.' },
+    ],
+  },
+  veilleurs: {
+    id: 'veilleurs', act: 3,
+    // Pour le Paladin qui porte la Lame ternie, les Veilleurs passent avant les autres événements.
+    quest: (run: RunState) => run.classId === 'paladin' && run.aurore === 'lame',
+    title: 'Les Veilleurs de l\'Aurore',
+    text: 'Un campement de croisés, entre deux dunes. Leurs tabards portent un soleil levant. Ils chassent les morts-vivants qui sortent des tombeaux d\'Irem.',
+    choices: [
+      { label: 'Leur demander de purifier la lame', detail: 'Ils bénissent la Lame ternie. Vaincs un boss secondaire d\'Irem : la lame s\'embrasera (l\'Aurore ardente, étape 2 sur 3).', locked: (run: RunState) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore !== 'lame' ? 'Il te faut la Lame ternie' : null) },
+      { label: 'Recevoir leur bénédiction', detail: 'Tes Attaques infligent +3 dégâts aux Morts-vivants, jusqu\'à la fin de la run.' },
+      { label: 'Leur demander un indice', detail: 'Un « ? » de la carte est révélé : tu sauras s\'il cache un combat ou un événement.' },
+    ],
+  },
+  oasis: {
+    id: 'oasis', act: 3,
+    title: 'L\'oasis',
+    text: 'Une source claire au milieu du sable, à l\'ombre de trois palmiers. L\'eau est fraîche, et rien ne rôde autour.',
+    choices: [
+      { label: 'Boire', detail: 'Soigne 20 PV.' },
+      { label: 'Remplir tes gourdes', detail: '2 Potions de soins (si tu as de la place).' },
+      { label: 'Te baigner', detail: 'Retire toutes les Malédictions de ton deck.', locked: (run: RunState) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
+    ],
+  },
+  bibliotheque: {
+    id: 'bibliotheque', act: 3,
+    title: 'La bibliothèque engloutie',
+    text: 'Des milliers de tablettes d\'argile, à moitié ensevelies. Les rois d\'Irem y ont gravé tout ce qu\'ils savaient… avant de devenir fous.',
+    choices: [
+      { label: 'Étudier', detail: 'Perds 8 PV. Choisis une carte rare de ta classe parmi 3.' },
+      { label: 'Fouiller les rayonnages', detail: '2 potions au hasard (si tu as de la place).' },
+      { label: 'Partir', detail: 'Rien ne se passe.' },
+    ],
+  },
+  statue: {
+    id: 'statue', act: 3,
+    title: 'La statue qui murmure',
+    text: 'Une statue d\'Yzhar, haute comme trois hommes. Sa bouche de pierre s\'ouvre lentement, et une voix douce te promet un secret.',
+    choices: [
+      { label: 'L\'écouter', detail: 'Une carte épique au hasard de ta classe rejoint ton deck. Mais tu commences chaque combat de l\'acte avec 3 Folie.' },
+      { label: 'La briser', detail: 'Perds 6 PV. Gagne 80 or.' },
+      { label: 'Partir', detail: 'Rien ne se passe.' },
+    ],
+  },
+  marchand_sables: {
+    id: 'marchand_sables', act: 3,
+    title: 'Le marchand des sables',
+    text: 'Un nomade, assis sous une toile tendue entre deux chameaux. « Tout s\'échange, voyageur. Même ce que tu crois tenir. »',
+    choices: [
+      { label: 'Échanger un objet', detail: 'Il prend ton objet commun ou rare le moins précieux, et te donne un objet du même emplacement, d\'une rareté au-dessus.', locked: (run: RunState) => (tradeable(run) ? null : 'Tu n\'as pas d\'objet commun ou rare à échanger') },
+      { label: 'Lui acheter une carte (120 or)', detail: 'Choisis une carte rare de ta classe parmi 3.', locked: (run: RunState) => (run.gold >= 120 ? null : 'Il te faut 120 or') },
+      { label: 'Partir', detail: 'Rien ne se passe.' },
+    ],
+  },
+  tombeau: {
+    id: 'tombeau', act: 3,
+    title: 'Le tombeau du roi',
+    text: 'Un sarcophage scellé, gravé au nom d\'un roi oublié. Le sceau est intact, et quelque chose gratte doucement de l\'intérieur.',
+    choices: [
+      { label: 'L\'ouvrir', detail: 'Un combat contre 3 Momies d\'Irem, puis un objet d\'équipement rare et 100 or.' },
+      { label: 'Prier pour le roi', detail: '+5 PV max.' },
+    ],
+  },
+  reve: {
+    id: 'reve', act: 3,
+    title: 'Le rêve d\'Yzhar',
+    text: 'La chaleur te monte à la tête. Tu t\'endors debout, et tu rêves d\'un dieu immense qui te tend la main.',
+    choices: [
+      { label: 'Accepter le rêve', detail: 'Améliore 3 cartes au hasard. Tu commences le prochain combat avec 4 Folie.' },
+      { label: 'Te réveiller de force', detail: 'Perds 6 PV.' },
+    ],
+  },
+  fantome_raideur3: {
+    id: 'fantome_raideur3', act: 3,
+    title: 'Le fantôme du raideur',
+    text: 'Encore un aventurier tombé lors d\'un wipe, cette fois à moitié enseveli dans le sable. Son équipement brille encore.',
+    choices: [
+      { label: 'Récupérer son équipement', detail: 'Un objet d\'équipement au hasard, mais une Malédiction rejoint ton deck.' },
+      { label: 'Le laisser reposer', detail: 'Soigne 15 PV.' },
+    ],
+  },
+  fonceur3: {
+    id: 'fonceur3', act: 3,
+    title: 'Le joueur qui fonce (encore)',
+    text: 'Il est encore là, un bandage sur la tête. Il fonce seul sur une garde royale d\'Irem, en hurlant son propre nom.',
+    choices: [
+      { label: 'L\'aider', detail: 'Un combat difficile, puis il te donne un objet épique.' },
+      { label: 'Le laisser', detail: 'Il wipe. Mais cette fois, il te salue avant.' },
+    ],
+  },
+} satisfies Record<string, EventDef>);
+
+/** Le marchand des sables : l'objet commun ou rare le moins précieux que tu portes. */
+export function tradeable(run: RunState): string | null {
+  const keys = (['arme', 'amulette', 'bague1', 'bague2', 'bijou1', 'bijou2'] as const);
+  const order = ['commun', 'rare'];
+  let best: string | null = null;
+  for (const k of keys) {
+    const id = run.equipment[k];
+    if (!id || run.broken.includes(k)) continue;
+    const r = ITEMS[id].rarity;
+    if (!order.includes(r)) continue;
+    if (!best || order.indexOf(r) < order.indexOf(ITEMS[best].rarity)) best = id;
+  }
+  return best;
+}
 
 // --- Combats cachés derrière un « ? » ---
 

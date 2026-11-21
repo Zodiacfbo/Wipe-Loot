@@ -83,11 +83,11 @@ npm test            # vitest (doit rester vert)
 npm run build       # tsc + vite build
 npx tsc --noEmit -p .
 npm run e2e         # test navigateur, PC + téléphone (après npm run build)
-RUNS=50 PROFIL="Prêtre" npm run balance -- --silent=false   # équilibrage par le bot
+RUNS=50 PROFIL="Prêtre" npm run balance -- --silent=false   # équilibrage par le bot (tools/balance/yzhar.sim.ts : Yzhar seul)
 cd tools/pixel && python3 illustrations.py                  # régénère les illustrations de cartes
 cd tools/pixel && python3 icones_talents.py                  # régénère les icônes de talents sans carte proche
 cd tools/pixel && python3 decor.py                           # régénère le décor : feu de camp animé (4 images), icônes repos et enclume
-cd tools/pixel && python3 acte3.py                           # sprites des ennemis de l'acte 3, cartes Sable et Hallucination
+cd tools/pixel && python3 acte3.py                           # sprites des ennemis de l'acte 3 (dont Yzhar), cartes-statut de l'acte
 cd tools/pixel && python3 animations.py                      # planches animées (héros, familiers, tous les ennemis) : à relancer après tout nouveau sprite
 ```
 
@@ -98,7 +98,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
   - `cards.ts` (Guerrier, cartes-statut, registre `CARDS`), `cards_mage.ts`, `cards_demoniste.ts`, `cards_pretre.ts`, `cards_voleur.ts`, `cards_paladin.ts`.
   - `spells.ts` (sorts de barre de toutes les classes), `talents.ts` (arbres par classe, `CLASS_TREES`), `classes.ts` (fiches et kits de départ).
   - Mécaniques de classe : `demoniste.ts` (familier, DoT, Malédictions, éclats), `pretre.ts` (Égide, Foi), `voleur.ts` (combo, Camouflage, Poison, Contrôle), `paladin.ts` (Sceaux et Jugement, Auras, Censure).
-  - `enemies.ts` (acte 1), `enemies_acte2.ts` et `enemies_acte3.ts` (acte 3 : `burrow`, `resist`, `pierce`), `folie.ts` (Folie, Hallucinations, Crise de folie), `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
+  - `enemies.ts` (acte 1), `enemies_acte2.ts` et `enemies_acte3.ts` (acte 3 : `burrow`, `resist`, `pierce`), `folie.ts` (Folie, Hallucinations, Crise de folie), `irem.ts` (boss secondaires d'Irem), `yzhar.ts` (Yzhar : Regard sombre, Carapace divine, entrailles), `acts.ts` (registre des actes), `map.ts`, `events.ts`, `items.ts` (objets, tables de loot, `uselessFx` par classe), `potions.ts`, `difficulty.ts` (niveaux 0 à 20).
   - `save.ts` : sauvegarde **versionnée** avec `migrate()` (run) et `loadProfile()` (profil). Tout nouveau champ de `RunState` → incrémenter la version et ajouter une étape de migration, et mettre à jour `expect(run.version)` dans les tests.
   - `talent_icons.ts` : l'icône de chaque talent (illustration d'une carte proche, ou `talent_<id>.png` dessinée par `tools/pixel/icones_talents.py`) et `TALENT_REFS`, les cartes et sorts qu'un talent cite (rappelés dans sa fiche). Un nouveau talent → une ligne ici (vérifié par `tests/talent_icons.test.ts`).
   - `progression.ts` (score, expérience, niveaux ; par classe : victoires `wins` et légendaire forgé `legendary`, retenus depuis novembre 2026), `guild.ts` (coffre), `archives.ts` (lore des monstres).
@@ -149,8 +149,8 @@ cd tools/pixel && python3 animations.py                      # planches animées
 
 - **Joueurs :** moi seul (sur PC et sur téléphone). Aucun compte ni aucune donnée en ligne : la sauvegarde reste dans le navigateur. Les comptes (Firebase) sont prévus pour la phase 4.
 - **Classes jouables :** Guerrier, Mage, Paladin, Démoniste, Prêtre, Voleur (52-53 cartes, 9-10 sorts, 27 talents chacune). **Restent, dans l'ordre :** Chasseur, Chaman, Druide.
-- **Actes :** 1 (Profondeurs Ardentes, Vulkhar) et 2 (Aire de Vhaeryx), enchaînés. La run se termine après Vhaeryx. **Acte 3 (Irem) en cours, en 5 lots** (fiche, §12) : lots 1 et 2 faits (Folie, Hallucinations, Sable, Ensevelissement, Résistances, 8 ennemis de trash ; les 7 boss secondaires et leurs 28 objets, dans `irem.ts`), pas encore jouable (`LAST_ACT` = 2 jusqu'au lot 3 ; l'outil de test lance les boss d'Irem). Ensuite l'acte bonus (Nécropole céleste).
-- **Légendaires faits :** Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor), l'Aurore ardente (Paladin : Reliquaire profané, Ossyrax, feu de camp ; l'étape des Veilleurs viendra avec l'acte 3). Ils se forgent au feu de camp à partir de l'acte 2. Restent : Corde-des-anciens, le Marteau des ancêtres (avec leurs classes).
+- **Actes :** 1 (Profondeurs Ardentes, Vulkhar), 2 (Aire de Vhaeryx) et 3 (Irem, Yzhar), enchaînés (`LAST_ACT` = 3). La run se termine après Yzhar ; après chaque boss de fin d'acte : sa table de loot, puis un épique au choix parmi 3 (`BOSS_LOOT`). Acte 3 fini en novembre 2026 (fiche, §12) : Folie, Hallucinations, Sable, Ensevelissement, Résistances, 8 ennemis de trash, 7 boss secondaires (`irem.ts`), Yzhar (`yzhar.ts`, réglages `YZHAR`), 10 événements et 4 combats cachés. L'outil de test lance les boss d'Irem et Yzhar depuis la carte. Ensuite l'acte bonus (Nécropole céleste).
+- **Légendaires faits :** Brisemonts (Guerrier), Bâton du Veilleur (Mage, Démoniste), Équinoxe (Prêtre), Sillon d'orage (Voleur, chez l'événement Ventor), l'Aurore ardente (Paladin : Reliquaire profané, puis Ossyrax et le feu de camp, ou les Veilleurs de l'Aurore et un boss secondaire d'Irem). Ils se forgent au feu de camp à partir de l'acte 2. Restent : Corde-des-anciens, le Marteau des ancêtres (avec leurs classes).
 - **Interface (refonte des menus faite) :** mêmes règles partout : des icônes plutôt que des phrases (cadre = rareté : vert commun, bleu rare, violet épique, orange légendaire ; pointillés = vide ou pas découvert), le détail quand on touche, une confirmation pour ce qui coûte ou ne s'annule pas.
   - Fiche à droite : talents, classes (avec « Ta progression »), équipement (héros entouré de ses 6 emplacements), archives (grille par groupes, % par onglet), coffre détaillé et tables de loot.
   - Fiche en fenêtre : vendeur (« Acheter · X or », y compris pour les cartes) et confirmations de carte définitives (retirer, Allègement, sacrifice du Bâton).
@@ -167,10 +167,10 @@ cd tools/pixel && python3 animations.py                      # planches animées
 - **Décisions de design à respecter :**
   - Le Guerrier n'a volontairement que très peu de soins (Sanguinaire, Dernier rempart, objets). Pas de « Second souffle » ni de vol de vie. Si on en ajoute un jour, le réserver à un seul arbre.
   - Une classe de difficulté ⭐⭐⭐ (comme le Démoniste) peut rester un cran en dessous des autres en taux de victoire du bot : c'est accepté.
-  - Le butin épique de Vhaeryx arrivera avec l'acte 3 (tant que Vhaeryx termine la run).
+  - Yzhar a été allégé par rapport à sa fiche (lot 5) : les Tentacules oculaires se ferment avec l'Œil, et les dégâts dans le temps passent sous la Carapace divine (voir la fiche de l'acte 3, §12).
   - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
   - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
-- **La suite décidée (novembre 2026) :** finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
+- **La suite décidée (novembre 2026) :** l'acte 3 est fini ; ensuite les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---

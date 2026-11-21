@@ -6,6 +6,7 @@ import { demonOnDeath, soulstoneRise } from './demoniste';
 import { absorbAegis, gainAegis, gainFaith } from './pretre';
 import { onRogueHit, rogueOnDeath } from './voleur';
 import { afterEnemyDamaged, immuneTo, onIremDeath, slimeDamage } from './irem';
+import { carapaceDamage, yzharAwakens } from './yzhar';
 import { isPaladin, lastOath, onPaladinHit, paladinAttackBonus, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
@@ -88,6 +89,8 @@ export function healPlayer(c: CombatState, amount: number): number {
     }
   }
   if ((d?.peste ?? 0) > 0 || d?.afflictions?.includes('verte')) heal = Math.floor(heal / 2);
+  // Sang de dragon : les soins sont réduits.
+  if (c.gear?.healCut) heal = Math.floor(heal * Math.max(0, 1 - c.gear.healCut / 100));
   const healed = Math.max(0, Math.min(heal, p.maxHp - p.hp));
   p.hp += healed;
   if (paladin) paladinOnHeal(c, healed);
@@ -124,6 +127,8 @@ export function onHpLost(c: CombatState): void {
 /** `fromCard` : le blocage vient d'une carte (Bâton de l'intendant : +2). */
 export function gainBlock(c: CombatState, amount: number, fromCard = true): void {
   const p = c.player;
+  // Cœur d'Ossyrax : pas de blocage des cartes au premier tour.
+  if (fromCard && c.turn === 1 && c.gear?.noFirstTurnBlock) return;
   let total = amount + (p.robustesse ?? 0) + (fromCard ? c.gear?.blockBonus ?? 0 : 0);
   if (p.posture === 'defensive') total += 3;
   // Ralenti (Garde draconique, Souffle de foudre, Affliction bronze) : 25 % de blocage en moins.
@@ -203,6 +208,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (!spell && target.surfaced && g.surfaceDouble) dmg *= 2;
   // Rois-Jumeaux : immunisé aux Attaques ou aux Sorts (les effets de zone passent).
   if (immuneTo(target, spell, !!c.playing?.aoe)) return 0;
+  // Carapace divine (objet) : tes coups sont un peu plus faibles.
+  if (g.dealtCut) dmg *= 1 - g.dealtCut / 100;
   return Math.max(0, Math.floor(dmg));
 }
 
@@ -238,6 +245,8 @@ export function damageEnemy(c: CombatState, target: EnemyState, amount: number, 
   }
   // Corps visqueux (Limon) : moitié moins de dégâts, double s'il est Figé.
   let rest = slimeDamage(target, amount);
+  // Carapace divine (le Corps d'Yzhar) : 25 % des dégâts, ou double quand elle est tombée.
+  rest = carapaceDamage(c, target, rest);
   if (!ignoreBlock) {
     const absorbed = Math.min(target.block, rest);
     target.block -= absorbed;
@@ -275,6 +284,8 @@ export function damageEnemy(c: CombatState, target: EnemyState, amount: number, 
     surrender(c, target);
     return;
   }
+  // L'Œil d'Yzhar se ferme : le Corps se réveille.
+  if (yzharAwakens(c, target)) return;
   if (target.hp <= 0) killEnemy(c, target);
 }
 

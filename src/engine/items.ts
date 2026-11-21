@@ -204,6 +204,18 @@ export interface ItemEffects {
   startToxine?: number; // Toxine au début du prochain combat (fiole du laboratoire)
   extraHurt?: number; // tu subis X dégâts de plus par attaque (sang noir de l'autel)
   startDragonFracture?: number; // les Dragons commencent avec Armure fracassée X tours
+  // Butin de boss de Vhaeryx et d'Yzhar
+  healCut?: number; // tes soins sont réduits de X %
+  endTurnLoss?: number; // tu perds X PV à la fin de chacun de tes tours
+  noFirstTurnBlock?: number; // tes cartes ne donnent pas de blocage au premier tour
+  hurtPct?: number; // tu subis X % de dégâts en plus (négatif : en moins)
+  dealtCut?: number; // tes Attaques et tes Sorts infligent X % de dégâts en moins
+  magicImmune?: number; // immunisé aux débuffs magiques (malédictions, Afflictions, lignée, mana brûlé)
+  startCopyUp?: number; // au début du combat, X copie(s) améliorée(s) d'une carte de ton deck dans ta main
+  turnFolie?: number; // tu gagnes X Folie au début de chacun de tes tours
+  startExhaust?: number; // au début du combat, X cartes au hasard de ta pioche sont Épuisées
+  skipFirstTurn?: number; // ton premier tour de chaque combat est sauté
+  startFolie?: number; // chaque combat commence avec X Folie (la Statue qui murmure)
 }
 
 export interface ItemDef {
@@ -396,6 +408,23 @@ Object.assign(ITEMS, Object.fromEntries([
   item('bandeau_oracle', 'Bandeau de l\'oracle', 'amulette', 'rare', 'Tu es immunisé à la Folie.', { folieImmune: 1 }),
   item('baton_visions', 'Bâton des visions', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Au début de chaque combat, pioche 1 carte de plus.', { spellBonus: 2, firstTurnDraw: 1 }),
   item('bague_esprit_clair', 'Bague de l\'esprit clair', 'bague', 'rare', 'Tes Dissipations piochent 1 carte.', { dispelDraw: 1 }),
+  // Butin de boss de Vhaeryx (épique)
+  item('sang_dragon', 'Sang de dragon', 'bijou', 'epique', '+1 énergie par tour. Tes soins sont réduits de 50 %.', { turnEnergy: 1, healCut: 50 }),
+  item('fiole_demesure', 'Fiole de démesure', 'bijou', 'epique', 'Pioche 2 cartes de plus par tour. Tu perds 2 PV à la fin de chacun de tes tours.', { turnDraw: 2, endTurnLoss: 2 }),
+  item('coeur_ossyrax', 'Cœur d\'Ossyrax', 'amulette', 'epique', 'Au début de chaque combat, gagne 20 blocage. Tes cartes ne donnent pas de blocage pendant le premier tour.', { startBlock: 20, noFirstTurnBlock: 1 }),
+  item('lame_lignee', 'Lame de la lignée', 'arme', 'epique', 'Tes Attaques infligent +6 dégâts. −8 PV max.', { attackBonus: 6, maxHp: -8 }),
+  item('couronne_alchimiste', 'Couronne de l\'alchimiste', 'amulette', 'epique', '+1 énergie par tour. Au début de chaque combat, 2 Fioles instables dans ta main.', { turnEnergy: 1, startFiole: 2 }),
+  item('ecaille_prismagor', 'Écaille de Prismagor', 'bijou', 'epique', 'Les débuffs magiques sont sans effet sur toi (malédictions, Afflictions de sang, Malédiction de lignée, mana brûlé). Tu subis 10 % de dégâts en plus.', { magicImmune: 1, hurtPct: 10 }),
+  // Yzhar (table de loot)
+  item('oeil_yzhar', 'Œil d\'Yzhar', 'bijou', 'rare', 'Tu vois les deux prochaines intentions des ennemis. Tu es immunisé à la Folie.', { seeTwoIntents: 1, folieImmune: 1 }),
+  item('tentacule_petrifie', 'Tentacule pétrifié', 'arme', 'rare', 'Tes Attaques et tes Sorts infligent +4 dégâts.', { attackBonus: 4, spellBonus: 4 }),
+  item('amulette_reveur', 'Amulette du rêveur éveillé', 'amulette', 'rare', '+12 PV max. Au premier tour de chaque combat, gagne 1 énergie de plus.', { maxHp: 12, firstTurnEnergy: 1 }),
+  item('bague_dieu_dormant', 'Bague du dieu dormant', 'bague', 'rare', 'Au début de chaque combat, une copie améliorée d\'une carte au hasard de ton deck arrive dans ta main.', { startCopyUp: 1 }),
+  // Butin de boss d'Yzhar (épique)
+  item('coeur_yzhar', 'Cœur d\'Yzhar', 'bijou', 'epique', '+1 énergie et +1 carte piochée par tour. Tu gagnes 1 Folie au début de chacun de tes tours.', { turnEnergy: 1, turnDraw: 1, turnFolie: 1 }),
+  item('carapace_divine', 'Carapace divine', 'amulette', 'epique', 'Tu subis 25 % de dégâts en moins. Tes Attaques et tes Sorts infligent 15 % de dégâts en moins.', { hurtPct: -25, dealtCut: 15 }),
+  item('lame_oubli', 'Lame de l\'oubli', 'arme', 'epique', 'Tes Attaques infligent +8 dégâts. Au début de chaque combat, 2 cartes au hasard de ta pioche sont Épuisées.', { attackBonus: 8, startExhaust: 2 }),
+  item('couronne_irem', 'Couronne d\'Irem', 'amulette', 'epique', '+1 énergie par tour. Ton premier tour de chaque combat est sauté.', { turnEnergy: 1, skipFirstTurn: 1 }),
   item('larme_reveur', 'Larme du rêveur', 'bijou', 'rare', 'Quand une Hallucination quitte ta main (jouée, ou retirée par un effet), gagne 1 énergie (1 fois par tour).', { hallucinationEnergy: 1 }),
 ].map((d) => [d.id, d])));
 
@@ -404,6 +433,14 @@ export const BOSS_LOOT: Record<number, { table: string[]; epics: string[] }> = {
   1: {
     table: ['coeur_vulkhar', 'masse_flammes', 'collier_souverain', 'anneau_lave'],
     epics: ['coeur_magma', 'flamme_captive', 'sceau_souverain', 'oeil_brasier', 'marteau_profondeurs', 'couronne_cendres'],
+  },
+  2: {
+    table: ['sceau_aire', 'lame_alchimiste', 'elixir_chromatique', 'bague_lignee'],
+    epics: ['sang_dragon', 'fiole_demesure', 'coeur_ossyrax', 'lame_lignee', 'couronne_alchimiste', 'ecaille_prismagor'],
+  },
+  3: {
+    table: ['oeil_yzhar', 'tentacule_petrifie', 'amulette_reveur', 'bague_dieu_dormant'],
+    epics: ['coeur_yzhar', 'carapace_divine', 'lame_oubli', 'couronne_irem'],
   },
 };
 

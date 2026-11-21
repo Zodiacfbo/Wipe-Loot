@@ -7,6 +7,7 @@ import os
 from demoniste_sprites import demoniste, diablotin, molosse_infernal, paladin, pretre, rodeur, seigneur_infernal, succube, voleur
 from ennemis import etincelle, molosse
 from ennemis_acte2 import vhaeryx, vhaeryx_dragon
+from acte3 import yzhar, yzhar_corps
 from sprites import anime_auto, apercu_gif, guerrier, mage, planche, vulkhar
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
@@ -31,6 +32,8 @@ ANIMES = {
     'ennemi_vulkhar': (vulkhar, 4, True, 4),
     'ennemi_vhaeryx': (vhaeryx, 4, False, 4),
     'ennemi_vhaeryx_dragon': (vhaeryx_dragon, 4, False, 4),
+    'ennemi_yzhar': (yzhar, 4, False, 4),
+    'ennemi_yzhar_corps': (yzhar_corps, 4, False, 4),
 }
 
 # Les autres ennemis sont animés automatiquement (anime_auto) : on leur donne juste un profil.
@@ -41,9 +44,10 @@ PROFILS = {
     'oeuf': 'fixe', 'oeuf_skarn': 'fixe', 'oeuf_vashka': 'fixe',
     'gharul': 'ondule', 'ver_mineur': 'ondule', 'tentacule': 'ondule',
     'limon': 'gelee', 'limon_mineur': 'gelee',
+    'tentacule_geant': 'ondule', 'tentacule_interieur': 'ondule',
 }
 # Les copies : même dessin qu'un autre ennemi.
-COPIES = {'mimique_2': 'mimique', 'mehkar_copie': 'mehkar'}
+COPIES = {'mimique_2': 'mimique', 'mimique_3': 'mimique', 'mehkar_copie': 'mehkar'}
 
 
 def ennemis_auto():

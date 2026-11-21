@@ -130,7 +130,13 @@ export function migrate(raw: unknown): RunState | null {
     run.aurore = null;
     run.version = 22;
   }
-  return run.version === 22 ? (run as unknown as RunState) : null;
+  if (run.version === 22) {
+    run.runBuffs = {};
+    run.gong = false;
+    run.nextFolie = 0;
+    run.version = 23;
+  }
+  return run.version === 23 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

@@ -718,6 +718,17 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
       }
     },
   },
+  a_couvert: {
+    // Yzhar (acte 3) : le Regard sombre ne trouve pas qui se cache.
+    id: 'a_couvert', name: 'Se mettre à couvert', type: 'Statut', rarity: 'statut', cost: 1, needsTarget: false,
+    ethereal: true, exhaust: true, icon: 'bouclier',
+    text: () => `Le Regard sombre ne te touche pas ce tour-ci. Éphémère.`,
+    play: (ctx) => {
+      ctx.c.covered = true;
+      fx(ctx.c, { kind: 'buff', who: 'player', label: 'À couvert' });
+      log(ctx.c, 'Tu te mets à couvert derrière une colonne.');
+    },
+  },
   hallucination: {
     // Elle prend l'apparence d'une vraie carte du deck (CardInstance.mimic, voir folie.ts).
     id: 'hallucination', name: 'Hallucination', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,

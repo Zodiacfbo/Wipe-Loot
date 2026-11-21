@@ -3,7 +3,8 @@ Palette de l'acte : ocre et or du sable, noir brillant des carapaces, violet mal
 Les sprites regardent vers la gauche (vers le héros).
 Sortie : public/assets/ennemi_<id>.png (ennemis) et carte_<id>.png (cartes-statut de l'acte)."""
 import os
-from sprites import Sprite
+import math
+from sprites import RESPIRE, Sprite, danse
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
@@ -335,6 +336,107 @@ SPRITES.update({
 })
 
 
+# ---------- Le boss final : Yzhar, le Dieu dormant (animé à la main, 4 images) ----------
+
+def _tentacule(s, base, haut, largeur, f, phase, couleur=CHAIR, ventouse=CHAIR_C):
+    """Un tentacule qui ondule : de sa base (x, y) jusqu'à sa pointe recourbée, en segments qui se balancent."""
+    bx, by = base
+    n = 10
+    sens = 1 if phase % 2 == 0 else -1
+    centre = []
+    for k in range(n + 1):
+        t = k / n
+        y = by - (by - haut) * t
+        # il ondule de plus en plus vers la pointe, qui se recourbe
+        x = bx + sens * (math.sin(t * 3.2 + (f + phase) * math.pi / 2) * 6 * t + 7 * t * t)
+        centre.append((x, y, largeur * (1 - 0.75 * t) / 2))
+    gauche = [(x - w, y) for x, y, w in centre]
+    droite = [(x + w, y) for x, y, w in centre]
+    s.poly([(round(x), round(y)) for x, y in gauche + droite[::-1]], couleur)
+    tx, ty, tw = centre[-1]
+    s.ellipse(round(tx - tw - 1), round(ty - 2), round(tx + tw + 1), round(ty + 2), couleur)  # pointe arrondie
+    for k in range(2, n - 1, 2):  # ventouses du côté intérieur
+        x, y, w = centre[k]
+        s.dots([(round(x - sens * (w - 1)), round(y))], ventouse)
+
+
+def yzhar(f=0):
+    """Phase 1 : l'Œil d'Yzhar, un œil immense qui sort du sable entre des tentacules.
+    f = image de l'animation (0 à 3) : la pupille cherche sa proie, les veines pulsent,
+    les tentacules ondulent et le sable glisse."""
+    s = Sprite(96, 96)
+    b = RESPIRE[f]
+    s.ellipse(0, 76, 96, 96, SABLE_F)  # le sable
+    s.ellipse(6, 80, 90, 94, SABLE)
+    for k, (x, h) in enumerate(((8, 40), (88, 36), (20, 30), (76, 28))):  # tentacules autour
+        _tentacule(s, (x, 86), h, 9, f, k)
+    with s.bouge(0, b):
+        s.ellipse(14, 14, 82, 82, CHAIR_F)  # la paupière de chair
+        s.ellipse(18, 18, 78, 78, CHAIR)
+        s.ellipse(22, 24, 74, 74, '#F0E6D0')  # le blanc de l'œil
+        veine = CHAIR_C if f % 2 else '#B04A6A'
+        for (x0, y0, x1, y1) in ((24, 40, 34, 46), (72, 38, 62, 44), (30, 68, 38, 62), (68, 66, 60, 60)):
+            s.line([(x0, y0), (x1, y1)], veine, glow=True)
+        dx = [0, -4, 0, 3][f]  # la pupille regarde à gauche, au centre, à droite
+        s.ellipse(34 + dx, 32, 62 + dx, 64, OR, glow=True)  # l'iris d'or
+        s.ellipse(38 + dx, 36, 58 + dx, 60, '#C87A20', glow=True)
+        p = [0, 1, 2, 1][f]  # la pupille se dilate
+        s.ellipse(44 + dx - p, 38 - p, 52 + dx + p, 58 + p, '#1A0A1A')
+        s.dots([(46 + dx, 40), (47 + dx, 41)], '#FFFFFF', glow=True)  # le reflet
+        s.poly([(14, 46), (22, 30), (34, 20), (48, 16), (62, 20), (74, 30), (82, 46), (70, 34), (48, 26), (26, 34)], CHAIR_F)  # paupière haute
+    # le sable qui glisse
+    s.dots([(x, 78 - 3 * ((k + f) % 4)) for k, x in enumerate((12, 30, 52, 70, 86))], SABLE_C)
+    return s.render()
+
+
+def yzhar_corps(f=0):
+    """Phase 2 : le Corps d'Yzhar, une carapace divine d'où sortent des tentacules géants et une gueule.
+    f = image de l'animation (0 à 3) : il respire, ses tentacules ondulent, sa gueule s'ouvre et ses yeux brillent."""
+    s = Sprite(96, 96)
+    b = RESPIRE[f]
+    s.ellipse(0, 78, 96, 96, SABLE_F)
+    s.ellipse(8, 82, 88, 94, SABLE)
+    for k, (x, h, w) in enumerate(((6, 18, 12), (90, 14, 12), (16, 30, 9), (80, 26, 9))):  # tentacules géants
+        _tentacule(s, (x, 88), h, w, f, k, CHAIR_F, CHAIR_C)
+    with s.bouge(0, b):
+        for (x0, x1, top) in ((26, 36, 8), (40, 50, 2), (56, 66, 6), (68, 76, 14), (18, 26, 16)):  # cornes de la carapace
+            s.poly([(x0, 32), ((x0 + x1) // 2, top), (x1, 32)], CARAPACE)
+        s.ellipse(14, 22, 82, 90, CARAPACE)  # la carapace divine
+        s.ellipse(20, 26, 76, 84, CARAPACE_C)
+        for x in (30, 48, 66):  # les plaques
+            s.line([(x, 30), (x + (48 - x) // 3, 80)], CARAPACE_R)
+        s.dots([(36, 40), (60, 40), (48, 34), (30, 54), (66, 54)], OR_C if f % 2 == 0 else OR, glow=True)  # yeux
+        g = [0, 2, 4, 2][f]  # la gueule s'ouvre
+        s.ellipse(32, 56 - g, 64, 74 + g, CHAIR_F)
+        s.ellipse(36, 60 - g, 60, 70 + g, '#1A0A1A')
+        for x in range(36, 61, 4):  # les dents
+            s.poly([(x, 59 - g), (x + 2, 59 - g), (x + 1, 63 - g)], BANDE)
+            s.poly([(x, 71 + g), (x + 2, 71 + g), (x + 1, 67 + g)], BANDE)
+        s.ellipse(44, 62, 52, 68, CHAIR_C, glow=True)  # la lueur au fond
+    s.dots([(x, 80 - 3 * ((k + f) % 4)) for k, x in enumerate((10, 28, 50, 72, 88))], SABLE_C)
+    return s.render()
+
+
+def tentacule_geant():
+    s = Sprite(64, 64)
+    s.ellipse(8, 54, 56, 64, SABLE_F)  # sort du sable
+    _tentacule(s, (30, 60), 4, 15, 0, 0, CHAIR_F, CHAIR_C)
+    s.dots([(26, 30), (34, 18), (30, 44)], CHAIR_C, glow=True)  # des yeux le long du bras
+    return s.render()
+
+
+def tentacule_interieur():
+    s = Sprite(48, 48)
+    s.ellipse(4, 38, 44, 48, '#6A1A3A')  # la paroi des entrailles
+    _tentacule(s, (22, 44), 6, 12, 0, 1, '#B04A6A', '#E88AA0')
+    s.dots([(14, 40), (32, 42), (22, 46)], '#C8FF8A', glow=True)  # les sucs digestifs
+    return s.render()
+
+
+SPRITES.update({'yzhar': lambda: yzhar(0), 'yzhar_corps': lambda: yzhar_corps(0),
+                'tentacule_geant': tentacule_geant, 'tentacule_interieur': tentacule_interieur})
+
+
 # ---------- Cartes-statut de l'acte ----------
 
 def carte_sable():
@@ -366,7 +468,20 @@ def carte_cristal_obsidienne():
     return s.render()
 
 
-CARTES = {'sable': carte_sable, 'hallucination': carte_hallucination, 'cristal_obsidienne': carte_cristal_obsidienne}
+def carte_a_couvert():
+    s = Sprite(32, 32)
+    s.rect(4, 2, 14, 30, SABLE)  # une colonne du temple
+    s.rect(3, 2, 15, 5, SABLE_C)
+    s.rect(3, 27, 15, 30, SABLE_F)
+    s.ellipse(15, 14, 22, 21, '#E8C6A4')  # quelqu'un se cache derrière
+    s.rect(16, 21, 21, 29, '#5A4632')
+    s.line([(31, 4), (22, 10)], CHAIR_C, width=2, glow=True)  # le Regard sombre, qui passe à côté
+    s.line([(31, 8), (24, 13)], CHAIR, glow=True)
+    return s.render()
+
+
+CARTES = {'sable': carte_sable, 'hallucination': carte_hallucination, 'cristal_obsidienne': carte_cristal_obsidienne,
+          'a_couvert': carte_a_couvert}
 
 
 if __name__ == '__main__':
@@ -375,4 +490,7 @@ if __name__ == '__main__':
         fn().save(os.path.join(DEST, f'ennemi_{name}.png'))
     for name, fn in CARTES.items():
         fn().save(os.path.join(DEST, f'carte_{name}.png'))
+    # Le Gobelin mimique de l'acte 3 a la même tête que celui de l'acte 1.
+    import shutil
+    shutil.copy(os.path.join(DEST, 'ennemi_mimique.png'), os.path.join(DEST, 'ennemi_mimique_3.png'))
     print(len(SPRITES), 'sprites,', len(CARTES), 'cartes')
