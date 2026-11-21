@@ -11,6 +11,7 @@ Dépôt : `Zodiacfbo/Wipe-Loot` (l'ancien nom `zodiacfbo/projetwow` redirige enc
 > Commandes : « Parlons du jeu » · « Publication sur dev » · « Publication sur main » · « Fin de discussion »
 
 - **« Parlons du jeu »** : lire les issues GitHub ouvertes et `docs/ROADMAP.md`. Résumer en 5 lignes maximum : où en est le jeu, ce qui est en cours, ce qui attend une décision. Rappeler les commandes, puis demander « De quoi on parle aujourd'hui ? ».
+  - **À proposer en premier (noté en novembre 2026) :** refaire l'équilibrage des trois actes avec les talents en 7 + 3 (les mesures de `EQUILIBRAGE.md` §15 datent d'avant la réforme des talents ; le Démoniste était trop bas). Détail dans l'issue « ⚖️ Équilibrage avec de vrais joueurs ». Retirer cette ligne une fois fait.
 - **« Publication sur dev »** : publier le travail validé sur `dev` (la version de test), en suivant le §2.
 - **« Publication sur main »** : publier sur `main` (la version officielle), en suivant le §2.
 - **« Fin de discussion »** :
