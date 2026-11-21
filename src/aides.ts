@@ -127,6 +127,8 @@ export function showDamagePreview(index: number | null): void {
     const e = c.enemies.find((x) => x.uid === p.uid);
     const el = stage.querySelector<HTMLElement>(`.ennemi[data-uid="${p.uid}"]`);
     if (!e || !el) continue;
+    // Méhkar et ses Copies : l'aperçu trahirait le vrai (sauf avec l'Œil du prophète).
+    if (e.masked && !c.gear?.seeHallucinations) continue;
     const bar = el.querySelector<HTMLElement>('.barre-pv');
     const after = Math.max(0, e.hp - p.hp);
     if (bar && p.hp > 0) {

@@ -4,7 +4,8 @@ import { CLASSES } from './classes';
 import { MAX_DIFFICULTY } from './difficulty';
 import { MAX_LEVEL, XP_PER_LEVEL } from './progression';
 import { LAST_ACT } from './acts';
-import { startNextAct } from './run';
+import { ELITE_ENCOUNTERS_3 } from './enemies_acte3';
+import { startEncounter, startNextAct } from './run';
 import { clampAlloc, emptyAlloc } from './talents';
 import type { Profile } from './save';
 import type { RunState } from './types';
@@ -72,4 +73,12 @@ export function devNextAct(run: RunState): boolean {
   run.combat = null;
   run.screen = 'act';
   return startNextAct(run);
+}
+
+/** Acte 3 (en construction) : affronte un boss secondaire d'Irem depuis la carte, avec son butin. */
+export function devFightIrem(run: RunState, index: number): boolean {
+  const enc = ELITE_ENCOUNTERS_3[index];
+  if (!enc || run.screen !== 'map') return false;
+  startEncounter(run, enc);
+  return true;
 }

@@ -23,6 +23,10 @@ export interface EnemyDef {
   tags?: ('dragon' | 'mortvivant' | 'humanoide' | 'experience' | 'demon' | 'insecte' | 'construct' | 'aberration')[];
   /** Acte 3 : Résistance, il subit 50 % de dégâts en moins de ce type de cartes. */
   resist?: 'attaques' | 'sorts';
+  /** Acte 3 (Rois-Jumeaux) : immunisé aux Attaques ou aux Sorts au début du combat. */
+  immune?: 'attaques' | 'sorts';
+  /** Une Copie : même aspect que cet ennemi (sprite, taille, cadre). */
+  copyOf?: string;
   /** Mutation : tirée au hasard au début du combat, active sous 50 % de PV. */
   mutation?: boolean;
   /** Commence le combat avec cette part de ses PV (Ysolde). */

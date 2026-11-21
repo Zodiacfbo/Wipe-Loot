@@ -254,7 +254,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
   return true;
 }
 
-function startEncounter(run: RunState, encounter: Encounter): void {
+export function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
   run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' });
@@ -325,7 +325,9 @@ export function afterCombatAction(run: RunState): void {
     run.hp = Math.min(run.maxHp, c.player.hp + (runGear(run).healAfterCombat ?? 0));
     // Archives : les monstres vaincus.
     for (const e of c.enemies) if (e.dead && !e.gone) run.kills[e.defId] = (run.kills[e.defId] ?? 0) + 1;
-    if (currentNode(run)?.type === 'elite') run.stats.elites += 1;
+    // Un boss secondaire (sa rencontre a une table de loot ; l'outil de test en lance hors de la carte).
+    const eliteFight = currentNode(run)?.type === 'elite' || !!run.encounter?.loot;
+    if (eliteFight) run.stats.elites += 1;
     else run.stats.combats += 1;
     // L'Observatoire : un combat de moins à voir les intentions. La fiole du laboratoire ne dure qu'un combat.
     if ((run.stargazing ?? 0) > 0) run.stargazing -= 1;
@@ -338,7 +340,7 @@ export function afterCombatAction(run: RunState): void {
         run.combat = null;
       }
     } else {
-      const elite = currentNode(run)?.type === 'elite';
+      const elite = eliteFight;
       const gold = Math.round((elite ? 25 + Math.floor(random(run) * 11) : 10 + Math.floor(random(run) * 11)) * mods(run).goldMult);
       run.gold += gold;
       offerCards(run, 'Victoire !', elite ? 'peu_commune' : 'commune');

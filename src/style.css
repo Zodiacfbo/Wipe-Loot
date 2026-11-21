@@ -32,6 +32,16 @@ html, body {
 button { font-family: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: default; }
 img.px { image-rendering: pixelated; }
+/* Sprite animé : la planche (N images côte à côte) défile image par image, sans glisser.
+   --decalage (0 à -1) fait commencer chaque sprite à un moment différent de sa boucle. */
+img[data-anime] {
+  object-fit: cover; object-position: 0 0;
+  animation: sprite-anime calc(var(--images) * 0.2s) steps(var(--images), jump-none) infinite;
+  animation-delay: calc(var(--decalage, 0) * var(--images) * 0.2s);
+}
+.fx-onde { position: absolute; width: 220px; height: 220px; border-radius: 50%; border: 6px solid; pointer-events: none; z-index: 30; }
+@keyframes sprite-anime { to { object-position: 100% 0; } }
+@media (prefers-reduced-motion: reduce) { img[data-anime] { animation: none; } }
 
 #stage {
   position: fixed;

@@ -26,7 +26,8 @@ import { CARDS, energyCost, isEthereal, shardCost, type PlayContext } from './ca
 import { decayCurses, felhunterLock, felhunterStart, petAct, triggerDots } from './demoniste';
 import { BASE_AEGIS, BASE_FAITH, gainAegis, gainFaith } from './pretre';
 import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStrike } from './voleur';
-import { folieStartTurn, gainFolie } from './folie';
+import { addHallucination, folieStartTurn, gainFolie } from './folie';
+import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
 import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
@@ -108,6 +109,7 @@ export function createCombat(
   for (const e of c.enemies) {
     const def = ENEMIES[e.defId];
     if (def.startHpRatio) e.hp = Math.round(e.maxHp * def.startHpRatio);
+    if (def.immune) e.immune = def.immune;
     if (def.mutation) {
       const all = ['carapace', 'frenesie', 'regeneration'];
       const first = all[Math.floor(random(c) * all.length)];
@@ -158,6 +160,8 @@ export function createCombat(
   if (gear.startDragonFracture) for (const e of livingEnemies(c)) if (hasTag(e.defId, 'dragon')) e.buffs.armureFracassee = Math.max(e.buffs.armureFracassee, gear.startDragonFracture);
   if (gear.startZone) addStatusToHand(c, 'zone_de_feu', gear.startZone);
   if (gear.startToxine) p.debuffs!.toxine = gear.startToxine;
+  // Butin d'Irem : Couronne jumelle.
+  if (gear.multiPuissance && livingEnemies(c).length >= 2) p.puissance += gear.multiPuissance;
   // Lumière intérieure : de l'Égide dès le début du combat.
   if (gear.startAegis) gainAegis(c, gear.startAegis, false);
   // Maître invocateur : le familier agit dès le début du combat.
@@ -173,6 +177,7 @@ export function createCombat(
       log(c, `Bonus chromatique : ${['+1 Puissance', '+1 Robustesse', '+1 énergie', '10 blocage'][roll]}.`);
     }
   }
+  checkDebuffs(c);
   c.fx = [];
   if (encounter.rune) c.fx.push({ kind: 'banner', text: 'Ce boss porte la rune des Sources !' });
   if (encounter.weakened) c.fx.push({ kind: 'banner', text: 'L\'Eau des profondeurs affaiblit Vulkhar !' });
@@ -194,7 +199,8 @@ export function startPlayerTurn(c: CombatState): void {
   // Distorsion temporelle
   const distortion = p.distortion ? 2 : 0;
   // Garde de fer : on garde la moitié du blocage.
-  p.block = power(c, 'garde_de_fer') > 0 ? Math.floor(p.block / 2) : 0;
+  // Éclat de suprématie : le blocage n'est pas retiré à la fin du premier tour.
+  if (!(c.turn === 2 && c.gear?.keepFirstBlock)) p.block = power(c, 'garde_de_fer') > 0 ? Math.floor(p.block / 2) : 0;
   p.riposte = 0;
   p.fureur = Math.max(0, (p.fureur ?? 0) - 1);
   c.attacksThisTurn = 0;
@@ -268,6 +274,7 @@ export function startPlayerTurn(c: CombatState): void {
   p.drawPenalty = 0;
   const d = (p.debuffs ??= emptyDebuffs());
   startTurnAct2(c);
+  if (c.player.energy > 0 || c.hand.length > 0) iremPlayerTurn(c);
   // Embrasement de mana (Baron Vossk)
   if (d.manaBurn > 0) {
     p.energy = Math.max(0, p.energy - d.manaBurn);
@@ -375,6 +382,9 @@ function applyCurse(c: CombatState, e: EnemyState, curse: PlayerCurse & { label:
   if (curse.lignee && !c.gear?.lineageImmune) lineageCurse(c);
   // Acte 3 : la Folie, le Sable
   if (curse.sable) addStatusToDraw(c, 'sable', curse.sable);
+  if (curse.sableHand) addStatusToHand(c, 'sable', curse.sableHand);
+  for (let i = 0; i < (curse.hallucinations ?? 0); i++) addHallucination(c);
+  if (curse.domination) c.dominated = true;
   fx(c, { kind: 'buff', who: 'player', label: curse.label });
   if (curse.folie) gainFolie(c, curse.folie);
   log(c, `${e.name} : ${curse.label}.`);
@@ -458,12 +468,30 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const comboHeld = c.combo ?? 0;
   const comboSpent = def.finisher && c.combo !== undefined ? comboHeld + (c.gear?.ruthless ?? 0) : undefined;
   if (def.finisher && c.combo !== undefined) c.combo = 0;
+  // Domination mentale (Méhkar) : cette Attaque te frappe toi-même.
+  if (c.dominated && def.type === 'Attaque') {
+    c.dominated = false;
+    const ctx0: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent, comboSpent };
+    const exhaust0 = card.upgraded && def.exhaustUp !== undefined ? def.exhaustUp : def.exhaust;
+    dominatedAttack(c, card, () => {
+      c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget, opener: def.opener };
+      def.play(ctx0);
+      c.playing = undefined;
+    }, !!exhaust0);
+    return true;
+  }
+  if (card.id === 'hallucination') dreamEnergy(c);
   const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent, comboSpent };
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
   const blockBefore = p.block;
   // Ambidextrie experte : la première Attaque du tour est jouée deux fois.
-  const twice = attack && c.combo !== undefined && power(c, 'ambidextrie_experte') > 0 && (c.attacksThisTurn ?? 0) === 0;
+  let twice = attack && c.combo !== undefined && power(c, 'ambidextrie_experte') > 0 && (c.attacksThisTurn ?? 0) === 0;
+  // Bague des reflets : une fois par combat, la première carte de Sort est jouée deux fois.
+  if (def.type === 'Sort' && c.gear?.firstSpellTwice && !c.spellTwiceUsed) {
+    c.spellTwiceUsed = true;
+    twice = true;
+  }
   c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort'), opener: def.opener };
   def.play(ctx);
   if (twice && c.phase === 'player' && (!target || !target.dead)) def.play(ctx);
@@ -531,6 +559,11 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     if (g.healOnAttack) healPlayer(c, g.healOnAttack);
   }
   if (def.type === 'Attaque') c.firstAttackDone = true;
+  // Bague du lien royal : une Attaque et un Sort dans le même tour, pioche 1 (1 fois par tour).
+  if (c.gear?.mixDraw && !c.mixDrawUsed && (c.attacksThisTurn ?? 0) > 0 && (c.mageSpellsThisTurn ?? 0) > 0) {
+    c.mixDrawUsed = true;
+    drawCards(c, c.gear.mixDraw);
+  }
   if (card.id === 'zone_de_feu' && c.gear?.zoneBlock) gainBlock(c, c.gear.zoneBlock, false);
   const exhaust = card.upgraded && def.exhaustUp !== undefined ? def.exhaustUp : def.exhaust;
   if (def.type === 'Pouvoir' || exhaust) {
@@ -538,6 +571,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   } else {
     c.discard.push(card);
   }
+  checkDebuffs(c);
   return true;
 }
 
@@ -565,6 +599,7 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   c.playing = undefined;
   s.cooldown = def.once ? 999 : spellCooldown(def, c.gear);
   log(c, `Tu lances ${def.name}.`);
+  checkDebuffs(c);
   if (def.endsTurn && c.phase === 'player') endTurn(c);
   return true;
 }
@@ -616,6 +651,8 @@ export function endTurn(c: CombatState): void {
   c.discard.push(...c.hand.filter((card) => !isEthereal(card)));
   c.hand = [];
   c.panicked = [];
+  // La Domination mentale ne dure que le tour qui la suit.
+  c.dominated = false;
   const d = p.debuffs;
   if (d) {
     d.demoralise = Math.max(0, d.demoralise - 1);
@@ -674,13 +711,18 @@ export function endTurn(c: CombatState): void {
   }
   if (c.phase !== 'player') return;
   felhunterLock(c);
+  checkDebuffs(c);
   enemyTurn(c);
+  checkDebuffs(c);
   if (c.phase === 'player') startPlayerTurn(c);
+  checkDebuffs(c);
 }
 
 function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent = e.intent): number {
   const d = c.player.debuffs;
   // Sanctuaire (Paladin) : chaque attaque ennemie inflige moins de dégâts.
+  // Regard du dieu (Nebet) : plus fort si tu as 5 Folie ou plus.
+  if (intent.kind === 'attack' && intent.madBonus && (c.folie ?? 0) >= 5) base += intent.madBonus;
   let dmg = base + e.buffs.puissance + (e.giant ? 5 : 0) + 2 * (d?.ombre ?? 0) + (c.gear?.extraHurt ?? 0) - (e.fatigue ?? 0) - power(c, 'sanctuaire');
   if ((d?.fracasse ?? 0) > 0) dmg *= 1.5;
   if (d?.afflictions?.includes('noire')) dmg *= 1.2;
@@ -692,10 +734,13 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent
   if (c.player.evasion) dmg *= 0.5; // Évasion du Voleur
   if (e.disarmed) dmg *= 0.7; // un boss désarmé frappe moins fort
   if (e.gele === 'half') dmg *= 0.5; // un boss Gelé
+  if (e.vengeance) dmg *= 1.5; // Vengeance royale (Triade de la Ruche)
   // Difficulté : les ennemis normaux et les boss secondaires frappent plus fort.
   const def = ENEMIES[e.defId];
   if (c.mods) dmg *= def.boss ? c.mods.bossDmg ?? 1 : def.elite ? c.mods.eliteDmg : c.mods.normalDmg;
   if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
+  // Amulette gélatineuse : les grosses attaques sont amorties.
+  if (intent.kind === 'attack' && c.gear?.bigHitReduce && dmg >= 10) dmg -= c.gear.bigHitReduce;
   return Math.max(0, Math.floor(dmg));
 }
 
@@ -856,6 +901,17 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
       log(c, `${e.name} s'enfouit dans le sable : tu ne peux plus le cibler.`);
       break;
     case 'heal': {
+      // Soins royaux : tous les alliés.
+      if (intent.all) {
+        const others = livingEnemies(c).filter((o) => o !== e && !o.noHeal);
+        for (const o of others) {
+          const healed = Math.min(intent.amount, o.maxHp - o.hp);
+          o.hp += healed;
+          if (healed > 0) fx(c, { kind: 'heal', from: e.uid, to: o.uid, amount: healed });
+        }
+        log(c, `${e.name} lance ${intent.cast ?? 'un soin'} : ses alliés récupèrent jusqu'à ${intent.amount} PV.`);
+        break;
+      }
       const allies = intent.self ? [] : livingEnemies(c).filter((o) => o !== e && o.hp < o.maxHp && !o.noHeal);
       const pool = allies.length > 0 ? allies : [e];
       if (pool[0].noHeal) {
@@ -907,6 +963,8 @@ function enemyTurnInner(c: CombatState): void {
     e.flying = false;
     enemyPassivesAct2(c, e);
     if (e.dead) continue;
+    const frozen = iremEnemyStart(c, e);
+    if (c.phase !== 'player') break;
     // Passifs de début de tour
     if (e.defId === 'gardien') {
       e.block += TUNING.gardienBlock;
@@ -939,9 +997,10 @@ function enemyTurnInner(c: CombatState): void {
 
     // Saignement
     if (e.buffs.saignementTours > 0 && e.buffs.saignement > 0) {
-      log(c, `${e.name} saigne : ${e.buffs.saignement} dégâts.`);
-      fx(c, { kind: 'tick', who: e.uid, amount: e.buffs.saignement, label: 'Saignement' });
-      damageEnemy(c, e, e.buffs.saignement, true);
+      const bleed = e.buffs.saignement + hiddenDotBonus(c, e);
+      log(c, `${e.name} saigne : ${bleed} dégâts.`);
+      fx(c, { kind: 'tick', who: e.uid, amount: bleed, label: 'Saignement' });
+      damageEnemy(c, e, bleed, true);
       e.buffs.saignementTours -= 1;
       if (e.buffs.saignementTours === 0) e.buffs.saignement = 0;
       if (e.dead) continue;
@@ -960,9 +1019,10 @@ function enemyTurnInner(c: CombatState): void {
     if ((e.buffs.brulure ?? 0) > 0) {
       e.buffs.brulure! += power(c, 'chaleur_intense');
       const burn = e.buffs.brulure!;
-      log(c, `${e.name} brûle : ${burn} dégâts.`);
-      fx(c, { kind: 'tick', who: e.uid, amount: burn, label: 'Brûlure' });
-      damageEnemy(c, e, burn, true);
+      const burnDmg = burn + hiddenDotBonus(c, e);
+      log(c, `${e.name} brûle : ${burnDmg} dégâts.`);
+      fx(c, { kind: 'tick', who: e.uid, amount: burnDmg, label: 'Brûlure' });
+      damageEnemy(c, e, burnDmg, true);
       if (!(c.gear?.bossBurnKeep && isBossEnemy(e))) e.buffs.brulure = Math.max(0, burn - 1);
       if (e.dead || c.phase !== 'player') continue;
     }
@@ -979,6 +1039,7 @@ function enemyTurnInner(c: CombatState): void {
       }
       fx(c, { kind: 'buff', who: e.uid, label: 'Surgit !' });
       log(c, `${e.name} surgit du sable !`);
+      e.surfaced = true;
     }
 
     // Malédiction des langages : l'Incantation prend un tour de plus.
@@ -987,7 +1048,9 @@ function enemyTurnInner(c: CombatState): void {
       e.delayed = true;
       log(c, `${e.name} bafouille : son incantation prend un tour de plus.`);
     }
-    if ((e.stun ?? 0) > 0) {
+    if (frozen) {
+      // Le Limon Figé ne fait rien (voir irem.ts).
+    } else if ((e.stun ?? 0) > 0) {
       e.stun! -= 1;
       log(c, `${e.name} est Contrôlé et ne fait rien.`);
     } else if ((e.sap ?? 0) > 0) {
@@ -1055,6 +1118,12 @@ function enemyTurnInner(c: CombatState): void {
     }
     saldris.shield = saldris.shield === 'coups' ? 'sorts' : 'coups';
   }
+  if (c.phase === 'player') iremEnemyEnd(c);
+}
+
+/** Tambour sismique : tes DoT frappent plus fort un ennemi qui ne peut pas être ciblé (enseveli). */
+export function hiddenDotBonus(c: CombatState, e: EnemyState): number {
+  return (e.buried ?? 0) > 0 || e.untargetable ? c.gear?.dotUntargetable ?? 0 : 0;
 }
 
 function decayBuffs(e: EnemyState): void {
@@ -1264,6 +1333,14 @@ function onHitItems(c: CombatState, target: EnemyState, type: string): void {
     else if (step === 1) target.buffs.ralenti = Math.max(target.buffs.ralenti, 1);
     else target.buffs.demoralise = Math.max(target.buffs.demoralise, 1);
     c.fangStep = step + 1;
+  }
+  // Butin d'Irem : Masse visqueuse (Ralenti), Dard de Tazz (Toxine, un DoT de 2 tours).
+  if (g.attackSlow && type === 'Attaque') target.buffs.ralenti = Math.max(target.buffs.ralenti, g.attackSlow);
+  if (g.attackToxine && type === 'Attaque') {
+    const dots = (target.dots ??= []);
+    const tox = dots.find((d) => d.id === 'toxine');
+    if (tox) tox.turns = Math.max(tox.turns, 2);
+    else dots.push({ id: 'toxine', dmg: g.attackToxine, turns: 2 });
   }
   if (g.attackDebuff) {
     const roll = Math.floor(random(c) * 3);

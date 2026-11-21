@@ -113,7 +113,7 @@
 - [x] Acte 2 : l'Aire de Vhaeryx (Souffles, Envol, mutations, morts-vivants, 8 boss secondaires, Vhaeryx en 3 phases, Malédiction de lignée, 9 événements). La run enchaîne désormais les actes 1 et 2, avec les récompenses et le butin de boss de Vulkhar entre les deux
 - [ ] Acte 3 : Irem (Folie, Hallucinations, ensevelissement, immunités), en 5 lots (voir la fiche, §12)
   - [x] Lot 1 : le socle (Folie, Hallucinations, Sable, Ensevelissement, Résistances) et les 8 ennemis de trash
-  - [ ] Lot 2 : les 7 boss secondaires
+  - [x] Lot 2 : les 7 boss secondaires et leurs 28 objets (lancés par l'outil de test en attendant le lot 3)
   - [ ] Lot 3 : Yzhar, l'enchaînement après Vhaeryx et son butin épique
   - [ ] Lot 4 : événements, combats cachés, les Veilleurs de l'Aurore
   - [ ] Lot 5 : équilibrage sur 3 actes et difficulté
@@ -156,7 +156,8 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 ## Phase 5 — Finition
 
 - [ ] Sons et musique (ambiance par acte, sons des moments clés)
-- [ ] Animations des sprites (respiration, attaque, mort)
+- [x] Animations au repos : les 6 héros (avec la tenue d'ombre du Prêtre), les 5 familiers et tous les ennemis (4 images, style du feu de camp) ; arrêt sur image à l'impact. Tout nouveau sprite est animé dès sa création (direction artistique, §7)
+- [ ] Poses d'action des sprites (élan avant l'attaque, coup reçu, incantation, mort qui se défait)
 - [ ] Options : vitesse des animations, volume, réduction des effets
 - [ ] Tutoriel et aide en jeu
 - [ ] Polish visuel de la présentation des classes : portraits, emblèmes dessinés, mise en page plus soignée de l'écran des classes et du hall

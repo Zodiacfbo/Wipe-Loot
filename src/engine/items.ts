@@ -20,7 +20,23 @@ export interface ItemEffects {
   // Acte 3 : la Folie
   folieImmune?: number; // immunisé à la Folie
   folieLess?: number; // 1 Folie de moins à chaque gain
-  seeHallucinations?: number; // les Hallucinations sont clairement marquées
+  seeHallucinations?: number; // les Hallucinations sont clairement marquées, et tu vois le vrai Méhkar parmi ses Copies
+  // Acte 3 : le butin des boss secondaires d'Irem
+  firstSpellTwice?: number; // une fois par combat, ta première carte de Sort est jouée deux fois
+  mixDraw?: number; // une Attaque et un Sort dans le même tour : pioche X (1 fois par tour)
+  multiPuissance?: number; // +X Puissance au début d'un combat contre au moins 2 ennemis
+  surfaceDouble?: number; // ta première Attaque contre un ennemi qui vient de resurgir inflige double dégâts
+  statusPurge?: number; // les cartes Sable, Cendres et Hallucination sont retirées de ta main au début de ton tour
+  dotUntargetable?: number; // tes DoT infligent +X dégâts aux ennemis qui ne peuvent pas être ciblés
+  attackToxine?: number; // tes Attaques appliquent Toxine (X dégâts pendant 2 tours) aux ennemis
+  debuffDamage?: number; // chaque débuff que tu appliques à un ennemi lui inflige X dégâts
+  attackSlow?: number; // tes Attaques appliquent Ralenti X tour
+  bigHitReduce?: number; // −X dégâts des attaques ennemies de 10 ou plus
+  debuffLonger?: number; // tes débuffs durent X tour de plus
+  pierceBonus?: number; // tes Attaques qui ignorent le blocage infligent +X dégâts
+  keepFirstBlock?: number; // ton blocage n'est pas retiré à la fin de ton premier tour
+  dispelDraw?: number; // tes Dissipations piochent X carte
+  hallucinationEnergy?: number; // une Hallucination quitte ta main : +X énergie (1 fois par tour)
   attackBonus?: number; // +X dégâts aux Attaques
   lowHpBonus?: number; // +X dégâts aux Attaques contre une cible sous 50 % de PV
   firstAttackBonus?: number; // +X dégâts à la première Attaque de chaque combat
@@ -346,6 +362,45 @@ Object.assign(ITEMS, Object.fromEntries([
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));
 
+// --- Butin des boss secondaires d'Irem (docs/actes/ACTE3_IREM.md §6) ---
+Object.assign(ITEMS, Object.fromEntries([
+  // Le Prophète Méhkar
+  item('baton_prophete', 'Bâton du prophète', 'arme', 'rare', 'Tes Sorts infligent +3 dégâts. Tes effets de zone infligent +2 dégâts.', { spellBonus: 3, aoeBonus: 2 }),
+  item('oeil_prophete', 'Œil du prophète', 'bijou', 'rare', 'Tu vois la vraie cible parmi les Copies et les illusions. Les Hallucinations sont clairement marquées.', { seeHallucinations: 1 }),
+  item('bague_reflets', 'Bague des reflets', 'bague', 'rare', 'Une fois par combat, ta première carte de Sort est jouée deux fois.', { firstSpellTwice: 1 }),
+  item('amulette_lucidite', 'Amulette de lucidité', 'amulette', 'rare', 'Tu gagnes 1 Folie de moins chaque fois que tu en gagnes.', { folieLess: 1 }),
+  // Les Rois-Jumeaux
+  item('lame_asheth', 'Lame d\'Asheth', 'arme', 'rare', 'Tes Attaques infligent +3 dégâts.', { attackBonus: 3 }),
+  item('sceptre_neshet', 'Sceptre de Neshet', 'arme', 'rare', 'Tes Sorts infligent +3 dégâts.', { spellBonus: 3 }),
+  item('bague_lien_royal', 'Bague du lien royal', 'bague', 'rare', 'Quand tu joues une Attaque et un Sort dans le même tour, pioche 1 carte (1 fois par tour).', { mixDraw: 1 }),
+  item('couronne_jumelle', 'Couronne jumelle', 'amulette', 'rare', '+6 PV max. Gagne 1 Puissance au début de chaque combat contre au moins 2 ennemis.', { maxHp: 6, multiPuissance: 1 }),
+  // Gharul, le Ver des sables
+  item('dent_gharul', 'Dent de Gharul', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Ta première Attaque contre un ennemi qui vient de resurgir inflige double dégâts.', { attackBonus: 2, surfaceDouble: 1 }),
+  item('peau_ver', 'Peau de ver', 'amulette', 'rare', '+12 PV max.', { maxHp: 12 }),
+  item('bague_sable_mouvant', 'Bague du sable mouvant', 'bague', 'rare', 'Les cartes Sable, Cendres et Hallucination sont retirées de ta main au début de ton tour.', { statusPurge: 1 }),
+  item('tambour_sismique', 'Tambour sismique', 'bijou', 'rare', 'Tes DoT infligent +2 dégâts aux ennemis qui ne peuvent pas être ciblés.', { dotUntargetable: 2 }),
+  // La Triade de la Ruche
+  item('dard_tazz', 'Dard de Tazz', 'arme', 'rare', 'Tes Attaques appliquent Toxine aux ennemis (2 dégâts pendant 2 tours).', { attackToxine: 2 }),
+  item('carapace_kesh', 'Carapace de Kesh', 'amulette', 'rare', 'Commence chaque combat avec 12 blocage.', { startBlock: 12 }),
+  item('bague_vorra', 'Bague de Vorra', 'bague', 'rare', 'Tes soins rendent +3 PV.', { healBonus: 3 }),
+  item('sceau_ruche', 'Sceau de la ruche', 'bijou', 'rare', 'Quand un ennemi meurt, tous les autres ennemis perdent 5 PV.', { onKillAoe: 5 }),
+  // Le Limon primordial
+  item('fiole_limon', 'Fiole de limon', 'bijou', 'rare', 'Chaque fois que tu appliques un débuff à un ennemi, il subit 2 dégâts.', { debuffDamage: 2 }),
+  item('masse_visqueuse', 'Masse visqueuse', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts et appliquent Ralenti 1 tour.', { attackBonus: 2, attackSlow: 1 }),
+  item('amulette_gelatineuse', 'Amulette gélatineuse', 'amulette', 'rare', 'Tu subis 2 dégâts de moins de chaque attaque ennemie qui inflige 10 dégâts ou plus.', { bigHitReduce: 2 }),
+  item('bague_primordiale', 'Bague primordiale', 'bague', 'rare', 'Tes débuffs durent 1 tour de plus.', { debuffLonger: 1 }),
+  // Sartaq, le Colosse d'obsidienne
+  item('poing_obsidienne', 'Poing d\'obsidienne', 'arme', 'rare', 'Tes Attaques infligent +2 dégâts. Tes Attaques qui ignorent le blocage infligent 5 dégâts de plus.', { attackBonus: 2, pierceBonus: 5 }),
+  item('coeur_colosse', 'Cœur de colosse', 'amulette', 'rare', '+15 PV max.', { maxHp: 15 }),
+  item('eclat_supremacie', 'Éclat de suprématie', 'bijou', 'rare', 'Au début de chaque combat, gagne 15 blocage. Ton blocage n\'est pas retiré à la fin de ton premier tour.', { startBlock: 15, keepFirstBlock: 1 }),
+  item('bague_obsidienne', 'Bague d\'obsidienne', 'bague', 'rare', 'Gagne 1 Robustesse au début de chaque combat.', { startRobustesse: 1 }),
+  // Nebet, l'Oracle aveugle
+  item('bandeau_oracle', 'Bandeau de l\'oracle', 'amulette', 'rare', 'Tu es immunisé à la Folie.', { folieImmune: 1 }),
+  item('baton_visions', 'Bâton des visions', 'arme', 'rare', 'Tes Sorts infligent +2 dégâts. Au début de chaque combat, pioche 1 carte de plus.', { spellBonus: 2, firstTurnDraw: 1 }),
+  item('bague_esprit_clair', 'Bague de l\'esprit clair', 'bague', 'rare', 'Tes Dissipations piochent 1 carte.', { dispelDraw: 1 }),
+  item('larme_reveur', 'Larme du rêveur', 'bijou', 'rare', 'Quand une Hallucination quitte ta main (jouée, ou retirée par un effet), gagne 1 énergie (1 fois par tour).', { hallucinationEnergy: 1 }),
+].map((d) => [d.id, d])));
+
 /** La table de loot de chaque boss de fin d'acte, et son butin épique (un au choix parmi 3). */
 export const BOSS_LOOT: Record<number, { table: string[]; epics: string[] }> = {
   1: {
@@ -365,11 +420,13 @@ export const COMMON_POOL: string[] = [
 const KEY_CLASSES: Partial<Record<keyof ItemEffects, string[]>> = {};
 for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnRage'] as const) KEY_CLASSES[k] = ['guerrier'];
 // Les bonus aux Attaques servent au Guerrier, au Voleur et au Paladin.
-for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin'];
+for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus', 'surfaceDouble', 'attackToxine', 'attackSlow', 'pierceBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin'];
 for (const k of ['wisdomBonus', 'purifyFree', 'blessedHealBlock', 'devotionBonus', 'consecrationLong', 'retributionFree', 'judgeCd', 'sealsFree', 'holyBonus', 'vengeanceDivine', 'doubleSeal', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
 for (const k of ['sinisterBonus', 'poisonBonus', 'finisherBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
 for (const k of ['startCharges', 'burnBonus', 'firstSpellFree', 'chargeBonus'] as const) KEY_CLASSES[k] = ['mage'];
 KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin'];
+KEY_CLASSES.firstSpellTwice = KEY_CLASSES.spellBonus;
+KEY_CLASSES.dispelDraw = ['pretre', 'paladin'];
 for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
 KEY_CLASSES.healBonus = ['pretre', 'paladin'];
 KEY_CLASSES.allyBonus = ['demoniste'];
@@ -410,6 +467,14 @@ export const LOOT_TABLES: Record<string, string[]> = {
   ossyrax: ['os_dragon', 'phylactere_brise', 'amulette_outre_tombe', 'bague_necromancien'],
   vashka: ['lance_couvee', 'coquille_vashka', 'bague_mere', 'dragonnet_compagnie'],
   vhaeryx: ['sceau_aire', 'lame_alchimiste', 'elixir_chromatique', 'bague_lignee'],
+  // Acte 3
+  mehkar: ['baton_prophete', 'oeil_prophete', 'bague_reflets', 'amulette_lucidite'],
+  rois_jumeaux: ['lame_asheth', 'sceptre_neshet', 'bague_lien_royal', 'couronne_jumelle'],
+  gharul: ['dent_gharul', 'peau_ver', 'bague_sable_mouvant', 'tambour_sismique'],
+  triade: ['dard_tazz', 'carapace_kesh', 'bague_vorra', 'sceau_ruche'],
+  limon: ['fiole_limon', 'masse_visqueuse', 'amulette_gelatineuse', 'bague_primordiale'],
+  sartaq: ['poing_obsidienne', 'coeur_colosse', 'eclat_supremacie', 'bague_obsidienne'],
+  nebet: ['bandeau_oracle', 'baton_visions', 'bague_esprit_clair', 'larme_reveur'],
 };
 
 export type Equipment = Record<SlotKey, string | null>;

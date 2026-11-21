@@ -1,27 +1,34 @@
 """Sprites des ennemis de l'acte 1 utilisés par le prototype.
 Les sprites regardent vers la gauche (vers le héros)."""
 import os
-from sprites import Sprite, vulkhar
+from sprites import RESPIRE, Sprite, danse, vulkhar
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
 
-def molosse():
+def molosse(f=0):
+    """Le molosse. f = image de l'animation (0 à 3) : ses flancs se gonflent, il baisse la tête
+    en grognant, ses flammes dansent et ses fissures rougeoient."""
     s = Sprite(48, 48)
-    s.poly([(36, 20), (44, 14), (46, 18), (40, 24)], '#F59A2E', glow=True)  # queue enflammée
+    e = RESPIRE[f]  # les flancs se gonflent
+    t = [0, 1, 2, 1][f]  # la tête baisse
+    braise = ['#FF8A2A', '#FFA04A', '#FFC24B', '#FFA04A'][f]
+    s.poly(danse([(36, 20), (44, 14), (46, 18), (40, 24)], f, 1.5), '#F59A2E', glow=True)  # queue enflammée
     s.rect(30, 32, 34, 42, '#3A2A26')  # pattes arrière
     s.rect(14, 32, 18, 42, '#3A2A26')
-    s.ellipse(12, 20, 40, 36, '#4E3A33')  # corps
+    s.ellipse(12, 20 - e, 40, 36, '#4E3A33')  # corps
     s.rect(34, 33, 38, 42, '#4E3A33')
     s.rect(18, 33, 22, 42, '#4E3A33')
-    s.line([(16, 26), (34, 26)], '#FF8A2A', glow=True)  # fissures
-    s.line([(20, 30), (30, 30)], '#FF8A2A', glow=True)
-    s.ellipse(3, 14, 19, 28, '#4E3A33')  # tête
-    s.poly([(2, 22), (10, 22), (10, 28), (3, 27)], '#3A2A26')  # gueule
-    s.poly([(10, 14), (13, 7), (16, 15)], '#2A1C18')  # oreille
-    s.rect(7, 18, 9, 19, '#FFE27A', glow=True)  # œil
-    s.dots([(4, 24), (6, 24), (8, 24)], '#FFE27A', glow=True)  # crocs
-    s.poly([(14, 16), (18, 10), (22, 15), (26, 8), (30, 16), (34, 12), (36, 20), (14, 20)], '#F59A2E', glow=True)
+    s.line([(16, 26), (34, 26)], braise, glow=True)  # fissures
+    s.line([(20, 30), (30, 30)], braise, glow=True)
+    with s.bouge(0, t):
+        s.ellipse(3, 14, 19, 28, '#4E3A33')  # tête
+        s.poly([(2, 22), (10, 22), (10, 28), (3, 27)], '#3A2A26')  # gueule
+        s.poly([(10, 14), (13, 7), (16, 15)], '#2A1C18')  # oreille
+        s.rect(7, 18, 9, 19, '#FFE27A', glow=True)  # œil
+        s.dots([(4, 24), (6, 24), (8, 24)], '#FFE27A', glow=True)  # crocs
+    with s.bouge(0, -e):  # la crinière de flammes suit le dos
+        s.poly(danse([(14, 16), (18, 10), (22, 15), (26, 8), (30, 16), (34, 12), (36, 20), (14, 20)], f, 2), '#F59A2E', glow=True)
     return s.render()
 
 
@@ -41,14 +48,23 @@ def eclaireur():
     return s.render()
 
 
-def etincelle():
+def etincelle(f=0):
+    """L'étincelle. f = image de l'animation (0 à 3) : elle flotte, sa flamme danse,
+    ses étincelles tournent autour d'elle et elle cligne des yeux."""
     s = Sprite(32, 32)
-    s.poly([(16, 2), (22, 12), (25, 20), (21, 28), (11, 28), (7, 20), (10, 12)], '#E8562A', glow=True)
-    s.poly([(16, 9), (20, 16), (21, 23), (16, 27), (11, 23), (12, 16)], '#F59A2E', glow=True)
-    s.ellipse(12, 16, 20, 25, '#FFE27A', glow=True)
-    s.rect(13, 19, 14, 20, '#2A0E05', glow=True)
-    s.rect(18, 19, 19, 20, '#2A0E05', glow=True)
-    s.dots([(5, 8), (27, 10), (26, 26), (4, 24)], '#FFC24B', glow=True)
+    h = [1, 0, -1, 0][f]  # elle flotte
+    with s.bouge(0, h):
+        s.poly(danse([(16, 2), (22, 12), (25, 20), (21, 28), (11, 28), (7, 20), (10, 12)], f, 1), '#E8562A', glow=True)
+        s.poly(danse([(16, 9), (20, 16), (21, 23), (16, 27), (11, 23), (12, 16)], f + 2, 1), '#F59A2E', glow=True)
+        g = [0, 1, 0, -1][f]
+        s.ellipse(12 - g, 16 - g, 20 + g, 25, '#FFE27A', glow=True)
+        yeux = 1 if f == 3 else 2  # elle cligne des yeux
+        s.rect(13, 21 - yeux, 14, 20, '#2A0E05', glow=True)
+        s.rect(18, 21 - yeux, 19, 20, '#2A0E05', glow=True)
+    # les étincelles tournent chacune sur un petit cercle
+    rond = [(0, -2), (2, 0), (0, 2), (-2, 0)]
+    tour = [(5, 8), (27, 10), (26, 26), (4, 24)]
+    s.dots([(x + rond[(k + f) % 4][0], y + rond[(k + f) % 4][1]) for k, (x, y) in enumerate(tour)], '#FFC24B', glow=True)
     return s.render()
 
 

@@ -57,6 +57,18 @@ export const LORE: Record<string, string> = {
   gardien_obsidienne: 'Taillés dans la pierre noire par les premiers rois d\'Irem. La magie glisse sur eux ; seul l\'acier les entame vraiment.',
   tentacule: 'Un œil au bout d\'une tige de chair, né d\'un rêve d\'Yzhar. Les lames ont du mal à le toucher, et son regard trouble l\'esprit.',
   garde_royale: 'L\'élite de la ruche, chargée de protéger les prêtres et les rois. Son cri galvanise tous les insectes à portée.',
+  mehkar: 'Le prophète d\'Yzhar, qui a vu le dieu en rêve et n\'est jamais vraiment revenu. Il se divise en reflets de lui-même, et l\'on ne sait jamais lequel frapper.',
+  mehkar_copie: 'Un reflet de Méhkar, né de la Folie de ceux qui le regardent. Il a son visage et sa voix, mais il s\'efface au premier vrai coup.',
+  asheth: 'Le roi-guerrier d\'Irem, né du même œuf que son frère. Il brise les corps, et la magie glisse sur sa carapace… jusqu\'à l\'Échange.',
+  neshet: 'Le roi-mage d\'Irem, né du même œuf que son frère. Il brise les esprits, et l\'acier ne l\'entame pas… jusqu\'à l\'Échange.',
+  gharul: 'Un ver colossal qui nage dans le sable comme dans l\'eau. On ne le voit pas venir : on sent seulement le sol trembler, puis le désert se referme sur vous.',
+  kesh: 'L\'aîné de la Triade, le bouclier de la ruche. Il charge sans réfléchir et se referme dans sa carapace dès que ses cadets sont menacés.',
+  vorra: 'La sœur de la Triade, qui soigne les siens d\'un chant royal. Son cri glace les mains de ceux qui l\'entendent.',
+  tazz: 'Le cadet de la Triade, un empoisonneur rapide et sournois. Ses dards laissent un venin qui ronge pendant des jours.',
+  limon: 'Une masse vivante, plus ancienne que la cité, qui ronge tout ce qu\'elle touche. On ne peut pas la blesser vraiment tant qu\'elle n\'est pas figée.',
+  limon_mineur: 'Un morceau du Limon primordial, détaché quand on l\'a frappé sans le figer. Petit, mais tout aussi vorace.',
+  sartaq: 'Un colosse taillé dans l\'obsidienne par les premiers rois d\'Irem. Tant que sa suprématie tient, rien ne l\'entame ; mais un cristal mal taillé peut tout faire céder.',
+  nebet: 'Une prêtresse qui s\'est arraché les yeux pour mieux voir les rêves d\'Yzhar. Elle partage ce qu\'elle voit, et ceux qui l\'écoutent perdent la raison.',
   vulkhar: '« Insectes ! Vous osez troubler mon sommeil ? Vous brûlerez, comme brûle la montagne ! » Arraché à son plan par la Grande Brèche, le Souverain des flammes dort sous le mont Durgal.',
 };
 

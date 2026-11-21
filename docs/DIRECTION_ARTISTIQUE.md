@@ -122,17 +122,26 @@ Chaque classe a une couleur, utilisée pour son liseré dans l'interface et ses 
 
 ## 7. Animations
 
-Des animations courtes, de 2 à 6 images :
+**Tout sprite de héros, de familier ou d'ennemi est animé au repos**, y compris ceux des classes et des actes à venir (Chasseur, Chaman, Druide, acte 3, acte bonus) : on le dessine directement avec l'animation.
+
+Le style est **marqué, comme le feu de camp** : 4 images en boucle, 0,2 s par image, des mouvements de 2 pixels, et les éléments lumineux qui changent de forme à chaque image.
 
 | Animation | Images | Remarque |
 |---|---|---|
-| **Respiration** (au repos) | 2 à 4 | Le personnage monte et descend d'un pixel. |
-| **Attaque** | 3 à 4 | Un mouvement vers l'avant, puis retour. |
-| **Dégâts subis** | 2 | Un clignotement blanc, et un pixel de recul. |
-| **Mort** | 4 à 6 | Chute ou dissolution (en cendres, en lave, en poussière selon l'acte). |
-| **Incantation** | 2 à 4 | Une lueur qui grandit, de la couleur du sort. |
+| **Repos** | 4 | Le haut du corps descend de 2 pixels puis remonte (les jambes restent fixes). Les capes et les plumets flottent avec un léger retard. Les flammes dansent, la magie pulse, les créatures volantes flottent. |
+| **Arrêt sur image** (à l'impact) | — | Fait par le jeu (`fx.ts`) : l'attaquant et la cible se figent un instant et la cible flashe en blanc ; plus long sur un gros coup. |
+| **Changement de tenue** | — | Fait par le jeu : flash et onde de la couleur de la nouvelle tenue (le Prêtre en Forme d'Ombre). |
+| **Attaque** *(à venir)* | 2 | Élan, puis frappe, joués pendant la charge vers la cible. |
+| **Dégâts subis** *(à venir)* | 1 | Le sprite recule et grimace, en plus du flash. |
+| **Incantation** *(à venir)* | 1 à 2 | Bras levé et lueur de la couleur du sort. |
+| **Mort** *(à venir)* | 4 à 6 | Chute ou dissolution (en cendres, en lave, en poussière selon l'acte). |
 
-Les flammes, la lave et les éclats peuvent aussi avoir une petite animation en boucle, de 2 à 3 images.
+**Comment on anime un sprite** (voir `tools/pixel/README.md`) :
+- sa fonction de dessin prend le numéro de l'image `f` (0 à 3) ; l'image 0 sert aussi d'image fixe (archives, fiches) ;
+- `s.bouge(dx, dy)` décale un groupe de formes, `danse(points, f)` fait danser les pointes d'une flamme, `RESPIRE[f]` donne le décalage de la respiration ;
+- on l'ajoute à `ANIMES` dans `tools/pixel/animations.py` (qui exporte la planche `anim_<nom>.png` et un GIF d'aperçu dans `assets/essais/`) et dans `ANIMES` de `src/ui.ts`.
+- **les ennemis sont animés automatiquement** : `anime_auto` rejoue les formes du sprite (le haut du corps respire, les pattes restent au sol, les flammes dansent, la magie pulse). Il suffit de leur donner un profil dans `PROFILS` (`sol` par défaut, `vol`, `fixe`, `ondule` pour les vers et tentacules, `gelee` pour les limons) et de relancer `python3 animations.py`. Les ailes dessinées dans un bloc `with s.marque('aile'):` (premier point = l'attache sur le dos) battent toutes seules : c'est le cas de la fonction `aile()` de l'acte 2. Un boss peut ensuite recevoir une animation dessinée à la main (comme Vulkhar), qui remplace l'automatique ;
+- **un nouvel ennemi** : l'ajouter au `SPRITES` de son acte, puis lancer `python3 animations.py` depuis `tools/pixel/`. Le test `tests/animations.test.ts` échoue si un ennemi ou une classe jouable n'a pas sa planche.
 
 ---
 

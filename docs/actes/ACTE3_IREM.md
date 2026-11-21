@@ -440,6 +440,15 @@ Le travail est découpé en 5 lots ; l'acte 3 ne sera jouable qu'une fois les lo
 - **La Frappe perçante** (`pierce`) ignore le blocage ; **Nuée** : quand un Scarabée meurt, les autres gagnent 1 Puissance.
 - Les **8 ennemis de trash** et leurs 10 groupes (`src/engine/enemies_acte3.ts`), leurs sprites et les illustrations du Sable et de l'Hallucination (`tools/pixel/acte3.py`), leurs fiches dans les archives, et les nouveaux mots-clés dans les infobulles.
 
-**À venir :** lot 2 (les 7 boss secondaires), lot 3 (Yzhar, puis l'acte enchaîné après Vhaeryx avec son butin épique, et la victoire après Yzhar), lot 4 (événements, combats cachés, les Veilleurs de l'Aurore), lot 5 (équilibrage sur 3 actes et difficulté).
+**Lot 2 (fait) : les 7 boss secondaires** (`src/engine/irem.ts`, `enemies_acte3.ts`, tables de loot dans `items.ts`). Ils ne sont pas encore sur la carte (`LAST_ACT` = 2) : sur `dev`, l'outil 🛠 Test les lance depuis la carte (« Boss secondaires d'Irem »). Choix de novembre 2026 :
+- **Méhkar :** les Copies ne se distinguent pas (même sprite, PV « ? / ? », dégâts annoncés « ? », pas d'aperçu des dégâts) jusqu'à ce qu'elles soient touchées ; l'Œil du prophète montre le vrai. **Domination mentale :** pendant le tour qui suit, la première Attaque te frappe toi-même avec ses propres dégâts (ton blocage compte, ses autres effets sont perdus ; une Attaque de zone frappe une seule fois). Limité à un tour, sinon elle attendait indéfiniment la prochaine Attaque.
+- **Rois-Jumeaux :** immunité **totale** ; les DoT et les effets de zone passent ; les sorts de barre du Guerrier, du Voleur et du Paladin comptent comme des Attaques.
+- **Limon :** le Figeage compte les débuffs (Ralenti, Démoralisé, Armure fracassée, Gel, Peur, Contrôle, Malédictions…), **pas les DoT**. Le Corps visqueux réduit tous les dégâts, DoT compris.
+- **Triade :** la Vengeance royale (+50 %) ne se cumule pas ; le soin de 20 PV, si.
+- **Sartaq :** le Cristal brise aussi la Suprématie à son tour suivant (sinon les 25 de blocage revenaient aussitôt) ; il n'est pas Éphémère, on le garde pour son gros tour.
+- **Larme du rêveur :** une Hallucination qui quitte ta main, jouée ou retirée par un effet (Bague du sable mouvant).
+- Premier passage du bot (`tools/balance/irem.sim.ts`, classes niveau 10, PV pleins, la run qu'il a devant Vhaeryx) : 70 à 100 % de victoires. Nebet et Sartaq tombent vite (3 à 5 tours), Méhkar et le Limon durent (jusqu'à 15-30 tours). À reprendre au lot 5.
+
+**À venir :** lot 3 (Yzhar, puis l'acte enchaîné après Vhaeryx avec son butin épique, et la victoire après Yzhar), lot 4 (événements, combats cachés, les Veilleurs de l'Aurore), lot 5 (équilibrage sur 3 actes et difficulté).
 
 **Décisions de novembre 2026 :** la run se terminera après Yzhar (les difficultés déjà débloquées restent acquises) ; les entrailles d'Yzhar seront faites comme la fiche, puis ajustées au lot 5 ; les compagnons, totems et formes (Chasseur, Chaman, Druide) seront ajoutés avec leurs classes.

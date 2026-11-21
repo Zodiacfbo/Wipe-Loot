@@ -34,8 +34,27 @@ export function gainFaith(c: CombatState, n: number): void {
   }
 }
 
+/** Bague de l'esprit clair : une Dissipation pioche (une seule fois pour Lumière purificatrice). */
+let dispelling = false;
+export function dispelDraw(c: CombatState, fn: () => void): void {
+  const outer = !dispelling;
+  dispelling = true;
+  try {
+    fn();
+  } finally {
+    if (outer) dispelling = false;
+  }
+  if (outer && c.gear?.dispelDraw) drawCards(c, c.gear.dispelDraw);
+}
+
 /** Dissipation (Magie) : les malédictions des ennemis. */
 export function dispelMagic(c: CombatState): boolean {
+  let done = false;
+  dispelDraw(c, () => (done = dispelMagicInner(c)));
+  return done;
+}
+
+function dispelMagicInner(c: CombatState): boolean {
   const d = c.player.debuffs;
   if (!d) return false;
   const any = d.demoralise > 0 || d.impie > 0 || d.arcane > 0 || d.manaBurn > 0 || d.panic > 0 || (d.lignee ?? 0) > 0 || (d.fracasse ?? 0) > 0;
@@ -48,6 +67,12 @@ export function dispelMagic(c: CombatState): boolean {
 
 /** Dissipation (Maladie et Poison) : Toxine, Peste, et les Afflictions verte et noire. */
 export function dispelPoison(c: CombatState): boolean {
+  let done = false;
+  dispelDraw(c, () => (done = dispelPoisonInner(c)));
+  return done;
+}
+
+function dispelPoisonInner(c: CombatState): boolean {
   const d = c.player.debuffs;
   if (!d) return false;
   const any = (d.toxine ?? 0) > 0 || (d.peste ?? 0) > 0;
