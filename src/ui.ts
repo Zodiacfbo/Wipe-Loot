@@ -365,10 +365,21 @@ function uselessNote(id: string): string {
   const name = classInfo(cls).name;
   const useless = uselessFx(id, cls);
   if (useless.length === 0) return '';
-  return useless.length === Object.keys(ITEMS[id].fx).length
-    ? `Sans effet pour le ${name}.`
-    : `${cls === 'guerrier' || cls === 'voleur' ? 'Le bonus aux Sorts' : 'Le bonus aux Attaques'} ne sert pas au ${name}.`;
+  if (useless.length === Object.keys(ITEMS[id].fx).length) return `Sans effet pour le ${name}.`;
+  // On nomme ce qui ne sert pas (avant, la phrase disait toujours « aux Attaques » ou « aux Sorts », parfois à tort).
+  const labels = [...new Set(useless.map((k) => USELESS_LABEL[k] ?? 'Une partie de l\'effet'))];
+  return `${labels.join(' et ')} ne ${labels.length > 1 ? 'servent' : 'sert'} pas au ${name}.`;
 }
+
+/** Le nom d'un effet d'objet propre à certaines classes, pour dire qu'il ne sert pas. */
+const USELESS_LABEL: Partial<Record<string, string>> = {
+  attackBonus: 'Le bonus aux Attaques', lowHpBonus: 'Le bonus aux Attaques', firstAttackBonus: 'Le bonus aux Attaques', heavyAttackBonus: 'Le bonus aux Attaques',
+  spellBonus: 'Le bonus aux Sorts', firstSpellTwice: 'Le bonus aux Sorts', firstSpellFree: 'Le bonus aux Sorts',
+  burnBonus: 'Le bonus aux Brûlures', startCharges: 'Les charges arcaniques', fireballBonus: 'Le bonus à Boule de feu',
+  startRage: 'La rage', rageOnHpLoss: 'La rage', maxRage: 'La rage', turnRage: 'La rage', executeAlways: 'Le bonus à Exécution',
+  bleedFirstAttack: 'Le Saignement', bleedBonus: 'Le Saignement', attackBurn: 'La Brûlure des Attaques', healOnAttack: 'Le soin des Attaques',
+  healBonus: 'Le bonus aux soins', allyBonus: 'Le bonus aux alliés', dotDuration: 'Le bonus aux DoT',
+};
 
 /** Où se place chaque emplacement autour du héros (colonne gauche ou droite, rang 1 à 3). */
 const EQUIP_LAYOUT: Record<SlotKey, [string, number]> = {
