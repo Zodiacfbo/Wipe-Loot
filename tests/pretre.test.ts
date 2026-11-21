@@ -94,16 +94,21 @@ describe('la Foi', () => {
     expect(c.enemies[0].hp).toBe(hp - 20);
   });
 
-  it('la Forme d\'Ombre : Sorts d\'Ombre +30 %, soins réduits de moitié, plus de Foi', () => {
+  it('la Forme d\'Ombre : tick immédiat des DoT, Sorts d\'Ombre +50 %, soins réduits de 25 %, la Foi reste', () => {
     const c = fight(['kragg'], ['forme_ombre', 'attaque_mentale', 'soins_rapides']);
+    const e = c.enemies[0];
+    e.dots = [{ id: 'douleur', dmg: 4, turns: 2 }];
+    let hp = e.hp;
     play(c, 'forme_ombre');
-    const hp = c.enemies[0].hp;
+    expect(hp - e.hp).toBe(6); // 4 + 2 (Forme d'Ombre)
+    expect(e.dots[0].turns).toBe(2);
+    hp = e.hp;
     play(c, 'attaque_mentale');
-    expect(c.enemies[0].hp).toBe(hp - Math.floor(9 * 1.3));
+    expect(e.hp).toBe(hp - Math.floor(9 * 1.5));
     c.player.hp = 50;
     play(c, 'soins_rapides');
-    expect(c.player.hp).toBe(53);
-    expect(c.faith).toBe(0);
+    expect(c.player.hp).toBe(54);
+    expect(c.faith).toBe(1);
   });
 });
 

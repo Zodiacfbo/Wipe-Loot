@@ -77,7 +77,7 @@ export function healPlayer(c: CombatState, amount: number): number {
   if (priest && heal > 0) {
     heal += c.gear?.healBonus ?? 0; // Soins améliorés
     if (c.gear?.equinoxe && !c.shadowForm) heal += 3; // Équinoxe (Lumière)
-    if (c.shadowForm) heal = Math.floor(heal / 2); // Forme d'Ombre
+    if (c.shadowForm) heal = Math.floor(heal * 0.75); // Forme d'Ombre
     // Malédiction de lignée du Prêtre : ses soins le blessent.
     if ((d?.lignee ?? 0) > 0) {
       p.hp = Math.max(c.undying ? 1 : 0, p.hp - heal);
@@ -186,7 +186,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (spell && (target.elements ?? 0) > 0) dmg *= 1 + target.elements! / 100;
   if (spell && c.doubleNext) dmg *= 2;
   // Forme d'Ombre : les Sorts d'Ombre +30 %. Châtiment amélioré, Esprit sombre.
-  if (c.shadowForm && c.playing?.school === 'ombre') dmg *= 1.3;
+  if (c.shadowForm && c.playing?.school === 'ombre') dmg *= 1.5;
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
   if (rogueAttack && target.vendetta) dmg *= 1.5;
   if (rogueAttack && c.coldBlood) dmg *= 2;
