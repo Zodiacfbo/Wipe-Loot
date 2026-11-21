@@ -63,7 +63,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'evisceration', name: 'Éviscération', type: 'Attaque', finisher: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige 4 dégâts + ${(up ? 8 : 6) + fb(g)} par point de combo.`,
+    text: (up, g) => `Finisher : inflige 4 dégâts + ${(up ? 8 : 6) + fb(g)} par combo.`,
     play: (ctx) => hit(ctx, 4 + ((ctx.up ? 8 : 6) + fb(ctx.c.gear)) * pts(ctx)),
   },
   {
@@ -97,7 +97,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_aux_reins', name: 'Coup aux reins', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Finisher : la cible (sauf boss) est Contrôlée 1 tour${up ? ', 2 tours à 4 points ou plus' : ''}. Un boss est Démoralisé 1 tour par point de combo.`,
+    text: (up) => `Finisher : la cible (sauf boss) est Contrôlée 1 tour${up ? ', 2 tours à 4 points ou plus' : ''}. Un boss est Démoralisé 1 tour par combo.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t || pts(ctx) === 0) return;
@@ -111,7 +111,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'danse_lames', name: 'Danse des lames', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Finisher : pendant 1 tour par point de combo, tes Attaques infligent +${up ? 4 : 3} dégâts.`,
+    text: (up) => `Finisher : pendant 1 tour par combo, tes Attaques infligent +${up ? 4 : 3} dégâts.`,
     play: (ctx) => {
       if (pts(ctx) === 0) return;
       ctx.c.bladeDance = { bonus: ctx.up ? 4 : 3, turns: pts(ctx) };
@@ -157,7 +157,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'rupture', name: 'Rupture', type: 'Attaque', finisher: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up) => `Finisher : applique Saignement ${up ? 4 : 3} par point de combo.`,
+    text: (up) => `Finisher : applique Saignement ${up ? 4 : 3} par combo.`,
     play: (ctx) => {
       if (ctx.target && pts(ctx) > 0) applySaignement(ctx.target, (ctx.up ? 4 : 3) * pts(ctx), ctx.c);
     },
@@ -174,7 +174,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'envenimer', name: 'Envenimer', type: 'Attaque', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up, g) => `Finisher : double le Poison de la cible. Inflige ${(up ? 5 : 3) + fb(g)} dégâts par point de combo.`,
+    text: (up, g) => `Finisher : double le Poison. Inflige ${(up ? 5 : 3) + fb(g)} dégâts par combo.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -222,7 +222,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_au_coeur', name: 'Coup au cœur', type: 'Attaque', finisher: true, rarity: 'rare', cost: 2, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par point de combo. Double dégâts si la cible a 30 % de PV ou moins.`,
+    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par combo. Double sous 30 % de PV.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t || pts(ctx) === 0) return;
@@ -327,7 +327,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'embrocher', name: 'Embrocher', type: 'Attaque', finisher: true, rarity: 'rare', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par point de combo à la cible, et ${up ? 4 : 3} par point aux autres ennemis.`,
+    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par combo, ${up ? 4 : 3} par combo aux autres.`,
     play: (ctx) => {
       const n = pts(ctx);
       if (n === 0 || !ctx.target) return;
@@ -426,7 +426,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_fourre', name: 'Coup fourré', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Finisher : gagne ${up ? 7 : 5} blocage par point de combo. Tu es Camouflé au début de ton prochain tour.`,
+    text: (up) => `Finisher : gagne ${up ? 7 : 5} blocage par combo. Tu es Camouflé au début de ton prochain tour.`,
     play: (ctx) => {
       if (pts(ctx) > 0) gainBlock(ctx.c, (ctx.up ? 7 : 5) * pts(ctx));
       ctx.c.stealthNext = true;

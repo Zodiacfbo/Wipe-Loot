@@ -19,6 +19,7 @@ import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM, YZHAR } from './engine/enemies
 import { turnsBeforeSwap } from './engine/irem';
 import { MUTATION_LABEL } from './engine/actions';
 import { cardHitValue } from './engine/preview';
+import { placeHit } from './cardtext';
 import { afterRender, initAides } from './aides';
 import { markKeywords } from './keywords';
 import { ACTS, LAST_ACT, actDef } from './engine/acts';
@@ -230,13 +231,10 @@ const SCHOOL_LABEL = { arcane: 'Arcane', feu: 'Feu', givre: 'Givre', sacre: 'Sac
  * (Puissance, posture, objets, cible…), en vert s'il monte et en rouge s'il baisse.
  */
 function cardText(text: string, hit: number | null | undefined): string {
-  let html = markKeywords(text);
-  const nums = [...html.matchAll(/(\d+)([\s\u00a0]+dégâts?)(?![\s\u00a0]+par)/g)];
-  if (hit !== null && hit !== undefined && nums.length === 1 && Number(nums[0][1]) !== hit) {
-    const m = nums[0];
-    html = `${html.slice(0, m.index)}<span class="valeur ${hit > Number(m[1]) ? 'plus' : 'moins'}">${hit}</span>${html.slice(m.index! + m[1].length)}`;
-  }
-  return html;
+  const place = placeHit(text, hit);
+  if (!place) return markKeywords(text);
+  const cls = hit! > place.base ? 'plus' : hit! < place.base ? 'moins' : '';
+  return `${markKeywords(place.before)}<span class="valeur ${cls}">${hit}</span>${markKeywords(place.after)}`;
 }
 
 function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; disguise?: boolean } = {}): string {
