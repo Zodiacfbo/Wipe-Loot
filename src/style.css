@@ -820,7 +820,9 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 
 /* ---------- Aides : infobulles des mots-clés et aperçu des dégâts ---------- */
 .carte, .chip { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-.mot { text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+/* Les mots-clés : en or (appui long ou survol pour l'explication) ; souligné seulement au survol de la souris. */
+.mot { color: #f2c96b; text-underline-offset: 2px; }
+@media (hover: hover) { .mot:hover { text-decoration: underline dotted; text-decoration-thickness: 1.5px; } }
 .chip { cursor: help; }
 .bulle {
   position: absolute; z-index: 90; max-width: 280px; padding: 9px 12px; border-radius: 10px; pointer-events: none;
