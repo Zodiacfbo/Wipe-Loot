@@ -145,13 +145,13 @@ export const DEMONISTE_TREES: TreeDef[] = [
   {
     id: 'affliction', name: 'Affliction', theme: 'DoT et Malédictions',
     tiers: [
-      [t('corruption_amelioree', 'Corruption améliorée', 'Corruption inflige +2 dégâts par tour.', { fx: { corruptionBonus: 2 } }),
+      [t('corruption_amelioree', 'Corruption améliorée', 'Tes DoT infligent +2 dégâts par tour.', { fx: { dotBonus: 2 } }),
         t('malediction_durable', 'Malédictions durables', 'Tes Malédictions durent 2 tours de plus.', { fx: { curseDuration: 2 } })],
       [t('moisson_ames', 'Moisson d\'âmes', 'Quand un ennemi meurt avec un de tes DoT, gagne 1 éclat d\'âme de plus.', { fx: { harvestShard: 1 } }),
         t('double_malediction', 'Double malédiction', 'Chaque ennemi peut porter 2 de tes Malédictions au lieu d\'une.', { fx: { doubleCurse: 1 } })],
       [t('t_amplifier', 'Amplifier la malédiction', 'Ajoute ce sort à ta barre : l\'effet de ta prochaine Malédiction est doublé.', { spell: 'amplifier' }),
         t('t_spirale_mortelle', 'Spirale mortelle', 'Ajoute ce sort à ta barre : 8 dégâts, soigne 8 PV, Apeuré.', { spell: 'spirale_mortelle' })],
-      [t('contagion_naturelle', 'Contagion naturelle', 'Quand un ennemi meurt, ses DoT passent à un autre ennemi.', { fx: { naturalContagion: 1 } }),
+      [t('contagion_naturelle', 'Contagion naturelle', 'Tes DoT durent 1 tour de plus, et quand un ennemi meurt, ses DoT passent à un autre ennemi.', { fx: { naturalContagion: 1, dotDuration: 1 } }),
         t('d_quatrieme_emplacement_a', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
       [t('t_tempete_afflictions', 'Tempête d\'afflictions', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'tempete_afflictions' })],
     ],
@@ -177,7 +177,7 @@ export const DEMONISTE_TREES: TreeDef[] = [
   {
     id: 'destruction', name: 'Destruction', theme: 'Ombre et flammes',
     tiers: [
-      [t('trait_ombre_ameliore', 'Trait de l\'ombre amélioré', 'Trait de l\'ombre inflige +3 dégâts.', { fx: { shadowBoltBonus: 3 } }),
+      [t('trait_ombre_ameliore', 'Trait de l\'ombre amélioré', 'Trait de l\'ombre inflige +5 dégâts.', { fx: { shadowBoltBonus: 5 } }),
         t('devastation', 'Dévastation', 'Immolation inflige +3 dégâts par tour.', { fx: { immolationBonus: 3 } })],
       [t('pyroclasme', 'Pyroclasme', 'Pluie de feu et Déflagration d\'ombre démoralisent (1 tour).', { fx: { pyroclasm: 1 } }),
         t('intensite', 'Intensité', 'Pacte de sang ne coûte que 3 PV.', { fx: { bloodPactCost: 2 } })],

@@ -73,6 +73,7 @@ export interface ItemEffects {
   gelBonus?: number; // +X à chaque application de Gel
   // Talents du Démoniste
   corruptionBonus?: number; // Corruption inflige +X par tour
+  dotBonus?: number; // Corruption améliorée : tes DoT +X par tour
   curseDuration?: number; // tes Malédictions durent X tours de plus
   harvestShard?: number; // +X éclat quand un ennemi meurt avec un de tes DoT
   doubleCurse?: number; // chaque ennemi peut porter 2 de tes Malédictions
@@ -374,6 +375,7 @@ KEY_CLASSES.healBonus = ['pretre', 'paladin'];
 KEY_CLASSES.allyBonus = ['demoniste'];
 KEY_CLASSES.freePact = ['demoniste'];
 KEY_CLASSES.dotDuration = ['demoniste', 'pretre'];
+KEY_CLASSES.dotBonus = ['demoniste'];
 
 /** Les effets d'un objet qui ne servent pas à cette classe. */
 export function uselessFx(id: string, classId = 'guerrier'): (keyof ItemEffects)[] {
