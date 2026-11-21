@@ -70,7 +70,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'exorcisme', name: 'Exorcisme', type: 'Sort', school: 'sacre', rarity: 'commune', cost: 1, needsTarget: true, icon: 'feu',
-    text: (up) => `Inflige ${up ? 12 : 9} dégâts, ou ${up ? 24 : 18} contre un Mort-vivant ou un Démon.`,
+    text: (up) => `Inflige ${up ? 12 : 9} dégâts (${up ? 24 : 18} aux Morts-vivants et aux Démons).`,
     play: (ctx) => {
       const n = ctx.up ? 12 : 9;
       if (ctx.target) hit(ctx, isUnholy(ctx.target) ? n * 2 : n);
@@ -89,12 +89,12 @@ const LIST: PaladinCard[] = [
   sealCard('sceau_lumiere', 'lumiere', 'Sceau de lumière', 'peu_commune'),
   {
     id: 'aura_resistance', name: 'Aura de résistance', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, costUp: 0, needsTarget: false, icon: 'feu',
-    text: () => 'Aura : les Zones de feu et les poisons ennemis t\'infligent 50 % de dégâts en moins. Une seule Aura à la fois.',
+    text: () => 'Aura : Zones de feu et poisons ennemis : −50 % de dégâts.',
     play: (ctx) => setAura(ctx.c, 'resistance', 50),
   },
   {
     id: 'colere_sacree', name: 'Colère sacrée', type: 'Sort', school: 'sacre', rarity: 'peu_commune', cost: 2, needsTarget: false, icon: 'feu',
-    text: (up) => `Inflige ${up ? 9 : 6} dégâts à tous les ennemis, doublés contre les Morts-vivants et les Démons.`,
+    text: (up) => `${up ? 9 : 6} dégâts à tous, doublés contre Morts-vivants et Démons.`,
     play: (ctx) => {
       const n = ctx.up ? 9 : 6;
       hitAll(ctx, (e) => (isUnholy(e) ? n * 2 : n));
@@ -109,7 +109,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'onde_sacree', name: 'Onde sacrée', type: 'Sort', school: 'sacre', healCard: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Inflige ${up ? 11 : 8} dégâts. Si tu es sous la moitié de tes PV, soigne ${up ? 11 : 8} PV à la place.`,
+    text: (up) => `Inflige ${up ? 11 : 8} dégâts, ou soigne ${up ? 11 : 8} PV si tu es sous 50 % de PV.`,
     play: (ctx) => {
       const n = ctx.up ? 11 : 8;
       const p = ctx.c.player;
@@ -144,7 +144,7 @@ const LIST: PaladinCard[] = [
   sealCard('sceau_sagesse', 'sagesse', 'Sceau de sagesse', 'peu_commune'),
   {
     id: 'faveur_divine', name: 'Faveur divine', type: 'Compétence', rarity: 'peu_commune', cost: 0, needsTarget: false, exhaust: true, exhaustUp: false, icon: 'pouvoir',
-    text: (up) => `Ta prochaine carte de soin ou ton prochain Sort de ce tour a son effet doublé.${up ? '' : ' Épuisé.'}`,
+    text: (up) => `Ton prochain soin ou Sort de ce tour est doublé.${up ? '' : ' Épuisé.'}`,
     play: (ctx) => {
       ctx.c.favor = true;
       fx(ctx.c, { kind: 'buff', who: 'player', label: 'Faveur divine' });
@@ -160,7 +160,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'rayonnement', name: 'Rayonnement', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Chaque fois que tu te soignes, inflige ${up ? 3 : 2} dégâts à tous les ennemis.`,
+    text: (up) => `Chaque fois que tu te soignes : ${up ? 3 : 2} dégâts à tous.`,
     play: (ctx) => powerCard(ctx, 'rayonnement', ctx.up ? 3 : 2, 'Rayonnement'),
   },
   {
@@ -170,12 +170,12 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'illumination', name: 'Illumination', type: 'Pouvoir', rarity: 'rare', cost: 1, innateUp: true, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `La première fois que tu te soignes à chaque tour, gagne 1 énergie.${up ? ' Inné.' : ''}`,
+    text: (up) => `Ton premier soin de chaque tour : +1 énergie.${up ? ' Inné.' : ''}`,
     play: (ctx) => powerCard(ctx, 'illumination', 1, 'Illumination'),
   },
   {
     id: 'benediction_royale', name: 'Bénédiction royale', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Gagne ${up ? 2 : 1} Puissance, ${up ? 2 : 1} Robustesse et ${up ? 5 : 3} PV max (pour ce combat).`,
+    text: (up) => `+${up ? 2 : 1} Puissance, +${up ? 2 : 1} Robustesse et +${up ? 5 : 3} PV max (ce combat).`,
     play: (ctx) => {
       const p = ctx.c.player;
       p.puissance += ctx.up ? 2 : 1;
@@ -187,7 +187,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'aube_purificatrice', name: 'Aube purificatrice', type: 'Sort', school: 'sacre', healCard: true, rarity: 'rare', cost: 2, needsTarget: false, icon: 'sang',
-    text: (up) => `Soigne ${up ? 14 : 10} PV. Inflige ${up ? 14 : 10} dégâts à tous les Morts-vivants et les Démons.`,
+    text: (up) => `Soigne ${up ? 14 : 10} PV. ${up ? 14 : 10} dégâts aux Morts-vivants et aux Démons.`,
     play: (ctx) => {
       palHeal(ctx.c, ctx.up ? 14 : 10);
       for (const e of livingEnemies(ctx.c)) if (isUnholy(e) && !e.submerged) hit(ctx, ctx.up ? 14 : 10, e);
@@ -195,7 +195,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'avatar_lumiere', name: 'Avatar de lumière', type: 'Pouvoir', rarity: 'epique', cost: 3, costUp: 2, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Tes soins sont augmentés de 25 %. Chaque soin inflige la moitié de son montant en dégâts à un ennemi au hasard.',
+    text: () => 'Soins +25 %. Chaque soin : la moitié en dégâts à un ennemi au hasard.',
     play: (ctx) => powerCard(ctx, 'avatar_lumiere', 1, 'Avatar de lumière'),
   },
 
@@ -207,7 +207,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'pavois_sacre', name: 'Pavois sacré', type: 'Compétence', rarity: 'commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 11 : 8} blocage. Jusqu'à ton prochain tour, chaque attaque ennemie bloquée inflige ${up ? 4 : 3} dégâts à l'attaquant.`,
+    text: (up) => `Gagne ${up ? 11 : 8} blocage. D'ici ton tour, attaque bloquée : ${up ? 4 : 3} dégâts en retour.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 11 : 8);
       ctx.c.pavois = Math.max(ctx.c.pavois ?? 0, ctx.up ? 4 : 3);
@@ -236,7 +236,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'consecration', name: 'Consécration', type: 'Sort', school: 'sacre', rarity: 'peu_commune', cost: 2, needsTarget: false, icon: 'feu',
-    text: (up, g) => `À la fin de ce tour${g?.consecrationLong ? ' et des 2 suivants' : ' et du suivant'}, inflige ${up ? 7 : 5} dégâts à tous les ennemis.`,
+    text: (up, g) => `Fin de ce tour${g?.consecrationLong ? ' et des 2 suivants' : ' et du suivant'} : ${up ? 7 : 5} dégâts à tous.`,
     play: (ctx) => {
       ctx.c.consecration = { dmg: ctx.up ? 7 : 5, turns: 2 + (ctx.c.gear?.consecrationLong ?? 0) };
       fx(ctx.c, { kind: 'buff', who: 'player', label: 'Consécration' });
@@ -244,7 +244,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'bouclier_lance', name: 'Bouclier lancé', type: 'Attaque', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'bouclier',
-    text: (up) => `Interruption. Inflige ${up ? 10 : 7} dégâts à la cible, puis rebondit sur 2 autres ennemis.`,
+    text: (up) => `Interruption. ${up ? 10 : 7} dégâts à la cible, puis à 2 autres ennemis.`,
     play: (ctx) => {
       const n = ctx.up ? 10 : 7;
       interrupt(ctx, ctx.target);
@@ -260,27 +260,27 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'fervent', name: 'Fervent', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, innateUp: true, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Quand tu bloques entièrement une attaque, gagne 1 énergie à ton prochain tour (1 fois par tour).${up ? ' Inné.' : ''}`,
+    text: (up) => `Attaque entièrement bloquée : +1 énergie au tour suivant (1 fois).${up ? ' Inné.' : ''}`,
     play: (ctx) => powerCard(ctx, 'fervent', 1, 'Fervent'),
   },
   {
     id: 'aura_epines', name: 'Aura d\'épines sacrées', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Aura : chaque fois qu'un ennemi t'attaque, il subit ${up ? 5 : 3} dégâts. Une seule Aura à la fois.`,
+    text: (up) => `Aura : un ennemi qui t'attaque subit ${up ? 5 : 3} dégâts.`,
     play: (ctx) => setAura(ctx.c, 'epines', ctx.up ? 5 : 3),
   },
   {
     id: 'dernier_serment', name: 'Dernier serment', type: 'Pouvoir', rarity: 'rare', cost: 1, costUp: 0, needsTarget: false, icon: 'sang',
-    text: () => 'La première fois de ce combat que tu passes sous 20 % de tes PV max, soigne 15 PV.',
+    text: () => 'La 1re fois de ce combat sous 20 % de tes PV : soigne 15 PV.',
     play: (ctx) => powerCard(ctx, 'dernier_serment', 1, 'Dernier serment'),
   },
   {
     id: 'juste_chatiment', name: 'Juste châtiment', type: 'Attaque', rarity: 'rare', cost: 1, costUp: 0, needsTarget: true, icon: 'bouclier',
-    text: () => 'Inflige des dégâts égaux au total des dégâts que tu as bloqués depuis ton dernier tour.',
+    text: () => 'Inflige les dégâts que tu as bloqués depuis ton dernier tour.',
     play: (ctx) => hit(ctx, ctx.c.blockedSince ?? 0),
   },
   {
     id: 'bouclier_croise', name: 'Bouclier du croisé', type: 'Compétence', rarity: 'epique', cost: 2, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 16 : 12} blocage. Jusqu'à ton prochain tour, chaque attaque bloquée inflige 4 dégâts à l'attaquant et te soigne de 2 PV.`,
+    text: (up) => `Gagne ${up ? 16 : 12} blocage. D'ici ton tour, attaque bloquée : renvoi 4, +2 PV.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 16 : 12);
       ctx.c.crusaderShield = { dmg: 4, heal: 2 };
@@ -308,7 +308,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'inquisition', name: 'Inquisition', type: 'Compétence', rarity: 'commune', cost: 0, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Réactive le dernier Sceau consommé par un Jugement (Sceau de droiture s'il n'y en a pas). Pioche ${up ? 2 : 1} carte${up ? 's' : ''}.`,
+    text: (up) => `Réactive le dernier Sceau jugé (Droiture sinon). Pioche ${up ? 2 : 1}.`,
     play: (ctx) => {
       activateSeal(ctx.c, ctx.c.lastJudged ?? 'droiture');
       drawCards(ctx.c, ctx.up ? 2 : 1);
@@ -322,7 +322,7 @@ const LIST: PaladinCard[] = [
   sealCard('sceau_vengeance', 'vengeance', 'Sceau de vengeance', 'peu_commune'),
   {
     id: 'marteau_chatiment', name: 'Marteau du châtiment', type: 'Attaque', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up) => `Inflige ${up ? 13 : 10} dégâts, triplés si la cible a 20 % de ses PV ou moins.`,
+    text: (up) => `Inflige ${up ? 13 : 10} dégâts, triplés si la cible est sous 20 % de PV.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -332,17 +332,17 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'zele', name: 'Zèle', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, innateUp: true, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Chaque fois que tu actives un Sceau, gagne 1 Puissance (5 au maximum).${up ? ' Inné.' : ''}`,
+    text: (up) => `Chaque Sceau activé : +1 Puissance (5 au plus).${up ? ' Inné.' : ''}`,
     play: (ctx) => powerCard(ctx, 'zele', 1, 'Zèle'),
   },
   {
     id: 'science_combat', name: 'Science du combat', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Après ta 2e Attaque de chaque tour, ta prochaine carte de soin de ce tour coûte 0.',
+    text: () => 'Après ta 2e Attaque du tour, ton prochain soin coûte 0.',
     play: (ctx) => powerCard(ctx, 'science_combat', 1, 'Science du combat'),
   },
   {
     id: 'exaltation', name: 'Exaltation', type: 'Compétence', rarity: 'peu_commune', cost: 0, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Gagne ${up ? 3 : 2} énergie. Ton Sceau actif est perdu, sans Jugement.`,
+    text: (up) => `Gagne ${up ? 3 : 2} énergie. Perds ton Sceau actif, sans Jugement.`,
     play: (ctx) => {
       ctx.c.player.energy += ctx.up ? 3 : 2;
       if (ctx.c.seals) ctx.c.seals = [];
@@ -351,7 +351,7 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'repentance', name: 'Repentance', type: 'Compétence', rarity: 'rare', cost: 1, needsTarget: true, exhaust: true, icon: 'pouvoir',
-    text: (up) => `La cible est Contrôlée ${up ? 3 : 2} tours (sans effet sur un boss). Épuisé.`,
+    text: (up) => `La cible (sauf boss) est Contrôlée ${up ? 3 : 2} tours. Épuisé.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -366,12 +366,12 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'croisade', name: 'Croisade', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Tes Attaques infligent +2 dégâts, +4 contre les Morts-vivants et les Démons.',
+    text: () => 'Tes Attaques +2 dégâts (+4 aux Morts-vivants et aux Démons).',
     play: (ctx) => powerCard(ctx, 'croisade', 2, 'Croisade'),
   },
   {
     id: 'verdict_cieux', name: 'Verdict des cieux', type: 'Attaque', rarity: 'epique', cost: 3, costUp: 2, needsTarget: true, icon: 'epee',
-    text: () => `Inflige 8 dégâts 2 fois. Déclenche le Jugement de ton Sceau actif, sans le consommer.`,
+    text: () => `Inflige 8 dégâts 2 fois. Jugement de ton Sceau, sans le perdre.`,
     play: (ctx) => {
       hit(ctx, 8);
       hit(ctx, 8);

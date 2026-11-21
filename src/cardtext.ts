@@ -37,3 +37,16 @@ export function placeHit(text: string, hit: number | null | undefined): HitText 
   }
   return null;
 }
+
+/** Les mots qui passent du début du texte au bandeau de la carte. */
+const RIBBON_PREFIX = /^(Finisher|Sceau|Aura|Ouverture|Poison d'arme)[\s\u00a0]*:[\s\u00a0]*/;
+
+/** « Finisher : inflige… » → bandeau « Finisher », texte « Inflige… » (de la place sur téléphone). */
+export function splitRibbon(full: string): { ribbon: string | null; text: string } {
+  const m = RIBBON_PREFIX.exec(full);
+  if (!m) return { ribbon: null, text: full };
+  return { ribbon: m[1], text: full.slice(m[0].length).replace(/^\p{Ll}/u, (c) => c.toUpperCase()) };
+}
+
+/** La longueur visée d'un texte de carte : 3 ou 4 lignes sur téléphone. */
+export const CARD_TEXT_MAX = 72;

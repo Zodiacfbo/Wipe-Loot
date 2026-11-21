@@ -64,7 +64,7 @@ const LIST: DemoCard[] = [
   // --- Tronc commun ---
   {
     id: 'siphon_ame', name: 'Siphon d\'âme', type: 'Sort', rarity: 'commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Inflige ${up ? 10 : 7} dégâts. Si la cible meurt ce tour-ci : +2 éclats d'âme.`,
+    text: (up) => `Inflige ${up ? 10 : 7} dégâts. S'il meurt ce tour-ci : +2 éclats d'âme.`,
     play: (ctx) => {
       if (ctx.target && ctx.c.soulSiphon) ctx.c.soulSiphon[ctx.target.uid] = Math.max(ctx.c.soulSiphon[ctx.target.uid] ?? 0, 2);
       zap(ctx, ctx.up ? 10 : 7);
@@ -81,7 +81,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'peur', name: 'Peur', type: 'Compétence', rarity: 'commune', cost: 1, costUp: 0, needsTarget: true, icon: 'pouvoir',
-    text: () => `La cible (sauf boss) est Apeurée 1 tour. Un boss est Démoralisé 2 tours.`,
+    text: () => `La cible est Apeurée 1 tour (boss : Démoralisé 2 tours).`,
     play: (ctx) => {
       if (ctx.target) fear(ctx.target);
     },
@@ -96,7 +96,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'malediction_langages', name: 'Malédiction des langages', type: 'Malédiction', rarity: 'peu_commune', cost: 0, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `${up ? 'Les 2 prochaines Incantations' : 'La prochaine Incantation'} de la cible ${up ? 'mettent' : 'met'} 1 tour de plus à se terminer.`,
+    text: (up) => `${up ? 'Ses 2 prochaines Incantations durent' : 'Sa prochaine Incantation dure'} 1 tour de plus.`,
     play: (ctx) => {
       if (!ctx.target) return;
       const m = placeCurse(ctx.c, ctx.target, 'langages');
@@ -127,7 +127,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'pierre_de_vie_carte', name: 'Création de pierre de vie', type: 'Compétence', rarity: 'rare', cost: 1, costUp: 0, needsTarget: false, exhaust: true, icon: 'sang',
-    text: () => `Une Pierre de vie (soigne 15 PV) dans un emplacement de potion libre. Épuisé.`,
+    text: () => `Une Pierre de vie (soigne 15 PV) en potion. Épuisé.`,
     play: (ctx) => {
       (ctx.c.newPotions ??= []).push('pierre_de_vie');
       fx(ctx.c, { kind: 'buff', who: 'player', label: 'Pierre de vie' });
@@ -144,7 +144,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'malediction_souffrance', name: 'Malédiction de souffrance', type: 'Malédiction', rarity: 'commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up) => `Pendant 6 tours, la cible subit des dégâts croissants : ${up ? '2 à 7' : '1 à 6'}.`,
+    text: (up) => `6 tours : des dégâts croissants, de ${up ? '2 à 7' : '1 à 6'}.`,
     play: (ctx) => {
       if (!ctx.target) return;
       const m = placeCurse(ctx.c, ctx.target, 'souffrance');
@@ -162,7 +162,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'malediction_fatigue', name: 'Malédiction de fatigue', type: 'Malédiction', rarity: 'commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `5 tours : la cible est Ralentie, et ses attaques infligent ${up ? 3 : 2} dégâts de moins.`,
+    text: (up) => `5 tours : Ralentie, et ses attaques font ${up ? 3 : 2} dégâts de moins.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -189,7 +189,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'malediction_elements', name: 'Malédiction des éléments', type: 'Malédiction', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Pendant 5 tours, la cible subit ${up ? 50 : 30} % de dégâts en plus de tes Sorts.`,
+    text: (up) => `5 tours : tes Sorts lui infligent +${up ? 50 : 30} % de dégâts.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -207,7 +207,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'hantise', name: 'Hantise', type: 'Sort', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Inflige ${up ? 11 : 8} dégâts. Pendant 2 tours, tes DoT sur la cible infligent 50 % de plus.`,
+    text: (up) => `Inflige ${up ? 11 : 8} dégâts. 2 tours : tes DoT sur elle +50 %.`,
     play: (ctx) => {
       zap(ctx, ctx.up ? 11 : 8);
       if (ctx.target && !ctx.target.dead) ctx.target.haunted = 2;
@@ -220,7 +220,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'contagion', name: 'Contagion', type: 'Compétence', rarity: 'rare', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up) => `Copie tes DoT et tes Malédictions de la cible sur ${up ? 'tous les autres ennemis' : 'un autre ennemi'}.`,
+    text: (up) => `Copie tes DoT et Malédictions sur ${up ? 'tous les autres ennemis' : 'un autre ennemi'}.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -239,7 +239,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'moisson_sombre', name: 'Moisson sombre', type: 'Sort', rarity: 'rare', cost: 2, needsTarget: false, icon: 'sang',
-    text: (up) => `À chaque ennemi : ${up ? 6 : 4} dégâts par DoT et Malédiction actifs sur lui.`,
+    text: (up) => `Chaque ennemi : ${up ? 6 : 4} dégâts par DoT ou Malédiction sur lui.`,
     play: (ctx) => {
       for (const e of livingEnemies(ctx.c)) {
         const n = afflictionCount(e);
@@ -249,12 +249,12 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'tourment', name: 'Tourment', type: 'Pouvoir', rarity: 'rare', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => `Chaque fois qu'un de tes DoT inflige des dégâts, soigne 1 PV.`,
+    text: () => `Chaque fois qu'un de tes DoT frappe, soigne 1 PV.`,
     play: (ctx) => powerCard(ctx, 'tourment', 1, 'Tourment'),
   },
   {
     id: 'tempete_afflictions', name: 'Tempête d\'afflictions', type: 'Sort', rarity: 'epique', cost: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Déclenche ${up ? 'trois' : 'deux'} fois tous tes DoT sur tous les ennemis (sans réduire leur durée), puis prolonge-les de 1 tour.`,
+    text: (up) => `Tes DoT agissent ${up ? 'trois' : 'deux'} fois de suite, puis durent 1 tour de plus.`,
     play: (ctx) => {
       for (let i = 0; i < (ctx.up ? 3 : 2); i++) for (const e of livingEnemies(ctx.c)) triggerDots(ctx.c, e, false);
       for (const e of livingEnemies(ctx.c)) for (const d of e.dots ?? []) d.turns += 1;
@@ -265,7 +265,7 @@ const LIST: DemoCard[] = [
   // --- Démonologie ---
   {
     id: 'ordre_assaut', name: 'Ordre : Assaut', type: 'Compétence', rarity: 'commune', cost: 0, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Ton familier agit immédiatement une fois de plus.${up ? ' Pioche 1 carte.' : ''}`,
+    text: (up) => `Ton familier agit une fois de plus.${up ? ' Pioche 1 carte.' : ''}`,
     play: (ctx) => {
       petAct(ctx.c);
       if (ctx.up) drawCards(ctx.c, 1);
@@ -273,7 +273,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'pacte_ombres', name: 'Pacte des ombres', type: 'Compétence', rarity: 'commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 10 : 7} blocage. Ton familier inflige +2 dégâts pour ce combat.`,
+    text: (up) => `Gagne ${up ? 10 : 7} blocage. Familier : +2 dégâts pour le combat.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 10 : 7);
       ctx.c.petBonus = (ctx.c.petBonus ?? 0) + 2;
@@ -289,7 +289,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'festin_demoniaque', name: 'Festin démoniaque', type: 'Compétence', rarity: 'commune', cost: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Soigne ${up ? 9 : 6} PV. La prochaine action de ton familier est doublée.`,
+    text: (up) => `Soigne ${up ? 9 : 6} PV. La prochaine action du familier est doublée.`,
     play: (ctx) => {
       const healed = healPlayer(ctx.c, ctx.up ? 9 : 6);
       if (healed > 0) fx(ctx.c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
@@ -307,12 +307,12 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'invocation_succube', name: 'Invocation : Succube', type: 'Compétence', rarity: 'peu_commune', cost: 1, shardCost: 1, shardCostUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => `Ton familier devient la Succube : 2 dégâts à ta cible, et Séduction tous les 3 tours. Elle agit immédiatement.`,
+    text: () => `Invoque la Succube : 2 dégâts, Séduction tous les 3 tours.`,
     play: (ctx) => summonPet(ctx.c, 'succube'),
   },
   {
     id: 'invocation_molosse', name: 'Invocation : Molosse infernal', type: 'Compétence', rarity: 'peu_commune', cost: 1, shardCost: 1, shardCostUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => `Ton familier devient le Molosse infernal : 2 dégâts, dévore une malédiction, Verrou magique. Il agit immédiatement.`,
+    text: () => `Invoque le Molosse : 2 dégâts, mange une malédiction, Verrou magique.`,
     play: (ctx) => summonPet(ctx.c, 'molosse'),
   },
   {
@@ -327,12 +327,12 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'lien_ame', name: 'Lien de l\'âme', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => `Chaque fois que ton familier inflige des dégâts, gagne autant de blocage.`,
+    text: () => `Dégâts de ton familier : tu gagnes autant de blocage.`,
     play: (ctx) => powerCard(ctx, 'lien_ame', 1, 'Lien de l\'âme'),
   },
   {
     id: 'sacrifice_demoniaque', name: 'Sacrifice démoniaque', type: 'Compétence', rarity: 'rare', cost: 0, needsTarget: false, exhaust: true, icon: 'sang',
-    text: (up) => `Sacrifie ton familier pour le combat : +${up ? 3 : 2} Puissance, et +1 énergie à chaque tour. Épuisé.`,
+    text: (up) => `Sacrifie ton familier : +${up ? 3 : 2} Puissance, +1 énergie par tour. Épuisé.`,
     play: (ctx) => {
       if (!ctx.c.pet || ctx.c.petSacrificed) return;
       ctx.c.petSacrificed = true;
@@ -342,7 +342,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'asservissement', name: 'Asservissement', type: 'Compétence', rarity: 'rare', cost: 1, needsTarget: true, exhaust: true, icon: 'pouvoir',
-    text: (up) => `Un ennemi (sauf boss) combat pour toi pendant ${up ? 3 : 2} tours : il attaque les autres ennemis. Épuisé.`,
+    text: (up) => `Un ennemi (sauf boss) se bat pour toi ${up ? 3 : 2} tours. Épuisé.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -356,12 +356,12 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'maitre_pactes', name: 'Maître des pactes', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Pacte de sang, Pacte noir et Pacte de souffrance coûtent ${up ? 4 : 2} PV de moins.`,
+    text: (up) => `Tes Pactes coûtent ${up ? 4 : 2} PV de moins.`,
     play: (ctx) => powerCard(ctx, 'maitre_pactes', ctx.up ? 4 : 2, 'Maître des pactes'),
   },
   {
     id: 'seigneur_infernal', name: 'Invocation : Seigneur infernal', type: 'Compétence', rarity: 'epique', cost: 2, shardCost: 2, needsTarget: false, exhaust: true, icon: 'feu',
-    text: (up) => `Un Seigneur infernal combat avec toi : à la fin de chacun de tes tours, ${up ? 16 : 12} dégâts à tous les ennemis. Épuisé.`,
+    text: (up) => `Un Seigneur infernal : ${up ? 16 : 12} dégâts à tous à chaque fin de tour. Épuisé.`,
     play: (ctx) => {
       ctx.c.infernal = ctx.up ? 16 : 12;
       fx(ctx.c, { kind: 'banner', text: 'Le Seigneur infernal s\'écrase sur le champ de bataille !' });
@@ -406,7 +406,7 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'conflagration', name: 'Conflagration', type: 'Sort', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'feu',
-    text: (up, g) => `${g?.keepImmolation ? 'Sans la consommer' : 'Consomme l\'Immolation de la cible'} : ${up ? 4 : 3} fois les dégâts qu'il lui restait à infliger.`,
+    text: (up, g) => `${g?.keepImmolation ? 'Sans la consommer' : 'Consomme l\'Immolation'} : ${up ? 4 : 3} fois ses dégâts restants.`,
     play: (ctx) => {
       const t = ctx.target;
       const immo = t?.dots?.find((d) => d.id === 'immolation');
@@ -426,12 +426,12 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'ombre_et_flammes', name: 'Ombre et flammes', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Trait de l'ombre, Incinérer et Immolation infligent +${up ? 5 : 3} dégâts.`,
+    text: (up) => `Trait de l'ombre, Incinérer, Immolation : +${up ? 5 : 3} dégâts.`,
     play: (ctx) => powerCard(ctx, 'ombre_et_flammes', ctx.up ? 5 : 3, 'Ombre et flammes'),
   },
   {
     id: 'contrecoup', name: 'Contrecoup', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, innateUp: true, icon: 'pouvoir',
-    text: (up) => `Chaque fois que tu perds des PV, ton prochain Trait de l'ombre coûte 0.${up ? ' Inné.' : ''}`,
+    text: (up) => `Quand tu perds des PV : ton prochain Trait de l'ombre coûte 0.${up ? ' Inné.' : ''}`,
     play: (ctx) => powerCard(ctx, 'contrecoup', 1, 'Contrecoup'),
   },
   {
@@ -455,12 +455,12 @@ const LIST: DemoCard[] = [
   },
   {
     id: 'ruine', name: 'Ruine', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Tes Sorts qui coûtent 2 énergie ou plus infligent +${up ? 9 : 6} dégâts.`,
+    text: (up) => `Tes Sorts à 2 énergie ou plus : +${up ? 9 : 6} dégâts.`,
     play: (ctx) => powerCard(ctx, 'ruine', ctx.up ? 9 : 6, 'Ruine'),
   },
   {
     id: 'cataclysme', name: 'Cataclysme de l\'âme', type: 'Sort', rarity: 'epique', cost: 2, needsTarget: false, icon: 'feu',
-    text: (up) => `Inflige ${up ? 7 : 5} dégâts à tous les ennemis par éclat d'âme que tu possèdes (sans les dépenser).`,
+    text: (up) => `${up ? 7 : 5} dégâts à tous les ennemis par éclat d'âme (sans les dépenser).`,
     play: (ctx) => {
       const n = ctx.c.shards ?? 0;
       if (n > 0) nova(ctx, (ctx.up ? 7 : 5) * n);

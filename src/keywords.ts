@@ -73,6 +73,10 @@ export const KEYWORDS: Keyword[] = [
   // Paladin
   { name: 'Sceau', words: ['Sceau', 'Sceaux'], text: 'Un seul Sceau actif à la fois : un nouveau remplace l\'ancien. Le sort Jugement le consomme pour déclencher son effet.' },
   { name: 'Jugement', words: ['Jugement'], text: 'Sort de barre du Paladin : consomme le Sceau actif pour déclencher son effet de Jugement.' },
+  { name: 'Mouton', words: ['mouton'], text: 'Ne fait rien pendant le nombre de tours indiqué, et reprend sa forme dès qu\'il est blessé.' },
+  { name: 'Invocation', words: ['Invoque'], text: 'Ton familier est remplacé par celui-ci pour le reste du combat, et il agit tout de suite.' },
+  { name: 'Forme d\'Ombre', words: ['Forme d\'Ombre'], text: 'Jusqu\'à la fin du combat : Sorts d\'Ombre +30 %, DoT +1. Tes soins sont réduits de 25 %, et tu ne gagnes plus de Foi.' },
+  { name: 'Poison d\'arme', words: ['Poison d\'arme'], text: 'Tes Attaques appliquent cet effet jusqu\'à la fin du combat. Un seul Poison d\'arme à la fois : le nouveau remplace l\'ancien.' },
   { name: 'Aura', words: ['Aura', 'Auras'], text: 'Un Pouvoir du Paladin. Une seule Aura active à la fois : une nouvelle remplace l\'ancienne.' },
   { name: 'Censure', words: ['Censure'], text: 'Inflige ce nombre de dégâts au début du tour de la cible. Le Jugement du Sceau de vengeance la consomme.' },
 ];

@@ -66,7 +66,7 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'purification', name: 'Purification', type: 'Compétence', rarity: 'commune', cost: 0, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Dissipe les Maladies et les Poisons (Toxine, Peste).${up ? ' Soigne 3 PV.' : ''}`,
+    text: (up) => `Dissipe Toxine et Peste.${up ? ' Soigne 3 PV.' : ''}`,
     play: (ctx) => {
       dispelPoison(ctx.c);
       if (ctx.up) heal(ctx, 3);
@@ -160,7 +160,7 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'eclat_foi', name: 'Éclat de foi', type: 'Sort', school: 'sacre', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Inflige des dégâts égaux à ${up ? 'ton Égide' : 'la moitié de ton Égide'} (sans la consommer).`,
+    text: (up) => `Inflige ${up ? 'ton Égide' : 'la moitié de ton Égide'} en dégâts (sans la perdre).`,
     play: (ctx) => {
       const a = ctx.c.aegis ?? 0;
       const dmg = ctx.up ? a : Math.floor(a / 2);
@@ -194,12 +194,12 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'expiation', name: 'Expiation', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Chaque fois qu'un de tes Sorts inflige des dégâts : soigne ${up ? 3 : 2} PV.`,
+    text: (up) => `Chaque Sort qui inflige des dégâts : soigne ${up ? 3 : 2} PV.`,
     play: (ctx) => powerCard(ctx, 'expiation', ctx.up ? 3 : 2, 'Expiation'),
   },
   {
     id: 'ame_inebranlable', name: 'Âme inébranlable', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => `Ton Égide maximale passe à 50. Au début de ton tour, gagne 2 Égide.`,
+    text: () => `Égide maximale : 50. Début de ton tour : +2 Égide.`,
     play: (ctx) => {
       ctx.c.maxAegis = Math.max(ctx.c.maxAegis ?? 30, 50);
       powerCard(ctx, 'ame_inebranlable', 1, 'Âme inébranlable');
@@ -207,7 +207,7 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'egide_anciens', name: 'Égide des anciens', type: 'Compétence', rarity: 'epique', cost: 1, faithCost: 'all', needsTarget: false, icon: 'bouclier',
-    text: (up) => `Dépense toute ta Foi : ${up ? 5 : 4} Égide par point. Ce tour-ci et le suivant, tes PV ne descendent pas sous 1.`,
+    text: (up) => `Toute ta Foi : ${up ? 5 : 4} Égide par point. 2 tours sans passer sous 1 PV.`,
     play: (ctx) => {
       gainAegis(ctx.c, (ctx.up ? 5 : 4) * (ctx.faithSpent ?? 0));
       ctx.c.undying = 2;
@@ -271,12 +271,12 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'sol_sacre', name: 'Sol sacré', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Au début de ton tour : ${up ? 4 : 3} dégâts à tous les ennemis, et soigne ${up ? 3 : 2} PV.`,
+    text: (up) => `Début de ton tour : ${up ? 4 : 3} dégâts à tous, soigne ${up ? 3 : 2} PV.`,
     play: (ctx) => powerCard(ctx, 'sol_sacre', ctx.up ? 4 : 3, 'Sol sacré'),
   },
   {
     id: 'chant_lumiere', name: 'Chant de lumière', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Chaque fois que tu gagnes de la Foi : ${up ? 3 : 2} dégâts à un ennemi au hasard.`,
+    text: (up) => `Chaque gain de Foi : ${up ? 3 : 2} dégâts à un ennemi au hasard.`,
     play: (ctx) => powerCard(ctx, 'chant_lumiere', ctx.up ? 3 : 2, 'Chant de lumière'),
   },
   {
@@ -297,17 +297,17 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'ange_gardien', name: 'Ange gardien', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => `La première fois de ce combat que tu tomberais à 0 PV : tu restes à 1 PV et tu es soigné de 15 PV.`,
+    text: () => `1 fois par combat, à 0 PV : tu restes à 1 PV et récupères 15 PV.`,
     play: (ctx) => powerCard(ctx, 'ange_gardien', 1, 'Ange gardien'),
   },
   {
     id: 'esprit_guerison', name: 'Esprit de guérison', type: 'Pouvoir', rarity: 'rare', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => `Tout le soin en trop devient de l'Égide (au lieu de la moitié).`,
+    text: () => `Tout ton soin en trop devient de l'Égide.`,
     play: (ctx) => powerCard(ctx, 'esprit_guerison', 1, 'Esprit de guérison'),
   },
   {
     id: 'ascension_lumineuse', name: 'Ascension lumineuse', type: 'Pouvoir', rarity: 'epique', cost: 3, costUp: 2, needsTarget: false, icon: 'pouvoir',
-    text: () => `Chaque fois que tu te soignes, inflige autant de dégâts à un ennemi au hasard. +1 Foi au début de chaque tour.`,
+    text: () => `Chaque soin : autant de dégâts à un ennemi au hasard. +1 Foi par tour.`,
     play: (ctx) => powerCard(ctx, 'ascension', 1, 'Ascension lumineuse'),
   },
 
@@ -367,12 +367,12 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'etreinte_vampirique', name: 'Étreinte vampirique', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up, g) => `Quand un de tes Sorts d'Ombre inflige des dégâts : soigne ${(up ? 3 : 2) + (g?.vampHunger ?? 0)} PV.`,
+    text: (up, g) => `Tes Sorts d'Ombre qui blessent : soigne ${(up ? 3 : 2) + (g?.vampHunger ?? 0)} PV.`,
     play: (ctx) => powerCard(ctx, 'etreinte_vampirique', ctx.up ? 3 : 2, 'Étreinte vampirique'),
   },
   {
     id: 'esprit_tourmente', name: 'Esprit tourmenté', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Quand un de tes DoT tue un ennemi : pioche 2 cartes${up ? ' et gagne 1 énergie' : ''}.`,
+    text: (up) => `Un de tes DoT tue : pioche 2 cartes${up ? ' et +1 énergie' : ''}.`,
     play: (ctx) => powerCard(ctx, 'esprit_tourmente', ctx.up ? 2 : 1, 'Esprit tourmenté'),
   },
   {
@@ -384,7 +384,7 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'controle_mental', name: 'Contrôle mental', type: 'Compétence', rarity: 'rare', cost: 2, costUp: 1, needsTarget: true, exhaust: true, icon: 'pouvoir',
-    text: () => `Un ennemi (sauf boss) attaque un autre ennemi à ta place à son prochain tour. Épuisé.`,
+    text: () => `Un ennemi (sauf boss) attaque un autre ennemi à son tour. Épuisé.`,
     play: (ctx) => {
       const t = ctx.target;
       if (t && !isBossEnemy(t)) {
@@ -400,7 +400,7 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'forme_ombre', name: 'Forme d\'Ombre', type: 'Pouvoir', rarity: 'epique', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => `Tes DoT se déclenchent tout de suite une fois. Forme d'Ombre jusqu'à la fin du combat : Sorts d'Ombre +30 %, DoT +1. Tes soins sont réduits de 25 %, et tu ne gagnes plus de Foi.`,
+    text: () => `Tes DoT agissent tout de suite. Forme d'Ombre jusqu'à la fin du combat.`,
     play: (ctx) => {
       ctx.c.shadowForm = true;
       for (const e of livingEnemies(ctx.c)) triggerDots(ctx.c, e, false);

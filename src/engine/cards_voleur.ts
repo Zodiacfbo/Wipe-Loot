@@ -92,12 +92,12 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'poison_mortel', name: 'Poison mortel', type: 'Pouvoir', rarity: 'commune', cost: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Poison d'arme : tes Attaques appliquent Poison ${up ? 2 : 1}. Remplace ton Poison d'arme actuel.`,
+    text: (up) => `Poison d'arme : tes Attaques appliquent Poison ${up ? 2 : 1}.`,
     play: (ctx) => weaponPoison(ctx, 'mortel', 'Poison mortel'),
   },
   {
     id: 'coup_aux_reins', name: 'Coup aux reins', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Finisher : la cible (sauf boss) est Contrôlée 1 tour${up ? ', 2 tours à 4 points ou plus' : ''}. Un boss est Démoralisé 1 tour par combo.`,
+    text: (up) => `Finisher : Contrôlée 1 tour${up ? ' (2 dès 4 combo)' : ''}. Boss : Démoralisé 1 tour par combo.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t || pts(ctx) === 0) return;
@@ -120,7 +120,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'assommer', name: 'Assommer', type: 'Compétence', opener: true, rarity: 'peu_commune', cost: 0, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Ouverture : la cible (sauf boss) est Assommée ${up ? 3 : 2} tours. L'effet prend fin si elle subit des dégâts.`,
+    text: (up) => `Ouverture : la cible (sauf boss) est Assommée ${up ? 3 : 2} tours.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t || isBossEnemy(t)) return;
@@ -141,7 +141,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'frappe_gorge', name: 'Frappe à la gorge', type: 'Attaque', rarity: 'commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up) => `Inflige ${up ? 10 : 7} dégâts. +1 combo, ou +2 si la cible est empoisonnée.`,
+    text: (up) => `Inflige ${up ? 10 : 7} dégâts. +1 combo (+2 si la cible est empoisonnée).`,
     play: (ctx) => {
       const poisoned = (ctx.target?.buffs.poison ?? 0) > 0;
       hit(ctx, ctx.up ? 10 : 7);
@@ -164,12 +164,12 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'poison_affaiblissant', name: 'Poison affaiblissant', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Poison d'arme : tes Attaques appliquent Poison ${up ? 2 : 1} et Démoralisé 1 tour. Remplace ton Poison d'arme actuel.`,
+    text: (up) => `Poison d'arme : tes Attaques appliquent Poison ${up ? 2 : 1} et Démoralisé 1.`,
     play: (ctx) => weaponPoison(ctx, 'affaiblissant', 'Poison affaiblissant'),
   },
   {
     id: 'poison_engourdissant', name: 'Poison engourdissant', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Poison d'arme : tes Attaques appliquent Poison ${up ? 2 : 1}. Toucher un ennemi qui prépare une Incantation la retarde d'un tour (1 fois par tour).`,
+    text: (up) => `Poison d'arme : Poison ${up ? 2 : 1}, et retarde une Incantation touchée (1 par tour).`,
     play: (ctx) => weaponPoison(ctx, 'engourdissant', 'Poison engourdissant'),
   },
   {
@@ -184,7 +184,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'garrot', name: 'Garrot', type: 'Attaque', opener: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up) => `Ouverture : applique Saignement ${up ? 6 : 4}. La cible ne peut pas finir son Incantation en cours. +1 combo.`,
+    text: (up) => `Ouverture : Saignement ${up ? 6 : 4}. La cible ne finit pas son Incantation. +1 combo.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -207,7 +207,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'toxines_virulentes', name: 'Toxines virulentes', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, innateUp: true, icon: 'sang',
-    text: (up) => `Quand un ennemi empoisonné meurt, son Poison passe à un autre ennemi.${up ? ' Inné.' : ''}`,
+    text: (up) => `Un ennemi empoisonné meurt : son Poison passe à un autre.${up ? ' Inné.' : ''}`,
     play: (ctx) => powerCard(ctx, 'toxines_virulentes', 1, 'Toxines virulentes'),
   },
   {
@@ -217,7 +217,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'opportunite', name: 'Opportunité', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Quand tu joues un finisher à 5 points de combo, gagne 1 énergie et ${up ? 2 : 1} combo.`,
+    text: (up) => `Finisher à 5 combo : +1 énergie et +${up ? 2 : 1} combo.`,
     play: (ctx) => powerCard(ctx, 'opportunite', ctx.up ? 2 : 1, 'Opportunité'),
   },
   {
@@ -232,7 +232,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'vendetta', name: 'Vendetta', type: 'Compétence', rarity: 'epique', cost: 1, costUp: 0, needsTarget: true, exhaust: true, icon: 'pouvoir',
-    text: () => 'Marque la cible pour tout le combat : tes Attaques contre elle infligent 50 % de dégâts en plus et appliquent 2 Poison de plus. Épuisé.',
+    text: () => 'Marque la cible : tes Attaques contre elle +50 % et +2 Poison. Épuisé.',
     play: (ctx) => {
       if (!ctx.target) return;
       ctx.target.vendetta = true;
@@ -259,7 +259,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'riposte_voleur', name: 'Riposte', type: 'Compétence', rarity: 'commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 9 : 6} blocage. La prochaine attaque ennemie reçue ce tour-ci inflige ${up ? 10 : 8} dégâts à l'attaquant et te donne +1 combo.`,
+    text: (up) => `Gagne ${up ? 9 : 6} blocage. Prochaine attaque reçue : renvoi ${up ? 10 : 8}, +1 combo.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 9 : 6);
       ctx.c.player.riposte = Math.max(ctx.c.player.riposte ?? 0, ctx.up ? 10 : 8);
@@ -289,7 +289,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'frappe_elan', name: 'Frappe d\'élan', type: 'Attaque', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up) => `Inflige ${up ? 8 : 5} dégâts. Si c'est ta 3e Attaque du tour, gagne 1 énergie.`,
+    text: (up) => `Inflige ${up ? 8 : 5} dégâts. Si c'est ta 3e Attaque du tour : +1 énergie.`,
     play: (ctx) => {
       hit(ctx, ctx.up ? 8 : 5);
       if ((ctx.c.attacksThisTurn ?? 0) === 2) ctx.c.player.energy += 1;
@@ -297,7 +297,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_bas', name: 'Coup bas', type: 'Compétence', rarity: 'peu_commune', cost: 0, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `La cible (sauf boss) est Contrôlée 1 tour. Contre un boss : son Incantation en cours est retardée d'un tour.${up ? ' Pioche 1 carte.' : ''}`,
+    text: (up) => `Cible Contrôlée 1 tour (boss : Incantation retardée).${up ? ' Pioche 1.' : ''}`,
     play: (ctx) => {
       const t = ctx.target;
       if (t) {
@@ -309,7 +309,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'tourbillon_lames', name: 'Tourbillon de lames', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Tes Attaques à cible unique touchent aussi un autre ennemi, pour la moitié des dégâts.',
+    text: () => 'Tes Attaques ciblées touchent aussi un 2e ennemi, pour moitié.',
     play: (ctx) => powerCard(ctx, 'tourbillon_lames', 1, 'Tourbillon de lames'),
   },
   {
@@ -338,12 +338,12 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'ambidextrie_experte', name: 'Ambidextrie experte', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => 'La première Attaque que tu joues chaque tour est jouée deux fois.',
+    text: () => 'Ta 1re Attaque de chaque tour est jouée deux fois.',
     play: (ctx) => powerCard(ctx, 'ambidextrie_experte', 1, 'Ambidextrie experte'),
   },
   {
     id: 'frenesie_meurtriere', name: 'Frénésie meurtrière', type: 'Attaque', rarity: 'epique', cost: 2, needsTarget: false, icon: 'epee',
-    text: (up) => `Frappe 6 fois pour ${up ? 5 : 4} dégâts des ennemis au hasard. +1 combo par coup.`,
+    text: (up) => `6 coups de ${up ? 5 : 4} dégâts sur des ennemis au hasard. +1 combo par coup.`,
     play: (ctx) => {
       for (let i = 0; i < 6; i++) {
         const pool = livingEnemies(ctx.c).filter((e) => !e.submerged);
@@ -389,7 +389,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'plan_parfait', name: 'Plan parfait', type: 'Compétence', rarity: 'commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Pioche ${up ? 3 : 2} cartes. Si l'une d'elles est une Ouverture, tes Ouvertures coûtent 0 ce tour-ci.`,
+    text: (up) => `Pioche ${up ? 3 : 2}. Une Ouverture piochée : tes Ouvertures coûtent 0 ce tour.`,
     play: (ctx) => {
       const before = ctx.c.hand.length;
       drawCards(ctx.c, ctx.up ? 3 : 2);
@@ -398,7 +398,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'bond_ombre', name: 'Bond de l\'ombre', type: 'Compétence', rarity: 'peu_commune', cost: 0, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Ta prochaine Attaque ce tour-ci est jouée comme si tu étais Camouflé (elle peut être une Ouverture).${up ? ' Pioche 1 carte.' : ''}`,
+    text: (up) => `Ta prochaine Attaque du tour compte comme Camouflée.${up ? ' Pioche 1 carte.' : ''}`,
     play: (ctx) => {
       ctx.c.shadowStep = true;
       fx(ctx.c, { kind: 'buff', who: 'player', label: 'Bond de l\'ombre' });
@@ -407,7 +407,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'fumigene', name: 'Fumigène', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 9 : 6} blocage. Tous les ennemis sont Démoralisés 1 tour. Tu es Camouflé au début de ton prochain tour.`,
+    text: (up) => `Gagne ${up ? 9 : 6} blocage. Ennemis Démoralisés 1 tour. Camouflé au prochain tour.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 9 : 6);
       for (const e of livingEnemies(ctx.c)) e.buffs.demoralise = Math.max(e.buffs.demoralise, 1);
@@ -426,7 +426,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_fourre', name: 'Coup fourré', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Finisher : gagne ${up ? 7 : 5} blocage par combo. Tu es Camouflé au début de ton prochain tour.`,
+    text: (up) => `Finisher : gagne ${up ? 7 : 5} blocage par combo. Camouflé au prochain tour.`,
     play: (ctx) => {
       if (pts(ctx) > 0) gainBlock(ctx.c, (ctx.up ? 7 : 5) * pts(ctx));
       ctx.c.stealthNext = true;
@@ -442,12 +442,12 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'opportuniste', name: 'Opportuniste', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Tes Attaques infligent +${up ? 6 : 4} dégâts aux ennemis Contrôlés, Assommés ou Apeurés.`,
+    text: (up) => `Tes Attaques +${up ? 6 : 4} dégâts aux ennemis Contrôlés, Assommés ou Apeurés.`,
     play: (ctx) => powerCard(ctx, 'opportuniste', ctx.up ? 6 : 4, 'Opportuniste'),
   },
   {
     id: 'tenebres_voleur', name: 'Ténèbres', type: 'Pouvoir', rarity: 'rare', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Jusqu\'à la fin de la run, ton Camouflage de début de combat dure 2 tours (à partir du prochain combat). Épuisé.',
+    text: () => 'Pour la run : ton Camouflage de début de combat dure 2 tours. Épuisé.',
     play: (ctx) => {
       ctx.c.tenebres = true;
       fx(ctx.c, { kind: 'buff', who: 'player', label: 'Ténèbres' });
@@ -456,7 +456,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'seigneur_ombres', name: 'Seigneur des ombres', type: 'Pouvoir', rarity: 'epique', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Au début de chacun de tes tours, tu es Camouflé jusqu\'à ta première Attaque qui n\'est pas une Ouverture. Tant que tu es Camouflé, tes Attaques infligent +50 % de dégâts.',
+    text: () => 'Camouflé au début de chaque tour. Camouflé, tes Attaques font +50 %.',
     play: (ctx) => {
       powerCard(ctx, 'seigneur_ombres', 1, 'Seigneur des ombres');
       enterStealth(ctx.c, 1);

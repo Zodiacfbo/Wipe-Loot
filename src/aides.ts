@@ -41,15 +41,16 @@ function bubbleContent(el: HTMLElement): string | null {
     return text ? `<b>${esc(label)}</b>${esc(text)}` : null;
   }
   if (el.classList.contains('carte')) {
-    // Le bandeau compte aussi (« Finisher »), et un finisher dit s'il est une Attaque ou une Compétence.
+    // Le bandeau compte aussi (« Finisher », « Sceau »…), et il dit si la carte est une Attaque, une Compétence…
     const type = el.querySelector<HTMLElement>('.type');
-    const text = `${type?.textContent ?? ''} ${el.querySelector('.texte')?.textContent ?? ''}`;
+    const label = type?.textContent?.trim() ?? '';
+    const text = `${label} ${el.querySelector('.texte')?.textContent ?? ''}`;
     const kind = type?.dataset.type;
     if (kind) {
-      const ks = keywordsIn(text);
-      const head = `<b>Finisher (${esc(kind)})</b>${esc(keywordByName('Finisher')!.text)}`;
-      const rest = ks.filter((k) => k.name !== 'Finisher').map((k) => `<b>${esc(k.name)}</b>${esc(k.text)}`);
-      return [head, ...rest].join('<hr>');
+      const k = keywordByName(label);
+      const ks = keywordsIn(text).filter((x) => x !== k);
+      const head = `<b>${esc(label)} (${esc(kind)})</b>${esc(k?.text ?? '')}`;
+      return [head, ...ks.map((x) => `<b>${esc(x.name)}</b>${esc(x.text)}`)].join('<hr>');
     }
     const ks = keywordsIn(text);
     return ks.length ? ks.map((k) => `<b>${esc(k.name)}</b>${esc(k.text)}`).join('<hr>') : null;

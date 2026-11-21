@@ -328,7 +328,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   parade_ripostee: {
     id: 'parade_ripostee', name: 'Parade ripostée', type: 'Compétence', rarity: 'commune', cost: 1, needsTarget: false,
     icon: 'bouclier',
-    text: (up) => `${up ? 9 : 6} blocage. La prochaine attaque reçue : ${up ? 9 : 6} dégâts à l'attaquant.`,
+    text: (up) => `${up ? 9 : 6} blocage. Prochaine attaque reçue : ${up ? 9 : 6} dégâts en retour.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 9 : 6);
       ctx.c.player.riposte = (ctx.c.player.riposte ?? 0) + (ctx.up ? 9 : 6);
@@ -350,7 +350,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   balayage: {
     id: 'balayage', name: 'Balayage', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: false,
     icon: 'epee',
-    text: (up) => `Tes ${up ? 3 : 2} prochaines Attaques ce tour-ci touchent aussi un 2e ennemi.`,
+    text: (up) => `Tes ${up ? 3 : 2} prochaines Attaques du tour touchent un 2e ennemi.`,
     play: (ctx) => {
       ctx.c.cleave = (ctx.c.cleave ?? 0) + (ctx.up ? 3 : 2);
     },
@@ -358,13 +358,13 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   entaille_profonde: {
     id: 'entaille_profonde', name: 'Entaille profonde', type: 'Pouvoir', rarity: 'peu_commune', cost: 1,
     needsTarget: false, icon: 'sang',
-    text: (up) => `Tes Attaques à rage qui touchent appliquent Saignement ${up ? 3 : 2}.`,
+    text: (up) => `Tes Attaques à rage appliquent Saignement ${up ? 3 : 2}.`,
     play: (ctx) => powerCard(ctx, 'entaille_profonde', ctx.up ? 3 : 2, 'Entaille profonde'),
   },
   cri_intimidation: {
     id: 'cri_intimidation', name: 'Cri d\'intimidation', type: 'Compétence', rarity: 'peu_commune', cost: 1,
     needsTarget: true, exhaust: true, icon: 'pouvoir',
-    text: (up) => `Peur sur la cible (sauf boss). Les autres : Démoralisé ${up ? 2 : 1}. Épuisé.`,
+    text: (up) => `La cible (sauf boss) a Peur. Les autres : Démoralisé ${up ? 2 : 1}. Épuisé.`,
     play: (ctx) => {
       const t = ctx.target;
       if (t && !isBoss(t)) {
@@ -466,7 +466,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   enrage: {
     id: 'enrage', name: 'Enragé', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false,
     icon: 'pouvoir',
-    text: (up) => `Quand tu perds des PV, ta prochaine Attaque inflige +${up ? 5 : 3} dégâts.`,
+    text: (up) => `Quand tu perds des PV : ta prochaine Attaque +${up ? 5 : 3} dégâts.`,
     play: (ctx) => powerCard(ctx, 'enrage', ctx.up ? 5 : 3, 'Enragé'),
   },
   rafale: {
@@ -478,7 +478,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   ambidextrie: {
     id: 'ambidextrie', name: 'Ambidextrie', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false,
     icon: 'pouvoir',
-    text: () => `Début de ton tour : ajoute une Frappe de la main gauche à ta main.`,
+    text: () => `Début de ton tour : une Frappe de la main gauche en main.`,
     play: (ctx) => powerCard(ctx, 'ambidextrie', 1, 'Ambidextrie'),
   },
   main_gauche: {
@@ -559,7 +559,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   desarmement: {
     id: 'desarmement', name: 'Désarmement', type: 'Compétence', rarity: 'peu_commune', cost: 1, costUp: 0,
     needsTarget: true, icon: 'bouclier',
-    text: () => `N'attaque pas à son prochain tour (boss : −30 % de dégâts).`,
+    text: () => `N'attaque pas au prochain tour (boss : −30 % de dégâts).`,
     play: (ctx) => {
       if (!ctx.target) return;
       ctx.target.disarmed = true;
@@ -602,7 +602,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   riposte_bouclier: {
     id: 'riposte_bouclier', name: 'Riposte au bouclier', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false,
     icon: 'pouvoir',
-    text: (up) => `Attaque ennemie entièrement bloquée : ${up ? 8 : 5} dégâts à l'attaquant.`,
+    text: (up) => `Attaque entièrement bloquée : ${up ? 8 : 5} dégâts en retour.`,
     play: (ctx) => powerCard(ctx, 'riposte_bouclier', ctx.up ? 8 : 5, 'Riposte au bouclier'),
   },
   garde_de_fer: {
@@ -704,7 +704,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
     // Sartaq, le Colosse d'obsidienne (acte 3) : le moment de frapper fort.
     id: 'cristal_obsidienne', name: 'Cristal d\'obsidienne', type: 'Statut', rarity: 'statut', cost: 1, needsTarget: false,
     exhaust: true, icon: 'pouvoir',
-    text: () => `Sartaq perd tout son blocage et sa Suprématie, et subit 50 % de dégâts en plus pendant 2 tours. Épuisé.`,
+    text: () => `Sartaq perd blocage et Suprématie ; +50 % de dégâts 2 tours. Épuisé.`,
     play: (ctx) => {
       const c = ctx.c;
       for (const e of livingEnemies(c)) {
@@ -733,7 +733,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
     // Elle prend l'apparence d'une vraie carte du deck (CardInstance.mimic, voir folie.ts).
     id: 'hallucination', name: 'Hallucination', type: 'Statut', rarity: 'statut', cost: 0, needsTarget: false,
     ethereal: true, exhaust: true, icon: 'pouvoir',
-    text: () => `Une fausse carte. La jouer : elle se dissipe sans effet et tu perds 2 PV. Éphémère.`,
+    text: () => `Une fausse carte : la jouer ne fait rien et coûte 2 PV. Éphémère.`,
     play: (ctx) => {
       const c = ctx.c;
       log(c, 'La carte se dissipe entre tes doigts : c\'était une Hallucination !');

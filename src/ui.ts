@@ -19,7 +19,7 @@ import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM, YZHAR } from './engine/enemies
 import { turnsBeforeSwap } from './engine/irem';
 import { MUTATION_LABEL } from './engine/actions';
 import { cardHitValue } from './engine/preview';
-import { placeHit } from './cardtext';
+import { placeHit, splitRibbon } from './cardtext';
 import { afterRender, initAides } from './aides';
 import { markKeywords } from './keywords';
 import { ACTS, LAST_ACT, actDef } from './engine/acts';
@@ -247,9 +247,9 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
   const reduced = cost < def.cost;
   const rage = def.rageCost === 'all' ? 'X' : def.rageCost ?? '';
   const gear = opts.combat?.gear ?? (ui.run ? runGear(ui.run) : undefined);
-  // Un finisher : « Finisher » dans le bandeau, et le texte sans son « Finisher : » (de la place sur téléphone).
+  // « Finisher : », « Sceau : », « Aura : »… : le mot passe dans le bandeau, le texte commence par l'effet (place sur téléphone).
   const fullText = def.text(card.upgraded, gear);
-  const text = def.finisher ? fullText.replace(/^Finisher[\s\u00a0]*:[\s\u00a0]*/, '').replace(/^\p{Ll}/u, (m) => m.toUpperCase()) : fullText;
+  const { ribbon, text } = splitRibbon(fullText);
   const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : ''].join(' ');
   return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${fullText}">
     <img class="cadre px" src="${A(frame)}" alt="">
@@ -261,7 +261,7 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
     ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
-    <span class="type" ${def.finisher ? `data-type="${def.type}"` : ''}>${def.finisher ? 'Finisher' : `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
+    <span class="type" ${ribbon ? `data-type="${def.type}"` : ''}>${ribbon ?? `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
     <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${cardText(text, opts.hit)}</span></span>
   </button>`;
 }

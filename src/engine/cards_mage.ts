@@ -91,7 +91,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'siphon_de_mana', name: 'Siphon de mana', type: 'Sort', school: 'arcane', rarity: 'commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Inflige ${up ? 9 : 6} dégâts. Si la cible prépare une Incantation : +1 énergie.`,
+    text: (up) => `Inflige ${up ? 9 : 6} dégâts. Cible en Incantation : +1 énergie.`,
     play: (ctx) => {
       const casting = !!ctx.target && !!ctx.target.intent.cast && !ctx.target.interrupted;
       zap(ctx, ctx.up ? 9 : 6);
@@ -108,7 +108,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'bouclier_de_mana', name: 'Bouclier de mana', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 10 : 7} blocage. S'il en reste au début de ton prochain tour : pioche 1 carte.`,
+    text: (up) => `Gagne ${up ? 10 : 7} blocage. S'il en reste à ton tour : pioche 1 carte.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 10 : 7);
       ctx.c.player.manaShield = true;
@@ -116,7 +116,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'metamorphose', name: 'Métamorphose', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `La cible (sauf boss) devient un mouton : elle ne fait rien pendant ${up ? 3 : 2} tours, ou jusqu'à ce qu'elle soit blessée.`,
+    text: (up) => `La cible (sauf boss) devient un mouton ${up ? 3 : 2} tours.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -197,7 +197,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'barrage_arcanique', name: 'Barrage arcanique', type: 'Sort', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up, g) => `Consomme tes charges : ${up ? 7 : 5} dégâts et pioche 1 carte par charge${g?.barrageDraw ? ` (+${g.barrageDraw} carte)` : ''}.`,
+    text: (up, g) => `Consomme tes charges : ${up ? 7 : 5} dégâts et pioche 1 par charge${g?.barrageDraw ? ` (+${g.barrageDraw})` : ''}.`,
     play: (ctx) => {
       const n = spendCharges(ctx.c);
       if (n > 0) zap(ctx, (ctx.up ? 7 : 5) * n);
@@ -206,7 +206,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'presence_esprit', name: 'Présence d\'esprit', type: 'Compétence', rarity: 'peu_commune', cost: 0, needsTarget: false, exhaust: true, exhaustUp: false, icon: 'pouvoir',
-    text: (up) => `Ton prochain Sort ce tour-ci coûte 0. Gagne 1 charge.${up ? '' : ' Épuisé.'}`,
+    text: (up) => `Ton prochain Sort du tour coûte 0. +1 charge.${up ? '' : ' Épuisé.'}`,
     play: (ctx) => {
       ctx.c.freeNextSpell = true;
       gainCharges(ctx.c, 1);
@@ -222,7 +222,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'reflexion_sorts', name: 'Réflexion des sorts', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 9 : 6} blocage. Une Incantation qui te frappe avant ton prochain tour renvoie la moitié de ses dégâts.`,
+    text: (up) => `Gagne ${up ? 9 : 6} blocage. Une Incantation reçue renvoie la moitié de ses dégâts.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 9 : 6);
       ctx.c.player.spellReflect = true;
@@ -230,7 +230,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'distorsion_temporelle', name: 'Distorsion temporelle', type: 'Compétence', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false, exhaust: true, icon: 'pouvoir',
-    text: () => `Au début de ton prochain tour : +1 énergie et pioche 2 cartes de plus. Épuisé.`,
+    text: () => `Prochain tour : +1 énergie et pioche 2 cartes de plus. Épuisé.`,
     play: (ctx) => {
       ctx.c.player.distortion = true;
     },
@@ -247,7 +247,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'tempete_arcanique', name: 'Tempête arcanique', type: 'Sort', rarity: 'epique', cost: 2, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Inflige ${up ? 8 : 6} dégâts à tous les ennemis par charge arcanique, sans les consommer.`,
+    text: (up) => `${up ? 8 : 6} dégâts à tous les ennemis par charge (sans les dépenser).`,
     play: (ctx) => {
       const n = ctx.c.player.charges ?? 0;
       if (n > 0) nova(ctx, (ctx.up ? 8 : 6) * n);
@@ -302,7 +302,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'incendie', name: 'Incendie', type: 'Compétence', rarity: 'peu_commune', cost: 1, costUp: 0, needsTarget: true, icon: 'feu',
-    text: () => `Applique à tous les autres ennemis la même Brûlure que la cible.`,
+    text: () => `Les autres ennemis reçoivent la même Brûlure que la cible.`,
     play: (ctx) => {
       const burn = ctx.target?.buffs.brulure ?? 0;
       if (burn <= 0) return;
@@ -311,7 +311,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'embrasement', name: 'Embrasement', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Quand un de tes Sorts inflige 10 dégâts ou plus : Brûlure ${up ? 4 : 3} à la cible.`,
+    text: (up) => `Un Sort qui inflige 10 dégâts ou plus : Brûlure ${up ? 4 : 3}.`,
     play: (ctx) => powerCard(ctx, 'embrasement', ctx.up ? 4 : 3, 'Embrasement'),
   },
   {
@@ -326,7 +326,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'meteore', name: 'Météore', type: 'Sort', school: 'feu', rarity: 'rare', cost: 3, needsTarget: true, icon: 'feu',
-    text: (up) => `Inflige ${up ? 26 : 20} dégâts à la cible et ${up ? 10 : 8} aux autres. Brûlure 4 à la cible.`,
+    text: (up) => `Inflige ${up ? 26 : 20} dégâts à la cible, ${up ? 10 : 8} aux autres. Brûlure 4.`,
     play: (ctx) => {
       const others = livingEnemies(ctx.c).filter((e) => e !== ctx.target && !e.submerged);
       zap(ctx, ctx.up ? 26 : 20);
@@ -336,12 +336,12 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'chaleur_intense', name: 'Chaleur intense', type: 'Pouvoir', rarity: 'rare', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
-    text: () => `Au début du tour des ennemis, avant ses dégâts, leur Brûlure augmente de 1.`,
+    text: () => `À chaque tour ennemi, leur Brûlure monte de 1 avant de brûler.`,
     play: (ctx) => powerCard(ctx, 'chaleur_intense', 1, 'Chaleur intense'),
   },
   {
     id: 'pyromanie', name: 'Pyromanie', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Tes Sorts de Feu à 2 énergie ou plus infligent +${up ? 8 : 5} dégâts.`,
+    text: (up) => `Tes Sorts de Feu à 2 énergie ou plus : +${up ? 8 : 5} dégâts.`,
     play: (ctx) => powerCard(ctx, 'pyromanie', ctx.up ? 8 : 5, 'Pyromanie'),
   },
   {
@@ -399,7 +399,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'toucher_glacial', name: 'Toucher glacial', type: 'Compétence', rarity: 'peu_commune', cost: 0, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Ta prochaine carte avec Fracasser agit comme si la cible avait 3 Gel.${up ? ' Pioche 1 carte.' : ''}`,
+    text: (up) => `Ton prochain Fracasser compte comme si la cible avait 3 Gel.${up ? ' Pioche 1.' : ''}`,
     play: (ctx) => {
       ctx.c.shatterReady = true;
       if (ctx.up) drawCards(ctx.c, 1);
@@ -407,7 +407,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'souffle_polaire', name: 'Souffle polaire', type: 'Sort', school: 'givre', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'bouclier',
-    text: (up, g) => `Inflige ${(up ? 8 : 5) + (g?.shatterBonus ?? 0)} dégâts. Fracasser. Si la cible est Gelée : +1 énergie.`,
+    text: (up, g) => `Inflige ${(up ? 8 : 5) + (g?.shatterBonus ?? 0)} dégâts. Fracasser. Cible Gelée : +1 énergie.`,
     play: (ctx) => {
       const frozen = !!ctx.target?.gele;
       shatter(ctx, ctx.up ? 8 : 5);
@@ -423,7 +423,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'prison_de_glace', name: 'Prison de glace', type: 'Compétence', rarity: 'rare', cost: 1, needsTarget: true, exhaust: true, icon: 'bouclier',
-    text: (up) => `La cible ${up ? '' : '(sauf boss) '}devient Gelée.${up ? ' Un boss voit sa prochaine attaque réduite de moitié.' : ''} Épuisé.`,
+    text: (up) => `La cible devient Gelée${up ? ' (boss : prochaine attaque ÷ 2)' : ' (sauf boss)'}. Épuisé.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -447,7 +447,7 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'fracas_glaciaire', name: 'Fracas glaciaire', type: 'Sort', school: 'givre', rarity: 'epique', cost: 2, needsTarget: true, icon: 'bouclier',
-    text: (up, g) => `Applique Gel 3 à la cible, puis inflige ${(up ? 11 : 8) + (g?.shatterBonus ?? 0)} dégâts à tous les ennemis. Fracasser (chaque ennemi fracassable subit double dégâts).`,
+    text: (up, g) => `Gel 3 à la cible, puis ${(up ? 11 : 8) + (g?.shatterBonus ?? 0)} dégâts à tous. Fracasser.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;

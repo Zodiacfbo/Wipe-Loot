@@ -33,3 +33,23 @@ describe('le chiffre de dégâts corrigé sur la carte', () => {
     for (const d of rogue) for (const up of [false, true]) expect(d.text(up, {}), d.id).not.toContain('par point de combo');
   });
 });
+
+describe('les textes des cartes restent lisibles sur téléphone', async () => {
+  const { splitRibbon, CARD_TEXT_MAX } = await import('../src/cardtext');
+  it(`aucun texte de carte ne dépasse ${CARD_TEXT_MAX} caractères (sans le mot du bandeau)`, () => {
+    const trop: string[] = [];
+    for (const d of Object.values(CARDS)) {
+      for (const up of [false, true]) {
+        const t = splitRibbon(d.text(up, {})).text;
+        if (t.length > CARD_TEXT_MAX) trop.push(`${d.id}${up ? '+' : ''} (${t.length}) : ${t}`);
+      }
+    }
+    expect(trop).toEqual([]);
+  });
+
+  it('le mot du bandeau quitte le texte', () => {
+    expect(splitRibbon('Finisher : inflige 6 dégâts par combo.')).toEqual({ ribbon: 'Finisher', text: 'Inflige 6 dégâts par combo.' });
+    expect(splitRibbon('Sceau : tes Attaques infligent +3 dégâts. Jugement : 12 dégâts.').ribbon).toBe('Sceau');
+    expect(splitRibbon('Inflige 6 dégâts.').ribbon).toBeNull();
+  });
+});

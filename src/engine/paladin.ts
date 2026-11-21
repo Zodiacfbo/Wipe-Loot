@@ -18,7 +18,7 @@ export const SEAL_NAMES: Record<SealId, string> = {
 /** Ce que fait chaque Sceau tant qu'il est actif, puis quand il est jugé (textes des cartes et de l'interface). */
 export const SEAL_TEXT: Record<SealId, { bonus: string; judge: string }> = {
   droiture: { bonus: 'tes Attaques infligent +3 dégâts', judge: '12 dégâts' },
-  croise: { bonus: 'tes Attaques +1 par Attaque déjà jouée ce tour', judge: 'Armure fracassée 2 tours' },
+  croise: { bonus: 'tes Attaques +1 par Attaque du tour', judge: 'Armure fracassée 2' },
   lumiere: { bonus: 'tes Attaques te soignent de 2 PV', judge: 'soigne 8 PV' },
   sagesse: { bonus: '+1 carte par tour', judge: '+1 énergie' },
   rempart: { bonus: 'tes Attaques te donnent 3 blocage', judge: '12 blocage' },
