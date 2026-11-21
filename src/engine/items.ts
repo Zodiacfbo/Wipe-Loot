@@ -62,6 +62,7 @@ export interface ItemEffects {
   // Talents du Mage
   startCharges?: number; // charges arcaniques au début du combat
   noOverload?: number; // la Surcharge ne coûte plus de PV
+  chargeBonus?: number; // Stabilité : +X dégâts par charge arcanique (en plus des 2)
   barrageDraw?: number; // Barrage arcanique pioche X de plus
   burnBonus?: number; // +X à chaque application de Brûlure
   fireballBonus?: number; // Boule de feu +X dégâts
@@ -366,7 +367,7 @@ for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnR
 for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin'];
 for (const k of ['wisdomBonus', 'purifyFree', 'blessedHealBlock', 'devotionBonus', 'consecrationLong', 'retributionFree', 'judgeCd', 'sealsFree', 'holyBonus', 'vengeanceDivine', 'doubleSeal', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
 for (const k of ['sinisterBonus', 'poisonBonus', 'finisherBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
-for (const k of ['startCharges', 'burnBonus', 'firstSpellFree'] as const) KEY_CLASSES[k] = ['mage'];
+for (const k of ['startCharges', 'burnBonus', 'firstSpellFree', 'chargeBonus'] as const) KEY_CLASSES[k] = ['mage'];
 KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin'];
 for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
 KEY_CLASSES.healBonus = ['pretre', 'paladin'];

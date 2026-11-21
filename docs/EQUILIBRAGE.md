@@ -339,3 +339,12 @@ Profils du banc (100 runs) : Voleur niveau 10 Assassinat 7 + Combat 3 : 30 → *
 
 **Voleur, paliers (novembre 2026).** Finesse meurtrière : +3 par point de combo pour tous les finishers qui frappent (Assassinat 7 + Combat 3 : 45 → 55 % ; Combat 7 + Assassinat 3 : 54 → 64 %). Maître de la discrétion : aussi sur Coup dans le dos (Finesse 7 + Combat 3 : 43 → 51 %). Banc (100 runs) : Assassinat 7 + 3 **55 %**, Finesse 7 + 3 **49 %**, Combat 7 + Finesse 3 ≈ 80 % (accepté).
 
+**Les arbres de chaque classe (novembre 2026).** Consigne : des arbres à peu près équivalents dans chaque classe, sans chercher la perfection ; une classe peut rester un peu plus forte qu'une autre. Diagnostic (150 runs, chaque arbre à 7 points avec son meilleur complément à 3) :
+
+| Classe | Avant | Après |
+|---|---|---|
+| Guerrier | Armes 71 · Fureur 57 · Protection 71 | inchangé (acceptable) |
+| Mage | Arcane 27 · Feu 55 · Givre 24 | Arcane **58** · Feu 55 · Givre **63** |
+
+**Mage :** Fracas glaciaire (Gel 3 sur la cible, puis 8 dégâts à tous, doublés sur chaque ennemi fracassable), Tempête arcanique (ne consomme plus les charges), Subtilité arcanique (3 charges), Stabilité (+3 par charge au lieu de +2).
+

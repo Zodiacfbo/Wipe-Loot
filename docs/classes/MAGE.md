@@ -117,7 +117,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 | **Distorsion temporelle** | 2 | Compétence | R | Au début de ton prochain tour, gagne 1 énergie et pioche 2 cartes de plus. **Épuisé.** | Coûte 1 |
 | **Concentration arcanique** | 1 | Pouvoir | R | Chaque fois que tu joues ton 3ᵉ Sort d'un tour, gagne 1 énergie. | Inné |
 | **Esprit vif** | 1 | Pouvoir | R | Au début de ton tour, gagne 1 charge. | Coûte 0 |
-| **Tempête arcanique** | 2 | Sort | É | Consomme toutes tes charges. Inflige 6 dégâts **à tous les ennemis** par charge consommée. | 8 par charge |
+| **Tempête arcanique** | 2 | Sort | É | Inflige 6 dégâts **à tous les ennemis** par charge arcanique, **sans les consommer**. | 8 par charge |
 
 ### 5.3 Arbre Feu (14 cartes) : la Brûlure
 
@@ -155,7 +155,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 | **Prison de glace** | 1 | Compétence | R | La cible (sauf boss) devient immédiatement **Gelée**. **Épuisé.** | Fonctionne aussi sur un boss (attaque réduite de moitié) |
 | **Fragmentation** | 2 | Pouvoir | R | **Fracasser** inflige **triple** dégâts au lieu de double. | Coûte 1 |
 | **Cœur de glace** | 1 | Pouvoir | R | Au début de ton tour, applique Gel 1 à tous les ennemis. | Inné |
-| **Fracas glaciaire** | 2 | Sort | É | Inflige 14 dégâts. **Fracasser.** Si la cible est Gelée, inflige aussi ces dégâts à tous les autres ennemis. | 18 dégâts |
+| **Fracas glaciaire** | 2 | Sort | É | Applique **Gel 3** à la cible, puis inflige 8 dégâts **à tous les ennemis**. **Fracasser** (chaque ennemi fracassable subit double dégâts). | 11 dégâts |
 
 ---
 
@@ -184,8 +184,8 @@ Mêmes règles que pour toutes les classes (voir [le fonctionnement des classes]
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Subtilité arcanique** : commence chaque combat avec 2 charges. | **Méditation** : pioche 1 carte de plus au premier tour de chaque combat. |
-| **2** | **Stabilité** : la Surcharge ne fait plus perdre de PV. | **Esprit clair** : Barrage arcanique pioche 1 carte de plus. |
+| **1** | **Subtilité arcanique** : commence chaque combat avec 3 charges. | **Méditation** : pioche 1 carte de plus au premier tour de chaque combat. |
+| **2** | **Stabilité** : la Surcharge ne fait plus perdre de PV, et chaque charge donne +3 dégâts au lieu de +2. | **Esprit clair** : Barrage arcanique pioche 1 carte de plus. |
 | **3** | **Évocation** : ajoute ce sort à ta barre. | **Pouvoir des arcanes** : ajoute ce sort à ta barre. |
 | **4** | **Clignement** : ajoute ce sort à ta barre. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
 | **5** | **Tempête arcanique** (carte épique) | — |
@@ -267,3 +267,6 @@ Mêmes règles que pour toutes les classes (voir [le fonctionnement des classes]
   - **Piste :** ne pas vider les charges (« garde 1 charge », ou la Tempête en rend 2 si elle tue). Revoir l'arbre Arcane dans son ensemble avant de fixer la carte.
   - **Pyrolance : +12 points** (contre +17 pour 3 talents). Bien jouée : 22 dégâts et Brûlure 6 pour 2 énergie. Elle vaut environ 2 talents : il manque peu, mais c'est un gros chiffre sans lien avec la Brûlure déjà posée.
   - **Piste :** la lier à l'identité du Feu : « +1 dégât par Brûlure sur la cible » ou « double la Brûlure de la cible ».
+  - **Fait (novembre 2026), arbres à peu près équivalents :** Fracas glaciaire applique Gel 3 puis frappe tous les ennemis (8 dégâts, doublés sur chaque ennemi fracassable ; 12 était trop fort : Givre 79 %) ; Tempête arcanique ne consomme plus les charges ; Subtilité arcanique donne 3 charges ; Stabilité donne +3 par charge. Pyrolance n'a pas bougé (Feu déjà au niveau).
+  - **Résultat (150 runs, meilleur complément) :** Arcane 7 + Givre 3 **58 %**, Feu 7 + Givre 3 **55 %**, Givre 7 + Arcane 3 **63 %** (avant : 27, 55 et 24 %).
+

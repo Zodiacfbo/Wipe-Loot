@@ -93,9 +93,9 @@ export const MAGE_TREES: TreeDef[] = [
   {
     id: 'arcane', name: 'Arcane', theme: 'Puissance brute et pioche',
     tiers: [
-      [t('subtilite_arcanique', 'Subtilité arcanique', 'Commence chaque combat avec 2 charges arcaniques.', { fx: { startCharges: 2 } }),
+      [t('subtilite_arcanique', 'Subtilité arcanique', 'Commence chaque combat avec 3 charges arcaniques.', { fx: { startCharges: 3 } }),
         t('meditation', 'Méditation', 'Pioche 1 carte de plus au premier tour de chaque combat.', { fx: { firstTurnDraw: 1 } })],
-      [t('stabilite', 'Stabilité', 'La Surcharge ne te fait plus perdre de PV.', { fx: { noOverload: 1 } }),
+      [t('stabilite', 'Stabilité', 'La Surcharge ne te fait plus perdre de PV, et chaque charge arcanique donne +3 dégâts au lieu de +2.', { fx: { noOverload: 1, chargeBonus: 1 } }),
         t('esprit_clair', 'Esprit clair', 'Barrage arcanique pioche 1 carte de plus.', { fx: { barrageDraw: 1 } })],
       [t('t_evocation', 'Évocation', 'Ajoute ce sort à ta barre : +2 énergie et pioche 1 carte.', { spell: 'evocation' }),
         t('t_pouvoir_arcanes', 'Pouvoir des arcanes', 'Ajoute ce sort à ta barre : tes Sorts infligent +50 % ce tour-ci.', { spell: 'pouvoir_arcanes' })],

@@ -147,7 +147,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (!c.firstAttackDone && !spell) dmg += g.firstAttackBonus ?? 0;
   if (c.playing && c.playing.cost >= 2 && !spell) dmg += g.heavyAttackBonus ?? 0;
   // Mage : charges arcaniques, Pyromanie, Impact.
-  if (c.playing?.school === 'arcane') dmg += 2 * (p.charges ?? 0);
+  if (c.playing?.school === 'arcane') dmg += (2 + (g.chargeBonus ?? 0)) * (p.charges ?? 0);
   if (c.playing?.school === 'feu' && c.playing.cost >= 2) dmg += power(c, 'pyromanie');
   if (c.playing?.id === 'boule_de_feu') dmg += g.fireballBonus ?? 0;
   // Acte 2 : Fouet du contremaître, armes contre les Dragons et les Morts-vivants, Bague de la mère.
