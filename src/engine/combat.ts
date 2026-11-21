@@ -468,6 +468,25 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   return true;
 }
 
+/** Pourquoi une carte de la main ne peut pas être jouée (null : elle peut l'être). Les mêmes règles que canPlayCard. */
+export function cardBlockReason(c: CombatState, handIndex: number): string | null {
+  const card = c.hand[handIndex];
+  if (!card || canPlayCard(c, handIndex)) return null;
+  if (c.phase !== 'player') return 'Ce n\'est pas ton tour.';
+  const def = CARDS[card.id];
+  if (def.unplayable) return 'Cette carte ne se joue pas.';
+  if (c.panicked?.includes(card.uid)) return 'Paniquée : elle ne se joue pas ce tour-ci.';
+  const cost = energyCost(c, card.id, card.upgraded);
+  if (cost > c.player.energy) return `Pas assez d'énergie : il en faut ${cost}, tu en as ${c.player.energy}.`;
+  if (typeof def.rageCost === 'number' && def.rageCost > c.player.rage) return `Pas assez de rage : il en faut ${def.rageCost}, tu en as ${c.player.rage}.`;
+  if (def.rageCost === 'all' && c.player.rage === 0) return 'Il te faut de la rage.';
+  const shards = shardCost(c, card.id, card.upgraded);
+  if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return shards === 'all' ? 'Il te faut au moins 1 éclat d\'âme.' : `Pas assez d'éclats d'âme : il en faut ${shards}.`;
+  if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return def.faithCost === 'all' ? 'Il te faut de la Foi.' : `Pas assez de Foi : il en faut ${def.faithCost}.`;
+  if (def.opener) return 'Une Ouverture ne se joue que Camouflé.';
+  return 'Cette carte ne peut pas être jouée maintenant.';
+}
+
 export function playCard(c: CombatState, handIndex: number, targetUid?: number): boolean {
   if (!canPlayCard(c, handIndex)) return false;
   const card = c.hand[handIndex];

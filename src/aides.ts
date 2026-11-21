@@ -23,7 +23,8 @@ let previewIndex: number | null = null;
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** Le contenu de la bulle d'un élément (mot souligné, pastille ou carte), ou null s'il n'y a rien à expliquer. */
-function bubbleContent(el: HTMLElement): string | null {
+function bubbleContent(el: HTMLElement, reasonOnly = false): string | null {
+  if (reasonOnly) return el.dataset.raison ? `<b>Injouable</b>${esc(el.dataset.raison)}` : null;
   if (el.classList.contains('mot')) {
     const k = keywordByName(el.dataset.mot ?? '');
     return k ? `<b>${esc(k.name)}</b>${esc(k.text)}` : null;
@@ -41,6 +42,8 @@ function bubbleContent(el: HTMLElement): string | null {
     return text ? `<b>${esc(label)}</b>${esc(text)}` : null;
   }
   if (el.classList.contains('carte')) {
+    // Une carte grisée : d'abord pourquoi elle ne se joue pas.
+    const why = el.dataset.raison ? `<b>Injouable</b>${esc(el.dataset.raison)}` : '';
     // Le bandeau compte aussi (« Finisher », « Sceau »…), et il dit si la carte est une Attaque, une Compétence…
     const type = el.querySelector<HTMLElement>('.type');
     const label = type?.textContent?.trim() ?? '';
@@ -50,17 +53,18 @@ function bubbleContent(el: HTMLElement): string | null {
       const k = keywordByName(label);
       const ks = keywordsIn(text).filter((x) => x !== k);
       const head = `<b>${esc(label)} (${esc(kind)})</b>${esc(k?.text ?? '')}`;
-      return [head, ...ks.map((x) => `<b>${esc(x.name)}</b>${esc(x.text)}`)].join('<hr>');
+      return [why, head, ...ks.map((x) => `<b>${esc(x.name)}</b>${esc(x.text)}`)].filter(Boolean).join('<hr>');
     }
     const ks = keywordsIn(text);
-    return ks.length ? ks.map((k) => `<b>${esc(k.name)}</b>${esc(k.text)}`).join('<hr>') : null;
+    const parts = [why, ...ks.map((k) => `<b>${esc(k.name)}</b>${esc(k.text)}`)].filter(Boolean);
+    return parts.length ? parts.join('<hr>') : null;
   }
   return null;
 }
 
-function showBubble(el: HTMLElement): boolean {
+function showBubble(el: HTMLElement, reasonOnly = false): boolean {
   hideBubble();
-  const html = bubbleContent(el);
+  const html = bubbleContent(el, reasonOnly);
   if (!html) return false;
   bubble = document.createElement('div');
   bubble.className = 'bulle';
@@ -127,6 +131,15 @@ function previewFor(c: CombatState, index: number): EnemyPreview[] {
 }
 
 /** Affiche sur les ennemis l'effet de la carte `index` de la main (null : rien). */
+/** Un toucher sur une carte grisée : la bulle dit pourquoi, quelques secondes. */
+export function explainCard(el: HTMLElement): void {
+  if (!el.dataset.raison) return;
+  if (showBubble(el, true)) {
+    const mine = bubble;
+    window.setTimeout(() => { if (bubble === mine) hideBubble(); }, 2600);
+  }
+}
+
 export function showDamagePreview(index: number | null): void {
   const c = getCombat();
   if (index === previewIndex) return;

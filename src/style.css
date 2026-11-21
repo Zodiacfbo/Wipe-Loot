@@ -199,6 +199,17 @@ img[data-anime] {
 }
 .main .carte:hover:not(:disabled), .main .carte.choisie { transform: translateY(-40px) scale(1.25); z-index: 5; }
 .carte.injouable { filter: brightness(0.6) saturate(0.6); }
+.contenu-archives.glossaire { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; align-content: start; }
+.mot-glossaire { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--panneau); border: 1px solid var(--bordure); font-size: 13px; color: var(--texte-2); }
+.mot-glossaire b { color: #f2c96b; font-size: 14px; }
+.filtres-deck { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.choix-filtre { display: flex; gap: 6px; flex-wrap: wrap; }
+.choix-filtre button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--bordure); background: var(--panneau); color: var(--texte-2); font-size: 13px; font-weight: 700; }
+.choix-filtre button.actif { border-color: var(--or); color: var(--or-clair); background: #3a2a14; }
+/* Un bon coup : la condition de la carte est remplie (finisher à 5 combo, Ouverture Camouflé, cible à achever…). */
+.carte.prete { filter: drop-shadow(0 0 6px rgba(255, 210, 110, 0.9)); animation: carte-prete 1.4s ease-in-out infinite; }
+@keyframes carte-prete { 50% { filter: drop-shadow(0 0 14px rgba(255, 210, 110, 1)); } }
+@media (prefers-reduced-motion: reduce) { .carte.prete { animation: none; } }
 .carte img.cadre { position: absolute; left: 0; top: 0; width: 140px; height: 196px; }
 .carte img.icone { position: absolute; left: 38px; top: 38px; width: 64px; height: 64px; }
 .carte .cout { position: absolute; left: 0; top: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff6e8; text-shadow: 1px 1px 0 #3a1a08; }

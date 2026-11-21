@@ -50,3 +50,36 @@ export function splitRibbon(full: string): { ribbon: string | null; text: string
 
 /** La longueur visée d'un texte de carte : 3 ou 4 lignes sur téléphone. */
 export const CARD_TEXT_MAX = 72;
+
+/** Marques autour des mots qu'une amélioration ajoute ou change (remplacées par l'interface). */
+export const DIFF_OPEN = '\u0001';
+export const DIFF_CLOSE = '\u0002';
+
+/**
+ * Le texte amélioré, avec les mots qui changent par rapport à la version de base entourés de marques
+ * (« Inflige 6 dégâts. » → « Inflige ‹9› dégâts. », « … ‹Pioche› ‹1› ‹carte.› »). Plus longue sous-suite commune, mot à mot.
+ */
+export function markDiff(base: string, up: string): string {
+  const a = base.split(' ');
+  const b = up.split(' ');
+  const n = a.length;
+  const m = b.length;
+  const L: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out: string[] = [];
+  let i = 0;
+  let j = 0;
+  while (j < m) {
+    if (i < n && a[i] === b[j]) {
+      out.push(b[j]);
+      i++;
+      j++;
+    } else if (i < n && L[i + 1][j] >= L[i][j + 1]) {
+      i++;
+    } else {
+      out.push(DIFF_OPEN + b[j] + DIFF_CLOSE);
+      j++;
+    }
+  }
+  return out.join(' ').replace(new RegExp(`${DIFF_CLOSE} ${DIFF_OPEN}`, 'g'), ' ');
+}

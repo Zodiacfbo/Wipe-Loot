@@ -5,6 +5,7 @@ import {
   SPELLS,
   canPlayCard,
   canUseSpell,
+  cardBlockReason,
   changePosture,
   choosePet,
   endTurn,
@@ -19,9 +20,10 @@ import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM, YZHAR } from './engine/enemies
 import { turnsBeforeSwap } from './engine/irem';
 import { MUTATION_LABEL } from './engine/actions';
 import { cardHitValue } from './engine/preview';
-import { placeHit, splitRibbon } from './cardtext';
-import { afterRender, initAides } from './aides';
-import { markKeywords } from './keywords';
+import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeHit, splitRibbon } from './cardtext';
+import { afterRender, explainCard, initAides } from './aides';
+import { cardReady } from './engine/hints';
+import { KEYWORDS, markKeywords } from './keywords';
 import { ACTS, LAST_ACT, actDef } from './engine/acts';
 import { BLESSINGS, EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
@@ -179,7 +181,10 @@ interface UiState {
   classSel: string | null;
   /** Archives de la guilde : écran ouvert et onglet. */
   archivesScreen: boolean;
-  archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres';
+  archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres' | 'mots';
+  /** La vue du deck : le type de cartes montré (null : toutes) et le tri. */
+  deckType?: string | null;
+  deckSort?: 'deck' | 'cout' | 'nom';
   /** Archives : l'icône regardée (sa fiche s'affiche à droite). */
   archiveSel?: string | null;
   /** Coffre détaillé et tables de loot : l'objet regardé. */
@@ -237,7 +242,14 @@ function cardText(text: string, hit: number | null | undefined): string {
   return `${markKeywords(place.before)}<span class="valeur ${cls}">${hit}</span>${markKeywords(place.after)}`;
 }
 
-function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; disguise?: boolean } = {}): string {
+/** Le texte amélioré, avec ce qui change en vert (aperçu de l'amélioration). */
+function diffText(base: string, up: string): string {
+  return markKeywords(markDiff(base, up))
+    .split(DIFF_OPEN).join('<span class="valeur plus">')
+    .split(DIFF_CLOSE).join('</span>');
+}
+
+function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; disguise?: boolean; reason?: string | null; ready?: boolean; diffFrom?: string } = {}): string {
   // Acte 3 : dans la main, une Hallucination a l'apparence de la carte qu'elle imite (cadre violacé, texte qui tremble).
   const fake = !!opts.disguise && real.id === 'hallucination' && !!real.mimic && !!CARDS[real.mimic];
   const card = fake ? { ...real, id: real.mimic! } : real;
@@ -250,8 +262,8 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
   // « Finisher : », « Sceau : », « Aura : »… : le mot passe dans le bandeau, le texte commence par l'effet (place sur téléphone).
   const fullText = def.text(card.upgraded, gear);
   const { ribbon, text } = splitRibbon(fullText);
-  const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : ''].join(' ');
-  return `<button type="button" class="${classes}" ${opts.action ?? ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${fullText}">
+  const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : '', opts.ready && !opts.disabled ? 'prete' : ''].join(' ');
+  return `<button type="button" class="${classes}" ${opts.action ?? ''} ${opts.disabled && opts.reason ? `data-raison="${opts.reason.replace(/"/g, '&quot;')}"` : ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${fullText}">
     <img class="cadre px" src="${A(frame)}" alt="">
     <img class="icone px" src="${A(`carte_${card.id}.png`)}" alt="">
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
@@ -262,7 +274,7 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     <span class="type" ${ribbon ? `data-type="${def.type}"` : ''}>${ribbon ?? `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
-    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${cardText(text, opts.hit)}</span></span>
+    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${opts.diffFrom !== undefined ? diffText(opts.diffFrom, text) : cardText(text, opts.hit)}</span></span>
   </button>`;
 }
 
@@ -1242,6 +1254,8 @@ function combatScreen(run: RunState, c: CombatState): string {
     panicked: c.panicked?.includes(card.uid),
     action: `data-action="carte" data-index="${i}"`,
     disabled: !canPlayCard(c, i),
+    reason: cardBlockReason(c, i),
+    ready: cardReady(c, i),
     selected: ui.selection?.kind === 'card' && ui.selection.index === i,
     combat: c,
     hit: cardHitValue(c, i),
@@ -1482,7 +1496,9 @@ function archiveTabProgress(tab: UiState['archiveTab']): { seen: number; total: 
 function archivesScreen(): string {
   const tab = ui.archiveTab;
   const tabs = ([['cartes', 'Cartes'], ['objets', 'Objets'], ['potions', 'Potions'], ['monstres', 'Monstres']] as const)
-    .map(([id, label]) => `<button type="button" class="onglet ${tab === id ? 'actif' : ''}" data-action="archives-onglet" data-tab="${id}">${label} · ${archiveTabProgress(id).pct} %</button>`).join('');
+    .map(([id, label]) => `<button type="button" class="onglet ${tab === id ? 'actif' : ''}" data-action="archives-onglet" data-tab="${id}">${label} · ${archiveTabProgress(id).pct} %</button>`).join('')
+    + `<button type="button" class="onglet ${tab === 'mots' ? 'actif' : ''}" data-action="archives-onglet" data-tab="mots">Glossaire</button>`;
+  if (tab === 'mots') return glossaryScreen(tabs);
   const { seen, total } = archiveTabProgress(tab);
   const groups = archiveGroups(tab);
   const body = groups.map((g) => `<section class="groupe-archives"><h3>${g.title} · ${g.entries.filter((e) => e.seen).length}/${g.entries.length}</h3><div class="tuiles-archives">${g.entries.map((e) =>
@@ -1496,6 +1512,22 @@ function archivesScreen(): string {
     <div class="archives-droite">
       <button type="button" class="bouton bouton-retour" data-action="titre">Retour</button>
       ${entry ? archiveSheet(tab, entry) : `<aside class="fiche-talent vide"><div class="titre-fiche">Archives de la guilde</div><p>Touche une icône pour voir sa fiche.</p><p>Ce que tu n'as pas encore découvert reste caché : une silhouette pour les monstres, un « ? » pour le reste.</p></aside>`}
+    </div>
+  </div>`;
+}
+
+/** Le glossaire des archives : tous les mots-clés expliqués, dans l'ordre alphabétique. */
+function glossaryScreen(tabs: string): string {
+  const words = [...KEYWORDS].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  const list = words.map((k) => `<div class="mot-glossaire"><b>${k.name}</b><span>${k.text}</span></div>`).join('');
+  return `<div class="ecran ecran-archives">
+    <div class="archives-gauche">
+      <div class="tete-talents"><h2>Archives</h2><div class="onglets">${tabs}</div><span class="points-talent">${words.length} mots</span></div>
+      <div class="contenu-archives glossaire">${list}</div>
+    </div>
+    <div class="archives-droite">
+      <button type="button" class="bouton bouton-retour" data-action="titre">Retour</button>
+      <aside class="fiche-talent vide"><div class="titre-fiche">Glossaire</div><p>Les mots en <span class="mot">or</span> sur les cartes et les pastilles s'expliquent en combat : reste appuyé dessus (téléphone) ou passe la souris (PC).</p><p>Ils sont tous réunis ici, pour les relire tranquillement.</p></aside>
     </div>
   </div>`;
 }
@@ -1640,7 +1672,7 @@ function upgradePreview(run: RunState, uid: number, label: string, confirm: stri
     <div class="apercu-amelioration">
       ${cardHtml(card, { action: 'disabled' })}
       <span class="fleche-amelioration">→</span>
-      ${cardHtml({ ...card, upgraded: true }, { action: 'disabled' })}
+      ${cardHtml({ ...card, upgraded: true }, { action: 'disabled', diffFrom: splitRibbon(CARDS[card.id].text(false, runGear(run))).text })}
     </div>
     <div class="actions">
       <button type="button" class="gros-bouton" ${confirm} data-uid="${uid}">${label}</button>
@@ -2068,10 +2100,23 @@ function overlayHtml(run: RunState | null): string {
     </div></div>`;
   }
   if (ui.overlay === 'deck') {
-    const cards = deckList(run.deck, (card) => cardHtml(card, { action: 'disabled' }));
-    return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:40px;gap:14px">
+    // Trier et filtrer : par type (Attaque, Compétence…) et par coût ou par nom.
+    const types = [...new Set(run.deck.map((card) => CARDS[card.id].type))];
+    const shown = run.deck.filter((card) => !ui.deckType || CARDS[card.id].type === ui.deckType);
+    const sort = ui.deckSort ?? 'deck';
+    const sorted = sort === 'deck' ? shown : [...shown].sort((a, b) => sort === 'cout'
+      ? CARDS[a.id].cost - CARDS[b.id].cost || CARDS[a.id].name.localeCompare(CARDS[b.id].name, 'fr')
+      : CARDS[a.id].name.localeCompare(CARDS[b.id].name, 'fr'));
+    const cards = deckList(sorted, (card) => cardHtml(card, { action: 'disabled' }));
+    const count = (t: string) => run.deck.filter((card) => CARDS[card.id].type === t).length;
+    const filters = [`<button type="button" class="${!ui.deckType ? 'actif' : ''}" data-action="deck-type" data-type="">Toutes · ${run.deck.length}</button>`,
+      ...types.map((t) => `<button type="button" class="${ui.deckType === t ? 'actif' : ''}" data-action="deck-type" data-type="${t}">${t} · ${count(t)}</button>`)].join('');
+    const sorts = ([['deck', 'Ordre du deck'], ['cout', 'Coût'], ['nom', 'Nom']] as const)
+      .map(([id, label]) => `<button type="button" class="${sort === id ? 'actif' : ''}" data-action="deck-tri" data-tri="${id}">${label}</button>`).join('');
+    return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:28px;gap:10px">
       <h2>Ton deck (${run.deck.length} cartes)</h2>
-      <div class="liste-deck">${cards}</div>
+      <div class="filtres-deck"><div class="choix-filtre">${filters}</div><div class="choix-filtre">${sorts}</div></div>
+      <div class="liste-deck">${cards || '<p><i>Aucune carte de ce type.</i></p>'}</div>
       <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
     </div></div>`;
   }
@@ -2314,7 +2359,13 @@ function startNewRun(heirloom: string | null = null): void {
 
 function onCard(index: number): void {
   const c = ui.run?.combat;
-  if (!c || !canPlayCard(c, index)) return;
+  if (!c) return;
+  // Une carte grisée : on dit pourquoi.
+  if (!canPlayCard(c, index)) {
+    const el = stage.querySelector<HTMLElement>(`.main .carte[data-index="${index}"]`);
+    if (el) explainCard(el);
+    return;
+  }
   const sel = ui.selection;
   if (sel?.kind === 'card' && sel.index === index) {
     ui.selection = null;
@@ -2470,6 +2521,8 @@ function handleClick(ev: MouseEvent): void {
       return;
     }
     case 'deck': ui.overlay = 'deck'; render(); return;
+    case 'deck-type': ui.deckType = el.dataset.type || null; render(); return;
+    case 'deck-tri': ui.deckSort = el.dataset.tri as UiState['deckSort']; render(); return;
     case 'menu': ui.overlay = 'menu'; render(); return;
     case 'fermer': ui.overlay = null; render(); return;
     case 'equipement': ui.overlay = 'equipement'; ui.equipSel = null; render(); return;

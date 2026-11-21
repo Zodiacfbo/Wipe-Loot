@@ -53,3 +53,50 @@ describe('les textes des cartes restent lisibles sur téléphone', async () => {
     expect(splitRibbon('Inflige 6 dégâts.').ribbon).toBeNull();
   });
 });
+
+describe('les aides sur les cartes de la main', async () => {
+  const { createCombat, cardBlockReason } = await import('../src/engine/combat');
+  const { cardReady } = await import('../src/engine/hints');
+  const deck = (ids: string[]) => ids.map((id, i) => ({ uid: 900 + i, id, upgraded: false }));
+  const fight = (ids: string[], cls = 'guerrier') => {
+    const c = createCombat({ kind: 'combat', name: 't', enemies: ['soldat_irem'] }, deck(ids), 80, 80, 1, 1, {}, [], undefined, cls);
+    c.hand = deck(ids);
+    return c;
+  };
+
+  it('une carte grisée dit pourquoi', () => {
+    const c = fight(['frappe']);
+    c.player.energy = 0;
+    expect(cardBlockReason(c, 0)).toContain('énergie');
+    c.player.energy = 3;
+    expect(cardBlockReason(c, 0)).toBeNull();
+    const v = fight(['embuscade'].filter((id) => CARDS[id]).concat(Object.values(CARDS).filter((d) => d.opener).slice(0, 1).map((d) => d.id)), 'voleur');
+    v.stealth = false;
+    v.player.energy = 5;
+    expect(cardBlockReason(v, v.hand.length - 1)).toContain('Camouflé');
+  });
+
+  it('un finisher brille à 5 combo, une Ouverture quand tu es Camouflé', () => {
+    const fin = Object.values(CARDS).find((d) => d.finisher)!.id;
+    const ope = Object.values(CARDS).find((d) => d.opener)!.id;
+    const c = fight([fin, ope], 'voleur');
+    c.player.energy = 5;
+    c.combo = 3;
+    c.stealth = false;
+    expect(cardReady(c, 0)).toBe(false);
+    expect(cardReady(c, 1)).toBe(false);
+    c.combo = 5;
+    c.stealth = true;
+    expect(cardReady(c, 0)).toBe(true);
+    expect(cardReady(c, 1)).toBe(true);
+  });
+});
+
+describe('ce que change une amélioration', async () => {
+  const { markDiff, DIFF_OPEN: O, DIFF_CLOSE: C } = await import('../src/cardtext');
+  it('les chiffres qui changent et les ajouts sont marqués', () => {
+    expect(markDiff('Inflige 6 dégâts.', 'Inflige 9 dégâts.')).toBe(`Inflige ${O}9${C} dégâts.`);
+    expect(markDiff('Ton familier agit une fois de plus.', 'Ton familier agit une fois de plus. Pioche 1 carte.')).toBe(`Ton familier agit une fois de plus. ${O}Pioche 1 carte.${C}`);
+    expect(markDiff('Inflige 6 dégâts.', 'Inflige 6 dégâts.')).toBe('Inflige 6 dégâts.');
+  });
+});
