@@ -163,12 +163,13 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
 - **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
 - **Décisions de design à respecter :**
+  - Équilibrage des talents (novembre 2026) : les 3 arbres d'une classe doivent se valoir **à peu près** ; une classe ou un arbre un peu plus fort est accepté, on ne cherche pas la perfection. Mesurer avec les choix des profils du bot, pas l'option A partout (le bot n'utilise pas certains sorts, comme Amplifier la malédiction).
   - Le Guerrier n'a volontairement que très peu de soins (Sanguinaire, Dernier rempart, objets). Pas de « Second souffle » ni de vol de vie. Si on en ajoute un jour, le réserver à un seul arbre.
   - Une classe de difficulté ⭐⭐⭐ (comme le Démoniste) peut rester un cran en dessous des autres en taux de victoire du bot : c'est accepté.
   - Le butin épique de Vhaeryx arrivera avec l'acte 3 (tant que Vhaeryx termine la run).
   - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
   - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
-- **La suite décidée (novembre 2026) :** d'abord le chantier des talents (le palier 5 coûte 3 points, `CONCEPT.md` §9, codé : `tierCost` dans `talents.ts` ; restent : revoir les arbres Arcane, Destruction et Assassinat, refaire les cartes épiques faibles d'après les fiches de classe §11, puis une passe au niveau 10), ensuite finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
+- **La suite décidée (novembre 2026) :** le chantier des talents est fait sur la branche `claude/sharp-keller-k158xk`, pas encore publié sur `dev` (le palier 5 coûte 3 points, `CONCEPT.md` §9, `tierCost` dans `talents.ts` ; les 3 arbres de chaque classe se valent à peu près, niveau 10 entre 49 et 74 % : `EQUILIBRAGE.md` §14). Ensuite finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---

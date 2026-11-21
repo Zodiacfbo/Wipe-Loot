@@ -99,6 +99,7 @@
 - [x] Déblocage des autres classes par paliers d'expérience totale (300, 700, 1 200, 1 800, 2 500, 3 300, 4 200, 5 200), au choix du joueur — prêt, il servira avec la 2e classe
 - [x] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint (prêt, il servira avec la 2e classe)
 - [x] Les talents permanents du Guerrier : écran des 3 arbres (27 talents), choix avant la run, respec gratuit, récompenses orientées vers les arbres investis
+- [x] Le palier 5 (carte épique) coûte 3 points : un seul arbre complet (novembre 2026). Cartes épiques et arbres faibles revus pour que les 3 arbres de chaque classe se valent à peu près : voir [l'équilibrage](EQUILIBRAGE.md), §14
 - [ ] ~~Les déblocages de cartes et d'objets par niveau~~ : abandonné (novembre 2026), chaque niveau donne déjà un point de talent. Des objets nouveaux par niveau sont notés dans « Plus tard »
 - [x] Les niveaux de difficulté (1 à 20) : choix dans le hall, débloqués en gagnant, +5 % de score par niveau
 - [x] Les archives de la guilde : cartes, objets (par source), potions et monstres (histoire, PV, passif, nombre de victoires), « ??? » tant que ce n'est pas découvert

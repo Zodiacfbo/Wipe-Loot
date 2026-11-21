@@ -358,3 +358,14 @@ Profils du banc (100 runs) : Voleur niveau 10 Assassinat 7 + Combat 3 : 30 → *
 
 **Paladin :** Bouclier du croisé n'est plus Épuisé (12 blocage, renvoi de 4 dégâts, 2 PV). Non Épuisé avec ses anciens chiffres, il portait la Protection à 89 %.
 
+**Le banc au niveau 10 après tout le chantier** (profils 7 + 3, 100 runs, difficulté 0) — tous dans la cible de 50 à 75 % (à ±5 près) :
+
+| Classe | Profil 1 | Profil 2 |
+|---|---|---|
+| Guerrier | Protection 7 + Fureur 3 : 56 % | Armes 7 + Fureur 3 : 53 % |
+| Mage | Givre 7 + Feu 3 : 74 % | Arcane 7 + Feu 3 : 58 % |
+| Démoniste | Affliction 7 + Destruction 3 : 71 % | Démonologie 7 + Destruction 3 : 69 % |
+| Prêtre | Discipline 7 + Sacré 3 : 54 % | Ombre 7 + Sacré 3 : 71 % |
+| Voleur | Assassinat 7 + Combat 3 : 55 % | Finesse 7 + Combat 3 : 49 % |
+| Paladin | Vindicte 7 + Sacré 3 : 71 % | Protection 7 + Sacré 3 : 70 % |
+
