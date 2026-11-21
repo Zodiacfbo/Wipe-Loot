@@ -169,7 +169,7 @@ cd tools/pixel && python3 acte3.py                           # sprites des ennem
   - Le butin épique de Vhaeryx arrivera avec l'acte 3 (tant que Vhaeryx termine la run).
   - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
   - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
-- **La suite décidée (novembre 2026) :** le chantier des talents est fait sur la branche `claude/sharp-keller-k158xk`, pas encore publié sur `dev` (le palier 5 coûte 3 points, `CONCEPT.md` §9, `tierCost` dans `talents.ts` ; les 3 arbres de chaque classe se valent à peu près, niveau 10 entre 49 et 74 % : `EQUILIBRAGE.md` §14). Ensuite finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
+- **La suite décidée (novembre 2026) :** le chantier des talents est fait et publié sur `dev` (le palier 5 coûte 3 points, `CONCEPT.md` §9, `tierCost` dans `talents.ts` ; les 3 arbres de chaque classe se valent à peu près, niveau 10 entre 49 et 74 % : `EQUILIBRAGE.md` §14). Ensuite finir l'acte 3 (lots 2 à 5), puis les 3 classes restantes, puis un bilan, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »).
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---
