@@ -168,7 +168,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   const rogueAttack = c.combo !== undefined && c.playing?.type === 'Attaque';
   if (rogueAttack) {
     dmg += c.bladeDance && c.bladeDance.turns > 0 ? c.bladeDance.bonus : 0;
-    if (c.playing!.opener) dmg += g.openerBonus ?? 0;
+    if (c.playing!.opener || c.playing!.id === 'coup_dans_le_dos') dmg += g.openerBonus ?? 0; // Maître de la discrétion
     if ((target.stun ?? 0) > 0 || (target.sap ?? 0) > 0 || (target.buffs.peur ?? 0) > 0 || (target.mouton ?? 0) > 0) dmg += power(c, 'opportuniste');
   }
   // Paladin : les Sceaux, Croisade, Conviction, Vengeance divine.

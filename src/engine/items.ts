@@ -107,7 +107,7 @@ export interface ItemEffects {
   // Talents du Voleur
   sinisterBonus?: number; // Attaque sinistre +X dégâts
   poisonBonus?: number; // tes applications de Poison +X
-  evisBonus?: number; // Éviscération +X dégâts par point de combo
+  finisherBonus?: number; // Finesse meurtrière : finishers qui frappent, +X dégâts par point de combo
   kidneyDelay?: number; // Coup aux reins retarde l'Incantation d'un boss
   ruthless?: number; // tes finishers comptent X points de combo de plus
   startCombo?: number; // points de combo au début du combat
@@ -365,7 +365,7 @@ for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnR
 // Les bonus aux Attaques servent au Guerrier, au Voleur et au Paladin.
 for (const k of ['attackBonus', 'lowHpBonus', 'firstAttackBonus', 'heavyAttackBonus', 'bleedFirstAttack', 'bleedBonus', 'healOnAttack', 'attackBurn', 'undeadBonus', 'dragonBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin'];
 for (const k of ['wisdomBonus', 'purifyFree', 'blessedHealBlock', 'devotionBonus', 'consecrationLong', 'retributionFree', 'judgeCd', 'sealsFree', 'holyBonus', 'vengeanceDivine', 'doubleSeal', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
-for (const k of ['sinisterBonus', 'poisonBonus', 'evisBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
+for (const k of ['sinisterBonus', 'poisonBonus', 'finisherBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
 for (const k of ['startCharges', 'burnBonus', 'firstSpellFree'] as const) KEY_CLASSES[k] = ['mage'];
 KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin'];
 for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];

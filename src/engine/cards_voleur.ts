@@ -6,6 +6,7 @@ import { random } from './rng';
 import { applyPoison, delayCast, enterStealth, gainCombo, stealthed, stun } from './voleur';
 import type { CardDef, PlayContext } from './cards';
 import type { EnemyState } from './types';
+import type { ItemEffects } from './items';
 
 /** Une Attaque sur la cible. Tourbillon de lames : un autre ennemi encaisse la moitié. */
 function hit(ctx: PlayContext, base: number, target: EnemyState | null = ctx.target): number {
@@ -28,6 +29,8 @@ function hitAll(ctx: PlayContext, base: number): void {
 
 /** Les points de combo dépensés par un finisher. */
 const pts = (ctx: PlayContext): number => ctx.comboSpent ?? 0;
+/** Finesse meurtrière : les finishers qui frappent infligent +X dégâts par point de combo. */
+const fb = (g?: ItemEffects): number => g?.finisherBonus ?? 0;
 
 function powerCard(ctx: PlayContext, id: string, value: number, label: string): void {
   addPower(ctx.c, id, value);
@@ -60,8 +63,8 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'evisceration', name: 'Éviscération', type: 'Attaque', finisher: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige 4 dégâts + ${(up ? 8 : 6) + (g?.evisBonus ?? 0)} par point de combo.`,
-    play: (ctx) => hit(ctx, 4 + ((ctx.up ? 8 : 6) + (ctx.c.gear?.evisBonus ?? 0)) * pts(ctx)),
+    text: (up, g) => `Finisher : inflige 4 dégâts + ${(up ? 8 : 6) + fb(g)} par point de combo.`,
+    play: (ctx) => hit(ctx, 4 + ((ctx.up ? 8 : 6) + fb(ctx.c.gear)) * pts(ctx)),
   },
   {
     id: 'embuscade', name: 'Embuscade', type: 'Attaque', opener: true, rarity: 'commune', cost: 0, needsTarget: true, icon: 'epee',
@@ -171,12 +174,12 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'envenimer', name: 'Envenimer', type: 'Attaque', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up) => `Finisher : double le Poison de la cible. Inflige ${up ? 5 : 3} dégâts par point de combo.`,
+    text: (up, g) => `Finisher : double le Poison de la cible. Inflige ${(up ? 5 : 3) + fb(g)} dégâts par point de combo.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
       t.buffs.poison = (t.buffs.poison ?? 0) * 2;
-      if (pts(ctx) > 0) hit(ctx, (ctx.up ? 5 : 3) * pts(ctx));
+      if (pts(ctx) > 0) hit(ctx, ((ctx.up ? 5 : 3) + fb(ctx.c.gear)) * pts(ctx));
     },
   },
   {
@@ -219,11 +222,11 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_au_coeur', name: 'Coup au cœur', type: 'Attaque', finisher: true, rarity: 'rare', cost: 2, needsTarget: true, icon: 'epee',
-    text: (up) => `Finisher : inflige ${up ? 8 : 6} dégâts par point de combo. Double dégâts si la cible a 30 % de PV ou moins.`,
+    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par point de combo. Double dégâts si la cible a 30 % de PV ou moins.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t || pts(ctx) === 0) return;
-      const base = (ctx.up ? 8 : 6) * pts(ctx);
+      const base = ((ctx.up ? 8 : 6) + fb(ctx.c.gear)) * pts(ctx);
       hit(ctx, t.hp <= t.maxHp * 0.3 ? base * 2 : base);
     },
   },
@@ -324,12 +327,12 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'embrocher', name: 'Embrocher', type: 'Attaque', finisher: true, rarity: 'rare', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up) => `Finisher : inflige ${up ? 8 : 6} dégâts par point de combo à la cible, et ${up ? 4 : 3} par point aux autres ennemis.`,
+    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par point de combo à la cible, et ${up ? 4 : 3} par point aux autres ennemis.`,
     play: (ctx) => {
       const n = pts(ctx);
       if (n === 0 || !ctx.target) return;
       const others = livingEnemies(ctx.c).filter((e) => e !== ctx.target && !e.submerged);
-      hit(ctx, (ctx.up ? 8 : 6) * n);
+      hit(ctx, ((ctx.up ? 8 : 6) + fb(ctx.c.gear)) * n);
       for (const e of others) if (playerAttack(ctx.c, e, (ctx.up ? 4 : 3) * n) > 0) ctx.dealt = true;
     },
   },

@@ -174,7 +174,7 @@ Le Voleur frappe vite, frappe juste, et disparaît. Il **enchaîne de petites at
 | Palier | Choix A | Choix B |
 |---|---|---|
 | **1** | **Lames malicieuses** : Attaque sinistre inflige +2 dégâts. | **Poison renforcé** : tes applications de Poison sont augmentées de 1. |
-| **2** | **Finesse meurtrière** : Éviscération inflige +2 dégâts par point de combo. | **Réflexes** : Coup aux reins retarde aussi l'Incantation en cours d'un boss. |
+| **2** | **Finesse meurtrière** : tes finishers qui infligent des dégâts infligent +3 dégâts par point de combo. | **Réflexes** : Coup aux reins retarde aussi l'Incantation en cours d'un boss. |
 | **3** | **Coup de pied** : ajoute ce sort à ta barre. | **Voile de l'ombre** : ajoute ce sort à ta barre. |
 | **4** | **Impitoyable** : tes finishers comptent comme s'ils avaient 1 point de combo de plus. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
 | **5** | **Vendetta** (carte épique) | — |
@@ -193,7 +193,7 @@ Le Voleur frappe vite, frappe juste, et disparaît. Il **enchaîne de petites at
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Maître de la discrétion** : tes Ouvertures infligent +3 dégâts. | **Pas de velours** : la première carte que tu joues dans chaque combat coûte 0. |
+| **1** | **Maître de la discrétion** : tes Ouvertures et Coup dans le dos infligent +4 dégâts. | **Pas de velours** : la première carte que tu joues dans chaque combat coûte 0. |
 | **2** | **Préparé** : tes Ouvertures donnent +1 combo. | **Insaisissable** : Esquive et Esquive agile donnent +2 blocage. |
 | **3** | **Disparition** : ajoute ce sort à ta barre. | **Préparation** : ajoute ce sort à ta barre. |
 | **4** | **Ombres profondes** : ton Camouflage de début de combat dure 2 tours. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
@@ -255,7 +255,8 @@ Il faut affronter deux boss secondaires précis dans l'acte 1 : c'est un objecti
   - **Fait (novembre 2026) :** retour à **coût 1 (0 améliorée)**, toujours Épuisée : la carte vaut **+17** (Assassinat 7 + Combat 3 : 33 → 45 %). Sans Épuisé, c'était moins bien (41 %).
   - **Seigneur des ombres : +4 points** (contre +32 pour 3 talents ; +8 sans les copies). Pouvoir à 2 énergie, posé au tour 2,9 en moyenne. Le Camouflé ne sert qu'aux **5 Ouvertures** du Voleur (et à Coup dans le dos, qui double ses dégâts) : sans Ouvertures en main, le tour de Camouflé est perdu. **C'est la carte :** elle dépend d'une densité d'Ouvertures que le deck a rarement. L'arbre Finesse est faible lui aussi (Finesse 7 + Combat 3 : 22 %).
   - **Fait (novembre 2026) :** **tant que tu es Camouflé, tes Attaques infligent +50 %** (donc la première Attaque normale de chaque tour, et toutes les Ouvertures). Coût 2 (1) inchangé. La carte vaut **+20** (Finesse 7 + Combat 3 : 22 → 43 %). Écartés : coût 1 seul (+6), +1 ou +2 combo par tour (+2 à +7), ×2 (trop fort à coût 1 : 74 %).
-  - **Reste à faire :** les paliers 1 à 4 d'Assassinat et de Finesse (palier 2 d'Assassinat, Maître de la discrétion, Préparation, palier 4 de Finesse sont à environ 0), puis peut-être Combat 7 + Finesse 3 (79 %, porté par Disparition).
+  - **Paliers, fait (novembre 2026) :** Finesse meurtrière passe à **+3 par point de combo pour tous les finishers qui frappent** (Éviscération, Envenimer, Coup au cœur, Embrocher ; avant : +2 sur Éviscération seule) ; Maître de la discrétion compte aussi pour **Coup dans le dos**. Réflexes, Préparation et Voile de l'ombre restent : le bot ne sait pas évaluer ce qu'ils apportent. Disparition reste aussi : la ralentir fait chuter Finesse sans calmer Combat.
+  - **Résultat (100 runs) :** Assassinat 7 + Combat 3 : **55 %** ; Finesse 7 + Combat 3 : **49 %** ; Combat 7 + Finesse 3 : environ 80 %, un peu au-dessus de la cible, accepté.
 
 ---
 

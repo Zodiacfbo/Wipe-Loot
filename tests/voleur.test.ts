@@ -146,6 +146,27 @@ describe('les cartes épiques', () => {
     expect(c.stealth).toBe(true);
   });
 
+  it('Finesse meurtrière : +3 par point de combo sur les finishers qui frappent', () => {
+    const c = fight(['lieutenant'], ['evisceration', 'embrocher'], { finisherBonus: 3 });
+    const e = c.enemies[0];
+    c.combo = 3;
+    let hp = e.hp;
+    play(c, 'evisceration'); // 4 + (6 + 3) × 3
+    expect(hp - e.hp).toBe(31);
+    c.combo = 2;
+    hp = e.hp;
+    play(c, 'embrocher'); // (6 + 3) × 2 sur la cible
+    expect(hp - e.hp).toBe(18);
+  });
+
+  it('Maître de la discrétion compte aussi pour Coup dans le dos', () => {
+    const c = fight(['lieutenant'], ['coup_dans_le_dos'], { openerBonus: 4 });
+    const e = c.enemies[0];
+    const hp = e.hp;
+    play(c, 'coup_dans_le_dos'); // 9 × 2 en Camouflage, + 4
+    expect(hp - e.hp).toBe(22);
+  });
+
   it('Vendetta coûte 1 (0 améliorée)', () => {
     expect(CARDS.vendetta.cost).toBe(1);
     expect(CARDS.vendetta.costUp).toBe(0);

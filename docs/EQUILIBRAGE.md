@@ -337,3 +337,5 @@ Les 53 % de l'Ombre (§11) étaient donc flatteurs : ils venaient d'un bot qui n
 
 Profils du banc (100 runs) : Voleur niveau 10 Assassinat 7 + Combat 3 : 30 → **45 %** ; Finesse 7 + Combat 3 : 24 → **50 %**. Restent les paliers 1 à 4 d'Assassinat et de Finesse (fiche du Voleur, §11).
 
+**Voleur, paliers (novembre 2026).** Finesse meurtrière : +3 par point de combo pour tous les finishers qui frappent (Assassinat 7 + Combat 3 : 45 → 55 % ; Combat 7 + Assassinat 3 : 54 → 64 %). Maître de la discrétion : aussi sur Coup dans le dos (Finesse 7 + Combat 3 : 43 → 51 %). Banc (100 runs) : Assassinat 7 + 3 **55 %**, Finesse 7 + 3 **49 %**, Combat 7 + Finesse 3 ≈ 80 % (accepté).
+

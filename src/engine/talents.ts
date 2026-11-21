@@ -251,7 +251,7 @@ export const VOLEUR_TREES: TreeDef[] = [
     tiers: [
       [t('lames_malicieuses', 'Lames malicieuses', 'Attaque sinistre inflige +2 dégâts.', { fx: { sinisterBonus: 2 } }),
         t('poison_renforce', 'Poison renforcé', 'Tes applications de Poison sont augmentées de 1.', { fx: { poisonBonus: 1 } })],
-      [t('finesse_meurtriere', 'Finesse meurtrière', 'Éviscération inflige +2 dégâts par point de combo.', { fx: { evisBonus: 2 } }),
+      [t('finesse_meurtriere', 'Finesse meurtrière', 'Tes finishers qui infligent des dégâts infligent +3 dégâts par point de combo.', { fx: { finisherBonus: 3 } }),
         t('reflexes', 'Réflexes', 'Coup aux reins retarde aussi l\'Incantation en cours d\'un boss.', { fx: { kidneyDelay: 1 } })],
       [t('t_coup_de_pied', 'Coup de pied', 'Ajoute ce sort à ta barre : Interruption, 3 dégâts.', { spell: 'coup_de_pied' }),
         t('t_voile_obscur', 'Voile de l\'ombre', 'Ajoute ce sort à ta barre : retire tous tes débuffs, une fois par combat.', { spell: 'voile_obscur' })],
@@ -281,7 +281,7 @@ export const VOLEUR_TREES: TreeDef[] = [
   {
     id: 'finesse', name: 'Finesse', theme: 'Ombres et ouvertures',
     tiers: [
-      [t('maitre_discretion', 'Maître de la discrétion', 'Tes Ouvertures infligent +4 dégâts.', { fx: { openerBonus: 4 } }),
+      [t('maitre_discretion', 'Maître de la discrétion', 'Tes Ouvertures et Coup dans le dos infligent +4 dégâts.', { fx: { openerBonus: 4 } }),
         t('pas_de_velours', 'Pas de velours', 'La première carte que tu joues dans chaque combat coûte 0.', { fx: { firstCardFree: 1 } })],
       [t('prepare', 'Préparé', 'Tes Ouvertures donnent +1 combo.', { fx: { openerCombo: 1 } }),
         t('insaisissable', 'Insaisissable', 'Esquive et Esquive agile donnent +2 blocage.', { fx: { evadeBonus: 2 } })],
