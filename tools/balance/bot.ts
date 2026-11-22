@@ -11,13 +11,17 @@ import { ITEMS, slotsFor } from '../../src/engine/items';
 import { reachable } from '../../src/engine/map';
 import { POTIONS } from '../../src/engine/potions';
 import {
-  afterCombatAction, barCapacity, buyCard, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
+  afterCombatAction, barCapacity, buyCard, buyItem, servicePrice, startEncounter, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
   canDrink, chooseBlessing, chooseNode, chooseReward, drinkPotion, equipPending, eventChoiceLock, leaveEvent, leavePending,
   leaveShop, learnSpell, newRun, offerBlessing, resolveEvent, retryAfterWipe, takePotion,
   campfireBindStaff, canBindStaff, canRest, startNextAct, campfireEquinoxe, campfireAurore, campfireCorde, campfireBindStaffDruid, druidOfferings,
 } from '../../src/engine/run';
 import { previewIntentDamage } from '../../src/engine/combat';
-import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
+import type { CardInstance, CombatState, EnemyState, RunState } from '../../src/engine/types';
+import type { SlotKey } from '../../src/engine/items';
+import { actDef } from '../../src/engine/acts';
+import { classInfo } from '../../src/engine/classes';
+import type { Encounter } from '../../src/engine/enemies';
 
 // ---------- Évaluation d'un état de combat ----------
 
@@ -241,34 +245,149 @@ export function playTurn(run: RunState): void {
 }
 
 // ---------- Décisions hors combat ----------
+// Deux modes (variable BOT) :
+// - « essai » (par défaut) : avant chaque choix (carte, objet, amélioration, retrait, achat), le bot rejoue
+//   quelques combats types de l'acte avec chaque option, sur les mêmes tirages, et garde la meilleure.
+//   La même règle pour les 9 classes : aucune liste de cartes à tenir à jour.
+// - « simple » : l'ancien bot (la carte la plus rare, l'objet le plus rare), gardé pour comparer.
+
+// (process n'est pas typé dans le projet du jeu, qui compile aussi ce fichier à travers tests/bot.test.ts.)
+const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
+let MODE = env.BOT ?? 'essai';
+/** Le nombre de combats types rejoués pour chaque option. */
+let ESSAIS = Number(env.ESSAIS ?? 3);
+/** Pour les tests : changer de mode sans variable d'environnement. */
+export function setBotMode(mode: 'essai' | 'simple', essais = 3): void { MODE = mode; ESSAIS = essais; }
 
 const RARITY_RANK: Record<string, number> = { commun: 1, rare: 2, epique: 3, legendaire: 4 };
 const CARD_RANK: Record<string, number> = { commune: 1, peu_commune: 2, rare: 3, epique: 4 };
 
-function pickCard(run: RunState): string | null {
-  const options = [...run.rewardChoices].sort((a, b) => CARD_RANK[CARDS[b].rarity] - CARD_RANK[CARDS[a].rarity]);
-  const best = options[0];
-  if (!best) return null;
-  if (run.deck.length >= 22 && CARDS[best].rarity === 'commune') return null;
+/** Les cartes à retirer d'office : Malédictions et cartes injouables. */
+const isJunk = (id: string) => id === 'malediction' || CARDS[id].type === 'Malédiction' || !!CARDS[id].unplayable;
+
+/** Les combats types d'une décision : des packs difficiles et un boss secondaire de l'acte en cours. */
+function trialEncounters(run: RunState): Encounter[] {
+  const act = actDef(run.act);
+  const k = run.path.length * 7 + run.act * 13;
+  const list: Encounter[] = [];
+  for (let i = 0; i < ESSAIS; i++) {
+    const pool = i % 3 === 2 ? act.elites : act.hard;
+    list.push(pool[(k + i) % pool.length]);
+  }
+  return list;
+}
+
+/** Joue un combat type sur une copie de la run. Score : les PV perdus (négatif), bien pire en cas de défaite. */
+function trialFight(run: RunState, enc: Encounter, seed: number): number {
+  const r: RunState = JSON.parse(JSON.stringify(run));
+  r.hp = r.maxHp;
+  r.potions = r.potions.map(() => null);
+  r.rng = seed >>> 0;
+  startEncounter(r, enc);
+  const c = r.combat!;
+  for (let t = 0; t < 40 && r.screen === 'combat'; t++) {
+    playTurn(r);
+    afterCombatAction(r);
+  }
+  if (c.phase === 'victory') return c.player.hp - r.maxHp;
+  const left = c.enemies.filter((e) => !e.dead).reduce((a, e) => a + e.hp, 0);
+  return -r.maxHp - 30 - left * 0.5;
+}
+
+/** La valeur moyenne d'une option : `change` modifie la copie de la run avant les combats types. */
+function trialValue(run: RunState, change: (r: RunState) => void): number {
+  const base: RunState = JSON.parse(JSON.stringify(run));
+  change(base);
+  const encs = trialEncounters(run);
+  let total = 0;
+  encs.forEach((enc, i) => { total += trialFight(base, enc, run.seed * 31 + run.path.length * 977 + i * 104729); });
+  return total / encs.length;
+}
+
+/** La meilleure option (index), ou -1 si aucune ne vaut mieux que de ne rien faire. */
+function bestOption(run: RunState, options: ((r: RunState) => void)[]): number {
+  const none = trialValue(run, () => {});
+  let best = -1;
+  let bestV = none;
+  options.forEach((o, i) => {
+    const v = trialValue(run, o);
+    if (v > bestV) { bestV = v; best = i; }
+  });
   return best;
+}
+
+const addCard = (id: string) => (r: RunState) => { r.deck.push({ uid: r.nextUid++, id, upgraded: false }); };
+const dropCard = (uid: number) => (r: RunState) => { r.deck = r.deck.filter((k) => k.uid !== uid); };
+const upCard = (uid: number) => (r: RunState) => { const k = r.deck.find((x) => x.uid === uid); if (k) k.upgraded = true; };
+
+/** Une carte par id (les copies se valent). */
+function distinct(run: RunState, keep: (k: CardInstance) => boolean): CardInstance[] {
+  const seen = new Set<string>();
+  return run.deck.filter((k) => keep(k) && !seen.has(k.id + k.upgraded) && seen.add(k.id + k.upgraded));
+}
+
+/** La carte à retirer (une Malédiction d'office), ou null si retirer ne rapporte rien. */
+function removalTarget(run: RunState): number | null {
+  const junk = run.deck.find((k) => isJunk(k.id));
+  if (junk) return junk.uid;
+  if (MODE === 'simple') {
+    const basic = run.deck.find((k) => ['frappe', 'trait_de_magie', 'attaque_sinistre', 'frappe_pal'].includes(k.id));
+    return basic?.uid ?? null;
+  }
+  const pool = distinct(run, () => true);
+  const i = bestOption(run, pool.map((k) => dropCard(k.uid)));
+  return i >= 0 ? pool[i].uid : null;
+}
+
+function upgradeTarget(run: RunState): number | null {
+  const pool = distinct(run, (k) => !k.upgraded && !isJunk(k.id) && CARDS[k.id].type !== 'Statut');
+  if (MODE === 'simple') {
+    pool.sort((a, b) => (CARD_RANK[CARDS[b.id].rarity] ?? 0) - (CARD_RANK[CARDS[a.id].rarity] ?? 0));
+    return pool[0]?.uid ?? null;
+  }
+  if (!pool.length) return null;
+  const i = bestOption(run, pool.map((k) => upCard(k.uid)));
+  // Améliorer ne coûte rien au feu de camp face au repos : on prend la meilleure, même si l'écart est mince.
+  return pool[Math.max(0, i)].uid;
+}
+
+function pickCard(run: RunState): string | null {
+  if (MODE === 'simple') {
+    const options = [...run.rewardChoices].sort((a, b) => CARD_RANK[CARDS[b].rarity] - CARD_RANK[CARDS[a].rarity]);
+    const best = options[0];
+    if (!best) return null;
+    if (run.deck.length >= 22 && CARDS[best].rarity === 'commune') return null;
+    return best;
+  }
+  if (!run.rewardChoices.length) return null;
+  const i = bestOption(run, run.rewardChoices.map(addCard));
+  return i >= 0 ? run.rewardChoices[i] : null;
 }
 
 function handleReward(run: RunState): void {
   if (run.pendingItem) {
     const options = [run.pendingItem, ...run.pendingAlts];
-    let done = false;
-    for (let alt = 0; alt < options.length && !done; alt++) {
-      const id = options[alt];
-      for (const slot of slotsFor(id)) {
-        const current = run.equipment[slot];
-        if (!current || RARITY_RANK[ITEMS[id].rarity] > RARITY_RANK[ITEMS[current].rarity]) {
-          equipPending(run, slot, alt === 0 ? undefined : alt - 1);
-          done = true;
-          break;
+    if (MODE === 'simple') {
+      let done = false;
+      for (let alt = 0; alt < options.length && !done; alt++) {
+        const id = options[alt];
+        for (const slot of slotsFor(id)) {
+          const current = run.equipment[slot];
+          if (!current || RARITY_RANK[ITEMS[id].rarity] > RARITY_RANK[ITEMS[current].rarity]) {
+            equipPending(run, slot, alt === 0 ? undefined : alt - 1);
+            done = true;
+            break;
+          }
         }
       }
+      if (!done) leavePending(run);
+    } else {
+      const moves: { alt?: number; slot: SlotKey }[] = [];
+      options.forEach((id, a) => slotsFor(id).forEach((slot) => moves.push({ alt: a === 0 ? undefined : a - 1, slot })));
+      const i = bestOption(run, moves.map((m) => (r) => { equipPending(r, m.slot, m.alt); }));
+      if (i >= 0) equipPending(run, moves[i].slot, moves[i].alt);
+      else leavePending(run);
     }
-    if (!done) leavePending(run);
   }
   if (run.pendingPotion) {
     if (!takePotion(run)) run.pendingPotion = null;
@@ -280,23 +399,50 @@ function handleReward(run: RunState): void {
   chooseReward(run, pickCard(run));
 }
 
-function upgradeTarget(run: RunState): number | null {
-  const pool = run.deck.filter((k) => !k.upgraded && !CARDS[k.id].unplayable)
-    .sort((a, b) => (CARD_RANK[CARDS[b.id].rarity] ?? 0) - (CARD_RANK[CARDS[a.id].rarity] ?? 0));
-  return pool[0]?.uid ?? null;
-}
+/** L'or gardé en réserve chez le vendeur (la facture de réparation d'un wipe). */
+const RESERVE = 60;
 
 function handleShop(run: RunState): void {
   const shop = run.shop!;
-  // Retirer une Malédiction ou une Frappe.
-  const bad = run.deck.find((k) => k.id === 'malediction') ?? run.deck.find((k) => ['frappe', 'trait_de_magie', 'attaque_sinistre', 'frappe_pal'].includes(k.id));
-  if (bad) buyRemoval(run, bad.uid);
-  shop.cards.forEach((item, i) => {
-    if (!item.sold && CARD_RANK[CARDS[item.id].rarity] >= 2 && run.gold - item.price >= 60) buyCard(run, i);
-  });
+  if (MODE === 'simple') {
+    const bad = run.deck.find((k) => k.id === 'malediction') ?? run.deck.find((k) => ['frappe', 'trait_de_magie', 'attaque_sinistre', 'frappe_pal'].includes(k.id));
+    if (bad) buyRemoval(run, bad.uid);
+    shop.cards.forEach((item, i) => {
+      if (!item.sold && CARD_RANK[CARDS[item.id].rarity] >= 2 && run.gold - item.price >= 60) buyCard(run, i);
+    });
+    shop.potions.forEach((_, i) => { if (run.gold >= 120) buyPotion(run, i); });
+    const up = upgradeTarget(run);
+    if (up !== null) buyUpgrade(run, up);
+    leaveShop(run);
+    return;
+  }
+  // Retirer : la carte dont l'absence rend le deck meilleur (une Malédiction d'office).
+  if (run.gold >= servicePrice(run.removals)) {
+    const out = removalTarget(run);
+    if (out !== null) buyRemoval(run, out);
+  }
+  // Acheter : à chaque fois la meilleure carte ou le meilleur objet abordable, tant que l'un d'eux améliore le deck.
+  for (let guard = 0; guard < 4; guard++) {
+    const buys: { apply: (r: RunState) => void; real: () => void }[] = [];
+    shop.cards.forEach((it, i) => {
+      if (!it.sold && run.gold - it.price >= RESERVE) buys.push({ apply: addCard(it.id), real: () => { buyCard(run, i); } });
+    });
+    shop.items.forEach((it, i) => {
+      if (it.sold || run.gold - it.price < RESERVE) return;
+      for (const slot of slotsFor(it.id)) {
+        buys.push({ apply: (r) => { r.screen = 'shop'; buyItem(r, i, slot); }, real: () => { buyItem(run, i, slot); } });
+      }
+    });
+    if (!buys.length) break;
+    const i = bestOption(run, buys.map((b) => b.apply));
+    if (i < 0) break;
+    buys[i].real();
+  }
   shop.potions.forEach((_, i) => { if (run.gold >= 120) buyPotion(run, i); });
-  const up = upgradeTarget(run);
-  if (up !== null) buyUpgrade(run, up);
+  if (run.gold >= servicePrice(run.upgradesBought)) {
+    const up = upgradeTarget(run);
+    if (up !== null) buyUpgrade(run, up);
+  }
   leaveShop(run);
 }
 
@@ -380,6 +526,8 @@ export interface FightLog {
 
 export interface RunResult {
   victory: boolean;
+  /** Faux si la run s'est bloquée (le bot n'a pas su avancer) : un bug du bot ou du jeu. */
+  ended: boolean;
   floor: number;
   wipesUsed: number;
   fights: FightLog[];
@@ -392,7 +540,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
   const run = newRun(seed, null, talents, difficulty, classId);
   offerBlessing(run);
   const blessing = BLESSING_ORDER.find((b) => run.blessings.includes(b))!;
-  if (blessing === 'allegement') chooseBlessing(run, blessing, run.deck.find((k) => ['frappe', 'trait_de_magie', 'attaque_sinistre', 'frappe_pal'].includes(k.id))!.uid);
+  if (blessing === 'allegement') chooseBlessing(run, blessing, removalTarget(run) ?? run.deck.find((k) => k.id === classInfo(classId).starterDeck![0])!.uid);
   else chooseBlessing(run, blessing);
   const fights: FightLog[] = [];
   let current: FightLog | null = null;
@@ -400,7 +548,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
     switch (run.screen) {
       case 'map': {
         chooseNode(run, chooseNextNode(run, rnd));
-        if (run.screen === 'combat') {
+        if ((run.screen as string) === 'combat') {
           const node = run.map.nodes[run.position!];
           current = { name: run.encounter!.name, kind: node.type === 'elite' ? 'elite' : node.type === 'boss' ? 'boss' : 'combat', floor: node.floor + 1, act: run.act, wipes: 0, hpLost: run.hp, hpIn: run.hp, won: false };
           fights.push(current);
@@ -450,7 +598,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
         let choice = EVENT_CHOICE[ev.id]?.(run) ?? 0;
         if (eventChoiceLock(run, choice)) choice = ev.choices.findIndex((_, i) => !eventChoiceLock(run, i));
         resolveEvent(run, choice);
-        if (run.screen === 'combat') {
+        if ((run.screen as string) === 'combat') {
           current = { name: run.encounter!.name, kind: 'combat', floor: run.map.nodes[run.position!].floor + 1, wipes: 0, hpLost: run.hp, won: false };
           fights.push(current);
         }
@@ -461,11 +609,11 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
       case 'gameover': {
         const floor = run.floorsDone + (run.position === null ? 0 : run.map.nodes[run.position].floor + 1);
         if (current && run.screen === 'gameover') current.wipes++;
-        return { victory: run.screen === 'victory', floor, wipesUsed: run.maxWipes - run.wipesLeft, fights };
+        return { victory: run.screen === 'victory', ended: true, floor, wipesUsed: run.maxWipes - run.wipesLeft, fights };
       }
     }
     // Une potion de soin entre deux combats si besoin.
     if (run.screen === 'map') run.potions.forEach((id, slot) => { if (id && canDrink(run, slot) && run.hp < run.maxHp * 0.5) drinkPotion(run, slot); });
   }
-  return { victory: false, floor: 0, wipesUsed: 3 - run.wipesLeft, fights };
+  return { victory: false, ended: false, floor: 0, wipesUsed: 3 - run.wipesLeft, fights };
 }
