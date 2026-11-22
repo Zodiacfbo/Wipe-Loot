@@ -248,3 +248,34 @@ Le Chaman est l'intermédiaire entre les mortels et les **esprits des éléments
   - Totem des marées et Totem de mana peuvent donner beaucoup d'énergie supplémentaire.
   - Vigueur ancestrale combinée à Marée montante et au Totem de source pourrait rendre le Chaman très difficile à tuer.
 - **Interface :** les 4 emplacements de totem doivent être visibles en permanence, avec l'effet de chaque totem lisible d'un coup d'œil, même sur téléphone.
+
+---
+
+## 12. Ce qui est en jeu dans le prototype
+
+**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §19) :
+
+| Élément | Fiche | En jeu |
+|---|---|---|
+| Éclair | 6 dégâts (8) | **7 dégâts (10)**, Résonance (Air) +2 (+3) |
+| Garde de pierre (départ) | 5 blocage (8) | **6 blocage (9)** : le renfort de départ des autres classes |
+| Totem de pierre | 3 blocage (5) | **4 blocage (6)** |
+| Totem de braise | 4 dégâts (6) | **5 dégâts (7)** |
+| Totem guérisseur | 2 PV (3) | **3 PV (4)** |
+| Réincarnation | 30 % des PV (50 % avec le talent) | **40 % (60 %)** |
+| Totem de mana (sort) | un totem d'Eau temporaire | **+1 énergie au début de tes 3 prochains tours, sans prendre d'emplacement** : il chassait le Totem guérisseur |
+| Avatar de la tempête (épique) | coût 2 | **coût 1 (0 amélioré)** |
+| Totem de purification | Dissipation d'un Poison ou d'une Maladie | **Dissipation (Poison)** : le jeu n'a pas de Maladie à part |
+| Totem de glèbe (loot) | — | **6 blocage au début de tes 2 prochains tours** |
+| Fouet de lave (loot) | — | **nouveau sort de loot : 8 dégâts, recharge 3** |
+
+**Les règles précisées :**
+- **Les totems** agissent au début de ton tour, après la pioche. Le Totem des vents et le Totem de force sont permanents : ils agissent tant qu'ils sont en jeu. Un nouveau totem remplace celui de son élément, et le Totem de force retire alors sa Puissance.
+- **La Résonance (Air)** se déclenche avec n'importe quel totem d'Air (Totem des vents, Totem de l'orage), ou toujours avec Appel de la foudre.
+- **Les Armes élémentaires** sont des Pouvoirs. Une seule à la fois, deux avec Double arme : la plus ancienne est remplacée. L'Arme des vents rejoue la première Attaque du tour (deux fois avec Rafale).
+- **Double impact** frappe une fois comme une Attaque, puis une fois comme un Sort (avec les bonus aux Sorts).
+- **La Réincarnation** se déclenche automatiquement à la première « mort » de la run : tu reviens à 40 % de tes PV et le combat continue. Elle ne compte pas comme un wipe. L'interface indique si elle est encore prête.
+- **Choc tellurique, Purge, Cri des ancêtres et Rappel totémique** ne comptent pas comme des Sorts (pas de bonus aux Sorts).
+- **La Malédiction de lignée** fait tomber tous les totems. **Le Rayon oculaire d'Yzhar** les étourdit : ils ne font rien au début du tour suivant.
+- **Le Marteau des ancêtres :** la Tête du marteau se trouve au « Cercle des anciens » (acte 1, un 3ᵉ choix réservé au Chaman ; l'événement passe en premier pour lui). Le Manche tombe de Skarn (acte 2). Puis l'événement « L'appel des éléments » (acte 2) lance un combat contre deux Gardiens de lave et une Étincelle : le gagner bénit le marteau, qui est équipé. La fiche demandait de poser les 4 totems pendant ce combat ; c'est simplifié en « gagner le combat ».
+- **Interface :** sous le héros, 4 tuiles toujours visibles (Terre, Feu, Eau, Air, avec la couleur de l'élément quand un totem est posé), une tuile pour l'Arme élémentaire, et une ligne qui dit si la Réincarnation est prête.

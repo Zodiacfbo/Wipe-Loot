@@ -122,6 +122,10 @@ export const DOT_LABEL: Record<string, string> = {
   fleche_ardente: 'Flèche ardente',
   piege_immolation: 'Immolation',
   piege_venin: 'Venin',
+  // Druide et Chaman
+  feu_de_lune: 'Feu de lune',
+  nuee_insectes: 'Nuée d\'insectes',
+  choc_flammes: 'Choc de flammes',
 };
 
 /** Le nombre de tes DoT et Malédictions sur un ennemi. */

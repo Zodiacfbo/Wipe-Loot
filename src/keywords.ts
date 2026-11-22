@@ -79,6 +79,10 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Poison d\'arme', words: ['Poison d\'arme'], text: 'Tes Attaques appliquent cet effet jusqu\'à la fin du combat. Un seul Poison d\'arme à la fois : le nouveau remplace l\'ancien.' },
   { name: 'Aura', words: ['Aura', 'Auras'], text: 'Un Pouvoir du Paladin. Une seule Aura active à la fois : une nouvelle remplace l\'ancienne.' },
   { name: 'Censure', words: ['Censure'], text: 'Inflige ce nombre de dégâts au début du tour de la cible. Le Jugement du Sceau de vengeance la consomme.' },
+  // Chaman
+  { name: 'Totem', words: ['Totem', 'Totems', 'totem', 'totems'], text: '4 emplacements : Terre, Feu, Eau, Air. Un nouveau totem remplace celui de son élément. Il agit au début de chacun de tes tours, jusqu\'à la fin du combat.' },
+  { name: 'Résonance', words: ['Résonance', 'Résonances'], text: 'Un effet en plus si tu as un totem de l\'élément indiqué en jeu.' },
+  { name: 'Arme élémentaire', words: ['Arme de flammes', 'Arme élémentaire', 'Armes élémentaires'], text: 'Un Pouvoir du Chaman. Une seule Arme élémentaire à la fois (deux avec Double arme) : une nouvelle remplace l\'ancienne.' },
   // Druide
   { name: 'Forme', words: ['forme d\'ours', 'forme de félin', 'forme astrale', 'forme normale'], text: 'Le Druide a toujours une forme. Une carte Ours, Félin ou Astrale coûte 1 de plus hors de sa forme. Quitter une forme fait perdre sa rage ou son combo.' },
   // Chasseur

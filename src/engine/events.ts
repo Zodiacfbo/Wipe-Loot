@@ -73,12 +73,15 @@ export const EVENTS: Record<string, EventDef> = {
     ],
   },
   cercle: {
+    // Pour le Chaman, les esprits du cercle gardent la Tête du marteau : il passe avant les autres événements.
+    quest: (run) => run.classId === 'chaman' && !run.marteau,
     id: 'cercle',
     title: 'Le cercle des anciens',
     text: 'Un cercle de pierres dressées où murmurent des esprits. Leurs voix parlent de la montagne d\'avant le feu.',
     choices: [
       { label: 'Écouter leur sagesse', detail: 'Retire une Malédiction de ton deck.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
       { label: 'Te recueillir', detail: 'Soigne 10 PV.' },
+      { label: 'Appeler les esprits des chamans', detail: 'Ils te confient la Tête du marteau : quête légendaire le Marteau des ancêtres, étape 1 sur 3.', locked: (run) => (run.classId !== 'chaman' ? 'Réservé au Chaman' : run.marteau ? 'Tu l\'as déjà' : null) },
     ],
   },
   chapelle: {
@@ -157,6 +160,16 @@ export const EVENTS: Record<string, EventDef> = {
       { label: 'Regarder les étoiles', detail: 'Pendant les 3 prochains combats, tu vois les deux prochaines intentions des ennemis.' },
       { label: 'Fouiller la tour', detail: 'Gagne 60 or.' },
     ],
+  },
+  appel: {
+    id: 'appel', act: 2, quest: true,
+    title: 'L\'appel des éléments',
+    text: 'Au cœur d\'un cratère, la terre tremble, le feu gronde, l\'eau bout et le vent hurle. Les éléments ont senti ton marteau. Pour le bénir, ils veulent te voir combattre.',
+    choices: [
+      { label: 'Accepter l\'épreuve', detail: 'Un combat contre des élémentaires de lave. Si tu gagnes, le Marteau des ancêtres remplace ton arme.' },
+      { label: 'Refuser', detail: 'Rien ne se passe.' },
+    ],
+    available: (run) => run.classId === 'chaman' && run.marteau === 'manche',
   },
   ventor: {
     id: 'ventor', act: 2, quest: true,

@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur, le Paladin, le Chasseur et le Druide sont jouables dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur, le Paladin, le Chasseur, le Chaman et le Druide sont jouables : les 9 classes dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -80,7 +80,9 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Couvrir un boss de malédictions, puis regarder ses PV fondre pendant que son démon le harcèle.',
   },
   {
-    id: 'chaman', name: 'Chaman', color: '#3A8EC8', playable: false, difficulty: 3, hp: 75,
+    id: 'chaman', name: 'Chaman', color: '#3A8EC8', playable: true, difficulty: 3, hp: 75,
+    starterDeck: ['eclair', 'eclair', 'eclair', 'eclair', 'garde_de_pierre', 'garde_de_pierre', 'garde_de_pierre', 'garde_de_pierre', 'choc_flammes', 'totem_braise'],
+    startSpell: 'choc_tellurique', sprite: 'chaman.png',
     quote: 'La terre me porte, le feu me sert, l\'eau me guérit, l\'air me guide.',
     role: 'Hybride : sorts, mêlée ou survie', resource: 'Totems (Terre, Feu, Eau, Air)',
     fantasy: 'Quatre totems qui travaillent en continu, pendant que la foudre s\'abat sur le boss.',

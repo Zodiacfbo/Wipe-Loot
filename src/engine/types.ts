@@ -63,6 +63,18 @@ export interface Trap {
   value: number;
 }
 
+/** Chaman : les éléments des totems, et les totems eux-mêmes. */
+export type ElementId = 'terre' | 'feu' | 'eau' | 'air';
+export interface Totem {
+  id: string;
+  /** La valeur principale du totem (dégâts, blocage, soin…), amélioration comprise. */
+  value: number;
+  /** Une seconde valeur (Totem de l'orage : bonus aux Sorts ; Totem de source : blocage). */
+  value2?: number;
+  /** Tours restants pour un totem temporaire (Totem de mana, Totem de glèbe). */
+  turns?: number;
+}
+
 /** Druide : les quatre formes. */
 export type FormId = 'normale' | 'ours' | 'felin' | 'astrale';
 
@@ -560,6 +572,30 @@ export interface CombatState {
   trapEnergyNext?: number;
   /** Flèche apaisante : le Berserk est suspendu pendant ce tour-ci (numéro du tour). */
   soothedTurn?: number;
+  /** Chaman — les totems par élément (leur présence marque un combat de Chaman). */
+  totems?: Partial<Record<ElementId, Totem | null>>;
+  /** Les Armes élémentaires actives (une seule, deux avec Double arme) et leur valeur. */
+  imbues?: { id: string; value: number; up: boolean }[];
+  /** Réincarnation : encore disponible pour cette run, et déclenchée pendant ce combat. */
+  ankh?: boolean;
+  ankhUsed?: boolean;
+  /** Orbe de foudre : dégâts au début de ton prochain tour, sur cet ennemi. */
+  orbs?: { uid: number; dmg: number }[];
+  /** Concentration élémentaire : le prochain Sort coûte 1 de moins. */
+  clearcast?: boolean;
+  /** Esprit combatif : bonus de la prochaine Attaque. */
+  nextAttackBonus?: number;
+  /** Arme tourbillonnante : charges (0 à 5). */
+  maelstrom?: number;
+  /** Frappe d'orage : tes Sorts +4 pendant ce nombre de tours. */
+  stormstrike?: number;
+  /** Totem de mana (sort) : +1 énergie au début de tes prochains tours (tours restants). */
+  manaTide?: number;
+  /** Cri des ancêtres : +1 énergie et +1 carte au prochain tour. */
+  ancestorsNext?: boolean;
+  /** Boucliers : coups reçus ce tour ennemi (foudre, eau), charges du Bouclier de terre. */
+  shieldHits?: number;
+  earthShield?: number;
   /** Druide — la forme active (sa présence marque un combat de Druide), la rage de l'Ours et le combo du Félin. */
   form?: FormId;
   bearRage?: number;
@@ -581,7 +617,7 @@ export interface CombatState {
   /** Lumière stellaire : la réduction du tour est utilisée. */
   starfireUsed?: boolean;
   /** Sylvains : dégâts par Sylvain, nombre et tours restants. */
-  treants?: { dmg: number; count: number; turns: number };
+  treants?: { dmg: number; count: number; turns: number; label?: string };
   /** Tranquillité : tours restants (6 PV et 6 blocage au début de tes tours). */
   tranquility?: number;
   /** Renaissance : prête (une fois par combat). */
@@ -621,7 +657,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 24;
+  version: 25;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -686,6 +722,10 @@ export interface RunState {
   companion: CompanionId;
   /** Quête légendaire du Chasseur : Corde-des-anciens (le Bois ancien, puis le Tendon de drake, puis l'arc façonné). */
   corde: 'bois' | 'tendon' | 'forged' | null;
+  /** Chaman : la Réincarnation a déjà servi pendant cette run. */
+  reincarnated: boolean;
+  /** Quête légendaire du Chaman : le Marteau des ancêtres (la Tête, le Manche, puis l'épreuve des éléments). */
+  marteau: 'tete' | 'manche' | 'forged' | null;
   /** Quête légendaire du Paladin : l'Aurore ardente (la Lame ternie, purifiée par la mort d'Ossyrax, puis forgée). */
   aurore: 'lame' | 'purifiee' | 'benie' | 'forged' | null;
   /** Acte 3 : bonus pour toute la run (bénédiction des Veilleurs de l'Aurore). */

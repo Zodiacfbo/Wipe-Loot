@@ -39,7 +39,7 @@ export function placeHit(text: string, hit: number | null | undefined): HitText 
 }
 
 /** Les mots qui passent du début du texte au bandeau de la carte. */
-const RIBBON_PREFIX = /^(Finisher|Sceau|Aura|Ouverture|Poison d'arme|Piège|Esprit|Ours|Félin|Astrale)[\s\u00a0]*:[\s\u00a0]*/;
+const RIBBON_PREFIX = /^(Finisher|Sceau|Aura|Ouverture|Poison d'arme|Piège|Esprit|Ours|Félin|Astrale|Totem|Arme)[\s\u00a0]*:[\s\u00a0]*/;
 
 /** « Finisher : inflige… » → bandeau « Finisher », texte « Inflige… » (de la place sur téléphone). */
 export function splitRibbon(full: string): { ribbon: string | null; text: string } {

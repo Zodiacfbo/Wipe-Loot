@@ -7,6 +7,7 @@ import { applyPoison, enterStealth, stun } from './voleur';
 import { activateSeal, dispelAll, judge, palHeal } from './paladin';
 import { companionAct, companionGuard } from './chasseur';
 import { gainCatCombo } from './druide';
+import { clearTotems, placeTotem } from './chaman';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -32,6 +33,8 @@ export interface SpellDef {
   shardCost?: number;
   /** La classe du sort (guerrier par défaut). */
   classId?: string;
+  /** Le sort ne compte pas comme un Sort (Choc tellurique du Chaman : pas de bonus aux Sorts). */
+  noSpell?: boolean;
   /** Une condition en plus pour pouvoir lancer le sort (Imposition des mains). */
   usable?: (c: CombatState) => boolean;
   text: string;
@@ -756,6 +759,104 @@ const DRUIDE_SPELLS: Omit<SpellDef, 'classId'>[] = [
 ];
 for (const d of DRUIDE_SPELLS) SPELLS[d.id] = { ...d, classId: 'druide' };
 
+/** Les sorts de barre du Chaman. Référence : docs/classes/CHAMAN.md (§6) */
+const CHAMAN_SPELLS: Omit<SpellDef, 'classId'>[] = [
+  {
+    id: 'choc_tellurique', name: 'Choc tellurique', cost: 0, cooldown: 3, needsTarget: true, icon: 'epee', noSpell: true,
+    text: 'Interruption. Inflige 4 dégâts.',
+    cast: (c, target) => {
+      if (!target) return;
+      if (isInterruptible(target.intent) && !target.interrupted) {
+        target.interrupted = true;
+        fx(c, { kind: 'interrupt', who: target.uid });
+        if (c.gear?.interruptDraw) drawCards(c, c.gear.interruptDraw);
+        log(c, `${target.name} est interrompu !`);
+      }
+      playerAttack(c, target, 4);
+    },
+  },
+  {
+    id: 'maitrise_elementaire', name: 'Maîtrise élémentaire', cost: 0, cooldown: 5, needsTarget: false, icon: 'etoile',
+    text: 'Ton prochain Sort coûte 0 et inflige double dégâts.',
+    cast: (c) => {
+      c.freeNextSpell = true;
+      c.doubleNext = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Maîtrise élémentaire' });
+    },
+  },
+  {
+    id: 'purge', name: 'Purge', cost: 0, cooldown: 4, needsTarget: true, icon: 'etoile', noSpell: true,
+    text: 'Retire les buffs de la cible (Puissance, blocage).',
+    cast: (c, target) => {
+      if (!target) return;
+      target.buffs.puissance = Math.min(0, target.buffs.puissance);
+      target.block = 0;
+      target.vengeance = false;
+      target.giant = 0;
+      target.haste = false;
+      fx(c, { kind: 'buff', who: target.uid, label: 'Purgé' });
+    },
+  },
+  {
+    id: 'cri_ancetres', name: 'Cri des ancêtres', cost: 1, cooldown: 0, once: true, needsTarget: false, icon: 'hausse', noSpell: true,
+    text: 'Ce tour-ci et le suivant : +1 énergie et 1 carte de plus. Une fois par combat.',
+    cast: (c) => {
+      c.player.energy += 2;
+      drawCards(c, 1);
+      c.ancestorsNext = true;
+    },
+  },
+  {
+    id: 'rappel_totemique', name: 'Rappel totémique', cost: 0, cooldown: 4, needsTarget: false, icon: 'hausse', noSpell: true,
+    text: 'Retire tous tes totems. Pour chacun : +1 énergie, soigne 3 PV.',
+    usable: (c) => Object.values(c.totems ?? {}).some((t) => t),
+    cast: (c) => {
+      const n = clearTotems(c);
+      c.player.energy += n;
+      healPlayer(c, 3 * n);
+    },
+  },
+  {
+    id: 'totem_mana', name: 'Totem de mana', cost: 0, cooldown: 6, needsTarget: false, icon: 'hausse', noSpell: true,
+    text: 'Un petit totem de mana, à côté des autres : +1 énergie au début de tes 3 prochains tours.',
+    cast: (c) => {
+      c.manaTide = 3;
+      fx(c, { kind: 'buff', who: 'player', label: 'Totem de mana' });
+    },
+  },
+  {
+    id: 'lien_spirituel', name: 'Lien spirituel', cost: 0, cooldown: 4, needsTarget: false, icon: 'coeur', noSpell: true,
+    text: 'Soigne 10 PV.',
+    cast: (c) => {
+      healPlayer(c, 10);
+    },
+  },
+  // Sorts de loot
+  {
+    id: 'totem_glebe', name: 'Totem de glèbe', cost: 0, cooldown: 5, needsTarget: false, icon: 'bouclier', noSpell: true,
+    text: 'Pose un Totem de glèbe (Terre) : 6 blocage au début de tes 2 prochains tours.',
+    cast: (c) => placeTotem(c, 'glebe', 6, undefined, 2),
+  },
+  {
+    id: 'tempete_sable', name: 'Tempête de sable', cost: 0, cooldown: 4, needsTarget: false, icon: 'bouclier', noSpell: true,
+    text: 'Tous les ennemis sont Démoralisés et Ralentis 1 tour.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) {
+        e.buffs.demoralise = Math.max(e.buffs.demoralise, 1);
+        e.buffs.ralenti = Math.max(e.buffs.ralenti, 1);
+      }
+    },
+  },
+  {
+    id: 'fouet_lave', name: 'Fouet de lave', cost: 0, cooldown: 3, needsTarget: true, icon: 'flamme',
+    text: 'Inflige 8 dégâts.',
+    cast: (c, target) => {
+      if (target) playerAttack(c, target, 8);
+    },
+  },
+];
+for (const d of CHAMAN_SPELLS) SPELLS[d.id] = { ...d, classId: 'chaman' };
+
 /** La classe d'un sort de barre. */
 export function spellClass(id: string): string {
   return SPELLS[id]?.classId ?? 'guerrier';
@@ -772,7 +873,7 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
 
 /** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
-  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement', 'tir_arcanique', 'seve_vitale']);
+  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement', 'tir_arcanique', 'seve_vitale', 'choc_tellurique']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
 }
 

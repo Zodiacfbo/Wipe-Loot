@@ -10,6 +10,7 @@ import { carapaceDamage, yzharAwakens } from './yzhar';
 import { isPaladin, lastOath, onPaladinHit, paladinAttackBonus, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
 import { hunterAttackBonus, isHunter } from './chasseur';
 import { druidDamageBonus, druidDamageMult, druidHealAmount, druidOnHeal, isDruid } from './druide';
+import { isShaman, reincarnate, shamanDamageBonus, shamanHealAmount, shamanOnHeal } from './chaman';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
 export function emptyDebuffs(): PlayerDebuffs {
@@ -80,6 +81,8 @@ export function healPlayer(c: CombatState, amount: number): number {
   if (paladin) heal = paladinHealAmount(c, heal);
   const druid = isDruid(c) && heal > 0;
   if (druid) heal = druidHealAmount(c, heal);
+  const shaman = isShaman(c) && heal > 0;
+  if (shaman) heal = shamanHealAmount(c, heal);
   if (priest && heal > 0) {
     heal += c.gear?.healBonus ?? 0; // Soins améliorés
     if (c.gear?.equinoxe && !c.shadowForm) heal += 3; // Équinoxe (Lumière)
@@ -99,6 +102,7 @@ export function healPlayer(c: CombatState, amount: number): number {
   p.hp += healed;
   if (paladin) paladinOnHeal(c, healed);
   if (druid) druidOnHeal(c, healed);
+  if (shaman) shamanOnHeal(c, healed);
   if (priest && heal > 0) {
     c.healedFlag = true;
     // Rien n'est perdu : le soin en trop devient de l'Égide (la moitié, ou tout avec Esprit de guérison).
@@ -198,6 +202,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (isHunter(c) && c.playing?.type === 'Attaque') dmg += hunterAttackBonus(c, target);
   // Druide : les bonus de forme (Félin, Astrale), Fureur du tigre, Férocité, Cœur sauvage.
   dmg += druidDamageBonus(c);
+  // Chaman : Totem des vents, Arme de flammes, Totem de l'orage, Fureur élémentaire, Frappe d'orage.
+  dmg += shamanDamageBonus(c);
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
@@ -463,6 +469,8 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
     if (hpLoss === 0) p.blockedFullAttack = true;
   }
   if (p.hp <= 0 && c.soulstone) soulstoneRise(c); // Pierre d'âme
+  // Réincarnation (Chaman) : une fois par run.
+  if (p.hp <= 0) reincarnate(c);
   // Renaissance (Druide) : une fois par combat, on revient à 40 % des PV.
   if (p.hp <= 0 && c.rebirth) {
     c.rebirth = false;

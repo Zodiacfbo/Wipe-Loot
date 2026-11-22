@@ -452,8 +452,60 @@ export const DRUIDE_TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Chaman. Référence : docs/classes/CHAMAN.md (§7) */
+export const CHAMAN_TREES: TreeDef[] = [
+  {
+    id: 'elementaire', name: 'Élémentaire', theme: 'La foudre et la lave',
+    tiers: [
+      [t('convection', 'Convection', 'Éclair inflige +2 dégâts.', { fx: { lightningBonus: 2 } }),
+        t('fureur_cieux', 'Fureur des cieux', 'Chaîne d\'éclairs touche un ennemi de plus.', { fx: { chainExtra: 1 } })],
+      [t('totems_feu', 'Totems de feu améliorés', 'Tes Totems de Feu infligent +1 dégât.', { fx: { fireTotemBonus: 1 } }),
+        t('appel_flammes', 'Appel des flammes', 'Choc de flammes inflige +1 dégât par tour.', { fx: { flameShockBonus: 1 } })],
+      [t('t_maitrise_elementaire', 'Maîtrise élémentaire', 'Ajoute ce sort à ta barre : ton prochain Sort coûte 0 et inflige double dégâts.', { spell: 'maitrise_elementaire' }),
+        t('t_purge', 'Purge', 'Ajoute ce sort à ta barre : retire les buffs de la cible.', { spell: 'purge' })],
+      [t('tempete_naissante', 'Tempête naissante', 'Commence chaque combat avec un Totem des vents posé.', { fx: { startWindTotem: 1 } }),
+        t('ch_quatrieme_emplacement_e', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_avatar_tempete', 'Avatar de la tempête', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'avatar_tempete' })],
+    ],
+    cards: ['eclair', 'grondement_tonnerre', 'orbe_foudre', 'courant_ascendant', 'rage_elements', 'chaine_eclairs', 'jet_lave',
+      'totem_lave', 'concentration_elementaire', 'appel_foudre', 'seisme', 'fureur_elementaire', 'totem_orage', 'avatar_tempete'],
+  },
+  {
+    id: 'amelioration', name: 'Amélioration', theme: 'Les armes élémentaires',
+    tiers: [
+      [t('robustesse_ancestrale', 'Robustesse ancestrale', '+8 PV max.', { maxHp: 8 }),
+        t('armes_renforcees', 'Armes renforcées', 'Tes Armes élémentaires sont plus fortes (+1 dégât, ou 1 tour de plus pour l\'Arme de givre).', { fx: { imbueBonus: 1 } })],
+      [t('totems_terre', 'Totems de terre améliorés', 'Tes Totems de Terre donnent +2 blocage.', { fx: { earthTotemBonus: 2 } }),
+        t('ch_rafale', 'Rafale', 'L\'Arme des vents fait frapper ta première Attaque deux fois de plus au lieu d\'une.', { fx: { windfuryBonus: 1 } })],
+      [t('t_cri_ancetres', 'Cri des ancêtres', 'Ajoute ce sort à ta barre (1 énergie) : +1 énergie et +1 carte, ce tour-ci et le suivant.', { spell: 'cri_ancetres' }),
+        t('t_rappel_totemique', 'Rappel totémique', 'Ajoute ce sort à ta barre : retire tes totems, +1 énergie et 3 PV pour chacun.', { spell: 'rappel_totemique' })],
+      [t('double_arme', 'Double arme', 'Tu peux avoir 2 Armes élémentaires actives en même temps.', { fx: { doubleImbue: 1 } }),
+        t('ch_quatrieme_emplacement_a', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_frappe_orage', 'Frappe d\'orage', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'frappe_orage' })],
+    ],
+    cards: ['frappe_primitive', 'coup_lave', 'double_impact', 'tourbillon_vents', 'arme_flammes', 'arme_givre', 'arme_vents',
+      'lame_foudroyante', 'transe_guerriere', 'esprit_combatif', 'totem_force', 'esprits_loups', 'arme_tourbillonnante', 'frappe_orage'],
+  },
+  {
+    id: 'restauration_ch', name: 'Restauration', theme: 'L\'eau qui guérit',
+    tiers: [
+      [t('ch_soins_ameliores', 'Soins améliorés', 'Tes soins rendent +2 PV.', { fx: { healBonus: 2 } }),
+        t('esprit_marees', 'Esprit des marées', 'Commence chaque combat avec 6 blocage.', { fx: { startBlock: 6 } })],
+      [t('totems_eau', 'Totems d\'eau améliorés', 'Tes Totems d\'Eau ont un effet +1.', { fx: { waterTotemBonus: 1 } }),
+        t('purete', 'Pureté', 'Esprit purifié dissipe aussi la Magie.', { fx: { purity: 1 } })],
+      [t('t_totem_mana', 'Totem de mana', 'Ajoute ce sort à ta barre : +1 énergie au début de tes 3 prochains tours (sans prendre d\'emplacement).', { spell: 'totem_mana' }),
+        t('t_lien_spirituel', 'Lien spirituel', 'Ajoute ce sort à ta barre : soigne 10 PV.', { spell: 'lien_spirituel' })],
+      [t('reincarnation_amelioree', 'Réincarnation améliorée', 'La Réincarnation te ramène à 60 % de tes PV max au lieu de 40 %.', { fx: { ankhBetter: 1 } }),
+        t('ch_quatrieme_emplacement_r', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_totem_marees', 'Totem des marées', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'totem_marees' })],
+    ],
+    cards: ['petite_vague', 'vague_soins', 'remous', 'esprit_purifie', 'pluie_guerisseuse', 'equilibre_chaman', 'flots_apaisants',
+      'bouclier_eau', 'totem_source', 'rapidite_nature', 'bouclier_terre', 'maree_montante', 'vigueur_ancestrale', 'totem_marees'],
+  },
+];
+
 /** Les arbres de chaque classe jouable. */
-export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES, paladin: PALADIN_TREES, chasseur: CHASSEUR_TREES, druide: DRUIDE_TREES };
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES, paladin: PALADIN_TREES, chasseur: CHASSEUR_TREES, druide: DRUIDE_TREES, chaman: CHAMAN_TREES };
 
 /** Les arbres d'une classe (ceux du Guerrier par défaut). */
 export function treesFor(classId: string | undefined): TreeDef[] {

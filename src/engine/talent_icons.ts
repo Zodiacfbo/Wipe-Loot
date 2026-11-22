@@ -108,6 +108,19 @@ export const TALENT_ICONS: Record<string, string> = {
   renouveau_ameliore: 'carte_renouveau', harmonie: 'carte_pollen_apaisant',
   t_renaissance: 'carte_bourgeon', t_benediction_sylvestre: 'carte_fleurs_sauvages',
   racines_vie: 'carte_esprit_foret', dr_quatrieme_emplacement_r: 'talent_emplacement',
+  // Chaman
+  convection: 'carte_eclair', fureur_cieux: 'carte_chaine_eclairs',
+  totems_feu: 'carte_totem_braise', appel_flammes: 'carte_choc_flammes',
+  t_maitrise_elementaire: 'carte_concentration_elementaire', t_purge: 'carte_choc_givre',
+  tempete_naissante: 'carte_totem_vents', ch_quatrieme_emplacement_e: 'talent_emplacement',
+  robustesse_ancestrale: 'carte_garde_de_pierre', armes_renforcees: 'carte_arme_flammes',
+  totems_terre: 'carte_totem_pierre', ch_rafale: 'carte_arme_vents',
+  t_cri_ancetres: 'carte_transe_guerriere', t_rappel_totemique: 'carte_totem_force',
+  double_arme: 'carte_arme_givre', ch_quatrieme_emplacement_a: 'talent_emplacement',
+  ch_soins_ameliores: 'carte_vague_soins', esprit_marees: 'carte_flots_apaisants',
+  totems_eau: 'carte_totem_guerisseur', purete: 'carte_esprit_purifie',
+  t_totem_mana: 'carte_totem_source', t_lien_spirituel: 'carte_petite_vague',
+  reincarnation_amelioree: 'carte_remous', ch_quatrieme_emplacement_r: 'talent_emplacement',
 };
 
 /** Le fichier de l'icône d'un talent (dans public/assets/). */
@@ -173,4 +186,11 @@ export const TALENT_REFS: Record<string, { cards?: string[]; spells?: string[] }
   equilibre_parfait: { cards: ['eclipse'] },
   instinct_predateur: { cards: ['forme_felin'] },
   renouveau_ameliore: { cards: ['renouveau', 'retablissement'] },
+  // Chaman
+  convection: { cards: ['eclair'] },
+  fureur_cieux: { cards: ['chaine_eclairs'] },
+  appel_flammes: { cards: ['choc_flammes'] },
+  tempete_naissante: { cards: ['totem_vents'] },
+  ch_rafale: { cards: ['arme_vents'] },
+  purete: { cards: ['esprit_purifie'] },
 };

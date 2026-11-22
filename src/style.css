@@ -697,6 +697,11 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .chs-tuile.actif.absent { opacity: 0.45; filter: grayscale(0.8); }
 .chs-tuile.piege { border: 1px solid #ff9a2a; background: #3a2414; color: #ffc27a; box-shadow: 0 0 10px #ff9a2a44; }
 .chs-tuile.vide { min-height: 42px; }
+.chs-tuile.actif.totem-terre { border-color: #c8a070; background: #2e2416; color: #f0d8b0; box-shadow: 0 0 10px #c8a07044; }
+.chs-tuile.actif.totem-feu { border-color: #ff9a2a; background: #3a2414; color: #ffc27a; box-shadow: 0 0 10px #ff9a2a44; }
+.chs-tuile.actif.totem-eau { border-color: #5aa0d8; background: #172230; color: #bfe2ff; box-shadow: 0 0 10px #5aa0d844; }
+.chs-tuile.actif.totem-air { border-color: #c8e0f0; background: #222a30; color: #f0f8ff; box-shadow: 0 0 10px #c8e0f044; }
+.chs-tuile svg { width: 20px; height: 20px; }
 .chs-cible, .chs-ici { position: absolute; top: 34px; z-index: 5; display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; padding: 1px 6px 1px 3px; border-radius: 10px; white-space: nowrap; pointer-events: none; }
 .chs-cible { right: 0; background: #22301b; border: 1px solid #8fd49a; color: #cfeec0; }
 .chs-ici { left: 0; background: #3a2414; border: 1px solid #ff9a2a; color: #ffc27a; }

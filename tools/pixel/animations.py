@@ -11,6 +11,7 @@ from acte3 import yzhar, yzhar_corps
 from sprites import anime_auto, apercu_gif, guerrier, mage, planche, vulkhar
 from chasseur_sprites import chasseur, loup, ours, raptor
 from druide_sprites import druide, druide_astrale, druide_felin, druide_ours
+from chaman_sprites import chaman
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
@@ -23,6 +24,7 @@ ANIMES = {
     'voleur': (voleur, 4, False, 6),
     'demoniste': (demoniste, 4, False, 6),
     'chasseur': (chasseur, 4, False, 6),
+    'chaman': (chaman, 4, False, 6),
     'druide': (druide, 4, False, 6),
     'druide_ours': (druide_ours, 4, False, 6),
     'druide_felin': (druide_felin, 4, False, 6),

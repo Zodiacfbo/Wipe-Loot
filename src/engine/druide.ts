@@ -232,14 +232,19 @@ export function druidStartTurn(c: CombatState): number {
 
 /** À la fin de ton tour : les Sylvains frappent ta cible. */
 export function druidEndTurn(c: CombatState): void {
+  // Les invocations temporaires (Sylvains du Druide, Esprits des loups du Chaman) frappent ta cible.
+  summonsAct(c);
   if (!isDruid(c)) return;
   // Rage instinctive : en Ours, la rage protège pendant le tour ennemi.
   if (c.form === 'ours' && c.gear?.rageBlock && (c.bearRage ?? 0) > 0) gainBlock(c, c.bearRage! * c.gear.rageBlock, false);
+}
+
+function summonsAct(c: CombatState): void {
   if (!c.treants || c.treants.turns <= 0) return;
   const pool = livingEnemies(c).filter((e) => !e.submerged && !(e.buried ?? 0));
   const t = pool.find((e) => e.uid === c.lastTarget) ?? pool[0];
   for (let i = 0; i < c.treants.count && t && !t.dead && c.phase === 'player'; i++) {
-    fx(c, { kind: 'tick', who: t.uid, amount: c.treants.dmg, label: 'Sylvain' });
+    fx(c, { kind: 'tick', who: t.uid, amount: c.treants.dmg, label: c.treants.label ?? 'Sylvain' });
     damageEnemy(c, t, c.treants.dmg);
   }
   c.treants.turns -= 1;

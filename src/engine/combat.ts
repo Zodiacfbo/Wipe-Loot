@@ -32,6 +32,7 @@ import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from
 import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
 import { afterHunterCard, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
 import { afterDruidCard, druidDamageTaken, druidEndTurn, druidOnAttacked, druidStartCombat, druidStartTurn, enterForm, isDruid, setForm } from './druide';
+import { afterShamanCard, clearTotems, isShaman, shamanOnAttacked, shamanStartCombat, shamanStartTurn, totemsAct, windfuryExtra } from './chaman';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
@@ -58,6 +59,8 @@ export function createCombat(
   demon?: { shards: number; pet: PetId },
   /** Chasseur : le compagnon choisi au départ de l'expédition. */
   companion?: CompanionId,
+  /** Chaman : la Réincarnation est encore disponible pour cette run. */
+  ankh = true,
 ): CombatState {
   const c: CombatState = {
     turn: 0,
@@ -79,6 +82,8 @@ export function createCombat(
     ...(classId === 'chasseur' ? { companion: companion ?? 'loup', aspect: null, traps: [], mark: null, frenzyStacks: 0 } : {}),
     // Le Druide commence en forme normale ; son premier changement de forme est gratuit.
     ...(classId === 'druide' ? { form: 'normale' as FormId, bearRage: 0, catCombo: 0, formRobustesse: 0 } : {}),
+    // Le Chaman : 4 emplacements de totem vides, et sa Réincarnation si elle n'a pas encore servi.
+    ...(classId === 'chaman' ? { totems: { terre: null, feu: null, eau: null, air: null }, imbues: [], ankh, orbs: [], maelstrom: 0, earthShield: 0 } : {}),
     enemies: [],
     draw: [],
     hand: [],
@@ -187,6 +192,7 @@ export function createCombat(
   // Chasseur : Esprit animal, Piégeur né.
   hunterStartCombat(c);
   druidStartCombat(c);
+  shamanStartCombat(c);
   if (gear.startFiole) addStatusToHand(c, 'fiole_instable', gear.startFiole);
   // Butin d'Yzhar : Bague du dieu dormant, Lame de l'oubli.
   for (let i = 0; i < (gear.startCopyUp ?? 0); i++) {
@@ -299,6 +305,8 @@ export function startPlayerTurn(c: CombatState): void {
   // Druide : Rôder, Fureur du tigre et Écorce s'arrêtent ; Tranquillité soigne et protège.
   const tranquil = druidStartTurn(c);
   if (tranquil > 0) healPlayer(c, tranquil);
+  // Chaman : Orbes de foudre, Cri des ancêtres (les totems agissent après la pioche).
+  const ancestorsDraw = shamanStartTurn(c);
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
@@ -322,8 +330,10 @@ export function startPlayerTurn(c: CombatState): void {
     p.energy += 1;
     p.distortion = false;
   }
-  drawCards(c, Math.max(0, 5 + manaDraw + distortion + wisdomDraw + aspectDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
+  drawCards(c, Math.max(0, 5 + manaDraw + distortion + wisdomDraw + aspectDraw + ancestorsDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
+  // Chaman : les totems agissent au début du tour.
+  totemsAct(c);
   const d = (p.debuffs ??= emptyDebuffs());
   startTurnAct2(c);
   if (c.player.energy > 0 || c.hand.length > 0) {
@@ -572,6 +582,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const blockBefore = p.block;
   // Ambidextrie experte : la première Attaque du tour est jouée deux fois.
   let twice = attack && c.combo !== undefined && power(c, 'ambidextrie_experte') > 0 && (c.attacksThisTurn ?? 0) === 0;
+  // Arme des vents (Chaman) : la première Attaque du tour frappe une fois de plus (deux avec Rafale).
+  const windfury = isShaman(c) ? windfuryExtra(c, attack) : 0;
   // Bague des reflets : une fois par combat, la première carte de Sort est jouée deux fois.
   if (def.type === 'Sort' && c.gear?.firstSpellTwice && !c.spellTwiceUsed) {
     c.spellTwiceUsed = true;
@@ -580,6 +592,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort'), opener: def.opener, form: def.form };
   def.play(ctx);
   if (twice && c.phase === 'player' && (!target || !target.dead)) def.play(ctx);
+  for (let i = 0; i < windfury && c.phase === 'player' && (!target || !target.dead); i++) def.play(ctx);
   c.playing = undefined;
   if (c.combo !== undefined) afterRogueCard(c, def, comboHeld, attack);
   // Butin : Masse des flammes, Croc des trois souffles, Croc de Prismagor.
@@ -623,6 +636,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   if (isHunter(c)) afterHunterCard(c, attack);
   // Druide : rage des Attaques d'Ours, Rôder, Éclipse, Grâce de la nature, Convergence céleste.
   if (isDruid(c)) afterDruidCard(c, def, cost, ctx.dealt);
+  // Chaman : Arme de givre, Esprit combatif, Arme tourbillonnante, Concentration élémentaire, Avatar de la tempête.
+  if (isShaman(c)) afterShamanCard(c, def, cost, target, ctx.dealt);
   // Voix de stentor : les Cris donnent plus de rage et démoralisent plus longtemps.
   if (c.gear?.shoutBonus && SHOUTS.has(card.id)) {
     gainRage(c, c.gear.shoutBonus);
@@ -687,7 +702,7 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   if (target) c.lastTarget = target.uid;
   // Les sorts de barre du Mage et du Démoniste sont des Sorts (bonus aux Sorts, Malédiction des éléments).
   const spellClass = def.classId ?? 'guerrier';
-  if (!['guerrier', 'voleur', 'paladin', 'chasseur'].includes(spellClass)) c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
+  if (!['guerrier', 'voleur', 'paladin', 'chasseur'].includes(spellClass) && !SPELLS[s.id].noSpell) c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
   def.cast(c, target);
   c.playing = undefined;
   s.cooldown = def.once ? 999 : spellCooldown(def, c.gear);
@@ -899,6 +914,7 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         // Chasseur : Contre-attaque, Riposte sauvage.
         hunterOnAttacked(c, e, dmg, Math.min(blockBefore, dmg));
         druidOnAttacked(c, e, dmg);
+        shamanOnAttacked(c, e, dmg);
         if (intent.stealGold && lost > 0) {
           c.goldStolen = (c.goldStolen ?? 0) + intent.stealGold;
           fx(c, { kind: 'buff', who: e.uid, label: `Avale ${intent.stealGold} or !` });
@@ -1374,6 +1390,9 @@ function lineageCurse(c: CombatState): void {
   } else if (c.classId === 'paladin') {
     c.seals = [];
     log(c, 'Malédiction de lignée : ton Sceau se brise, et tu ne peux plus en activer pendant 2 tours.');
+  } else if (c.classId === 'chaman') {
+    clearTotems(c);
+    log(c, 'Malédiction de lignée : tes totems s\'effondrent.');
   } else if (c.classId === 'druide') {
     setForm(c, 'normale');
     log(c, 'Malédiction de lignée : tu reprends ta forme normale, et tu ne peux plus en changer pendant 2 tours.');

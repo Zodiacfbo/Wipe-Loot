@@ -277,6 +277,8 @@ export interface Encounter {
   startFolie?: number;
   /** Un ennemi de plus, tiré parmi ceux du combat (le Gong des Sables). */
   extraEnemy?: boolean;
+  /** L'épreuve des éléments (quête du Marteau des ancêtres) : la gagner bénit le marteau. */
+  marteau?: boolean;
 }
 
 /** Packs faciles (étages 1 à 4). */

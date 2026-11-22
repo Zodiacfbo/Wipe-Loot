@@ -127,7 +127,7 @@
 - [x] Voleur : points de combo, Camouflage et Ouvertures, Poisons d'arme, Contrôle ; 52 cartes illustrées, 9 sorts de barre, 27 talents, sprite, et son légendaire Sillon d'orage avec sa quête
 - [x] Paladin : Sceaux et Jugement, Auras, Censure ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprite, le tag Démon sur les ennemis, et son légendaire l'Aurore ardente avec sa quête (forgé à l'acte 2 en attendant l'acte 3)
 - [x] Chasseur : compagnon animal (Loup, Ours, Raptor) choisi au départ, Esprits animaux, Pièges, Marque de la proie ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprites animés (le Chasseur et ses 3 compagnons), et son légendaire Corde-des-anciens avec sa quête
-- [ ] Chaman
+- [x] Chaman : totems (Terre, Feu, Eau, Air), Résonance, Armes élémentaires, Réincarnation une fois par run ; 52 cartes illustrées, 10 sorts de barre, 27 talents, sprite animé, et son légendaire le Marteau des ancêtres avec sa quête
 - [x] Druide : quatre formes (normale, Ours avec sa rage, Félin avec son combo, Astrale), cartes de forme qui coûtent 1 de plus hors de leur forme ; 54 cartes illustrées, 10 sorts de barre, 27 talents, sprite animé dans les 4 formes, et sa version du Bâton du Veilleur (rendre un objet à la terre)
 
 Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de barre, ses talents, son légendaire et sa quête, et son sprite.
@@ -139,7 +139,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [x] Sillon d'orage (Voleur)
 - [x] L'Aurore ardente (Paladin) : le Reliquaire profané, puis Ossyrax et le feu de camp, ou les Veilleurs de l'Aurore et un boss secondaire d'Irem
 - [x] Corde-des-anciens (Chasseur) : le Bois ancien du vieux trappeur, le Tendon des Trois Souffles, puis le feu de camp
-- [ ] Le Marteau des ancêtres, avec le Chaman
+- [x] Le Marteau des ancêtres (Chaman) : le Cercle des anciens, le Manche de Skarn, puis l'appel des éléments
 - [x] Refaire la passe sur les niveaux de difficulté pour deux actes (voir l'équilibrage, §9)
 
 ---

@@ -74,7 +74,7 @@ export function yzharEnemyStart(c: CombatState, e: EnemyState): void {
 
 /** Rayon oculaire : il rebondit sur ton familier, qui est étourdi. */
 export function stunPet(c: CombatState, turns: number): void {
-  if ((!c.pet || c.petSacrificed) && !c.companion) return;
+  if ((!c.pet || c.petSacrificed) && !c.companion && !c.totems) return;
   c.petStunned = Math.max(c.petStunned ?? 0, turns);
   fx(c, { kind: 'buff', who: 'player', label: 'Familier étourdi' });
   log(c, 'Le Rayon rebondit sur ton familier : il est étourdi.');

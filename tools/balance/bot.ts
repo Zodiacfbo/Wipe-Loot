@@ -80,7 +80,7 @@ function evaluate(c: CombatState): number {
   const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0)
     + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0)
     // Voleur : les points de combo, le Camouflage (s'il reste une Ouverture en main), le Poison d'arme, Danse des lames.
-    + rogueValue(c) + paladinValue(c) + hunterValue(c) + druidValue(c)
+    + rogueValue(c) + paladinValue(c) + hunterValue(c) + druidValue(c) + shamanValue(c)
     // Prêtre : la Forme d'Ombre n'est pas dans c.powers, elle vaut un Pouvoir posé (sinon le bot ne la joue jamais).
     + (c.shadowForm ? 8 : 0);
   return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
@@ -122,6 +122,32 @@ function hunterValue(c: CombatState): number {
   return v;
 }
 
+/** Chaman : les totems posés (leur effet sur les prochains tours), les Armes élémentaires, les Orbes, le Bouclier de terre. */
+function shamanValue(c: CombatState): number {
+  if (c.totems === undefined) return 0;
+  const living = c.enemies.filter((e) => !e.dead).length;
+  const hurt = c.player.hp < c.player.maxHp * 0.8;
+  let v = 0;
+  for (const t of Object.values(c.totems)) {
+    if (!t) continue;
+    switch (t.id) {
+      case 'pierre': case 'glebe': v += t.value * 2.5; break;
+      case 'braise': v += t.value * 2.5; break;
+      case 'lave': v += t.value * living * 2.5; break;
+      case 'orage': v += t.value * 2.5 + (t.value2 ?? 0) * 3; break;
+      case 'guerisseur': case 'source': v += t.value * (hurt ? 3 : 1) + (t.value2 ?? 0) * 2; break;
+      case 'marees': case 'mana': v += 8; break;
+      case 'vents': v += t.value * 4; break;
+      case 'force': v += 0; break; // déjà compté par la Puissance
+      default: v += 4;
+    }
+  }
+  for (const w of c.imbues ?? []) v += w.id === 'flammes' ? w.value * 4 : 8;
+  v += (c.orbs ?? []).reduce((a, o) => a + o.dmg * 0.9, 0) + (c.earthShield ?? 0) * 4 + (c.stormstrike ?? 0) * 3
+    + (c.nextAttackBonus ?? 0) * 0.5 + (c.ancestorsNext ? 5 : 0) + (c.manaTide ?? 0) * 3 + (c.clearcast ? 2 : 0) + (c.maelstrom ?? 0) * 0.8;
+  return v;
+}
+
 /** Druide : la rage et le combo de la forme, les cartes en main qui vont avec la forme, Sylvains, Tranquillité. */
 function druidValue(c: CombatState): number {
   if (c.form === undefined) return 0;
@@ -153,7 +179,7 @@ function candidates(c: CombatState): Action[] {
   });
   c.spells.forEach((s, i) => {
     if (!canUseSpell(c, i)) return;
-    const needs = ['charge', 'coup_de_pommeau', 'coup_de_pied', 'jugement', 'marteau_jugement', 'charge_sacree', 'tir_arcanique', 'fleche_museliere', 'fleche_apaisante', 'cyclone', 'faveur_lune'].includes(s.id);
+    const needs = ['charge', 'coup_de_pommeau', 'coup_de_pied', 'jugement', 'marteau_jugement', 'charge_sacree', 'tir_arcanique', 'fleche_museliere', 'fleche_apaisante', 'cyclone', 'faveur_lune', 'choc_tellurique', 'purge', 'fouet_lave'].includes(s.id);
     if (needs) targets.forEach((t) => list.push({ kind: 'spell', index: i, target: t }));
     else list.push({ kind: 'spell', index: i });
   });
@@ -198,8 +224,8 @@ export function playTurn(run: RunState): void {
         useSpell(c, pact);
         continue;
       }
-      // Sève vitale (Druide) : +2 énergie, si une carte de la main devient jouable.
-      const seve = c.spells.findIndex((sp) => sp.id === 'seve_vitale');
+      // Sève vitale (Druide), Cri des ancêtres et Totem de mana (Chaman) : de l'énergie, si une carte de la main devient jouable.
+      const seve = c.spells.findIndex((sp) => ['seve_vitale', 'cri_ancetres', 'totem_mana'].includes(sp.id) && canUseSpell(c, c.spells.indexOf(sp)));
       const wanted = c.hand.some((k) => CARDS[k.id].type !== 'Statut' && !CARDS[k.id].unplayable && energyCost(c, k.id, k.upgraded) > c.player.energy && energyCost(c, k.id, k.upgraded) <= c.player.energy + 2);
       if (seve >= 0 && wanted && canUseSpell(c, seve)) {
         useSpell(c, seve);
@@ -279,7 +305,7 @@ const EVENT_CHOICE: Record<string, (run: RunState) => number> = {
   riviere: (r) => (r.hp > 30 ? 0 : 1),
   forge: () => 0,
   trappeur: (r) => (r.classId === 'chasseur' && !r.corde ? 2 : r.potions.some((x) => x) ? 0 : 1),
-  cercle: (r) => (eventChoiceLock(r, 0) ? 1 : 0),
+  cercle: (r) => (r.classId === 'chaman' && !r.marteau ? 2 : eventChoiceLock(r, 0) ? 1 : 0),
   chapelle: (r) => (r.classId === 'pretre' && !r.equinoxe ? 2 : 0),
   fantome: (r) => (r.equipment.arme && r.hp > 40 ? 0 : 2),
   gobelin: () => 0,

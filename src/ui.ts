@@ -96,6 +96,7 @@ import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save
 // Outil de test (version dev seulement)
 import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
+import { ELEMENTS, ELEMENT_NAME, IMBUES, TOTEMS } from './engine/chaman';
 import { FORMS, FORM_IDS, MAX_BEAR_RAGE, MAX_CAT_COMBO, canShift, shiftCost } from './engine/druide';
 import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, companionDamage, companionTarget, markBonus, trapVictim } from './engine/chasseur';
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
@@ -115,6 +116,7 @@ const ANIMES: Record<string, number> = {
   'voleur.png': 4,
   'demoniste.png': 4,
   'chasseur.png': 4,
+  'chaman.png': 4,
   'druide.png': 4,
   'druide_ours.png': 4,
   'druide_felin.png': 4,
@@ -1119,6 +1121,16 @@ const POWER_LABEL: Record<string, [string, string]> = {
   esprit_foret: ['Esprit de la forêt', 'Soin au début de ton tour'],
   symbiose: ['Symbiose', 'Chaque soin frappe un ennemi'],
   arbre_vie: ['Arbre de vie', 'Soins +50 %, 2 blocage par soin'],
+  bouclier_foudre: ['Bouclier de foudre', '3 premiers attaquants du tour : dégâts'],
+  concentration_elementaire: ['Concentration élémentaire', 'Après un Sort à 2 énergie : Sort suivant −1'],
+  appel_foudre: ['Appel de la foudre', 'Résonance (Air) toujours active'],
+  fureur_elementaire: ['Fureur élémentaire', '3 totems ou plus : Sorts +dégâts'],
+  avatar_tempete: ['Avatar de la tempête', 'Chaque Sort : un éclair au hasard'],
+  esprit_combatif: ['Esprit combatif', 'Totem posé : prochaine Attaque +dégâts'],
+  arme_tourbillonnante: ['Arme tourbillonnante', '5 Attaques : prochain Sort gratuit'],
+  bouclier_eau: ['Bouclier d\'eau', '2 premiers coups du tour : soin'],
+  maree_montante: ['Marée montante', 'Soins +PV'],
+  vigueur_ancestrale: ['Vigueur ancestrale', 'Chaque soin : autant de blocage'],
 };
 
 function playerChips(c: CombatState): string {
@@ -1168,6 +1180,16 @@ function playerChips(c: CombatState): string {
   if (c.undying) chips.push('<span class="chip">Égide des anciens : PV ≥ 1</span>');
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
+  // Chaman
+  if (c.stormstrike) chips.push(`<span class="chip">Frappe d'orage : Sorts +4 (${c.stormstrike}t)</span>`);
+  if (c.earthShield) chips.push(`<span class="chip" title="Chaque attaque reçue : soigne 3 PV, 2 blocage">Bouclier de terre ${c.earthShield}</span>`);
+  if (c.maelstrom) chips.push(`<span class="chip" title="À 5 : ton prochain Sort coûte 0">Tourbillon ${c.maelstrom}/5</span>`);
+  if (c.clearcast) chips.push('<span class="chip">Prochain Sort −1</span>');
+  if (c.freeNextSpell) chips.push('<span class="chip">Prochain Sort gratuit</span>');
+  if (c.nextAttackBonus) chips.push(`<span class="chip">Esprit combatif : +${c.nextAttackBonus}</span>`);
+  if (c.manaTide) chips.push(`<span class="chip">Totem de mana : +1 énergie (${c.manaTide}t)</span>`);
+  if (c.ancestorsNext) chips.push('<span class="chip">Cri des ancêtres : +1 énergie, +1 carte au prochain tour</span>');
+  if (c.orbs?.length) chips.push(`<span class="chip">Orbe de foudre : ${c.orbs.reduce((a, o) => a + o.dmg, 0)} au prochain tour</span>`);
   // Druide
   if (c.prowl) chips.push('<span class="chip">Rôder : prochaine Attaque ×2</span>');
   if (c.tigerFury) chips.push(`<span class="chip">Fureur du tigre : +${c.tigerFury}</span>`);
@@ -1253,6 +1275,27 @@ const ICON_HUNT: Record<string, string> = {
   immolation: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22c4 0 7-3 7-7 0-5-5-7-5-12-3 2-5 5-5 8-1-1-2-2-2-4-2 2-2 5-2 8 0 4 3 7 7 7z"/></svg>',
   venin: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3c3 5 6 8 6 12a6 6 0 0 1-12 0c0-4 3-7 6-12z"/></svg>',
 };
+
+const ICON_ELEMENT: Record<string, string> = {
+  terre: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 19l6-10 4 6 3-4 5 8z"/></svg>',
+  feu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22c4 0 7-3 7-7 0-5-5-7-5-12-3 2-5 5-5 8-1-1-2-2-2-4-2 2-2 5-2 8 0 4 3 7 7 7z"/></svg>',
+  eau: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3c3 5 6 8 6 12a6 6 0 0 1-12 0c0-4 3-7 6-12z"/></svg>',
+  air: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 18h7"/></svg>',
+};
+
+/** Le Chaman : ses 4 emplacements de totem (toujours visibles) et son Arme élémentaire. */
+function shamanResource(c: CombatState): string {
+  const tiles = ELEMENTS.map((el) => {
+    const t = c.totems?.[el];
+    return t
+      ? `<div class="chs-tuile actif totem-${el}" title="${TOTEMS[t.id].name} : ${TOTEMS[t.id].text(t)}">${ICON_ELEMENT[el]}<span>${TOTEMS[t.id].short}</span></div>`
+      : `<div class="chs-tuile vide totem-${el}" title="Emplacement ${ELEMENT_NAME[el]} libre">${ICON_ELEMENT[el]}<span>${ELEMENT_NAME[el]}</span></div>`;
+  }).join('');
+  const weapons = (c.imbues ?? []).map((w) => IMBUES[w.id].short).join(' + ');
+  const stunned = (c.petStunned ?? 0) > 0 ? ' · totems étourdis' : '';
+  return `<div class="ligne chs-tuiles">${tiles}<div class="chs-tuile ${weapons ? 'piege' : 'vide'}" title="Arme élémentaire">${ICON.epee}<span>${weapons || 'Arme'}</span></div></div>
+    <div class="aide-posture">${c.ankh ? 'Réincarnation prête' : 'Réincarnation utilisée'}${stunned}</div>`;
+}
 
 /** Le Druide : la jauge de la forme (rage de l'Ours, combo du Félin) et les quatre boutons de forme. */
 function druidResource(c: CombatState): string {
@@ -1352,7 +1395,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const resource = mage
     ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
         <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
-    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : run.classId === 'chasseur' ? hunterResource(c) : run.classId === 'druide' ? druidResource(c) : '';
+    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : run.classId === 'chasseur' ? hunterResource(c) : run.classId === 'druide' ? druidResource(c) : run.classId === 'chaman' ? shamanResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
@@ -2830,7 +2873,7 @@ const PRELOAD = [
   ...Object.keys(ANIMES).map((file) => `anim_${file}`),
   ...[...Object.keys(ENEMIES), 'vhaeryx_dragon', 'yzhar_corps'].map((id) => `anim_ennemi_${id}.png`),
   ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur', 'loup', 'ours', 'raptor'].map((id) => `familier_${id}.png`),
-  'chasseur.png',
+  'chasseur.png', 'chaman.png',
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png', 'ennemi_yzhar_corps.png',
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),

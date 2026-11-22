@@ -504,3 +504,29 @@ Mesuré sur la run complète (trois actes), difficulté 0, 50 runs par profil, p
 - **Le Druide ⭐⭐⭐ reste un cran en dessous** des autres classes au niveau 10 (44-46 %, contre 48-65 %). C'est accepté pour une classe difficile, et le bot joue mal les changements de forme (il ne voit qu'une action à l'avance).
 - **Les mesures varient beaucoup d'une fois à l'autre** pour le Druide : 14 à 24 % pour le même profil farouche avant les réglages. Il faudra le vérifier avec des joueurs.
 
+---
+
+## 19. Le Chaman (novembre 2026)
+
+Mesuré sur la run complète (trois actes), difficulté 0, 50 runs par profil, profils 7 + 3. Chaque arbre est mesuré avec son meilleur complément (Restauration pour Élémentaire et Amélioration).
+
+| Profil | Première version | Après réglages | Vulkhar / Vhaeryx vaincus |
+|---|---|---|---|
+| Niveau 1 | 0 % | **4 %** | 52 % / 8 % |
+| Niveau 5 (Élémentaire 3, Restauration 2) | 14 % | **24 %** | 70 % / 28 % |
+| Niveau 10 (Élémentaire 7, Restauration 3) | 8 % | **60 %** | 100 % / 80 % |
+| Niveau 10 (Amélioration 7, Restauration 3) | 6 % (avec Élémentaire 3) | **60 %** | 100 % / 76 % |
+| Niveau 10 (Restauration 7, Élémentaire 3) | 28 % | **46 %** | 100 % / 52 % |
+
+**Ce qui a changé :**
+- **La base :** Éclair 7, Totem de pierre 4, Totem de braise 5, Totem guérisseur 3, Réincarnation à 40 %. Le niveau 1 passe de 0 % à 4 %.
+- **Totem de mana** prenait l'emplacement d'Eau et chassait le Totem guérisseur : le bot faisait moins bien au niveau 10 qu'au niveau 5. C'est maintenant un effet à part (+1 énergie pendant 3 tours). Les profils prennent quand même Lien spirituel (palier 3 de Restauration), plus fort pour le bot.
+- **Avatar de la tempête** coûte 1 (0 amélioré). Avant, il faisait perdre des points.
+- **Frappe d'orage** reste à 2 énergie. À 1 énergie, avec l'Arme des vents qui la rejoue, l'arbre Amélioration montait à 96 %.
+- **Le bot :** il donne de la valeur aux totems posés (leur effet sur les prochains tours), aux Armes élémentaires, aux Orbes de foudre et au Bouclier de terre. Il lance Cri des ancêtres et Totem de mana quand l'énergie rend une carte jouable, prend la Tête du marteau au Cercle des anciens, et accepte l'épreuve des éléments.
+
+**À surveiller :**
+- **Les soins portent le Chaman.** Élémentaire 3 seul fait 3 % ; avec 2 paliers de Restauration, on passe à 24 %. Un Chaman sans aucun point en Restauration est très fragile.
+- **Restauration complète (46 %)** est un peu en dessous des deux autres arbres. C'est accepté pour une classe ⭐⭐⭐, mais à revoir avec des joueurs.
+- **Le Marteau des ancêtres** fait agir les totems deux fois : avec 4 totems, c'est énorme. Il n'apparaît qu'à la fin de l'acte 2.
+

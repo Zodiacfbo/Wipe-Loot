@@ -142,7 +142,13 @@ export function migrate(raw: unknown): RunState | null {
     run.corde = null;
     run.version = 24;
   }
-  return run.version === 24 ? (run as unknown as RunState) : null;
+  if (run.version === 24) {
+    // Le Chaman : sa Réincarnation et sa quête légendaire.
+    run.reincarnated = false;
+    run.marteau = null;
+    run.version = 25;
+  }
+  return run.version === 25 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {

@@ -176,6 +176,20 @@ export interface ItemEffects {
   freeShiftAll?: number; // le légendaire du Druide : le bouton de forme ne coûte plus d'énergie
   renewBonus?: number; // Renouveau soigne X PV de plus par tour
   harmony?: number; // en forme normale, chaque soin donne la moitié de son montant en blocage
+  // Talents du Chaman
+  lightningBonus?: number; // Éclair +X dégâts
+  chainExtra?: number; // Chaîne d'éclairs touche X ennemis de plus
+  fireTotemBonus?: number; // tes Totems de Feu +X dégâts
+  flameShockBonus?: number; // Choc de flammes +X dégâts par tour
+  startWindTotem?: number; // un Totem des vents posé au début de chaque combat
+  imbueBonus?: number; // tes Armes élémentaires sont plus fortes
+  earthTotemBonus?: number; // tes Totems de Terre +X blocage
+  windfuryBonus?: number; // l'Arme des vents fait frapper X fois de plus
+  doubleImbue?: number; // 2 Armes élémentaires actives à la fois
+  waterTotemBonus?: number; // tes Totems d'Eau ont un effet +X
+  purity?: number; // Esprit purifié dissipe aussi les Malédictions
+  ankhBetter?: number; // la Réincarnation ramène à 50 % des PV
+  marteauAncetres?: number; // le légendaire du Chaman : les totems agissent X fois de plus
   gelKeep?: number; // le Gel ne diminue plus
   freezeEarly?: number; // Gelé à 5 − X cumuls
   shatterBonus?: number; // Fracasser +X dégâts
@@ -402,6 +416,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('equinoxe', 'Équinoxe', 'arme', 'legendaire', 'Dans la Lumière : tes soins rendent +3 PV et chaque soin te donne 1 Foi. En Forme d\'Ombre : tes DoT infligent +2 dégâts et chacun de leurs ticks te soigne de 1 PV.', { equinoxe: 1 }),
   item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Jugements infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
   item('baton_veilleur_druide', 'Bâton du Veilleur (Druide)', 'arme', 'legendaire', 'Changer de forme avec le bouton ne coûte plus d\'énergie.', { freeShiftAll: 1 }),
+  item('marteau_ancetres', 'Le Marteau des ancêtres', 'arme', 'legendaire', 'Tes totems agissent deux fois au début de chacun de tes tours.', { marteauAncetres: 1 }),
   item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Ton compagnon agit une fois de plus à la fin de chacun de tes tours.', { cordeAnciens: 1 }),
   item('sillon_orage', 'Sillon d\'orage', 'arme', 'legendaire', 'Toutes les 3 Attaques que tu joues, un éclair inflige 6 dégâts à tous les ennemis.', { stormblade: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
@@ -575,7 +590,8 @@ KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin', 'chaman', 'd
 KEY_CLASSES.firstSpellTwice = KEY_CLASSES.spellBonus;
 KEY_CLASSES.dispelDraw = ['pretre', 'paladin'];
 for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
-KEY_CLASSES.healBonus = ['pretre', 'paladin', 'druide'];
+KEY_CLASSES.healBonus = ['pretre', 'paladin', 'druide', 'chaman'];
+for (const k of ['lightningBonus', 'chainExtra', 'fireTotemBonus', 'flameShockBonus', 'startWindTotem', 'imbueBonus', 'earthTotemBonus', 'windfuryBonus', 'doubleImbue', 'waterTotemBonus', 'purity', 'ankhBetter', 'marteauAncetres'] as const) KEY_CLASSES[k] = ['chaman'];
 KEY_CLASSES.allyBonus = ['demoniste', 'chasseur', 'chaman']; // familier, compagnon, totems
 KEY_CLASSES.freePact = ['demoniste'];
 for (const k of ['compBonus', 'compBleed', 'compOpening', 'packFree', 'shotBonus', 'markBonus', 'fatalBonus', 'hunterFirstFree', 'trapBonus', 'disengageBonus', 'startTrap', 'trapEnergy', 'cordeAnciens'] as const) KEY_CLASSES[k] = ['chasseur'];

@@ -15,7 +15,7 @@ import { random } from './rng';
 import type { CardInstance, CompanionId, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 24;
+export const SAVE_VERSION = 25;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -38,7 +38,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 24, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 25, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
@@ -46,7 +46,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
     floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin', equinoxe: null, sillon: null, tenebres: false, aurore: null,
-    companion: 'loup', corde: null,
+    companion: 'loup', corde: null, reincarnated: false, marteau: null,
     runBuffs: {}, gong: false, nextFolie: 0,
   };
   run.map = mapFor(run, 1);
@@ -65,8 +65,8 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
 
 /** L'état de la quête légendaire de chaque classe. */
 export const LEGENDARY_QUEST = {
-  guerrier: 'brisemonts', mage: 'veilleur', demoniste: 'veilleur', pretre: 'equinoxe', voleur: 'sillon', paladin: 'aurore', chasseur: 'corde', druide: 'veilleur',
-} as Record<string, 'brisemonts' | 'veilleur' | 'equinoxe' | 'sillon' | 'aurore' | 'corde'>;
+  guerrier: 'brisemonts', mage: 'veilleur', demoniste: 'veilleur', pretre: 'equinoxe', voleur: 'sillon', paladin: 'aurore', chasseur: 'corde', druide: 'veilleur', chaman: 'marteau',
+} as Record<string, 'brisemonts' | 'veilleur' | 'equinoxe' | 'sillon' | 'aurore' | 'corde' | 'marteau'>;
 
 /** La carte d'un acte. */
 function mapFor(run: RunState, act: number) {
@@ -279,7 +279,7 @@ export function startEncounter(run: RunState, encounter: Encounter): void {
   }
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' }, run.companion ?? 'loup');
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' }, run.companion ?? 'loup', !run.reincarnated);
   run.screen = 'combat';
 }
 
@@ -326,6 +326,8 @@ export function afterCombatAction(run: RunState): void {
   // Démoniste : les éclats d'âme se gardent d'un combat à l'autre ; les Pierres de vie vont dans la ceinture.
   if (c.shards !== undefined) run.shards = c.shards;
   if (c.pet === 'diablotin' || c.pet === 'rodeur') run.pet = c.pet;
+  // Chaman : la Réincarnation ne sert qu'une fois par run.
+  if (c.ankhUsed) run.reincarnated = true;
   for (const id of c.newPotions ?? []) {
     const slot = run.potions.findIndex((p) => !p);
     if (slot >= 0) run.potions[slot] = id;
@@ -390,6 +392,16 @@ export function afterCombatAction(run: RunState): void {
       if (enc?.loot === 'ysolde' && run.classId === 'pretre' && run.equinoxe === 'baton') {
         run.equinoxe = 'larme';
         run.questNote = 'Larme d\'Ysolde : libérée, la dragonne laisse une pierre qui contient la lumière et l\'ombre. Au prochain feu de camp, tu pourras forger Équinoxe.';
+      }
+      // Le Marteau des ancêtres (Chaman) : Skarn laisse le Manche, l'épreuve des éléments bénit le marteau.
+      if (enc?.loot === 'skarn' && run.classId === 'chaman' && run.marteau === 'tete') {
+        run.marteau = 'manche';
+        run.questNote = 'Manche en écaille de dragon : il s\'emboîte parfaitement dans la Tête du marteau. Les éléments t\'attendent derrière un « ? » de l\'acte 2 pour l\'épreuve finale.';
+      }
+      if (enc?.marteau && run.classId === 'chaman' && run.marteau === 'manche') {
+        putOn(run, 'marteau_ancetres', 'arme');
+        run.marteau = 'forged';
+        run.questNote = 'Le Marteau des ancêtres : les quatre éléments s\'inclinent et bénissent l\'arme. Elle remplace ton arme.';
       }
       // Corde-des-anciens (Chasseur) : les Trois Souffles laissent un Tendon de drake.
       if (enc?.loot === 'trois_souffles' && run.classId === 'chasseur' && run.corde === 'bois') {
@@ -834,6 +846,15 @@ export function resolveEvent(run: RunState, choice: number): void {
       run.hp += 6;
       return outcome(run, '« Merci, l\'ami. » Il te montre comment tenir dans le froid comme dans le feu. +6 PV max.');
     }
+    case 'cercle:2':
+      run.marteau = 'tete';
+      return outcome(run, 'Les esprits des chamans d\'autrefois se rassemblent au centre du cercle. Quand ils s\'effacent, une lourde tête de marteau gravée des quatre éléments repose sur la pierre. « Il lui faut un manche digne de lui : l\'écaille d\'un gardien de couvée, dans l\'Aire de Vhaeryx. »');
+    case 'appel:0':
+      run.eventId = null;
+      startEncounter(run, { kind: 'combat', name: 'L\'appel des éléments', enemies: ['gardien', 'etincelle', 'gardien'], marteau: true });
+      return;
+    case 'appel:1':
+      return outcome(run, 'Tu laisses les éléments gronder sans toi. Le marteau reste muet dans ton sac.');
     case 'trappeur:2':
       run.corde = 'bois';
       return outcome(run, '« Un vrai chasseur, enfin ! » Il sort de sa besace un bâton noueux, dur comme la pierre : le Bois ancien, taillé dans le cœur d\'un arbre millénaire. « Il lui faut une corde digne de lui. Le tendon d\'un des Trois Souffles, dans l\'Aire de Vhaeryx, ferait l\'affaire. »');

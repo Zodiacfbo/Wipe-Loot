@@ -47,6 +47,11 @@ const PROFILES_ALL: { name: string; talents: string[]; cls?: string }[] = [
   { name: 'Druide niveau 10 (Équilibre 7, Restauration 3)', talents: alloc({ equilibre: ['A', 'A', 'B', 'A', 'A'], restauration: ['A', 'B', 'A'] }, 'druide'), cls: 'druide' },
   { name: 'Druide niveau 10 (Combat farouche 7, Restauration 3)', talents: alloc({ farouche: ['A', 'A', 'B', 'A', 'A'], restauration: ['A', 'B', 'A'] }, 'druide'), cls: 'druide' },
   { name: 'Druide niveau 10 (Restauration 7, Équilibre 3)', talents: alloc({ restauration: ['A', 'B', 'A', 'A', 'A'], equilibre: ['A', 'A', 'B'] }, 'druide'), cls: 'druide' },
+  { name: 'Chaman niveau 1 (aucun talent)', talents: [], cls: 'chaman' },
+  { name: 'Chaman niveau 5 (Élémentaire 3, Restauration 2)', talents: alloc({ elementaire: ['A', 'A', 'A'], restauration_ch: ['A', 'A'] }, 'chaman'), cls: 'chaman' },
+  { name: 'Chaman niveau 10 (Élémentaire 7, Restauration 3)', talents: alloc({ elementaire: ['A', 'A', 'A', 'A', 'A'], restauration_ch: ['A', 'A', 'B'] }, 'chaman'), cls: 'chaman' },
+  { name: 'Chaman niveau 10 (Amélioration 7, Restauration 3)', talents: alloc({ amelioration: ['A', 'B', 'A', 'A', 'A'], restauration_ch: ['A', 'A', 'B'] }, 'chaman'), cls: 'chaman' },
+  { name: 'Chaman niveau 10 (Restauration 7, Élémentaire 3)', talents: alloc({ restauration_ch: ['A', 'A', 'B', 'A', 'A'], elementaire: ['A', 'A', 'A'] }, 'chaman'), cls: 'chaman' },
   { name: 'Mage niveau 10 (Arcane 7, Feu 3)', talents: mage({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A'] }), cls: 'mage' },
 ];
 
