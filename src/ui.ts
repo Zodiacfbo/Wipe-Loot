@@ -1178,6 +1178,7 @@ function playerChips(c: CombatState): string {
   if (c.freeNext) chips.push('<span class="chip">Inspiration : prochaine carte gratuite</span>');
   if (c.renew?.turns) chips.push(`<span class="chip">Grâce : +${c.renew.amount} PV (${c.renew.turns} tours)</span>`);
   if (c.undying) chips.push('<span class="chip">Égide des anciens : PV ≥ 1</span>');
+  if (c.aegisThorns) chips.push(`<span class="chip" title="Chaque coup absorbé par ton Égide renvoie ${c.aegisThorns} dégâts à l'attaquant.">Égide des anciens : renvoi ${c.aegisThorns}</span>`);
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
   // Chaman

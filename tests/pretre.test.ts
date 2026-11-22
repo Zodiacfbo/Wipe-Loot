@@ -122,18 +122,26 @@ describe('les cartes du Prêtre', () => {
     expect(c.player.hp).toBeGreaterThanOrEqual(52);
   });
 
-  it('Égide des anciens : 4 Égide par Foi, et les PV ne descendent pas sous 1', () => {
+  it('Égide des anciens : 4 Égide par Foi, et l\'Égide renvoie 3 dégâts à chaque coup absorbé', () => {
     const c = fight(['lieutenant'], ['egide_anciens']);
     c.faith = 3;
     play(c, 'egide_anciens');
     expect(c.aegis).toBe(12);
+    c.player.block = 0;
+    const e = c.enemies[0];
+    e.block = 0;
+    const hp = e.hp;
+    e.intent = { kind: 'attack', dmg: 5, times: 2 };
+    endTurn(c);
+    expect(e.hp).toBe(hp - 6);
+    // Sans Égide, plus de renvoi.
     c.aegis = 0;
     c.player.block = 0;
-    c.player.hp = 5;
-    c.enemies[0].intent = { kind: 'attack', dmg: 40 };
+    e.block = 0;
+    const hp2 = e.hp;
+    e.intent = { kind: 'attack', dmg: 5 };
     endTurn(c);
-    expect(c.phase).toBe('player');
-    expect(c.player.hp).toBe(1);
+    expect(e.hp).toBe(hp2);
   });
 
   it('Ange gardien : une fois, on reste à 1 PV et on est soigné de 15', () => {

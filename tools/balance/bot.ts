@@ -94,7 +94,9 @@ function evaluate(c: CombatState): number {
     // Voleur : les points de combo, le Camouflage (s'il reste une Ouverture en main), le Poison d'arme, Danse des lames.
     + rogueValue(c) + paladinValue(c) + hunterValue(c) + druidValue(c) + shamanValue(c)
     // Prêtre : la Forme d'Ombre n'est pas dans c.powers, elle vaut un Pouvoir posé (sinon le bot ne la joue jamais).
-    + (c.shadowForm ? 8 : 0);
+    + (c.shadowForm ? 8 : 0)
+    // Égide des anciens : le renvoi rapporte à chaque coup absorbé, tant qu'il reste de l'Égide.
+    + (c.aegisThorns ? 4 + Math.min(4, Math.ceil((c.aegis ?? 0) / 6)) * c.aegisThorns : 0);
   return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
 }
 

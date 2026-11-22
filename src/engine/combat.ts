@@ -907,6 +907,7 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         const kept = intent.pierce ? c.player.block : 0;
         if (intent.pierce) c.player.block = 0;
         fx(c, { kind: 'hit', from: e.uid, to: 'player', amount: dmg, blocked: Math.min(blockBefore, dmg), ranged: !!intent.cast });
+        const aegisBefore = c.aegis ?? 0;
         const lost = damagePlayer(c, dmg, true);
         if (intent.pierce) c.player.block += kept;
         // Paladin : épines sacrées, Pavois, Bouclier du croisé, Fervent, Juste châtiment.
@@ -934,6 +935,11 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         if (reflect > 0 && dmg > 0 && lost === 0 && c.phase === 'player' && !e.dead) {
           fx(c, { kind: 'tick', who: e.uid, amount: reflect, label: 'Renvoi' });
           damageEnemy(c, e, reflect);
+        }
+        // Égide des anciens : un coup absorbé (même en partie) par l'Égide est renvoyé.
+        if (c.aegisThorns && (c.aegis ?? 0) < aegisBefore && c.phase === 'player' && !e.dead) {
+          fx(c, { kind: 'tick', who: e.uid, amount: c.aegisThorns, label: 'Égide' });
+          damageEnemy(c, e, c.aegisThorns);
         }
         if (e.dead) break;
       }

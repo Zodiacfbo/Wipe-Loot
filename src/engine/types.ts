@@ -473,6 +473,8 @@ export interface CombatState {
   renew?: { amount: number; turns: number };
   /** Égide des anciens : tes PV ne descendent pas sous 1 pendant ce nombre de tours. */
   undying?: number;
+  /** Égide des anciens : chaque coup absorbé par l'Égide renvoie ces dégâts à l'attaquant. */
+  aegisThorns?: number;
   /** Ange gardien : déjà utilisé. */
   angelUsed?: boolean;
   /** Transfusion de puissance : tes cartes coûtent 1 de moins ce tour-ci. */

@@ -6,6 +6,9 @@ import { dispelMagic, dispelPoison, gainAegis, gainFaith } from './pretre';
 import type { CardDef, PlayContext } from './cards';
 import type { EnemyState } from './types';
 
+/** Égide des anciens : les dégâts renvoyés par l'Égide à chaque coup qu'elle absorbe. */
+export const EGIDE_ANCIENS_RENVOI = 3;
+
 function zap(ctx: PlayContext, base: number, target: EnemyState | null = ctx.target): number {
   if (!target || target.dead) return 0;
   const dmg = playerAttack(ctx.c, target, base);
@@ -207,10 +210,11 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'egide_anciens', name: 'Égide des anciens', type: 'Compétence', rarity: 'epique', cost: 1, faithCost: 'all', needsTarget: false, icon: 'bouclier',
-    text: (up) => `Toute ta Foi : ${up ? 5 : 4} Égide par point. 2 tours sans passer sous 1 PV.`,
+    text: (up) => `Toute ta Foi : ${up ? 5 : 4} Égide par point. Ton Égide renvoie 3 dégâts.`,
     play: (ctx) => {
       gainAegis(ctx.c, (ctx.up ? 5 : 4) * (ctx.faithSpent ?? 0));
-      ctx.c.undying = 2;
+      // Jusqu'à la fin du combat : chaque coup absorbé par l'Égide renvoie des dégâts à l'attaquant.
+      ctx.c.aegisThorns = EGIDE_ANCIENS_RENVOI;
     },
   },
 
@@ -306,7 +310,7 @@ const LIST: PriestCard[] = [
     play: (ctx) => powerCard(ctx, 'esprit_guerison', 1, 'Esprit de guérison'),
   },
   {
-    id: 'ascension_lumineuse', name: 'Ascension lumineuse', type: 'Pouvoir', rarity: 'epique', cost: 3, costUp: 2, needsTarget: false, icon: 'pouvoir',
+    id: 'ascension_lumineuse', name: 'Ascension lumineuse', type: 'Pouvoir', rarity: 'epique', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
     text: () => `Chaque soin : autant de dégâts à un ennemi au hasard. +1 Foi par tour.`,
     play: (ctx) => powerCard(ctx, 'ascension', 1, 'Ascension lumineuse'),
   },
