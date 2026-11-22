@@ -11,7 +11,6 @@ Dépôt : `Zodiacfbo/Wipe-Loot` (l'ancien nom `zodiacfbo/projetwow` redirige enc
 > Commandes : « Parlons du jeu » · « Publication sur dev » · « Publication sur main » · « Fin de discussion »
 
 - **« Parlons du jeu »** : lire les issues GitHub ouvertes et `docs/ROADMAP.md`. Résumer en 5 lignes maximum : où en est le jeu, ce qui est en cours, ce qui attend une décision. Rappeler les commandes, puis demander « De quoi on parle aujourd'hui ? ».
-  - **À proposer en premier (noté en novembre 2026) :** le bilan d'équilibrage des 9 classes sur les trois actes, avec les talents en 7 + 3. Les 6 premières classes ont encore des mesures d'avant la réforme des talents (`EQUILIBRAGE.md` §15), et le Démoniste était trop bas ; le Chasseur, le Druide et le Chaman sont déjà mesurés (§17 à §19). Détail dans l'issue « ⚖️ Équilibrage avec de vrais joueurs ». Retirer cette ligne une fois fait.
 - **« Publication sur dev »** : publier le travail validé sur `dev` (la version de test), en suivant le §2.
 - **« Publication sur main »** : publier sur `main` (la version officielle), en suivant le §2.
 - **« Fin de discussion »** :
@@ -84,7 +83,7 @@ npm test            # vitest (doit rester vert)
 npm run build       # tsc + vite build
 npx tsc --noEmit -p .
 npm run e2e         # test navigateur, PC + téléphone (après npm run build)
-RUNS=50 PROFIL="Prêtre" npm run balance -- --silent=false   # équilibrage par le bot (tools/balance/yzhar.sim.ts : Yzhar seul)
+RUNS=200 PROFIL="Prêtre" npm run balance -- --silent=false  # équilibrage par le bot, avec la marge d'erreur (≈ 1 h par classe ; BOT=simple : l'ancien bot, rapide ; tools/balance/yzhar.sim.ts : Yzhar seul)
 cd tools/pixel && python3 illustrations.py                  # régénère les illustrations de cartes
 cd tools/pixel && python3 icones_talents.py                  # régénère les icônes de talents sans carte proche
 cd tools/pixel && python3 decor.py                           # régénère le décor : feu de camp animé (4 images), icônes repos et enclume
@@ -107,7 +106,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
 - `src/ui.ts` : tout l'affichage (HTML en chaînes, délégation d'événements via `data-action`). `src/style.css`. `src/fx.ts` : animations à partir de `c.fx`.
   - `src/keywords.ts` : le lexique des infobulles (mots-clés soulignés dans les cartes, pastilles). Un nouveau mot-clé (Folie, Résonance, Piège…) → une entrée dans `KEYWORDS`. Une pastille avec un `title` garde cette aide précise.
   - `src/aides.ts` : les bulles (appui long sur téléphone, survol sur PC ; le clic qui suit un appui long est avalé) et l'aperçu des dégâts sur les ennemis. Le calcul est dans `src/engine/preview.ts` (`previewCard`, `cardHitValue`) : la carte est jouée sur une copie du combat, donc toute nouvelle mécanique est prise en compte sans rien ajouter.
-- `tools/balance/` : le bot (`bot.ts`, qui ne regarde qu'une action à l'avance) et les simulations (`*.sim.ts`).
+- `tools/balance/` : le bot (`bot.ts`) et les simulations (`*.sim.ts`). En combat, le bot ne regarde qu'une action à l'avance. Hors combat (le « banc d'essai », depuis novembre 2026), il rejoue 3 combats types de l'acte avec chaque option (carte, objet, amélioration, retrait, achat) et garde la meilleure : la même règle pour les 9 classes. `tests/bot.test.ts` vérifie qu'il finit une run avec chaque classe.
 - `tools/pixel/` : sprites et illustrations en Python/Pillow (classe `Sprite` dans `sprites.py`). Sortie dans `public/assets/` (`carte_<id>.png`, `ennemi_<id>.png`, `<classe>.png`, `familier_<id>.png`, et le décor de `decor.py` : `feu_camp.png`, `icone_repos.png`, `icone_enclume.png`). `animations.py` exporte les planches animées `anim_<fichier>.png` (4 images côte à côte) : héros et Vulkhar, Vhaeryx, Molosse, Étincelle dessinés à la main (fonction `f`), les autres ennemis par l'animateur automatique `anime_auto` (profils dans `PROFILS`). Le jeu les joue en CSS (`spriteAttrs` et `ANIMES` dans `ui.ts`) ; règles dans `docs/DIRECTION_ARTISTIQUE.md` §7.
 - `docs/` : `CONCEPT.md`, `ROADMAP.md`, `EQUILIBRAGE.md` (journal des passes du bot), une fiche par classe (`docs/classes/`) et par acte (`docs/actes/`).
 
@@ -131,6 +130,8 @@ cd tools/pixel && python3 animations.py                      # planches animées
 - Les scripts Python de remplacement doivent vérifier que l'ancre existe une seule fois (un `replace` peut toucher deux lignes du même tableau).
 - Ne pas modifier une liste pendant qu'on la parcourt avec un alias (bug déjà vu dans `placeCurse`).
 - Les scripts Playwright échouent parfois à cause de la bénédiction tirée au hasard : relancer, ce n'est pas un bug du jeu.
+- Un ennemi qui change à un palier (deuxième vie, Copies, adds qui se relèvent) doit compter sa suite dans `evaluate()`, sinon le bot n'ose plus frapper et le combat ne finit jamais (déjà vu : Ossyrax, Méhkar, Vhaeryx). Le banc signale ces « runs bloquées ».
+- Un talent qui renforce l'attaque de base du deck de départ (4 copies) vaut beaucoup plus que ses chiffres (déjà vu : Convection, Trait de l'ombre amélioré, Feu intense).
 - Le bot ne voit qu'une action à l'avance : certains choix (Pacte de sang, Rôdeur contre les boss, Pierre d'âme, les sorts qui donnent de l'énergie comme Sève vitale, Cri des ancêtres, Totem de mana) sont codés en dur dans `bot.ts`. Un effet qui ne rapporte qu'au tour suivant (totem, piège) doit avoir une valeur dans `evaluate()`, sinon le bot ne le joue jamais.
 - Pour équilibrer une classe, isoler un talent ou une carte épique : `simulateRun` accepte n'importe quelle liste d'ids de talents (ex. `['t_avatar_lumiere']` seul au niveau 1). Ne pas garder ces sondes dans le dépôt.
 - Le jeu se joue en paysage : dans Playwright, utiliser `devices['iPhone 13 landscape']` (en portrait, un écran « tourne ton téléphone » bloque les clics).
@@ -140,7 +141,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
 ## §4 Tester
 
 1. **Tests automatiques** : `npm test` et `npm run build`, toujours verts avant une publication. Une nouvelle mécanique = de nouveaux tests.
-2. **Équilibrage par le bot** : `RUNS=50`, seulement la classe ou l'acte concerné (ex. `RUNS=50 PROFIL="Voleur" npm run balance -- --silent=false`). Noter le résultat dans `docs/EQUILIBRAGE.md`.
+2. **Équilibrage par le bot** : seulement la classe ou l'acte concerné (ex. `RUNS=200 PROFIL="Voleur" npm run balance -- --silent=false`). À 100 runs la marge est de ± 10 points, à 200 de ± 7 : 100 runs pour chercher, 200 pour confirmer. Pour isoler un talent ou une carte épique, une sonde jetable (non gardée) qui lance `simulateRun` sur plusieurs profils en parallèle. Noter le résultat dans `docs/EQUILIBRAGE.md`.
 3. **Navigateur, une seule fois à la fin** : `npm run build`, puis `npm run e2e` (script `tools/e2e/parcours.cjs`, captures dans `tools/e2e/captures/`, ignorées par git). Il fait le parcours **sur PC et sur téléphone** : Commencer → choix de la classe → hall de la guilde → Partir en expédition → Brégan → carte → premier combat, et échoue si une étape manque ou si la page montre une erreur JavaScript. Options : `CLASSE=mage`, `ECRANS=telephone`, `URL=…` (serveur déjà lancé).
    Pour tester un écran précis (vendeur, feu de camp, butin) : générer un état de run avec un test vitest jetable, l'écrire dans un fichier JSON, puis `ETAT=fichier.json npm run e2e` (la run est ouverte depuis le hall, capture « etat »). Un état mal préparé donne un écran vide : le script le signale.
 
@@ -171,13 +172,13 @@ cd tools/pixel && python3 animations.py                      # planches animées
 - **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
 - **Décisions de design à respecter :**
-  - Équilibrage des talents (novembre 2026) : les 3 arbres d'une classe doivent se valoir **à peu près** ; une classe ou un arbre un peu plus fort est accepté, on ne cherche pas la perfection. Mesurer avec les choix des profils du bot, pas l'option A partout (le bot n'utilise pas certains sorts, comme Amplifier la malédiction).
+  - Équilibrage des talents (novembre 2026) : les 3 arbres d'une classe doivent se valoir **à peu près** ; une classe ou un arbre plus fort est voulu (les joueurs doivent pouvoir « theorycrafter » et optimiser leurs choix), on ne corrige que ce qui sort nettement des cibles. Mesurer avec les choix des profils du bot, pas l'option A partout (le bot n'utilise pas certains sorts, comme Amplifier la malédiction).
   - Le Guerrier n'a volontairement que très peu de soins (Sanguinaire, Dernier rempart, objets). Pas de « Second souffle » ni de vol de vie. Si on en ajoute un jour, le réserver à un seul arbre.
   - Une classe de difficulté ⭐⭐⭐ (comme le Démoniste) peut rester un cran en dessous des autres en taux de victoire du bot : c'est accepté.
   - Yzhar a été allégé par rapport à sa fiche (lot 5) : les Tentacules oculaires se ferment avec l'Œil, et les dégâts dans le temps passent sous la Carapace divine (voir la fiche de l'acte 3, §12).
   - L'outil de test est temporaire : il disparaîtra avant la version 1.0.
   - Changer l'adresse du site (cacher le lien GitHub) : idée notée, conseil Cloudflare Pages avec le dépôt privé (voir « 💡 Idées pour plus tard »).
-- **La suite décidée (novembre 2026) :** le chantier des talents est fait (le palier 5 coûte 3 points, `CONCEPT.md` §9, `tierCost` dans `talents.ts` ; niveau 10 entre 49 et 74 % : `EQUILIBRAGE.md` §14), l'acte 3 aussi (`EQUILIBRAGE.md` §15). Les 3 classes restantes sont faites (22 novembre 2026). Ensuite le bilan d'équilibrage des 9 classes, puis un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »). Pistes notées pour ce test (21 novembre 2026, rien de décidé, points à trancher dans « 💡 Idées pour plus tard ») : une version à part pour les potes (`/playtest/`, sans outil de test), un numéro de « saison » pour remettre les sauvegardes à zéro (lu dans Firestore avec Firebase), puis une page d'administration et une partie « support » (news, annonces et sondages, idées et bugs, message personnel) sur le modèle de Bousier.
+- **La suite décidée (novembre 2026) :** le chantier des talents est fait (le palier 5 coûte 3 points, `CONCEPT.md` §9, `tierCost` dans `talents.ts` ; niveau 10 entre 49 et 74 % : `EQUILIBRAGE.md` §14), l'acte 3 aussi (`EQUILIBRAGE.md` §15). Les 3 classes restantes sont faites (22 novembre 2026), le bilan d'équilibrage des 9 classes aussi (22 novembre 2026, `EQUILIBRAGE.md` §20-21 : niveau 10 entre 41 et 87 % ; à surveiller : Démonologie 87 %, niveau 5 du Guerrier 48 %, Chasseur un peu bas). Ensuite un test avec des collègues (accès à l'outil de test, analyse des données, sauvegardes en ligne avec Firebase : voir « 💡 Idées pour plus tard »). Pistes notées pour ce test (21 novembre 2026, rien de décidé, points à trancher dans « 💡 Idées pour plus tard ») : une version à part pour les potes (`/playtest/`, sans outil de test), un numéro de « saison » pour remettre les sauvegardes à zéro (lu dans Firestore avec Firebase), puis une page d'administration et une partie « support » (news, annonces et sondages, idées et bugs, message personnel) sur le modèle de Bousier.
 - Le détail est dans `docs/ROADMAP.md` et dans les issues GitHub.
 
 ---
