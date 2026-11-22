@@ -530,3 +530,39 @@ Mesuré sur la run complète (trois actes), difficulté 0, 50 runs par profil, p
 - **Restauration complète (46 %)** est un peu en dessous des deux autres arbres. C'est accepté pour une classe ⭐⭐⭐, mais à revoir avec des joueurs.
 - **Le Marteau des ancêtres** fait agir les totems deux fois : avec 4 totems, c'est énorme. Il n'apparaît qu'à la fin de l'acte 2.
 
+
+---
+
+## 20. Le bilan des 9 classes avec le nouveau bot (22 novembre 2026)
+
+**Le bot a changé (le « banc d'essai »).** Avant, hors combat, il prenait la carte la plus rare et l'objet le plus rare, et il ne savait retirer l'attaque de base que pour 4 classes (Guerrier, Mage, Voleur, Paladin). Maintenant, avant chaque choix (carte, objet, amélioration, retrait, achat chez le vendeur), il rejoue 3 combats types de l'acte (2 packs difficiles et un boss secondaire, sur les mêmes tirages) avec chaque option, et garde la meilleure. C'est la même règle pour les 9 classes. L'ancien bot reste disponible : `BOT=simple`.
+
+Il ne bloque plus non plus sur les ennemis qui changent à un palier (Ossyrax et sa deuxième vie, les Copies de Méhkar, les cobayes de Vhaeryx) : la suite compte déjà dans son évaluation. Après 15 tours de combat, les dégâts infligés comptent de plus en plus. Le banc signale les runs bloquées, et `tests/bot.test.ts` vérifie que le bot finit une run avec chaque classe.
+
+**Le nouveau bot joue nettement mieux** : il gagne plus avec presque toutes les classes. Les écarts entre arbres et entre classes sont plus fiables qu'avant, mais les chiffres ne se comparent pas aux sections précédentes.
+
+Run complète (trois actes), difficulté 0, **200 runs par profil** (marge d'erreur : ± 5 à 7 points), profils 7 + 3 :
+
+| Classe | Niv. 1 | Niv. 5 | Niv. 10 (arbre de 7 points) | Ancien bot, niv. 10 |
+|---|---|---|---|---|
+| Guerrier | 7 % | 48 % | Protection 57 · Armes 60 · Fureur 58 | 42 · 32 · — |
+| Mage | 2 % | 48 % | Givre 82 · Arcane 85 · Feu 82 | 60 · 36 · — |
+| Démoniste ⭐⭐⭐ | 8 % | 54 % | Affliction 57 · Démonologie 90 · Destruction 76 | 32 · 51 · — |
+| Voleur | 4 % | 18 % | Assassinat 51 · Finesse 45 · Combat 48 | 27 · 24 · — |
+| Prêtre | 4 % | 11 % | Discipline 22 · Ombre 57 · Sacré 18 | 61 · 75 · — |
+| Paladin | 6 % | 27 % | Vindicte 47 · Protection 33 · Sacré 52 | 41 · 30 · — |
+| Chasseur | 7 % | 32 % | Bêtes 46 · Précision 78 · Survie 35 | 52 · 54 · 51 |
+| Druide ⭐⭐⭐ | 2 % | 29 % | Équilibre 77 · Farouche 75 · Restauration 73 | 45 · 56 · 48 |
+| Chaman ⭐⭐⭐ | 12 % | 39 % | Élémentaire 85 · Amélioration 63 · Restauration 52 | 70 · 64 · 57 |
+
+(Cibles : niveau 1 ≈ 0-10 %, niveau 5 ≈ 15-30 %, niveau 10 ≈ 50-75 %.)
+
+**Ce que ça montre :**
+- **Le Voleur, le Guerrier et le Paladin n'étaient pas si faibles** : c'était surtout l'ancien bot (mauvais choix de cartes et d'objets). Le Guerrier et le Voleur ont maintenant trois arbres qui se valent.
+- **Le Prêtre** est la classe la plus basse : Discipline (22 %) et Sacré (18 %) sont loin derrière Ombre (57 %), et le niveau 5 (11 %) est sous la cible.
+- **Trop forts :** le Mage (80-85 % sur les trois arbres), le Démoniste Démonologie (90 %), le Chaman Élémentaire (85 %), le Chasseur Précision (78 %).
+- **Écarts dans une classe :** Chasseur (Précision 78 contre Survie 35), Démoniste (Démonologie 90 contre Affliction 57), Paladin (Protection 33).
+- **Le niveau 5 est trop facile** pour le Guerrier, le Mage, le Démoniste et le Chaman (39 à 54 %).
+- Le Druide et le Chaman (⭐⭐⭐) ne sont plus un cran en dessous des autres classes.
+
+Mesures : `RUNS=200 PROFIL="Voleur" npm run balance -- --silent=false` (une classe : environ 1 heure, 4 cœurs partagés entre 9 classes).
