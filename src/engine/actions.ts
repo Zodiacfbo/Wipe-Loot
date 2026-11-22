@@ -8,6 +8,7 @@ import { onRogueHit, rogueOnDeath } from './voleur';
 import { afterEnemyDamaged, immuneTo, onIremDeath, slimeDamage } from './irem';
 import { carapaceDamage, yzharAwakens } from './yzhar';
 import { isPaladin, lastOath, onPaladinHit, paladinAttackBonus, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
+import { hunterAttackBonus, isHunter } from './chasseur';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
 export function emptyDebuffs(): PlayerDebuffs {
@@ -131,6 +132,8 @@ export function gainBlock(c: CombatState, amount: number, fromCard = true): void
   if (fromCard && c.turn === 1 && c.gear?.noFirstTurnBlock) return;
   let total = amount + (p.robustesse ?? 0) + (fromCard ? c.gear?.blockBonus ?? 0 : 0);
   if (p.posture === 'defensive') total += 3;
+  // Esprit de la tortue (Chasseur) : les cartes de blocage donnent +3 blocage.
+  if (fromCard && c.aspect === 'tortue') total += 3;
   // Ralenti (Garde draconique, Souffle de foudre, Affliction bronze) : 25 % de blocage en moins.
   const d = p.debuffs;
   if ((d?.ralenti ?? 0) > 0 || d?.afflictions?.includes('bronze')) total = Math.floor(total * 0.75);
@@ -185,6 +188,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   // Paladin : les Sceaux, Croisade, Conviction, Vengeance divine.
   const paladinAttack = isPaladin(c) && c.playing?.type === 'Attaque';
   if (paladinAttack) dmg += paladinAttackBonus(c, target);
+  // Chasseur : Esprit de l'aigle, Marque de la proie, Bête intérieure, Concentration…
+  if (isHunter(c) && c.playing?.type === 'Attaque') dmg += hunterAttackBonus(c, target);
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;

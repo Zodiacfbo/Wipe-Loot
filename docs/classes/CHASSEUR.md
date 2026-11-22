@@ -260,3 +260,32 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
   - Maître des pièges combiné à Champ de pièges : 6 explosions de 8 dégâts à tous les ennemis.
   - Feindre la mort annule entièrement un tour d'attaques : la recharge de 5 tours doit rester stricte.
 - **Lisibilité des Pièges :** l'interface devra montrer clairement les Pièges posés et quel ennemi les déclenchera.
+
+---
+
+## 12. Ce qui est en jeu dans le prototype
+
+**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §17) :
+
+| Élément | Fiche | En jeu |
+|---|---|---|
+| Repli (départ) | 5 blocage (8 améliorée) | **6 blocage (9)** : le renfort de départ des autres classes |
+| Esprit du guépard | tu subis 20 % de dégâts en plus | **10 %** (décidé avant le code : le contrecoup ne doit pas dépasser le gain) |
+| Feindre la mort | les Attaques visent le compagnon, aucun dégât | **les attaques ennemies t'infligent 50 % de dégâts en moins** jusqu'à ton prochain tour (décidé avant le code) |
+| Fureur primitive (épique) | coût 2 (1) | **coût 1 (0)** |
+| Tir du cœur (épique) | 20 dégâts (26), double sur une cible Marquée | **pareil, et il Marque la cible** (le bot marquait trop rarement pour en profiter) |
+| Champ de pièges (épique) | coût 2 (1), 3 Pièges explosifs | **coût 1 (0), 2 Pièges explosifs, Épuisé** |
+| Pièges améliorés | +3 dégâts | **+3 au Piège explosif, +1 par tour aux Pièges à DoT** |
+| Maître tireur | la Marque passe de +3 à +5 | **la Marque donne 2 dégâts de plus** (le même effet, écrit pour toutes les Marques) |
+
+**Les règles précisées :**
+- **Le compagnon** se choisit sur un écran au départ de l'expédition, avant Brégan. Le dernier choisi est sélectionné par défaut. Il agit à la fin de ton tour sur ta dernière cible, ou sur le premier ennemi si elle est morte. Une étiquette « cible » le montre sur l'ennemi.
+- **Il ne meurt pas.** Le Rayon oculaire d'Yzhar l'étourdit, et la Malédiction de lignée de Vhaeryx le fait fuir pendant 2 tours.
+- **Ses bonus :** les bagues des alliés (`allyBonus`) et du familier (`petBonus`) valent pour lui. La Marque s'ajoute à ses attaques.
+- **Les Pièges :** 3 au plus. Un 4ᵉ remplace le plus ancien. Ils partent tous au début du tour ennemi, sur le premier ennemi vivant de la ligne, celui qui agit en premier. Une étiquette « ici » le montre. Le Piège givrant contrôle un ennemi normal et divise par deux la prochaine attaque d'un boss.
+- **Instinct du chasseur** donne son énergie au début de ton tour suivant, puisque les Pièges se déclenchent pendant le tour ennemi.
+- **Riposte sauvage** coûte 0 si tu as bloqué une attaque pendant le dernier tour ennemi.
+- **Flèche apaisante** retire la Puissance et le blocage de la cible. Le Berserk de tous les ennemis est suspendu jusqu'à la fin du tour ennemi qui suit.
+- **Interface (maquette C) :** sous le héros, une rangée de tuiles avec le compagnon et ses dégâts, l'Esprit, puis 3 cases de Pièges.
+- **Sorts de loot :** Fusée éclairante, Appel du compagnon, et **Tir de dispersion** (3 dégâts à tous les ennemis, Démoralisés 1 tour, recharge 4).
+- **Quête de Corde-des-anciens :** le Bois ancien se trouve dans l'événement « Le campement du vieux trappeur » (un 3ᵉ choix réservé au Chasseur, l'événement passe en premier pour lui). Le Tendon de drake tombe des Trois Souffles, et l'arc se façonne au feu de camp à partir de l'acte 2.

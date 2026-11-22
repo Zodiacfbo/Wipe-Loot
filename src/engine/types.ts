@@ -53,6 +53,16 @@ export interface EnemyBuffs {
   censure?: number;
 }
 
+/** Chasseur : le compagnon, les Esprits animaux et les Pièges. */
+export type CompanionId = 'loup' | 'ours' | 'raptor';
+export type AspectId = 'aigle' | 'tortue' | 'guepard';
+export type TrapId = 'givrant' | 'immolation' | 'venin' | 'explosif';
+export interface Trap {
+  id: TrapId;
+  /** Les dégâts (ou le DoT) du Piège, amélioration comprise. */
+  value: number;
+}
+
 /** Paladin : les Sceaux et les Auras. */
 export type SealId = 'droiture' | 'croise' | 'lumiere' | 'sagesse' | 'rempart' | 'vengeance';
 export type AuraId = 'devotion' | 'resistance' | 'epines';
@@ -514,6 +524,39 @@ export interface CombatState {
   seeAll?: boolean;
   /** Le familier est en train d'agir (Éclat partagé). */
   petActing?: boolean;
+  /** Chasseur — le compagnon (sa présence marque un combat de Chasseur), ses bonus et l'Esprit actif. */
+  companion?: CompanionId;
+  /** Bonus du compagnon ce tour-ci (Rappel, Hurlement, Bête intérieure), et pour sa prochaine attaque (Rage du compagnon). */
+  compTurnBonus?: number;
+  compNextBonus?: number;
+  /** Frénésie : dégâts gagnés par le compagnon pendant ce combat. */
+  frenzyStacks?: number;
+  aspect?: AspectId | null;
+  /** Les Pièges posés (3 au plus), dans l'ordre où ils se déclencheront. */
+  traps?: Trap[];
+  /** Marque de la proie : l'ennemi marqué (uid) et le bonus de base de la Marque. */
+  mark?: { uid: number; value: number } | null;
+  /** Bête intérieure : tes Attaques +X ce tour-ci. Concentration : ta prochaine Attaque ce tour-ci +X. */
+  huntTurnBonus?: number;
+  focusNext?: number;
+  /** Respiration lente : ta première Attaque du prochain tour +X (puis du tour en cours). */
+  breathNext?: number;
+  breathNow?: number;
+  /** Feindre la mort : les Attaques ennemies t'infligent moitié moins jusqu'à ton prochain tour. */
+  feign?: boolean;
+  /** Tir rapide : tes Attaques coûtent 1 de moins ce tour-ci. Calme absolu : déjà utilisé ce tour-ci. */
+  rapidFire?: boolean;
+  calmUsed?: boolean;
+  /** Esprit de meute : les dégâts du Loup spectral à la fin de tes tours. */
+  spectral?: number;
+  /** Contre-attaque : le prochain ennemi qui t'attaque ce tour-ci est Contrôlé. */
+  counterStun?: boolean;
+  /** Tu as bloqué une attaque depuis ton dernier tour (Riposte sauvage). */
+  hunterBlocked?: boolean;
+  /** Instinct du chasseur : énergie gagnée au prochain tour (un Piège s'est déclenché). */
+  trapEnergyNext?: number;
+  /** Flèche apaisante : le Berserk est suspendu pendant ce tour-ci (numéro du tour). */
+  soothedTurn?: number;
   /** Pacte de sang gratuit ce tour-ci (Bâton du Veilleur du Démoniste) déjà utilisé. */
   freePactUsed?: boolean;
   bleedDoneThisTurn?: boolean;
@@ -530,7 +573,7 @@ export interface CombatState {
   rng: number;
 }
 
-export type Screen = 'act' | 'blessing' | 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'shop' | 'wipe' | 'victory' | 'gameover';
+export type Screen = 'act' | 'companion' | 'blessing' | 'map' | 'combat' | 'reward' | 'campfire' | 'event' | 'shop' | 'wipe' | 'victory' | 'gameover';
 
 export interface ShopCard {
   id: string;
@@ -547,7 +590,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 23;
+  version: 24;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -608,6 +651,10 @@ export interface RunState {
   sillon: 'gauche' | 'droit' | 'deux' | 'forged' | null;
   /** Voleur : Ténèbres a été joué, le Camouflage de début de combat dure 2 tours jusqu'à la fin de la run. */
   tenebres: boolean;
+  /** Chasseur : le compagnon choisi au départ de l'expédition. */
+  companion: CompanionId;
+  /** Quête légendaire du Chasseur : Corde-des-anciens (le Bois ancien, puis le Tendon de drake, puis l'arc façonné). */
+  corde: 'bois' | 'tendon' | 'forged' | null;
   /** Quête légendaire du Paladin : l'Aurore ardente (la Lame ternie, purifiée par la mort d'Ossyrax, puis forgée). */
   aurore: 'lame' | 'purifiee' | 'benie' | 'forged' | null;
   /** Acte 3 : bonus pour toute la run (bénédiction des Veilleurs de l'Aurore). */

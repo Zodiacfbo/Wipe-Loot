@@ -12,7 +12,7 @@ import {
   afterCombatAction, barCapacity, buyCard, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
   canDrink, chooseBlessing, chooseNode, chooseReward, drinkPotion, equipPending, eventChoiceLock, leaveEvent, leavePending,
   leaveShop, learnSpell, newRun, offerBlessing, resolveEvent, retryAfterWipe, takePotion,
-  campfireBindStaff, canBindStaff, canRest, startNextAct, campfireEquinoxe, campfireAurore,
+  campfireBindStaff, canBindStaff, canRest, startNextAct, campfireEquinoxe, campfireAurore, campfireCorde,
 } from '../../src/engine/run';
 import { previewIntentDamage } from '../../src/engine/combat';
 import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
@@ -78,7 +78,7 @@ function evaluate(c: CombatState): number {
   const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0)
     + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0)
     // Voleur : les points de combo, le Camouflage (s'il reste une Ouverture en main), le Poison d'arme, Danse des lames.
-    + rogueValue(c) + paladinValue(c)
+    + rogueValue(c) + paladinValue(c) + hunterValue(c)
     // Prêtre : la Forme d'Ombre n'est pas dans c.powers, elle vaut un Pouvoir posé (sinon le bot ne la joue jamais).
     + (c.shadowForm ? 8 : 0);
   return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
@@ -102,6 +102,24 @@ function paladinValue(c: CombatState): number {
   return v;
 }
 
+/** Chasseur : les Pièges posés, l'Esprit, la Marque, le Loup spectral et les bonus du compagnon. */
+function hunterValue(c: CombatState): number {
+  if (c.companion === undefined) return 0;
+  const living = c.enemies.filter((e) => !e.dead).length;
+  let v = 0;
+  for (const t of c.traps ?? []) {
+    if (t.id === 'explosif') v += t.value * living * 0.9;
+    else if (t.id === 'venin') v += t.value * 3 * living * 0.6;
+    else if (t.id === 'immolation') v += t.value * 3 * 0.7;
+    else v += 7;
+  }
+  if (c.aspect) v += c.aspect === 'aigle' ? 8 : c.aspect === 'tortue' ? 6 : 5;
+  if (c.mark && c.enemies.some((e) => e.uid === c.mark!.uid && !e.dead)) v += 4 + c.mark.value * 2;
+  v += (c.spectral ?? 0) * 3 + (c.compTurnBonus ?? 0) + (c.compNextBonus ?? 0) + (c.focusNext ?? 0) * 0.5
+    + (c.breathNext ?? 0) * 0.8 + (c.counterStun ? 5 : 0);
+  return v;
+}
+
 const clone = (c: CombatState): CombatState => JSON.parse(JSON.stringify(c));
 
 interface Action { kind: 'card' | 'spell'; index: number; target?: number }
@@ -116,7 +134,7 @@ function candidates(c: CombatState): Action[] {
   });
   c.spells.forEach((s, i) => {
     if (!canUseSpell(c, i)) return;
-    const needs = ['charge', 'coup_de_pommeau', 'coup_de_pied', 'jugement', 'marteau_jugement', 'charge_sacree'].includes(s.id);
+    const needs = ['charge', 'coup_de_pommeau', 'coup_de_pied', 'jugement', 'marteau_jugement', 'charge_sacree', 'tir_arcanique', 'fleche_museliere', 'fleche_apaisante'].includes(s.id);
     if (needs) targets.forEach((t) => list.push({ kind: 'spell', index: i, target: t }));
     else list.push({ kind: 'spell', index: i });
   });
@@ -231,7 +249,7 @@ const EVENT_CHOICE: Record<string, (run: RunState) => number> = {
   sources: () => 0,
   riviere: (r) => (r.hp > 30 ? 0 : 1),
   forge: () => 0,
-  trappeur: (r) => (r.potions.some((x) => x) ? 0 : 1),
+  trappeur: (r) => (r.classId === 'chasseur' && !r.corde ? 2 : r.potions.some((x) => x) ? 0 : 1),
   cercle: (r) => (eventChoiceLock(r, 0) ? 1 : 0),
   chapelle: (r) => (r.classId === 'pretre' && !r.equinoxe ? 2 : 0),
   fantome: (r) => (r.equipment.arme && r.hp > 40 ? 0 : 2),
@@ -358,7 +376,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
       case 'reward': handleReward(run); break;
       case 'shop': handleShop(run); break;
       case 'campfire': {
-        if (campfireReforge(run) || campfireEquinoxe(run) || campfireAurore(run)) break;
+        if (campfireReforge(run) || campfireEquinoxe(run) || campfireAurore(run) || campfireCorde(run)) break;
         if (canBindStaff(run)) {
           const rare = run.deck.find((k) => CARDS[k.id].rarity === 'rare');
           if (rare && campfireBindStaff(run, rare.uid)) break;

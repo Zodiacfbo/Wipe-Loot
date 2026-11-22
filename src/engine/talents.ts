@@ -348,8 +348,60 @@ export const PALADIN_TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Chasseur. Référence : docs/classes/CHASSEUR.md (§7) */
+export const CHASSEUR_TREES: TreeDef[] = [
+  {
+    id: 'betes', name: 'Maîtrise des bêtes', theme: 'Le compagnon',
+    tiers: [
+      [t('compagnon_robuste', 'Compagnon robuste', 'Ton compagnon inflige +1 dégât.', { fx: { compBonus: 1 } }),
+        t('lien_endurant', 'Lien endurant', '+6 PV max.', { maxHp: 6 })],
+      [t('ferocite', 'Férocité', 'Les attaques de ton compagnon appliquent Saignement 1.', { fx: { compBleed: 1 } }),
+        t('esprit_animal', 'Esprit animal', 'Ton compagnon agit une fois au tout début de chaque combat.', { fx: { compOpening: 1 } })],
+      [t('t_fureur_bestiale', 'Fureur bestiale', 'Ajoute ce sort à ta barre : ton compagnon agit 3 fois.', { spell: 'fureur_bestiale' }),
+        t('t_feindre_mort', 'Feindre la mort', 'Ajoute ce sort à ta barre : les attaques ennemies t\'infligent 50 % de dégâts en moins jusqu\'à ton prochain tour.', { spell: 'feindre_mort' })],
+      [t('maitre_meute', 'Maître de meute', 'Esprit de meute coûte 0.', { fx: { packFree: 1 } }),
+        t('h_quatrieme_emplacement_b', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_fureur_primitive', 'Fureur primitive', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'fureur_primitive' })],
+    ],
+    cards: ['ordre_attaque', 'ordre_protege', 'ordre_hurlement', 'ordre_egorge', 'bete_interieure', 'rage_compagnon', 'morsure_partagee',
+      'lien_sauvage', 'frenesie_chasseur', 'intimidation_bete', 'dressage', 'esprit_meute', 'instinct_tueur', 'fureur_primitive'],
+  },
+  {
+    id: 'precision', name: 'Précision', theme: 'Le tireur d\'élite',
+    tiers: [
+      [t('tirs_ameliores', 'Tirs améliorés', 'Tir et Tir ajusté infligent +2 dégâts.', { fx: { shotBonus: 2 } }),
+        t('oeil_faucon', 'Œil de faucon', 'Marque de la proie donne +1 dégât de plus.', { fx: { markBonus: 1 } })],
+      [t('mortalite', 'Mortalité', 'Tir fatal triple ses dégâts sous 30 % de PV au lieu de 20 %.', { fx: { fatalBonus: 10 } }),
+        t('h_sang_froid', 'Sang-froid', 'Ta première Attaque de chaque combat coûte 0.', { fx: { hunterFirstFree: 1 } })],
+      [t('t_tir_rapide', 'Tir rapide', 'Ajoute ce sort à ta barre : tes Attaques coûtent 1 de moins ce tour-ci.', { spell: 'tir_rapide' }),
+        t('t_fleche_museliere', 'Flèche muselière', 'Ajoute ce sort à ta barre : Interruption, 3 dégâts.', { spell: 'fleche_museliere' })],
+      [t('tireur_elite', 'Tireur d\'élite', 'Tes Attaques qui coûtent 2 énergie ou plus infligent +3 dégâts.', { fx: { heavyAttackBonus: 3 } }),
+        t('h_quatrieme_emplacement_p', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_tir_du_coeur', 'Tir du cœur', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'tir_du_coeur' })],
+    ],
+    cards: ['tir_ajuste', 'tir_percant', 'tir_rafale', 'tir_double', 'fleche_ardente', 'concentration_tir', 'respiration_lente',
+      'tir_fatal', 'visee_assuree', 'salve', 'tir_precision', 'calme_absolu', 'maitre_tireur', 'tir_du_coeur'],
+  },
+  {
+    id: 'survie', name: 'Survie', theme: 'Pièges et corps à corps',
+    tiers: [
+      [t('pieges_ameliores', 'Pièges améliorés', 'Tes Pièges infligent +3 dégâts (+1 par tour pour les DoT).', { fx: { trapBonus: 3 } }),
+        t('h_endurance', 'Endurance', '+8 PV max.', { maxHp: 8 })],
+      [t('h_reflexes', 'Réflexes', 'Désengagement donne +3 blocage de plus.', { fx: { disengageBonus: 3 } }),
+        t('piegeur_ne', 'Piégeur né', 'Commence chaque combat avec un Piège explosif posé.', { fx: { startTrap: 1 } })],
+      [t('t_fleche_apaisante', 'Flèche apaisante', 'Ajoute ce sort à ta barre : retire les buffs de la cible, suspend le Berserk d\'un boss.', { spell: 'fleche_apaisante' }),
+        t('t_feindre_mort_s', 'Feindre la mort', 'Ajoute ce sort à ta barre (si tu ne l\'as pas déjà) : les attaques ennemies t\'infligent 50 % de dégâts en moins.', { spell: 'feindre_mort' })],
+      [t('instinct_chasseur', 'Instinct du chasseur', 'Quand un de tes Pièges se déclenche, gagne 1 énergie au prochain tour (1 fois par tour).', { fx: { trapEnergy: 1 } }),
+        t('survivant', 'Survivant', 'À la fin de chaque combat gagné, soigne 4 PV.', { fx: { healAfterCombat: 4 } })],
+      [t('t_champ_pieges', 'Champ de pièges', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'champ_pieges' })],
+    ],
+    cards: ['piege_immolation', 'piege_venin', 'riposte_sauvage', 'coup_hachette', 'desengagement', 'lancer_filet', 'sens_aiguises',
+      'piege_explosif', 'contre_attaque', 'dard_paralysant', 'instinct_survie', 'maitre_pieges', 'pieges_serie', 'champ_pieges'],
+  },
+];
+
 /** Les arbres de chaque classe jouable. */
-export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES, paladin: PALADIN_TREES };
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES, paladin: PALADIN_TREES, chasseur: CHASSEUR_TREES };
 
 /** Les arbres d'une classe (ceux du Guerrier par défaut). */
 export function treesFor(classId: string | undefined): TreeDef[] {

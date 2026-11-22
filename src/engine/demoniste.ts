@@ -117,6 +117,11 @@ export const DOT_LABEL: Record<string, string> = {
   feu_sacre: 'Feu sacré',
   vampirique: 'Toucher vampirique',
   peste_mentale: 'Peste mentale',
+  // Chasseur
+  fleche_venimeuse: 'Venin',
+  fleche_ardente: 'Flèche ardente',
+  piege_immolation: 'Immolation',
+  piege_venin: 'Venin',
 };
 
 /** Le nombre de tes DoT et Malédictions sur un ennemi. */

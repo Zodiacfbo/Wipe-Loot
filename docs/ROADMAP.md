@@ -126,7 +126,7 @@
 - [x] Prêtre : l'Égide (bouclier persistant, soins excédentaires convertis), la Foi, la Forme d'Ombre ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprite, et son légendaire Équinoxe avec sa quête
 - [x] Voleur : points de combo, Camouflage et Ouvertures, Poisons d'arme, Contrôle ; 52 cartes illustrées, 9 sorts de barre, 27 talents, sprite, et son légendaire Sillon d'orage avec sa quête
 - [x] Paladin : Sceaux et Jugement, Auras, Censure ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprite, le tag Démon sur les ennemis, et son légendaire l'Aurore ardente avec sa quête (forgé à l'acte 2 en attendant l'acte 3)
-- [ ] Chasseur
+- [x] Chasseur : compagnon animal (Loup, Ours, Raptor) choisi au départ, Esprits animaux, Pièges, Marque de la proie ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprites animés (le Chasseur et ses 3 compagnons), et son légendaire Corde-des-anciens avec sa quête
 - [ ] Chaman
 - [ ] Druide
 
@@ -138,7 +138,8 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [x] Équinoxe (Prêtre)
 - [x] Sillon d'orage (Voleur)
 - [x] L'Aurore ardente (Paladin) : le Reliquaire profané, puis Ossyrax et le feu de camp, ou les Veilleurs de l'Aurore et un boss secondaire d'Irem
-- [ ] Les légendaires restants et leurs quêtes (Corde-des-anciens, le Marteau des ancêtres), avec leurs classes
+- [x] Corde-des-anciens (Chasseur) : le Bois ancien du vieux trappeur, le Tendon des Trois Souffles, puis le feu de camp
+- [ ] Le Marteau des ancêtres, avec le Chaman
 - [x] Refaire la passe sur les niveaux de difficulté pour deux actes (voir l'équilibrage, §9)
 
 ---

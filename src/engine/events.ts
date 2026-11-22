@@ -62,11 +62,14 @@ export const EVENTS: Record<string, EventDef> = {
   },
   trappeur: {
     id: 'trappeur',
+    // Pour le Chasseur, le vieux trappeur garde le Bois ancien : il passe avant les autres événements.
+    quest: (run) => run.classId === 'chasseur' && !run.corde,
     title: 'Le campement du vieux trappeur',
     text: 'Un vieux chasseur nain, blessé à la jambe, se réchauffe près d\'un feu de braises. « Un coup de main, l\'ami ? »',
     choices: [
       { label: 'Le soigner', detail: 'Perds 1 potion. En échange, il t\'apprend ses astuces de vieux chasseur : +6 PV max.', locked: (run) => (run.potions.some((p) => p) ? null : 'Il te faut une potion') },
       { label: 'L\'ignorer', detail: 'Rien ne se passe.' },
+      { label: 'Parler chasse avec lui', detail: 'Il te confie le Bois ancien : quête légendaire Corde-des-anciens, étape 1 sur 3.', locked: (run) => (run.classId !== 'chasseur' ? 'Réservé au Chasseur' : run.corde ? 'Tu l\'as déjà' : null) },
     ],
   },
   cercle: {

@@ -691,6 +691,23 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .pal-tuile { width: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 2px; border-radius: 8px; border: 1px dashed #5a4d33; color: #6d624f; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
 .pal-tuile.actif { border: 1px solid var(--or); background: #3a2e17; color: var(--or-clair); box-shadow: 0 0 10px #e6c36a55; }
 .pal-tuile.aura.actif { border-color: #f0e6c0; background: #34302a; color: #fff6dc; }
+.chs-tuiles { align-items: stretch; gap: 4px; }
+.chs-tuile { width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 2px; border-radius: 8px; border: 1px dashed #4d5a33; color: #626d4f; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
+.chs-tuile.actif { border: 1px solid #8fd49a; background: #22301b; color: #cfeec0; box-shadow: 0 0 10px #8fd49a44; }
+.chs-tuile.actif.absent { opacity: 0.45; filter: grayscale(0.8); }
+.chs-tuile.piege { border: 1px solid #ff9a2a; background: #3a2414; color: #ffc27a; box-shadow: 0 0 10px #ff9a2a44; }
+.chs-tuile.vide { min-height: 42px; }
+.chs-cible, .chs-ici { position: absolute; top: 34px; z-index: 5; display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; padding: 1px 6px 1px 3px; border-radius: 10px; white-space: nowrap; pointer-events: none; }
+.chs-cible { right: 0; background: #22301b; border: 1px solid #8fd49a; color: #cfeec0; }
+.chs-ici { left: 0; background: #3a2414; border: 1px solid #ff9a2a; color: #ffc27a; }
+.chs-cible svg, .chs-ici svg { width: 14px; height: 14px; }
+.chip.marque { border-color: #8fd49a; color: #cfeec0; }
+.heros .compagnon.enfui { opacity: 0.3; filter: grayscale(1); }
+.heros .loup-spectral { left: -40px; top: 60px; opacity: 0.55; filter: hue-rotate(160deg) brightness(1.4); }
+.choix-compagnons { display: flex; gap: 12px; width: min(900px, 96%); }
+.choix-compagnon { flex: 1; min-width: 0; }
+.choix-compagnon > img { width: 72px; height: 72px; }
+.choix-compagnon small { font-weight: 400; opacity: 0.75; }
 .pal-jugement { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; background: #241d12; border: 1px solid #5a4d33; }
 .pal-jugement small { font-size: 9px; color: #c9a95a; font-weight: 700; letter-spacing: 1px; }
 .pal-jugement b { font-size: 12px; color: var(--or-clair); }

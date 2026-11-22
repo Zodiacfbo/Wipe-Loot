@@ -12,10 +12,10 @@ import { BAR_SLOTS, lootSpells } from './spells';
 import { EPIC_CARDS, TALENTS, treesFor } from './talents';
 import { difficultyMods } from './difficulty';
 import { random } from './rng';
-import type { CardInstance, Rarity, RunState, ShopCard } from './types';
+import type { CardInstance, CompanionId, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
-export const SAVE_VERSION = 23;
+export const SAVE_VERSION = 24;
 /** Les légendaires ne se forgent pas avant cet acte. */
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
@@ -38,7 +38,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 23, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 24, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
@@ -46,6 +46,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
     blessings: [], seenEvents: [], eventOutcome: null, sourcesQuest: null, brisemonts: null, questNote: null,
     weaponUpgrade: null, detour: false, act: 1, stats: { combats: 0, elites: 0 }, summary: null, talents: [],
     floorsDone: 0, bossStage: null, actBuffs: {}, eggsLeft: false, stargazing: 0, veilleur: null, shards: 0, pet: 'diablotin', equinoxe: null, sillon: null, tenebres: false, aurore: null,
+    companion: 'loup', corde: null,
     runBuffs: {}, gong: false, nextFolie: 0,
   };
   run.map = mapFor(run, 1);
@@ -64,8 +65,8 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
 
 /** L'état de la quête légendaire de chaque classe. */
 export const LEGENDARY_QUEST = {
-  guerrier: 'brisemonts', mage: 'veilleur', demoniste: 'veilleur', pretre: 'equinoxe', voleur: 'sillon', paladin: 'aurore',
-} as Record<string, 'brisemonts' | 'veilleur' | 'equinoxe' | 'sillon' | 'aurore'>;
+  guerrier: 'brisemonts', mage: 'veilleur', demoniste: 'veilleur', pretre: 'equinoxe', voleur: 'sillon', paladin: 'aurore', chasseur: 'corde',
+} as Record<string, 'brisemonts' | 'veilleur' | 'equinoxe' | 'sillon' | 'aurore' | 'corde'>;
 
 /** La carte d'un acte. */
 function mapFor(run: RunState, act: number) {
@@ -278,7 +279,7 @@ export function startEncounter(run: RunState, encounter: Encounter): void {
   }
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
-  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' });
+  run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' }, run.companion ?? 'loup');
   run.screen = 'combat';
 }
 
@@ -389,6 +390,11 @@ export function afterCombatAction(run: RunState): void {
       if (enc?.loot === 'ysolde' && run.classId === 'pretre' && run.equinoxe === 'baton') {
         run.equinoxe = 'larme';
         run.questNote = 'Larme d\'Ysolde : libérée, la dragonne laisse une pierre qui contient la lumière et l\'ombre. Au prochain feu de camp, tu pourras forger Équinoxe.';
+      }
+      // Corde-des-anciens (Chasseur) : les Trois Souffles laissent un Tendon de drake.
+      if (enc?.loot === 'trois_souffles' && run.classId === 'chasseur' && run.corde === 'bois') {
+        run.corde = 'tendon';
+        run.questNote = 'Tendon de drake : le plus solide des trois Souffles. Au prochain feu de camp, tu pourras façonner Corde-des-anciens avec le Bois ancien.';
       }
       // L'Aurore ardente (Paladin) : la mort d'Ossyrax purifie la Lame ternie.
       if (enc?.loot === 'ossyrax' && run.classId === 'paladin' && run.aurore === 'lame') {
@@ -828,6 +834,9 @@ export function resolveEvent(run: RunState, choice: number): void {
       run.hp += 6;
       return outcome(run, '« Merci, l\'ami. » Il te montre comment tenir dans le froid comme dans le feu. +6 PV max.');
     }
+    case 'trappeur:2':
+      run.corde = 'bois';
+      return outcome(run, '« Un vrai chasseur, enfin ! » Il sort de sa besace un bâton noueux, dur comme la pierre : le Bois ancien, taillé dans le cœur d\'un arbre millénaire. « Il lui faut une corde digne de lui. Le tendon d\'un des Trois Souffles, dans l\'Aire de Vhaeryx, ferait l\'affaire. »');
     case 'cercle:0': {
       const i = run.deck.findIndex((c) => c.id === 'malediction');
       if (i >= 0) run.deck.splice(i, 1);
@@ -1104,6 +1113,24 @@ export function leaveEvent(run: RunState): void {
   if (run.screen === 'event') backToMap(run);
 }
 
+// --- Le compagnon du Chasseur (avant Brégan) ---
+
+/** Le Chasseur choisit son compagnon au départ de l'expédition, puis Brégan propose ses bonus. */
+export function offerCompanion(run: RunState): void {
+  if (run.classId !== 'chasseur') {
+    offerBlessing(run);
+    return;
+  }
+  run.screen = 'companion';
+}
+
+export function chooseCompanion(run: RunState, id: CompanionId): boolean {
+  if (run.screen !== 'companion' || !['loup', 'ours', 'raptor'].includes(id)) return false;
+  run.companion = id;
+  offerBlessing(run);
+  return true;
+}
+
 // --- Bénédiction d'entrée : Brégan le Passeur ---
 
 /** Au tout début de la run, Brégan propose 4 bonus au hasard. */
@@ -1240,6 +1267,21 @@ export function campfireAurore(run: RunState): boolean {
   if (!canForgeAurore(run)) return false;
   putOn(run, 'aurore_ardente', 'arme');
   run.aurore = 'forged';
+  backToMap(run);
+  return true;
+}
+
+// --- Feu de camp : Corde-des-anciens (Chasseur) ---
+
+export function canForgeCorde(run: RunState): boolean {
+  return run.screen === 'campfire' && run.corde === 'tendon' && run.act >= LEGENDARY_MIN_ACT;
+}
+
+/** Le Chasseur tend le Tendon de drake sur le Bois ancien : Corde-des-anciens est équipée. */
+export function campfireCorde(run: RunState): boolean {
+  if (!canForgeCorde(run)) return false;
+  putOn(run, 'corde_anciens', 'arme');
+  run.corde = 'forged';
   backToMap(run);
   return true;
 }

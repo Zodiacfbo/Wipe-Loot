@@ -5,6 +5,7 @@ import { loseHp, petAct } from './demoniste';
 import { dispelMagic, dispelPoison, gainAegis } from './pretre';
 import { applyPoison, enterStealth, stun } from './voleur';
 import { activateSeal, dispelAll, judge, palHeal } from './paladin';
+import { companionAct, companionGuard } from './chasseur';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -572,6 +573,98 @@ const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
 ];
 for (const d of PALADIN_SPELLS) SPELLS[d.id] = { ...d, classId: 'paladin' };
 
+/** Les sorts de barre du Chasseur. Référence : docs/classes/CHASSEUR.md (§6) */
+const CHASSEUR_SPELLS: Omit<SpellDef, 'classId'>[] = [
+  {
+    id: 'tir_arcanique', name: 'Tir arcanique', cost: 0, cooldown: 2, needsTarget: true, icon: 'etoile',
+    text: 'Inflige 5 dégâts. Ignore le blocage.',
+    cast: (c, target) => {
+      if (target) playerAttack(c, target, 5, { ignoreBlock: true });
+    },
+  },
+  {
+    id: 'fureur_bestiale', name: 'Fureur bestiale', cost: 0, cooldown: 5, needsTarget: false, icon: 'hausse',
+    text: 'Ton compagnon agit 3 fois tout de suite.',
+    cast: (c) => {
+      companionAct(c, 3);
+    },
+  },
+  {
+    id: 'feindre_mort', name: 'Feindre la mort', cost: 0, cooldown: 5, needsTarget: false, icon: 'bouclier',
+    text: 'Jusqu\'à ton prochain tour, les ennemis visent ton compagnon : leurs attaques t\'infligent 50 % de dégâts en moins.',
+    cast: (c) => {
+      c.feign = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Feindre la mort' });
+    },
+  },
+  {
+    id: 'tir_rapide', name: 'Tir rapide', cost: 0, cooldown: 4, needsTarget: false, icon: 'charge',
+    text: 'Ce tour-ci, tes Attaques coûtent 1 de moins.',
+    cast: (c) => {
+      c.rapidFire = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Tir rapide' });
+    },
+  },
+  {
+    id: 'fleche_museliere', name: 'Flèche muselière', cost: 0, cooldown: 4, needsTarget: true, icon: 'epee',
+    text: 'Interruption. Inflige 3 dégâts.',
+    cast: (c, target) => {
+      if (!target) return;
+      if (isInterruptible(target.intent) && !target.interrupted) {
+        target.interrupted = true;
+        fx(c, { kind: 'interrupt', who: target.uid });
+        if (c.gear?.interruptDraw) drawCards(c, c.gear.interruptDraw);
+        log(c, `${target.name} est interrompu !`);
+      }
+      playerAttack(c, target, 3);
+    },
+  },
+  {
+    id: 'fleche_apaisante', name: 'Flèche apaisante', cost: 0, cooldown: 5, needsTarget: true, icon: 'etoile',
+    text: 'Retire les buffs de la cible (Puissance, blocage). Un boss en Berserk ne l\'est plus ce tour-ci.',
+    cast: (c, target) => {
+      if (!target) return;
+      target.buffs.puissance = Math.min(0, target.buffs.puissance);
+      target.block = 0;
+      target.vengeance = false;
+      target.giant = 0;
+      target.haste = false;
+      c.soothedTurn = c.turn;
+      fx(c, { kind: 'buff', who: target.uid, label: 'Apaisé' });
+      log(c, `${target.name} est apaisé.`);
+    },
+  },
+  // Sorts de loot
+  {
+    id: 'fusee_eclairante', name: 'Fusée éclairante', cost: 0, cooldown: 3, needsTarget: false, icon: 'etoile',
+    text: 'Tu vois les deux prochaines intentions de tous les ennemis, jusqu\'à la fin du combat.',
+    cast: (c) => {
+      c.seeAll = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Fusée éclairante' });
+    },
+  },
+  {
+    id: 'appel_compagnon', name: 'Appel du compagnon', cost: 0, cooldown: 3, needsTarget: false, icon: 'bouclier',
+    text: 'Ton compagnon agit et te donne 6 blocage.',
+    cast: (c) => {
+      companionAct(c);
+      companionGuard(c, 6);
+    },
+  },
+  {
+    id: 'tir_dispersion', name: 'Tir de dispersion', cost: 0, cooldown: 4, needsTarget: false, icon: 'epee',
+    text: 'Inflige 3 dégâts à tous les ennemis. Ils sont Démoralisés 1 tour.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) {
+        if (e.submerged) continue;
+        playerAttack(c, e, 3);
+        if (!e.dead) e.buffs.demoralise = Math.max(e.buffs.demoralise, 1);
+      }
+    },
+  },
+];
+for (const d of CHASSEUR_SPELLS) SPELLS[d.id] = { ...d, classId: 'chasseur' };
+
 /** La classe d'un sort de barre. */
 export function spellClass(id: string): string {
   return SPELLS[id]?.classId ?? 'guerrier';
@@ -588,7 +681,7 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
 
 /** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
-  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement']);
+  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement', 'tir_arcanique']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
 }
 

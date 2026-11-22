@@ -37,6 +37,11 @@ const PROFILES_ALL: { name: string; talents: string[]; cls?: string }[] = [
   { name: 'Paladin niveau 5 (Vindicte 3, Sacré 2)', talents: alloc({ vindicte: ['A', 'A', 'A'], sacre_pal: ['A', 'B'] }, 'paladin'), cls: 'paladin' },
   { name: 'Paladin niveau 10 (Vindicte 7, Sacré 3)', talents: alloc({ vindicte: ['A', 'A', 'A', 'A', 'A'], sacre_pal: ['A', 'B', 'A'] }, 'paladin'), cls: 'paladin' },
   { name: 'Paladin niveau 10 (Protection 7, Sacré 3)', talents: alloc({ protection_pal: ['A', 'A', 'A', 'B', 'A'], sacre_pal: ['A', 'B', 'A'] }, 'paladin'), cls: 'paladin' },
+  { name: 'Chasseur niveau 1 (aucun talent)', talents: [], cls: 'chasseur' },
+  { name: 'Chasseur niveau 5 (Bêtes 3, Survie 2)', talents: alloc({ betes: ['A', 'B', 'A'], survie: ['A', 'B'] }, 'chasseur'), cls: 'chasseur' },
+  { name: 'Chasseur niveau 10 (Bêtes 7, Survie 3)', talents: alloc({ betes: ['A', 'B', 'A', 'A', 'A'], survie: ['A', 'B', 'A'] }, 'chasseur'), cls: 'chasseur' },
+  { name: 'Chasseur niveau 10 (Précision 7, Bêtes 3)', talents: alloc({ precision: ['A', 'B', 'A', 'A', 'A'], betes: ['A', 'B', 'A'] }, 'chasseur'), cls: 'chasseur' },
+  { name: 'Chasseur niveau 10 (Survie 7, Bêtes 3)', talents: alloc({ survie: ['A', 'B', 'A', 'A', 'A'], betes: ['A', 'B', 'A'] }, 'chasseur'), cls: 'chasseur' },
   { name: 'Mage niveau 10 (Arcane 7, Feu 3)', talents: mage({ arcane: ['A', 'A', 'A', 'A', 'A'], feu: ['A', 'B', 'A'] }), cls: 'mage' },
 ];
 

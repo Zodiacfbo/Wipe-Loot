@@ -79,6 +79,12 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Poison d\'arme', words: ['Poison d\'arme'], text: 'Tes Attaques appliquent cet effet jusqu\'à la fin du combat. Un seul Poison d\'arme à la fois : le nouveau remplace l\'ancien.' },
   { name: 'Aura', words: ['Aura', 'Auras'], text: 'Un Pouvoir du Paladin. Une seule Aura active à la fois : une nouvelle remplace l\'ancienne.' },
   { name: 'Censure', words: ['Censure'], text: 'Inflige ce nombre de dégâts au début du tour de la cible. Le Jugement du Sceau de vengeance la consomme.' },
+  // Chasseur
+  { name: 'Compagnon', words: ['compagnon'], text: 'Ton Loup, ton Ours ou ton Raptor. Il agit seul à la fin de chacun de tes tours, sur ta dernière cible. Il ne peut pas mourir.', discret: true },
+  { name: 'Ordre', words: ['Ordre', 'Ordres'], text: 'Une carte qui fait agir ton compagnon tout de suite, ou autrement.' },
+  { name: 'Esprit', words: ['Esprit'], text: 'Un seul Esprit animal actif à la fois : un nouveau remplace l\'ancien. Il dure jusqu\'à la fin du combat.' },
+  { name: 'Piège', words: ['Piège', 'Pièges'], text: '3 au plus. Il se déclenche au début du prochain tour ennemi, sur le premier ennemi qui agit (marqué « ici »).' },
+  { name: 'Marquée', words: ['Marquée', 'Marqué'], text: 'Une seule cible marquée à la fois, pour tout le combat : tes Attaques et ton compagnon lui infligent des dégâts en plus.' },
 ];
 
 const BY_WORD = new Map<string, Keyword>();

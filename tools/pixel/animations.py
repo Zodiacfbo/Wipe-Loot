@@ -9,6 +9,7 @@ from ennemis import etincelle, molosse
 from ennemis_acte2 import vhaeryx, vhaeryx_dragon
 from acte3 import yzhar, yzhar_corps
 from sprites import anime_auto, apercu_gif, guerrier, mage, planche, vulkhar
+from chasseur_sprites import chasseur, loup, ours, raptor
 
 DEST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'assets'))
 
@@ -20,6 +21,10 @@ ANIMES = {
     'paladin': (paladin, 4, False, 6),
     'voleur': (voleur, 4, False, 6),
     'demoniste': (demoniste, 4, False, 6),
+    'chasseur': (chasseur, 4, False, 6),
+    'familier_loup': (loup, 4, False, 8),
+    'familier_ours': (ours, 4, False, 8),
+    'familier_raptor': (raptor, 4, False, 8),
     'familier_diablotin': (diablotin, 4, False, 8),
     'familier_rodeur': (rodeur, 4, False, 8),
     'familier_succube': (succube, 4, False, 8),

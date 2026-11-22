@@ -82,6 +82,19 @@ export const TALENT_ICONS: Record<string, string> = {
   sceaux_benis: 'carte_sceau_lumiere', conviction: 'carte_exorcisme',
   t_ailes_justice: 'carte_exaltation', t_marteau_jugement_v: 'carte_marteau_chatiment',
   vengeance_divine: 'carte_vengeance_pal', double_sceau: 'carte_sceau_croise',
+  // Chasseur
+  compagnon_robuste: 'carte_ordre_attaque', lien_endurant: 'carte_lien_sauvage',
+  ferocite: 'carte_morsure_partagee', esprit_animal: 'carte_rappel',
+  t_fureur_bestiale: 'carte_bete_interieure', t_feindre_mort: 'carte_ordre_protege',
+  maitre_meute: 'carte_esprit_meute', h_quatrieme_emplacement_b: 'talent_emplacement',
+  tirs_ameliores: 'carte_tir', oeil_faucon: 'carte_marque_proie',
+  mortalite: 'carte_tir_fatal', h_sang_froid: 'carte_concentration_tir',
+  t_tir_rapide: 'carte_tir_rafale', t_fleche_museliere: 'carte_tir_percant',
+  tireur_elite: 'carte_visee_assuree', h_quatrieme_emplacement_p: 'talent_emplacement',
+  pieges_ameliores: 'carte_piege_explosif', h_endurance: 'carte_instinct_survie',
+  h_reflexes: 'carte_desengagement', piegeur_ne: 'carte_piege_immolation',
+  t_fleche_apaisante: 'carte_dard_paralysant', t_feindre_mort_s: 'carte_ordre_protege',
+  instinct_chasseur: 'carte_pieges_serie', survivant: 'carte_sens_aiguises',
 };
 
 /** Le fichier de l'icône d'un talent (dans public/assets/). */
@@ -133,4 +146,11 @@ export const TALENT_REFS: Record<string, { cards?: string[]; spells?: string[] }
   jugements_rapides: { spells: ['jugement'] },
   vengeance_divine: { spells: ['jugement'] },
   double_sceau: { spells: ['jugement'] },
+  // Chasseur
+  maitre_meute: { cards: ['esprit_meute'] },
+  tirs_ameliores: { cards: ['tir', 'tir_ajuste'] },
+  oeil_faucon: { cards: ['marque_proie'] },
+  mortalite: { cards: ['tir_fatal'] },
+  h_reflexes: { cards: ['desengagement'] },
+  piegeur_ne: { cards: ['piege_explosif'] },
 };

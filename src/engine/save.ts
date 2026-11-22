@@ -3,7 +3,7 @@
 import type { ArchiveProfile } from './archives';
 import type { ProgressProfile } from './progression';
 import type { TalentAlloc } from './talents';
-import type { RunState } from './types';
+import type { CompanionId, RunState } from './types';
 
 // La clé dépend du chemin du site : la version officielle (/) et la version de test (/dev/)
 // ont chacune leur sauvegarde.
@@ -136,7 +136,13 @@ export function migrate(raw: unknown): RunState | null {
     run.nextFolie = 0;
     run.version = 23;
   }
-  return run.version === 23 ? (run as unknown as RunState) : null;
+  if (run.version === 23) {
+    // Le Chasseur : son compagnon et sa quête légendaire.
+    run.companion = 'loup';
+    run.corde = null;
+    run.version = 24;
+  }
+  return run.version === 24 ? (run as unknown as RunState) : null;
 }
 
 export interface SaveBackend {
@@ -185,6 +191,8 @@ export interface Profile extends ProgressProfile, ArchiveProfile {
   unlockedClasses: string[];
   /** La classe jouée depuis le hall (la classe de départ si absente). */
   currentClass?: string;
+  /** Chasseur : le dernier compagnon choisi (proposé par défaut au départ). */
+  lastCompanion?: CompanionId;
   /** La répartition des points de talent, par classe. */
   talents: Record<string, TalentAlloc>;
   /** Objets déjà obtenus au moins une fois : ils sont visibles dans les tables de loot. */

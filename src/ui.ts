@@ -47,7 +47,6 @@ import {
   resolveEvent,
   eventChoiceLock,
   leaveEvent,
-  offerBlessing,
   chooseBlessing,
   campfireReforge,
   canReforge,
@@ -56,6 +55,10 @@ import {
   campfireEquinoxe,
   canForgeAurore,
   campfireAurore,
+  canForgeCorde,
+  campfireCorde,
+  offerCompanion,
+  chooseCompanion,
   campfireBindStaff,
   canRest,
   startNextAct,
@@ -90,10 +93,11 @@ import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save
 // Outil de test (version dev seulement)
 import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
+import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, companionDamage, companionTarget, markBonus, trapVictim } from './engine/chasseur';
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
-import type { CardInstance, CombatState, EnemyState, Intent, Posture, RunState } from './engine/types';
+import type { CardInstance, CombatState, CompanionId, EnemyState, Intent, Posture, RunState } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
@@ -106,6 +110,10 @@ const ANIMES: Record<string, number> = {
   'paladin.png': 4,
   'voleur.png': 4,
   'demoniste.png': 4,
+  'chasseur.png': 4,
+  'familier_loup.png': 4,
+  'familier_ours.png': 4,
+  'familier_raptor.png': 4,
   'familier_diablotin.png': 4,
   'familier_rodeur.png': 4,
   'familier_succube.png': 4,
@@ -148,6 +156,8 @@ type Selection = { kind: 'card'; index: number } | { kind: 'spell'; index: numbe
 
 interface UiState {
   run: RunState | null;
+  /** Chasseur : le compagnon sélectionné sur l'écran du choix (avant de partir). */
+  companion?: CompanionId | null;
   selection: Selection;
   overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | null;
   /** Outil de test : la classe choisie dans le panneau. */
@@ -661,6 +671,24 @@ function eventScreen(run: RunState): string {
   </div>`;
 }
 
+/** Le choix du compagnon du Chasseur, au départ de l'expédition (le dernier choisi est proposé). */
+function companionScreen(run: RunState): string {
+  const chosen: CompanionId = ui.companion ?? loadProfile().lastCompanion ?? 'loup';
+  const last = loadProfile().lastCompanion;
+  const tiles = COMPANION_IDS.map((id) => {
+    const d = COMPANIONS[id];
+    return `<button type="button" class="choix-feu choix-compagnon ${id === chosen ? 'principal' : ''}" data-action="compagnon" data-id="${id}" aria-pressed="${id === chosen}">
+      <img class="px" ${spriteAttrs(`familier_${id}.png`, COMPANION_IDS.indexOf(id))} alt="">
+      <span class="texte-choix"><b>${d.name} <small>· ${d.role}</small></b><span>${d.text}</span>${id === last ? '<span class="effet-choix">Ton dernier compagnon</span>' : ''}</span></button>`;
+  }).join('');
+  return `${topbar(run, run.hp)}<div class="ecran">
+    <h2>Ton compagnon</h2>
+    <p class="texte-evenement">Il te suit pour toute l'expédition et agit seul à la fin de chacun de tes tours, sur ta dernière cible.</p>
+    <div class="choix-compagnons">${tiles}</div>
+    <button type="button" class="gros-bouton" data-action="compagnon-partir">Partir avec le ${COMPANIONS[chosen].name}</button>
+  </div>`;
+}
+
 function blessingScreen(run: RunState): string {
   if (ui.blessingRemove) {
     const cards = deckList(run.deck, (card) => cardHtml(card, { action: `data-action="carte-a-confirmer" data-uid="${card.uid}"` }));
@@ -1059,6 +1087,16 @@ const POWER_LABEL: Record<string, [string, string]> = {
   science_combat: ['Science du combat', '2e Attaque du tour : prochain soin gratuit'],
   vengeance_pal: ['Vengeance', 'Ennemi tué : +1 Puissance'],
   croisade: ['Croisade', 'Attaques +2, +4 contre Morts-vivants et Démons'],
+  lien_sauvage: ['Lien sauvage', 'Ton compagnon agit : blocage'],
+  frenesie_chasseur: ['Frénésie', 'Ton compagnon gagne +1 dégât à chaque attaque'],
+  dressage: ['Dressage', 'Les Ordres coûtent 1 de moins'],
+  instinct_tueur: ['Instinct de tueur', 'Ton compagnon tue : +1 énergie, pioche 1'],
+  fureur_primitive: ['Fureur primitive', 'Ton compagnon agit deux fois'],
+  visee_assuree: ['Visée assurée', 'Attaques à 2 énergie ou plus : +dégâts'],
+  calme_absolu: ['Calme absolu', '1er Tir ajusté ou Tir de précision du tour : −1 énergie'],
+  maitre_tireur: ['Maître tireur', 'La Marque donne +2 dégâts'],
+  maitre_pieges: ['Maître des pièges', 'Tes Pièges se déclenchent deux fois'],
+  pieges_serie: ['Pièges en série', 'Un Piège se déclenche : pioche 1'],
 };
 
 function playerChips(c: CombatState): string {
@@ -1072,7 +1110,7 @@ function playerChips(c: CombatState): string {
   if ((c.regard ?? 0) > 0) chips.push(`<span class="chip ${c.covered ? '' : 'debuff alerte'}" title="À la fin de ton tour : ${YZHAR.regardDmg} dégâts, sauf si tu joues « Se mettre à couvert ». Encore ${c.regard} tour${c.regard! > 1 ? 's' : ''}">${c.covered ? 'À couvert' : 'Regard sombre'} · ${c.regard}t</span>`);
   if (c.swallowed) chips.push(`<span class="chip debuff alerte" title="${YZHAR.swallowHand} cartes en main, pas de sorts de barre, ${YZHAR.sucs} dégâts par tour. Tue les 2 Tentacules intérieurs avant d'être recraché : la Carapace divine tombera">Dans les entrailles · ${c.swallowed}t</span>`);
   if (c.carapaceDown) chips.push(`<span class="chip alerte" title="Le Corps d'Yzhar subit double dégâts">Carapace tombée · ${c.carapaceDown}t</span>`);
-  if (c.petStunned) chips.push('<span class="chip debuff" title="Ton familier ne fera rien à la fin de ce tour">Familier étourdi</span>');
+  if (c.petStunned) chips.push(`<span class="chip debuff" title="Ton ${c.companion ? 'compagnon' : 'familier'} ne fera rien à la fin de ce tour">${c.companion ? 'Compagnon' : 'Familier'} étourdi</span>`);
   if (p.puissance > 0) chips.push(`<span class="chip">Puissance ${p.puissance}</span>`);
   if (p.robustesse > 0) chips.push(`<span class="chip">Robustesse ${p.robustesse}</span>`);
   if (d?.demoralise) chips.push(`<span class="chip debuff" title="Tes Attaques infligent 25 % de dégâts en moins">Démoralisé ${d.demoralise}</span>`);
@@ -1108,6 +1146,16 @@ function playerChips(c: CombatState): string {
   if (c.undying) chips.push('<span class="chip">Égide des anciens : PV ≥ 1</span>');
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
+  // Chasseur
+  if (c.feign) chips.push('<span class="chip" title="Les attaques ennemies t\'infligent 50 % de dégâts en moins jusqu\'à ton prochain tour">Feindre la mort</span>');
+  if (c.rapidFire) chips.push('<span class="chip">Tir rapide : Attaques −1</span>');
+  if (c.huntTurnBonus) chips.push(`<span class="chip">Bête intérieure : +${c.huntTurnBonus}</span>`);
+  if (c.focusNext) chips.push(`<span class="chip">Concentration : +${c.focusNext} à la prochaine Attaque</span>`);
+  if (c.breathNow) chips.push(`<span class="chip">Respiration : +${c.breathNow} à la 1re Attaque</span>`);
+  if (c.breathNext) chips.push(`<span class="chip">Respiration : +${c.breathNext} au prochain tour</span>`);
+  if (c.counterStun) chips.push('<span class="chip" title="Le prochain ennemi qui t\'attaque est Contrôlé 1 tour">Contre-attaque</span>');
+  if (c.spectral) chips.push(`<span class="chip" title="${c.spectral} dégâts à ta cible à la fin de tes tours">Loup spectral ${c.spectral}</span>`);
+  if (c.compNextBonus) chips.push(`<span class="chip">Rage du compagnon : +${c.compNextBonus}</span>`);
   // Paladin
   if (p.divineShield) chips.push('<span class="chip sacre">Bouclier divin : immunisé, Attaques ÷ 2</span>');
   if (c.favor) chips.push('<span class="chip sacre">Faveur divine : prochain soin ou Sort ×2</span>');
@@ -1160,6 +1208,42 @@ function rogueResource(c: CombatState): string {
     : 'Les générateurs donnent du combo, les finishers le dépensent.';
   return `<div class="ligne"><span class="rage-label combo-label">COMBO</span><div class="rage combo">${pips}</div><span class="rage-label" style="width:auto">${n}</span></div>
     <div class="aide-posture">${stealth}</div>`;
+}
+
+/** Les petites icônes des tuiles du Chasseur. */
+const ICON_HUNT: Record<string, string> = {
+  patte: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><ellipse cx="12" cy="16" rx="4.6" ry="3.8"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14" cy="6.5" r="2"/><circle cx="18" cy="10" r="2"/></svg>',
+  aigle: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 9c4 0 6 2 10 2s6-2 10-2c-2 4-5 6-8 6l-2 5-2-5c-3 0-6-2-8-6z"/></svg>',
+  tortue: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 15c0-5 4-8 8-8s8 3 8 8z"/><path d="M8 15l-1 3M16 15l1 3M20 13h2"/></svg>',
+  guepard: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 14c3-1 5-5 9-5s7 2 9 0M5 18l2-4M17 18l-1-5"/><circle cx="10" cy="12" r=".8" fill="currentColor"/><circle cx="14" cy="11" r=".8" fill="currentColor"/></svg>',
+  explosif: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2l2 6 6-3-3 6 5 2-6 2 2 6-6-4-6 4 2-6-6-2 5-2-3-6 6 3z"/></svg>',
+  givrant: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2v20M3 7l18 10M21 7L3 17M9 4l3 3 3-3M9 20l3-3 3 3"/></svg>',
+  immolation: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22c4 0 7-3 7-7 0-5-5-7-5-12-3 2-5 5-5 8-1-1-2-2-2-4-2 2-2 5-2 8 0 4 3 7 7 7z"/></svg>',
+  venin: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3c3 5 6 8 6 12a6 6 0 0 1-12 0c0-4 3-7 6-12z"/></svg>',
+};
+
+/** Le compagnon, l'Esprit et les Pièges du Chasseur : une rangée de tuiles (maquette C). */
+function hunterResource(c: CombatState): string {
+  const comp = COMPANIONS[c.companion ?? 'loup'];
+  const aspect = c.aspect ? ASPECTS[c.aspect] : null;
+  const traps = c.traps ?? [];
+  const victim = trapVictim(c);
+  const away = (c.player.debuffs?.lignee ?? 0) > 0 || (c.petStunned ?? 0) > 0;
+  const tiles = [
+    `<div class="chs-tuile actif ${away ? 'absent' : ''}" title="${comp.name} : ${comp.text}">${ICON_HUNT.patte}<span>${comp.name} · ${companionDamage(c)}</span></div>`,
+    `<div class="chs-tuile ${aspect ? 'actif' : ''}" title="${aspect ? `${aspect.name} : ${aspect.text}` : 'Joue une carte Esprit (un seul à la fois)'}">${aspect ? ICON_HUNT[c.aspect!] : ICON_HUNT.aigle}<span>${aspect ? aspect.short : 'Esprit'}</span></div>`,
+    ...Array.from({ length: 3 }, (_, i) => {
+      const t = traps[i];
+      return t
+        ? `<div class="chs-tuile piege" title="${TRAPS[t.id].name}">${ICON_HUNT[t.id]}<span>${TRAPS[t.id].short}</span></div>`
+        : '<div class="chs-tuile vide" title="Emplacement de Piège libre"><span>Piège</span></div>';
+    }),
+  ].join('');
+  const help = traps.length && victim
+    ? `Les Pièges partent au début du tour ennemi, sur ${victim.name}.`
+    : away ? `Ton ${comp.name} ne fera rien à la fin de ce tour.` : `${comp.name} : ${comp.text.replace('Fin de ton tour : ', '')}`;
+  return `<div class="ligne chs-tuiles">${tiles}</div>
+    <div class="aide-posture">${help}</div>`;
 }
 
 /** Ce que fera le Jugement maintenant (pour l'interface du Paladin). */
@@ -1216,7 +1300,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const resource = mage
     ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
         <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
-    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : '';
+    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : run.classId === 'chasseur' ? hunterResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
@@ -1224,6 +1308,9 @@ function combatScreen(run: RunState, c: CombatState): string {
   }).join('');
   const aidePosture = POSTURES.find((po) => po.id === p.posture)?.aide ?? '';
 
+  // Chasseur : la cible du compagnon et l'ennemi qui déclenchera les Pièges.
+  const compTarget = c.companion ? companionTarget(c) : null;
+  const trapTarget = c.traps?.length ? trapVictim(c) : null;
   const enemies = c.enemies.filter((e) => !e.dead && !e.submerged).map((e) => {
     const def0 = ENEMIES[e.defId];
     // Une Copie a l'aspect de l'original (taille, cadre, sprite).
@@ -1241,10 +1328,12 @@ function combatScreen(run: RunState, c: CombatState): string {
     const tag = canTarget ? 'button' : 'div';
     return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
       ${intentHtml(c, e)}
+      ${e === compTarget ? `<span class="chs-cible" title="Ton ${COMPANIONS[c.companion!].name} attaquera cet ennemi à la fin de ton tour">${ICON_HUNT.patte}cible</span>` : ''}
+      ${e === trapTarget ? `<span class="chs-ici" title="Il agit en premier : tes Pièges se déclencheront sur lui">${c.traps!.map((t) => ICON_HUNT[t.id]).join('')}ici</span>` : ''}
       <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${size}" height="${size}">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
-      <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}</div>
+      <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}${c.mark?.uid === e.uid ? `<span class="chip marque" title="Tes Attaques et ton compagnon lui infligent +${markBonus(c, e)} dégâts">Marqué +${markBonus(c, e)}</span>` : ''}</div>
       ${def.passive ? `<div class="passif-ennemi">${(e.phase ?? 1) >= 2 && def.passive2 ? def.passive2 : def.passive}</div>` : ''}
     </${tag}>`;
   }).join('');
@@ -1306,6 +1395,8 @@ function combatScreen(run: RunState, c: CombatState): string {
       <div class="buffs">${playerChips(c)}</div>
       <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" data-tenue="${heroSprite(hero.sprite, c)}" ${spriteAttrs(heroSprite(hero.sprite, c))} alt="Le ${hero.name}" width="192" height="192">
       ${c.pet && !c.petSacrificed ? `<img class="px familier" ${spriteAttrs(`familier_${c.pet}.png`, 1)} alt="${PETS[c.pet].name}" title="${PETS[c.pet].name} : ${PETS[c.pet].text}">` : ''}
+      ${c.companion ? `<img class="px familier compagnon ${(c.player.debuffs?.lignee ?? 0) > 0 ? 'enfui' : ''}" ${spriteAttrs(`familier_${c.companion}.png`, 1)} alt="${COMPANIONS[c.companion].name}" title="${COMPANIONS[c.companion].name} : ${COMPANIONS[c.companion].text}">` : ''}
+      ${c.spectral ? `<img class="px familier loup-spectral" ${spriteAttrs('familier_loup.png', 3)} alt="Loup spectral" title="Loup spectral : ${c.spectral} dégâts à ta cible à la fin de tes tours">` : ''}
       ${c.infernal ? `<img class="px seigneur-infernal" ${spriteAttrs('familier_seigneur.png', 2)} alt="Seigneur infernal" title="Seigneur infernal : ${c.infernal} dégâts à tous les ennemis à la fin de ton tour">` : ''}
       <div class="jauges">
         <div class="ligne">
@@ -1740,6 +1831,7 @@ function campfireScreen(run: RunState): string {
     canReforge(run) && { action: 'reforger', label: 'Reforger Brisemonts', item: 'brisemonts', text: 'Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d\'entraînement. L\'épée remplacera ton arme actuelle.' },
     canBindStaff(run) && { action: 'lier-fragments', label: 'Lier les fragments', item: 'baton_veilleur', text: 'Tu poses le Fragment et la Tête du bâton près du feu. Les runes s\'éveillent : le Veilleur attend un dernier sacrifice.' },
     canForgeEquinoxe(run) && { action: 'equinoxe', label: 'Rituel de l\'équinoxe', item: 'equinoxe', text: 'Tu sertis la Larme d\'Ysolde au sommet du Bâton nu. La pierre s\'illumine, puis s\'assombrit, puis s\'illumine encore.' },
+    canForgeCorde(run) && { action: 'corde', label: 'Façonner l\'arc', item: 'corde_anciens', text: 'Tu tends le Tendon de drake sur le Bois ancien, près des braises. Le bois chante quand la corde vibre pour la première fois.' },
     canForgeAurore(run) && { action: 'aurore', label: 'Rallumer l\'Aurore ardente', item: 'aurore_ardente', text: 'Tu poses la lame purifiée dans les braises. Une lueur d\'aube monte de l\'acier, comme si elle n\'attendait que ce feu-là.' },
   ].filter((f): f is { action: string; label: string; item: string; text: string } => !!f);
   const forgeTiles = forges.map((f) => `<button type="button" class="choix-feu legendaire" data-action="${f.action}">
@@ -2285,6 +2377,7 @@ export function render(): void {
     case 'act': html = actScreen(run); break;
     case 'map': html = mapScreen(run); break;
     case 'event': html = eventScreen(run); break;
+    case 'companion': html = companionScreen(run); break;
     case 'blessing': html = blessingScreen(run); break;
     case 'shop': html = shopScreen(run); break;
     case 'combat': html = run.combat ? combatScreen(run, run.combat) : ''; break;
@@ -2362,7 +2455,8 @@ function startNewRun(heirloom: string | null = null): void {
   const cls = activeClass();
   const legendary = ui.leaveLegendary ? null : rackLegendary(loadProfile(), cls);
   ui.run = newRun(undefined, heirloom, talentIds(myAlloc(), cls), chosenDifficulty(), cls, legendary);
-  offerBlessing(ui.run);
+  // Le Chasseur choisit d'abord son compagnon, puis Brégan propose ses bonus.
+  offerCompanion(ui.run);
   ui.blessingRemove = false;
   ui.selection = null;
   ui.overlay = null;
@@ -2582,6 +2676,18 @@ function handleClick(ev: MouseEvent): void {
     case 'acte-suivant': startNextAct(run); commit(); break;
     case 'equinoxe': campfireEquinoxe(run); commit(); break;
     case 'aurore': campfireAurore(run); commit(); break;
+    case 'corde': campfireCorde(run); commit(); break;
+    case 'compagnon': ui.companion = el.dataset.id as CompanionId; render(); break;
+    case 'compagnon-partir': {
+      const id = ui.companion ?? loadProfile().lastCompanion ?? 'loup';
+      const profile = loadProfile();
+      profile.lastCompanion = id;
+      saveProfile(profile);
+      ui.companion = null;
+      chooseCompanion(run, id);
+      commit();
+      break;
+    }
     case 'carte-boutique': ui.shopCard = Number(el.dataset.index); render(); break;
     case 'annuler-carte': ui.shopCard = null; render(); break;
     case 'acheter': buyCard(run, Number(el.dataset.index)); ui.shopCard = null; commit(); break;
@@ -2653,7 +2759,8 @@ const PRELOAD = [
   'feu_camp.png', 'icone_repos.png', 'icone_enclume.png',
   ...Object.keys(ANIMES).map((file) => `anim_${file}`),
   ...[...Object.keys(ENEMIES), 'vhaeryx_dragon', 'yzhar_corps'].map((id) => `anim_ennemi_${id}.png`),
-  ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur'].map((id) => `familier_${id}.png`),
+  ...['diablotin', 'rodeur', 'succube', 'molosse', 'seigneur', 'loup', 'ours', 'raptor'].map((id) => `familier_${id}.png`),
+  'chasseur.png',
   ...Object.keys(CARDS).map((id) => `carte_${id}.png`),
   ...Object.keys(ENEMIES).map((id) => `ennemi_${id}.png`), 'ennemi_vhaeryx_dragon.png', 'ennemi_yzhar_corps.png',
   ...Object.values(RARITY_FRAME).flatMap((r) => [`cadre_${r}.png`, `cadre_${r}_rage.png`]),

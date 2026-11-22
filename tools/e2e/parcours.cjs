@@ -1,6 +1,6 @@
 // Test navigateur : le parcours d'un nouveau joueur, sur PC et sur téléphone.
 //   Commencer → choix de la classe → hall de la guilde → Partir en expédition
-//   → Brégan (bénédiction) → carte → premier combat.
+//   → (Chasseur : choix du compagnon) → Brégan (bénédiction) → carte → premier combat.
 //
 // Utilisation (le jeu doit être construit : npm run build) :
 //   npm run e2e                                   # PC + téléphone, Guerrier
@@ -89,6 +89,13 @@ async function parcours(navigateur, url, nomEcran) {
 
   await etape('hall', '[data-action="talents"]');
   await page.click('[data-action="nouvelle"]');
+
+  // Le Chasseur choisit d'abord son compagnon.
+  if (CLASSE === 'chasseur') {
+    await etape('compagnon', '[data-action="compagnon-partir"]');
+    await page.click('[data-action="compagnon"][data-id="raptor"]');
+    await page.click('[data-action="compagnon-partir"]');
+  }
 
   // Brégan propose 4 bénédictions sur 8, au hasard. Allègement, Équipement de prêt et Pari risqué
   // ouvrent un écran de plus : on prend la première des autres (il en reste toujours au moins une).

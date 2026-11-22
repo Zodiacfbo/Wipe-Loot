@@ -133,7 +133,7 @@ describe('trouver des sorts', () => {
     const old = { ...newRun(5), version: 8 } as Record<string, unknown>;
     delete old.spells;
     const run = migrate(old)!;
-    expect(run.version).toBe(23);
+    expect(run.version).toBe(24);
     expect(run.spells).toEqual(['charge']);
   });
 });

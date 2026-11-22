@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur et le Paladin sont jouables dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur, le Paladin et le Chasseur sont jouables dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -56,7 +56,9 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Un premier tour parfait depuis l\'ombre, cinq points de combo, et une Éviscération qui achève le boss.',
   },
   {
-    id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: false, difficulty: 2, hp: 70,
+    id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: true, difficulty: 2, hp: 70,
+    starterDeck: ['tir', 'tir', 'tir', 'tir', 'repli', 'repli', 'repli', 'repli', 'tir_ajuste', 'ordre_attaque'],
+    startSpell: 'tir_arcanique', sprite: 'chasseur.png',
     quote: 'Mon arc vise, ma bête mord. Toi, tu cours.',
     role: 'Dégâts à distance, gestion des adds', resource: 'Compagnon animal, pièges et esprits',
     fantasy: 'Un duo inséparable, le chasseur et sa bête, pendant que les pièges s\'occupent des adds.',

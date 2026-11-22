@@ -149,6 +149,20 @@ export interface ItemEffects {
   vengeanceDivine?: number; // après un Jugement, la prochaine Attaque +X dégâts
   doubleSeal?: number; // deux Sceaux actifs à la fois
   aurore?: number; // le légendaire du Paladin
+  // Talents du Chasseur
+  compBonus?: number; // ton compagnon inflige +X dégâts
+  compBleed?: number; // les attaques de ton compagnon appliquent Saignement X
+  compOpening?: number; // ton compagnon agit X fois au début de chaque combat
+  packFree?: number; // Esprit de meute coûte 0
+  shotBonus?: number; // Tir et Tir ajusté +X dégâts
+  markBonus?: number; // Marque de la proie +X dégâts
+  fatalBonus?: number; // Tir fatal : le seuil passe de 20 % à 20 + X %
+  hunterFirstFree?: number; // ta première Attaque de chaque combat coûte 0
+  trapBonus?: number; // tes Pièges infligent +X dégâts
+  disengageBonus?: number; // Désengagement +X blocage
+  startTrap?: number; // un Piège explosif posé au début de chaque combat
+  trapEnergy?: number; // un Piège se déclenche : +X énergie au prochain tour
+  cordeAnciens?: number; // le légendaire du Chasseur : le compagnon agit X fois de plus
   gelKeep?: number; // le Gel ne diminue plus
   freezeEarly?: number; // Gelé à 5 − X cumuls
   shatterBonus?: number; // Fracasser +X dégâts
@@ -374,6 +388,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
   item('equinoxe', 'Équinoxe', 'arme', 'legendaire', 'Dans la Lumière : tes soins rendent +3 PV et chaque soin te donne 1 Foi. En Forme d\'Ombre : tes DoT infligent +2 dégâts et chacun de leurs ticks te soigne de 1 PV.', { equinoxe: 1 }),
   item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Jugements infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
+  item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Ton compagnon agit une fois de plus à la fin de chacun de tes tours.', { cordeAnciens: 1 }),
   item('sillon_orage', 'Sillon d\'orage', 'arme', 'legendaire', 'Toutes les 3 Attaques que tu joues, un éclair inflige 6 dégâts à tous les ennemis.', { stormblade: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));
@@ -549,6 +564,7 @@ for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus',
 KEY_CLASSES.healBonus = ['pretre', 'paladin'];
 KEY_CLASSES.allyBonus = ['demoniste', 'chasseur', 'chaman']; // familier, compagnon, totems
 KEY_CLASSES.freePact = ['demoniste'];
+for (const k of ['compBonus', 'compBleed', 'compOpening', 'packFree', 'shotBonus', 'markBonus', 'fatalBonus', 'hunterFirstFree', 'trapBonus', 'disengageBonus', 'startTrap', 'trapEnergy', 'cordeAnciens'] as const) KEY_CLASSES[k] = ['chasseur'];
 KEY_CLASSES.dotDuration = ['demoniste', 'pretre'];
 KEY_CLASSES.dotBonus = ['demoniste'];
 

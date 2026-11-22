@@ -447,3 +447,33 @@ Chaque arme de boss existe en mêlée et en incantation (`CONCEPT.md` §12.2). L
 | Mage niveau 10 (Givre 7, Feu 3 / Arcane 7, Feu 3) | — | 50 % / 47 % |
 
 Les classes de Sorts gagnent environ 5 à 15 points (30 runs : marge d'erreur large). Le Prêtre passe un peu au-dessus de la cible au niveau 10. À reprendre dans l'équilibrage des trois actes avec les talents en 7 + 3, prévu en priorité.
+
+---
+
+## 17. Le Chasseur (novembre 2026)
+
+Mesuré sur la run complète (trois actes, Yzhar compris), difficulté 0, 50 runs par profil, profils 7 + 3. Le bot garde le Loup (le compagnon par défaut).
+
+| Profil | Première version | Après réglages | Vulkhar / Vhaeryx vaincus |
+|---|---|---|---|
+| Niveau 1 | 4 % | **4 %** | 38 % / 6 % |
+| Niveau 5 (Bêtes 3, Survie 2) | 34 % | **34 %** | — |
+| Niveau 10 (Bêtes 7, Survie 3) | 42 % | **48 %** | 96 % / 82 % |
+| Niveau 10 (Précision 7, Bêtes 3) | 42 % | **50 %** | 100 % / 84 % |
+| Niveau 10 (Survie 7, Bêtes 3) | 68 % | **56 %** | 100 % / 88 % |
+
+**Les cartes épiques** (même build sans le palier 5 : 32 %, 32 % et 26 %) :
+
+| Carte | Première version | Après réglages | Ce qui a changé |
+|---|---|---|---|
+| Fureur primitive | +10 | **+16** | coût 2 (1) → **1 (0)** |
+| Tir du cœur | +10 | **+18** | il **Marque** la cible (le bot jouait rarement Marque de la proie avant) |
+| Champ de pièges | +42 | **+30** | 3 Pièges → **2 Pièges, coût 1 (0), Épuisé** |
+
+**Le bot :** il valorise les Pièges posés (selon le nombre d'ennemis), l'Esprit actif, la Marque sur un ennemi vivant, le Loup spectral et les bonus du compagnon. Il vise avec Tir arcanique, Flèche muselière et Flèche apaisante, prend le Bois ancien chez le trappeur et façonne toujours l'arc au feu de camp.
+
+**À surveiller :**
+- **Le niveau 5 (34 %)** est un peu au-dessus de la cible (15-30 %) : le Loup fait 5 dégâts gratuits par tour dès le départ, et Piégeur né fait exploser un Piège à chaque combat. Les joueurs diront si le début de run est trop facile.
+- **Champ de pièges** reste la carte épique la plus forte (+30). L'arbre Survie complet (56 %) reste quand même au niveau des autres classes.
+- **L'Ours et le Raptor** ne sont pas mesurés par le bot. Le Loup est sans doute le meilleur choix pour lui, ce qui est à vérifier avec des joueurs.
+

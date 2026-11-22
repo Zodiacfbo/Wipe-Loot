@@ -15,6 +15,7 @@ import {
   livingEnemies,
   log,
   playerAttack,
+  power,
 } from './actions';
 import { ENEMIES, isInterruptible } from './enemies';
 import { random } from './rng';
@@ -26,6 +27,7 @@ import { DEMONISTE_CARDS } from './cards_demoniste';
 import { PRETRE_CARDS } from './cards_pretre';
 import { VOLEUR_CARDS } from './cards_voleur';
 import { PALADIN_CARDS } from './cards_paladin';
+import { CHASSEUR_CARDS } from './cards_chasseur';
 
 export interface PlayContext {
   c: CombatState;
@@ -70,6 +72,9 @@ export interface CardDef {
   /** Paladin : une carte Sceau, une carte de soin (Science du combat). */
   seal?: boolean;
   healCard?: boolean;
+  /** Chasseur : une carte Ordre (Dressage), une carte Piège. */
+  order?: boolean;
+  trap?: boolean;
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
@@ -749,7 +754,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   },
 };
 
-export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS, ...VOLEUR_CARDS, ...PALADIN_CARDS };
+export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS, ...VOLEUR_CARDS, ...PALADIN_CARDS, ...CHASSEUR_CARDS };
 
 /** La classe d'une carte. */
 export function cardClass(id: string): string {
@@ -787,7 +792,15 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   // Paladin : Sceaux bénis, Science du combat, Purification rapide, Rétribution.
   const g = c.gear ?? {};
   if ((def.seal && g.sealsFree) || (def.healCard && c.healFree) || (id === 'lumiere_purificatrice' && g.purifyFree) || (id === 'juste_chatiment' && g.retributionFree)) return 0;
+  // Chasseur : Maître de meute, Sang-froid, Riposte sauvage.
+  if (id === 'esprit_meute' && g.packFree) return 0;
+  if (def.type === 'Attaque' && g.hunterFirstFree && !c.firstAttackDone && c.companion) return 0;
+  if (id === 'riposte_sauvage' && c.hunterBlocked) return 0;
   let cost = up && def.costUp !== undefined ? def.costUp : def.cost;
+  // Dressage (Ordres), Calme absolu (Tir ajusté, Tir de précision), Tir rapide (Attaques).
+  if (def.order) cost = Math.max(0, cost - power(c, 'dressage'));
+  if ((id === 'tir_ajuste' || id === 'tir_precision') && power(c, 'calme_absolu') && !c.calmUsed) cost = Math.max(0, cost - 1);
+  if (def.type === 'Attaque' && c.rapidFire) cost = Math.max(0, cost - 1);
   const d = c.player.debuffs;
   if (d && (d.impie > 0 || d.afflictions?.includes('bleue')) && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie, Affliction bleue
   if (def.type === 'Compétence') cost += c.gear?.skillCost ?? 0; // Marteau des profondeurs

@@ -30,11 +30,12 @@ import { addHallucination, folieStartTurn, gainFolie } from './folie';
 import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
 import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
 import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
+import { afterHunterCard, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
-import type { CardInstance, CombatMods, CombatState, EnemyState, Intent, PetId, PlayerCurse, Posture } from './types';
+import type { CardInstance, CombatMods, CombatState, CompanionId, EnemyState, Intent, PetId, PlayerCurse, Posture } from './types';
 
 // --- Sorts de barre : voir spells.ts ---
 export { SPELLS, type SpellDef } from './spells';
@@ -54,6 +55,8 @@ export function createCombat(
   classId = 'guerrier',
   /** Démoniste : les éclats d'âme de la run et le familier choisi. */
   demon?: { shards: number; pet: PetId },
+  /** Chasseur : le compagnon choisi au départ de l'expédition. */
+  companion?: CompanionId,
 ): CombatState {
   const c: CombatState = {
     turn: 0,
@@ -71,6 +74,8 @@ export function createCombat(
     ...(classId === 'voleur' ? { combo: Math.min(5, gear.startCombo ?? 0), stealth: true, stealthTurns: gear.longStealth ? 2 : 1, stormCount: 0 } : {}),
     // Le Paladin commence sans Sceau ni Aura.
     ...(classId === 'paladin' ? { seals: [], aura: null, blockedSince: 0, zealGained: 0 } : {}),
+    // Le Chasseur : son compagnon, sans Esprit ni Piège au départ.
+    ...(classId === 'chasseur' ? { companion: companion ?? 'loup', aspect: null, traps: [], mark: null, frenzyStacks: 0 } : {}),
     enemies: [],
     draw: [],
     hand: [],
@@ -176,6 +181,8 @@ export function createCombat(
   if (gear.startAegis) gainAegis(c, gear.startAegis, false);
   // Maître invocateur : le familier agit dès le début du combat.
   if (gear.petOpening) petAct(c, gear.petOpening);
+  // Chasseur : Esprit animal, Piégeur né.
+  hunterStartCombat(c);
   if (gear.startFiole) addStatusToHand(c, 'fiole_instable', gear.startFiole);
   // Butin d'Yzhar : Bague du dieu dormant, Lame de l'oubli.
   for (let i = 0; i < (gear.startCopyUp ?? 0); i++) {
@@ -283,6 +290,8 @@ export function startPlayerTurn(c: CombatState): void {
   }
   // Paladin : Fervent, Ailes de justice, Grâce du croisé ; le Sceau de sagesse fait piocher.
   const wisdomDraw = isPaladin(c) ? paladinStartTurn(c) : 0;
+  // Chasseur : Feindre la mort et Tir rapide s'arrêtent, l'Esprit du guépard fait piocher.
+  const aspectDraw = hunterStartTurn(c);
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
@@ -306,7 +315,7 @@ export function startPlayerTurn(c: CombatState): void {
     p.energy += 1;
     p.distortion = false;
   }
-  drawCards(c, Math.max(0, 5 + manaDraw + distortion + wisdomDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
+  drawCards(c, Math.max(0, 5 + manaDraw + distortion + wisdomDraw + aspectDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
   const d = (p.debuffs ??= emptyDebuffs());
   startTurnAct2(c);
@@ -603,6 +612,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   }
   // Paladin : Sceau de lumière et du rempart, Faveur divine, Science du combat.
   if (isPaladin(c)) afterPaladinCard(c, def, attack);
+  // Chasseur : Concentration et Respiration lente ne servent qu'à une Attaque.
+  if (isHunter(c)) afterHunterCard(c, attack);
   // Voix de stentor : les Cris donnent plus de rage et démoralisent plus longtemps.
   if (c.gear?.shoutBonus && SHOUTS.has(card.id)) {
     gainRage(c, c.gear.shoutBonus);
@@ -660,14 +671,14 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   if (!canUseSpell(c, index)) return false;
   const s = c.spells[index];
   const def = SPELLS[s.id];
-  const target = resolveTarget(c, def.needsTarget, targetUid, ['guerrier', 'voleur'].includes(def.classId ?? 'guerrier'));
+  const target = resolveTarget(c, def.needsTarget, targetUid, ['guerrier', 'voleur', 'chasseur'].includes(def.classId ?? 'guerrier'));
   if (target === 'invalid') return false;
   c.player.energy -= def.cost;
   if (def.shardCost && c.shards !== undefined) c.shards -= def.shardCost;
   if (target) c.lastTarget = target.uid;
   // Les sorts de barre du Mage et du Démoniste sont des Sorts (bonus aux Sorts, Malédiction des éléments).
   const spellClass = def.classId ?? 'guerrier';
-  if (spellClass !== 'guerrier' && spellClass !== 'voleur' && spellClass !== 'paladin') c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
+  if (!['guerrier', 'voleur', 'paladin', 'chasseur'].includes(spellClass)) c.playing = { cost: def.cost, type: 'Sort', id: def.id, aoe: !def.needsTarget };
   def.cast(c, target);
   c.playing = undefined;
   s.cooldown = def.once ? 999 : spellCooldown(def, c.gear);
@@ -792,6 +803,9 @@ export function endTurn(c: CombatState): void {
     }
   }
   if (c.phase !== 'player') return;
+  // Chasseur : le compagnon et le Loup spectral.
+  hunterEndTurn(c);
+  if (c.phase !== 'player') return;
   felhunterLock(c);
   checkDebuffs(c);
   enemyTurn(c);
@@ -825,10 +839,14 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent
   if (intent.kind === 'attack' && c.gear?.bigHitReduce && dmg >= 10) dmg -= c.gear.bigHitReduce;
   // Écaille de Prismagor, Carapace divine : un pourcentage de dégâts en plus ou en moins.
   if (c.gear?.hurtPct) dmg *= 1 + c.gear.hurtPct / 100;
+  // Chasseur : Esprit du guépard, Feindre la mort.
+  if (intent.kind === 'attack') dmg = hunterDamageTaken(c, dmg);
   return Math.max(0, Math.floor(dmg));
 }
 
 export function isEnraged(c: CombatState): boolean {
+  // Flèche apaisante : le Berserk est suspendu pendant ce tour.
+  if (c.soothedTurn === c.turn) return false;
   return c.enrageTurn !== null && c.turn >= c.enrageTurn;
 }
 
@@ -868,6 +886,8 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         if (intent.pierce) c.player.block += kept;
         // Paladin : épines sacrées, Pavois, Bouclier du croisé, Fervent, Juste châtiment.
         paladinOnAttacked(c, e, dmg, blockBefore - c.player.block, lost);
+        // Chasseur : Contre-attaque, Riposte sauvage.
+        hunterOnAttacked(c, e, dmg, Math.min(blockBefore, dmg));
         if (intent.stealGold && lost > 0) {
           c.goldStolen = (c.goldStolen ?? 0) + intent.stealGold;
           fx(c, { kind: 'buff', who: e.uid, label: `Avale ${intent.stealGold} or !` });
@@ -1025,6 +1045,8 @@ function enemyTurn(c: CombatState): void {
 }
 
 function enemyTurnInner(c: CombatState): void {
+  // Chasseur : les Pièges se déclenchent sur le premier ennemi qui agit.
+  springTraps(c);
   for (const e of [...c.enemies]) {
     c.dotTicking = false;
     if (c.phase !== 'player') break;
@@ -1341,6 +1363,8 @@ function lineageCurse(c: CombatState): void {
   } else if (c.classId === 'paladin') {
     c.seals = [];
     log(c, 'Malédiction de lignée : ton Sceau se brise, et tu ne peux plus en activer pendant 2 tours.');
+  } else if (c.classId === 'chasseur') {
+    log(c, 'Malédiction de lignée : ton compagnon s\'enfuit, il ne fait rien pendant 2 tours.');
   } else if (c.classId === 'demoniste') {
     log(c, 'Malédiction de lignée : pendant 2 tours, ton familier se retourne contre toi.');
   } else {
