@@ -51,6 +51,12 @@ function evaluate(c: CombatState): number {
     if (e.defId === 'vulkhar' && (e.phase ?? 1) === 1) enemyHp += e.submerged ? 40 : 260;
     // Chaque Rejeton encore en vie soignera Vulkhar de 15 PV quand il refera surface.
     if (e.defId === 'rejeton') enemyHp += 15;
+    // Ossyrax a deux vies, et un Serviteur rapiécé se relève tant qu'un Alchimiste vit : la vie suivante compte déjà
+    // (sinon le bot n'ose pas achever et le combat ne finit jamais).
+    if (e.defId === 'ossyrax' && !e.revived) enemyHp += 45;
+    if (e.defId === 'serviteur' && !e.revived && c.enemies.some((o) => o.defId === 'alchimiste' && !o.dead)) enemyHp += 10;
+    // Méhkar : les Copies qu'il créera encore (2 par palier restant) comptent déjà, pour que le bot ose passer les paliers.
+    if (e.defId === 'mehkar') { const left = 3 - (e.splits ?? 0); enemyHp += left * 2 * 15; threat += left * 2 * 6; }
     // Yzhar : l'Œil ouvert, il reste tout le Corps ; dans les entrailles, les Tentacules intérieurs passent avant tout.
     if (e.defId === 'yzhar' && (e.phase ?? 1) === 1) enemyHp += 300;
     if (e.defId === 'tentacule_interieur') enemyHp += e.hp * 2;
@@ -528,6 +534,8 @@ export interface RunResult {
   victory: boolean;
   /** Faux si la run s'est bloquée (le bot n'a pas su avancer) : un bug du bot ou du jeu. */
   ended: boolean;
+  /** L'écran où la run s'est bloquée. */
+  stuckOn?: string;
   floor: number;
   wipesUsed: number;
   fights: FightLog[];
@@ -615,5 +623,5 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
     // Une potion de soin entre deux combats si besoin.
     if (run.screen === 'map') run.potions.forEach((id, slot) => { if (id && canDrink(run, slot) && run.hp < run.maxHp * 0.5) drinkPotion(run, slot); });
   }
-  return { victory: false, ended: false, floor: 0, wipesUsed: 3 - run.wipesLeft, fights };
+  return { victory: false, ended: false, stuckOn: `${run.screen} (acte ${run.act}${run.screen === 'event' ? `, ${run.eventId}` : ''}${run.combat ? `, ${run.encounter?.name}, tour ${run.combat.turn}, phase ${run.combat.phase}, PV ${run.combat.player.hp}, ennemis ${run.combat.enemies.map((e) => `${e.defId}:${e.hp}${e.dead ? '†' : ''}`).join(' ')}\n    ${run.combat.log.slice(-12).join('\n    ')}` : ''})`, floor: 0, wipesUsed: 3 - run.wipesLeft, fights };
 }

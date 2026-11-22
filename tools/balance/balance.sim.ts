@@ -75,11 +75,12 @@ it('équilibrage', () => {
     let act3 = 0;
     let floors = 0;
     let stuck = 0;
+    let stuckOn: string | undefined;
     const fights = new Map<string, FightLog[]>();
     for (let seed = 1; seed <= RUNS; seed++) {
       const r = simulateRun(seed * 104729, prof.talents, 0, prof.cls);
       if (r.victory) wins++;
-      if (!r.ended) stuck++;
+      if (!r.ended) { stuck++; stuckOn ??= r.stuckOn; }
       if (r.floor > 10) act2++;
       if (r.floor > 20) act3++;
       floors += r.floor;
@@ -91,6 +92,7 @@ it('équilibrage', () => {
     }
     lines.push(`\n=== ${prof.name} : ${RUNS} runs ===`);
     lines.push(`Victoire : ${pct(wins, RUNS)} (± ${margin(wins, RUNS)}) · Vulkhar vaincu : ${pct(act2, RUNS)} · Vhaeryx vaincu : ${pct(act3, RUNS)} · étage moyen atteint : ${(floors / RUNS).toFixed(1)}${stuck ? ` · ⚠️ runs bloquées : ${stuck}` : ''}`);
+    if (stuckOn) lines.push(`Première run bloquée : ${stuckOn}`);
     lines.push('Combat                                    | joués | wipe au 1er essai | PV perdus (moy.)');
     const rows = [...fights.entries()].sort((a, b) => b[1].length - a[1].length);
     for (const [name, list] of rows) {
