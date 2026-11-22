@@ -54,6 +54,8 @@ function evaluate(c: CombatState): number {
     // Ossyrax a deux vies, et un Serviteur rapiécé se relève tant qu'un Alchimiste vit : la vie suivante compte déjà
     // (sinon le bot n'ose pas achever et le combat ne finit jamais).
     if (e.defId === 'ossyrax' && !e.revived) enemyHp += 45;
+    // Vhaeryx : sous 20 % (phase 3), les cobayes tombés se relèvent (6 au plus) : ils comptent déjà.
+    if (e.defId === 'vhaeryx' && (e.phase ?? 1) < 3) { const n = Math.min(6, c.fallen ?? 0); enemyHp += n * 10; threat += n * 6; }
     if (e.defId === 'serviteur' && !e.revived && c.enemies.some((o) => o.defId === 'alchimiste' && !o.dead)) enemyHp += 10;
     // Méhkar : les Copies qu'il créera encore (2 par palier restant) comptent déjà, pour que le bot ose passer les paliers.
     if (e.defId === 'mehkar') { const left = 3 - (e.splits ?? 0); enemyHp += left * 2 * 15; threat += left * 2 * 6; }
@@ -177,6 +179,17 @@ function druidValue(c: CombatState): number {
 
 const clone = (c: CombatState): CombatState => JSON.parse(JSON.stringify(c));
 
+/** Les PV perdus par les ennemis déjà là entre deux états (sans compter ceux qui apparaissent ou se soignent). */
+function damageDealt(before: CombatState, after: CombatState): number {
+  let sum = 0;
+  for (const e of before.enemies) {
+    if (e.dead) continue;
+    const now = after.enemies.find((x) => x.uid === e.uid);
+    sum += now ? Math.max(0, e.hp - (now.dead ? 0 : now.hp)) : e.hp;
+  }
+  return sum;
+}
+
 interface Action { kind: 'card' | 'spell' | 'form'; index: number; target?: number; form?: FormId }
 
 function candidates(c: CombatState): Action[] {
@@ -222,7 +235,10 @@ export function playTurn(run: RunState): void {
     for (const a of candidates(c)) {
       const copy = clone(c);
       if (!apply(copy, a)) continue;
-      const gain = evaluate(copy) - base;
+      // Un combat qui s'éternise : les dégâts infligés comptent aussi, même s'ils font passer un cap à l'ennemi
+      // (nouvelle phase, Copies, division) que l'évaluation voit comme un recul, et de plus en plus avec les tours.
+      // Sinon le combat ne finit jamais.
+      const gain = evaluate(copy) - base + (c.turn > 15 ? damageDealt(c, copy) * Math.min(20, c.turn - 13) : 0);
       if (gain > bestScore) { bestScore = gain; best = a; }
     }
     if (!best) {
