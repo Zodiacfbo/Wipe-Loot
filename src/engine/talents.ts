@@ -400,8 +400,60 @@ export const CHASSEUR_TREES: TreeDef[] = [
   },
 ];
 
+/** Les arbres du Druide. Référence : docs/classes/DRUIDE.md (§7) */
+export const DRUIDE_TREES: TreeDef[] = [
+  {
+    id: 'equilibre', name: 'Équilibre', theme: 'La forme astrale',
+    tiers: [
+      [t('colere_amelioree', 'Colère améliorée', 'Colère inflige +2 dégâts.', { fx: { wrathDruidBonus: 2 } }),
+        t('lune_ardente', 'Lune ardente', 'Feu de lune inflige +1 dégât par tour.', { fx: { moonfireBonus: 1 } })],
+      [t('lumiere_stellaire', 'Lumière stellaire', 'Une fois par tour, Feu stellaire coûte 1 de moins.', { fx: { starfireDiscount: 1 } }),
+        t('nature_implacable', 'Nature implacable', 'Tes DoT durent 1 tour de plus.', { fx: { dotDuration: 1 } })],
+      [t('t_cyclone', 'Cyclone', 'Ajoute ce sort à ta barre (1 énergie) : Contrôle 2 tours, Interruption contre un boss.', { spell: 'cyclone' }),
+        t('t_ecorce', 'Écorce', 'Ajoute ce sort à ta barre : −30 % de dégâts subis jusqu\'à ton prochain tour.', { spell: 'ecorce' })],
+      [t('equilibre_parfait', 'Équilibre parfait', 'Éclipse est Inné.', { fx: { eclipseInnate: 1 } }),
+        t('dr_quatrieme_emplacement_e', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_convergence', 'Convergence céleste', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'convergence' })],
+    ],
+    cards: ['forme_astrale', 'feu_stellaire', 'eclat_lunaire', 'nuee_insectes', 'lueur_lunaire', 'etoiles_filantes', 'rayon_lunaire',
+      'typhon', 'grace_nature', 'puissance_astrale', 'ouragan', 'eclipse', 'sylvains', 'convergence'],
+  },
+  {
+    id: 'farouche', name: 'Combat farouche', theme: 'L\'ours et le félin',
+    tiers: [
+      [t('dr_ferocite', 'Férocité', 'Tes Attaques d\'Ours et de Félin infligent +2 dégâts.', { fx: { feralBonus: 2 } }),
+        t('fourrure_epaisse', 'Fourrure épaisse', '+8 PV max.', { maxHp: 8 })],
+      [t('rage_instinctive', 'Rage instinctive', 'En forme d\'ours, à la fin de ton tour, gagne 1 blocage par point de rage.', { fx: { rageBlock: 1 } }),
+        t('instinct_predateur', 'Instinct du prédateur', 'Prendre la forme de félin donne 1 point de combo.', { fx: { catEnterCombo: 1 } })],
+      [t('t_regeneration_sauvage', 'Régénération sauvage', 'Ajoute ce sort à ta barre : en Ours, dépense ta rage, soigne 2 PV par point.', { spell: 'regeneration_sauvage' }),
+        t('t_instinct_survie_druide', 'Instinct de survie', 'Ajoute ce sort à ta barre : 15 blocage.', { spell: 'instinct_survie_druide' })],
+      [t('metamorphose_rapide', 'Métamorphose rapide', 'Une fois par tour, changer de forme avec le bouton coûte 0.', { fx: { freeShift: 1 } }),
+        t('dr_quatrieme_emplacement_f', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_coeur_sauvage', 'Cœur sauvage', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'coeur_sauvage' })],
+    ],
+    cards: ['forme_ours', 'coup_de_griffe', 'rugissement', 'revers_patte', 'rage_frenetique', 'charge_farouche', 'cuir_epais', 'instinct_protecteur',
+      'forme_felin', 'griffure', 'laceration', 'morsure_feroce', 'dechirure', 'roder', 'fureur_tigre', 'coeur_sauvage'],
+  },
+  {
+    id: 'restauration', name: 'Restauration', theme: 'La sève qui guérit',
+    tiers: [
+      [t('dr_soins_ameliores', 'Soins améliorés', 'Tes soins rendent +2 PV.', { fx: { healBonus: 2 } }),
+        t('ecorce_naturelle', 'Écorce naturelle', 'Commence chaque combat avec 6 blocage.', { fx: { startBlock: 6 } })],
+      [t('renouveau_ameliore', 'Renouveau amélioré', 'Renouveau et Rétablissement soignent 1 PV de plus par tour.', { fx: { renewBonus: 1 } }),
+        t('harmonie', 'Harmonie', 'En forme normale, chaque soin te donne la moitié de son montant en blocage.', { fx: { harmony: 1 } })],
+      [t('t_renaissance', 'Renaissance', 'Ajoute ce sort à ta barre : une fois par combat, reviens à 40 % de tes PV si tu tombes à 0.', { spell: 'renaissance' }),
+        t('t_benediction_sylvestre', 'Bénédiction sylvestre', 'Ajoute ce sort à ta barre (1 énergie) : soigne 8 PV, gagne 8 blocage.', { spell: 'benediction_sylvestre' })],
+      [t('racines_vie', 'Racines de vie', 'À la fin de chaque combat gagné, soigne 4 PV.', { fx: { healAfterCombat: 4 } }),
+        t('dr_quatrieme_emplacement_r', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
+      [t('t_arbre_vie', 'Arbre de vie', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'arbre_vie' })],
+    ],
+    cards: ['toucher_guerisseur', 'retablissement', 'ecorce_vive', 'bourgeon', 'fleurs_sauvages', 'enracinement', 'pollen_apaisant',
+      'eclosion', 'germination', 'elan_nature', 'esprit_foret', 'tranquillite', 'symbiose', 'arbre_vie'],
+  },
+];
+
 /** Les arbres de chaque classe jouable. */
-export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES, paladin: PALADIN_TREES, chasseur: CHASSEUR_TREES };
+export const CLASS_TREES: Record<string, TreeDef[]> = { guerrier: TREES, mage: MAGE_TREES, demoniste: DEMONISTE_TREES, pretre: PRETRE_TREES, voleur: VOLEUR_TREES, paladin: PALADIN_TREES, chasseur: CHASSEUR_TREES, druide: DRUIDE_TREES };
 
 /** Les arbres d'une classe (ceux du Guerrier par défaut). */
 export function treesFor(classId: string | undefined): TreeDef[] {

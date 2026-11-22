@@ -95,6 +95,19 @@ export const TALENT_ICONS: Record<string, string> = {
   h_reflexes: 'carte_desengagement', piegeur_ne: 'carte_piege_immolation',
   t_fleche_apaisante: 'carte_dard_paralysant', t_feindre_mort_s: 'carte_ordre_protege',
   instinct_chasseur: 'carte_pieges_serie', survivant: 'carte_sens_aiguises',
+  // Druide
+  colere_amelioree: 'carte_colere', lune_ardente: 'carte_feu_de_lune',
+  lumiere_stellaire: 'carte_feu_stellaire', nature_implacable: 'carte_nuee_insectes',
+  t_cyclone: 'carte_typhon', t_ecorce: 'carte_ecorce_vive',
+  equilibre_parfait: 'carte_eclipse', dr_quatrieme_emplacement_e: 'talent_emplacement',
+  dr_ferocite: 'carte_laceration', fourrure_epaisse: 'carte_cuir_epais',
+  rage_instinctive: 'carte_rage_frenetique', instinct_predateur: 'carte_forme_felin',
+  t_regeneration_sauvage: 'carte_forme_ours', t_instinct_survie_druide: 'carte_enracinement',
+  metamorphose_rapide: 'carte_instinct_sauvage', dr_quatrieme_emplacement_f: 'talent_emplacement',
+  dr_soins_ameliores: 'carte_toucher_guerisseur', ecorce_naturelle: 'carte_garde_sylvestre',
+  renouveau_ameliore: 'carte_renouveau', harmonie: 'carte_pollen_apaisant',
+  t_renaissance: 'carte_bourgeon', t_benediction_sylvestre: 'carte_fleurs_sauvages',
+  racines_vie: 'carte_esprit_foret', dr_quatrieme_emplacement_r: 'talent_emplacement',
 };
 
 /** Le fichier de l'icône d'un talent (dans public/assets/). */
@@ -153,4 +166,11 @@ export const TALENT_REFS: Record<string, { cards?: string[]; spells?: string[] }
   mortalite: { cards: ['tir_fatal'] },
   h_reflexes: { cards: ['desengagement'] },
   piegeur_ne: { cards: ['piege_explosif'] },
+  // Druide
+  colere_amelioree: { cards: ['colere'] },
+  lune_ardente: { cards: ['feu_de_lune'] },
+  lumiere_stellaire: { cards: ['feu_stellaire'] },
+  equilibre_parfait: { cards: ['eclipse'] },
+  instinct_predateur: { cards: ['forme_felin'] },
+  renouveau_ameliore: { cards: ['renouveau', 'retablissement'] },
 };

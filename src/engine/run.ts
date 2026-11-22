@@ -65,7 +65,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
 
 /** L'état de la quête légendaire de chaque classe. */
 export const LEGENDARY_QUEST = {
-  guerrier: 'brisemonts', mage: 'veilleur', demoniste: 'veilleur', pretre: 'equinoxe', voleur: 'sillon', paladin: 'aurore', chasseur: 'corde',
+  guerrier: 'brisemonts', mage: 'veilleur', demoniste: 'veilleur', pretre: 'equinoxe', voleur: 'sillon', paladin: 'aurore', chasseur: 'corde', druide: 'veilleur',
 } as Record<string, 'brisemonts' | 'veilleur' | 'equinoxe' | 'sillon' | 'aurore' | 'corde'>;
 
 /** La carte d'un acte. */
@@ -401,7 +401,7 @@ export function afterCombatAction(run: RunState): void {
         run.aurore = 'purifiee';
         run.questNote = 'La Lame ternie : quand Ossyrax s\'effondre pour de bon, la nécromancie quitte la lame, qui se met à luire. Au prochain feu de camp, tu pourras rallumer l\'Aurore ardente.';
       }
-      if (enc?.loot === 'zhaal' && (run.classId === 'mage' || run.classId === 'demoniste') && !run.veilleur) {
+      if (enc?.loot === 'zhaal' && ['mage', 'demoniste', 'druide'].includes(run.classId) && !run.veilleur) {
         run.veilleur = 'fragment';
         run.questNote = 'Fragment du Veilleur : un éclat du bâton du premier gardien des arcanes. L\'esprit du Veilleur t\'attend dans un observatoire en ruine, à l\'acte 2.';
       }
@@ -1216,10 +1216,34 @@ export function campfireReforge(run: RunState): boolean {
 
 // --- Feu de camp : lier les fragments du Bâton du Veilleur (Mage) ---
 
-/** Peut-on lier les fragments ici ? Il faut la Tête du bâton, et une carte rare à sacrifier (Mage) ou 3 éclats d'âme (Démoniste). */
+/** Peut-on lier les fragments ici ? Il faut la Tête du bâton, et une carte rare à sacrifier (Mage), 3 éclats d'âme (Démoniste)
+ *  ou un objet porté (hors arme) à rendre à la terre (Druide). */
 export function canBindStaff(run: RunState): boolean {
   if (run.screen !== 'campfire' || run.veilleur !== 'tete' || run.act < LEGENDARY_MIN_ACT) return false;
+  if (run.classId === 'druide') return druidOfferings(run).length > 0;
   return run.classId === 'demoniste' ? run.shards >= 3 : run.deck.some((c) => CARDS[c.id].rarity === 'rare');
+}
+
+/** Les objets que le Druide peut rendre à la terre (tout ce qu'il porte, sauf l'arme : le bâton la remplace). */
+export function druidOfferings(run: RunState): SlotKey[] {
+  return SLOT_KEYS.filter((k) => k !== 'arme' && run.equipment[k]);
+}
+
+/** Le Druide rend un objet à la terre : le Bâton du Veilleur (version Druide) est équipé. */
+export function campfireBindStaffDruid(run: RunState, slot: SlotKey): boolean {
+  if (run.classId !== 'druide' || !canBindStaff(run) || !druidOfferings(run).includes(slot)) return false;
+  const old = run.equipment[slot]!;
+  // L'objet emporte ses PV max avec lui (sauf s'il était brisé : ils étaient déjà retirés).
+  if (!run.broken.includes(slot)) {
+    run.maxHp -= ITEMS[old].fx.maxHp ?? 0;
+    run.hp = Math.min(run.hp, run.maxHp);
+  }
+  run.equipment[slot] = null;
+  run.broken = run.broken.filter((k) => k !== slot);
+  putOn(run, 'baton_veilleur_druide', 'arme');
+  run.veilleur = 'forged';
+  backToMap(run);
+  return true;
 }
 
 /** Scelle le Bâton du Veilleur, qui est équipé : le Mage sacrifie une carte rare, le Démoniste 3 éclats d'âme. */

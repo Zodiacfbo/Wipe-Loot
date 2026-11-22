@@ -1,5 +1,5 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
-// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur, le Paladin et le Chasseur sont jouables dans le prototype.
+// Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur, le Paladin, le Chasseur et le Druide sont jouables dans le prototype.
 
 export interface ClassInfo {
   id: string;
@@ -86,7 +86,9 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Quatre totems qui travaillent en continu, pendant que la foudre s\'abat sur le boss.',
   },
   {
-    id: 'druide', name: 'Druide', color: '#E8742A', playable: false, difficulty: 3, hp: 75,
+    id: 'druide', name: 'Druide', color: '#E8742A', playable: true, difficulty: 3, hp: 75,
+    starterDeck: ['colere', 'colere', 'colere', 'colere', 'garde_sylvestre', 'garde_sylvestre', 'garde_sylvestre', 'garde_sylvestre', 'coup_de_griffe', 'griffure'],
+    startSpell: 'seve_vitale', sprite: 'druide.png',
     quote: 'Je suis l\'ours qui protège, le félin qui chasse, la lune qui foudroie.',
     role: 'Tout à la fois, selon la forme', resource: 'Formes (Ours, Félin, Astrale)',
     fantasy: 'Encaisser le gros coup en ours, puis passer en félin au tour suivant pour l\'achever.',

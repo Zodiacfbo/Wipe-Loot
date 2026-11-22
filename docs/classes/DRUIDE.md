@@ -268,3 +268,34 @@ Cet arbre couvre **deux formes**, comme dans les MMO où le druide farouche est 
   - Instinct protecteur combiné à Rage frénétique peut générer beaucoup de blocage.
   - Le surcoût de 1 énergie hors forme doit rester assez punitif pour que la forme compte.
 - **Interface :** la forme active doit être très visible, et les cartes jouables au prix normal doivent se distinguer de celles qui coûtent plus cher.
+
+---
+
+## 12. Ce qui est en jeu dans le prototype
+
+**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §18) :
+
+| Élément | Fiche | En jeu |
+|---|---|---|
+| Colère | 6 dégâts (9) | **7 dégâts (10)** |
+| Garde sylvestre (départ) | 5 blocage (8) | **6 blocage (9)** : le renfort de départ des autres classes |
+| Sève vitale | recharge 4 | **recharge 3** |
+| Forme d'ours | +2 Robustesse | **+3 Robustesse** |
+| Rage instinctive (talent) | prendre la forme d'ours donne 3 rage | **en forme d'ours, à la fin de ton tour, 1 blocage par point de rage** (la rage n'avait presque aucun usage) |
+| Férocité (talent) | Attaques d'Ours et de Félin +1 | **+2** |
+| Convergence céleste (épique) | coût 2, 4 dégâts (6 amélioré) | **coût 1 (0 amélioré), 4 dégâts** |
+| Cœur sauvage (épique) | coût 2 (1) | **coût 1 (0)** |
+| Fleurs sauvages | Dissipation d'un débuff au choix | **Dissipation (Magie et Poison)** |
+| Rugissement de défi (loot) | l'intention de tous les ennemis devient une Attaque | **tous les ennemis Démoralisés 1 tour, 6 blocage** |
+| Faveur de la lune (loot) | — | **nouveau sort de loot : 7 dégâts, recharge 3** |
+
+**Les règles précisées :**
+- **Les formes :** le Druide commence chaque combat en forme normale. Le premier changement de forme est gratuit tant qu'aucune carte n'a été jouée au premier tour, puis le bouton coûte 1 énergie. Les cartes de forme (Forme d'ours, Forme de félin, Forme astrale) et Instinct sauvage changent de forme gratuitement. Instinct sauvage passe à la forme suivante : Ours, puis Félin, puis Astrale.
+- **Le surcoût :** une carte marquée Ours, Félin ou Astrale (le mot dans le bandeau de la carte) coûte 1 de plus hors de sa forme. Son coût s'affiche alors en rouge.
+- **La rage de l'Ours** (0 à 10) : +1 quand un ennemi t'attaque en Ours, +1 par Attaque d'Ours jouée en Ours, plus les cartes qui en donnent. **Le combo du Félin** (0 à 5) : séparé de celui du Voleur. Les finishers (Morsure féroce, Déchirure) le consomment.
+- **La forme normale** donne +3 à tous les soins, y compris Renouveau, Esprit de la forêt et Tranquillité.
+- **Renouveau et Rétablissement** utilisent le même soin sur la durée (le plus fort des deux est gardé). Éclosion le consomme.
+- **Renaissance** se lance à l'avance, une fois par combat. Si tu tombes à 0 PV ensuite, tu reviens à 40 % de tes PV max.
+- **La Malédiction de lignée** ramène en forme normale, et bloque les changements de forme pendant 2 tours.
+- **Le Bâton du Veilleur (Druide) :** la quête est commune avec le Mage et le Démoniste (Zhaal, puis l'observatoire). Au feu de camp, « Lier par la nature » : le Druide choisit un objet porté (hors arme) qu'il rend à la terre. Avec le bâton, le bouton de forme ne coûte plus d'énergie.
+- **Le sprite** change avec la forme (normale, ours, félin, astrale), avec un flash de couleur, comme la Forme d'Ombre du Prêtre.

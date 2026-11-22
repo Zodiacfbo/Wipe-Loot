@@ -63,6 +63,9 @@ export interface Trap {
   value: number;
 }
 
+/** Druide : les quatre formes. */
+export type FormId = 'normale' | 'ours' | 'felin' | 'astrale';
+
 /** Paladin : les Sceaux et les Auras. */
 export type SealId = 'droiture' | 'croise' | 'lumiere' | 'sagesse' | 'rempart' | 'vengeance';
 export type AuraId = 'devotion' | 'resistance' | 'epines';
@@ -393,7 +396,7 @@ export interface CombatState {
   /** L'Orbe de distorsion a déjà servi pendant ce combat. */
   orbUsed?: boolean;
   /** La carte en train d'être jouée (pour les bonus qui dépendent de son coût ou de son type). */
-  playing?: { cost: number; type: CardType; id: string; school?: School; aoe?: boolean; opener?: boolean };
+  playing?: { cost: number; type: CardType; id: string; school?: School; aoe?: boolean; opener?: boolean; form?: FormId };
   /** Les ennemis sont en train de jouer leur tour. */
   enemyActing?: boolean;
   /** Puissance déjà gagnée avec la Pierre de magma. */
@@ -557,6 +560,34 @@ export interface CombatState {
   trapEnergyNext?: number;
   /** Flèche apaisante : le Berserk est suspendu pendant ce tour-ci (numéro du tour). */
   soothedTurn?: number;
+  /** Druide — la forme active (sa présence marque un combat de Druide), la rage de l'Ours et le combo du Félin. */
+  form?: FormId;
+  bearRage?: number;
+  catCombo?: number;
+  /** Le premier changement de forme du combat est gratuit (avant la première carte). */
+  formStartFree?: boolean;
+  /** Métamorphose rapide : le changement gratuit du tour est déjà utilisé. */
+  freeShiftUsed?: boolean;
+  /** Enracinement : plus de changement de forme ce tour-ci. */
+  rooted?: boolean;
+  /** Robustesse donnée par la forme active (retirée en la quittant). */
+  formRobustesse?: number;
+  /** Rôder : la prochaine Attaque de ce tour inflige double dégâts. Fureur du tigre : +X aux Attaques ce tour-ci. */
+  prowl?: boolean;
+  tigerFury?: number;
+  /** Éclipse : le prochain Sort lunaire double, ou le prochain Feu stellaire coûte 1 de moins. */
+  eclipseLunar?: boolean;
+  eclipseSolar?: boolean;
+  /** Lumière stellaire : la réduction du tour est utilisée. */
+  starfireUsed?: boolean;
+  /** Sylvains : dégâts par Sylvain, nombre et tours restants. */
+  treants?: { dmg: number; count: number; turns: number };
+  /** Tranquillité : tours restants (6 PV et 6 blocage au début de tes tours). */
+  tranquility?: number;
+  /** Renaissance : prête (une fois par combat). */
+  rebirth?: boolean;
+  /** Écorce : les dégâts subis sont réduits de 30 % jusqu'à ton prochain tour. */
+  barkskin?: boolean;
   /** Pacte de sang gratuit ce tour-ci (Bâton du Veilleur du Démoniste) déjà utilisé. */
   freePactUsed?: boolean;
   bleedDoneThisTurn?: boolean;

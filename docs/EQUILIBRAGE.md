@@ -477,3 +477,30 @@ Mesuré sur la run complète (trois actes, Yzhar compris), difficulté 0, 50 run
 - **Champ de pièges** reste la carte épique la plus forte (+30). L'arbre Survie complet (56 %) reste quand même au niveau des autres classes.
 - **L'Ours et le Raptor** ne sont pas mesurés par le bot. Le Loup est sans doute le meilleur choix pour lui, ce qui est à vérifier avec des joueurs.
 
+---
+
+## 18. Le Druide (novembre 2026)
+
+Mesuré sur la run complète (trois actes), difficulté 0, 50 runs par profil, profils 7 + 3.
+
+| Profil | Première version | Après réglages | Vulkhar / Vhaeryx vaincus |
+|---|---|---|---|
+| Niveau 1 | 0 % | **4 %** | 40 % / 8 % |
+| Niveau 5 (Équilibre 3, Restauration 2) | 4 % | **18 %** | 84 % / 52 % |
+| Niveau 10 (Équilibre 7, Restauration 3) | 16 % | **44 %** | 100 % / 82 % |
+| Niveau 10 (Combat farouche 7, Restauration 3) | 2 % | **44 %** | 96 % / 52 % |
+| Niveau 10 (Restauration 7, Équilibre 3) | 16 % | **46 %** | 94 % / 70 % |
+
+**Ce qui a changé :**
+- **Le bot** ne lançait jamais Sève vitale : il ne voit qu'une action à l'avance, et +2 énergie ne rapporte rien tout de suite. Comme pour le Pacte de sang, il la lance maintenant quand une carte de sa main devient jouable grâce à elle. À lui seul, ce réglage fait passer le niveau 10 de 10-16 % à 25-35 %.
+- **La base :** Colère 7 dégâts, Sève vitale recharge 3, Forme d'ours +3 Robustesse. Le niveau 1 passe de 0 % à 4 %.
+- **L'arbre farouche :** la rage de l'Ours ne servait presque à rien. Le talent Rage instinctive la transforme en blocage à la fin du tour, et Férocité donne +2. Cœur sauvage coûte 1 et donne aussi +3 blocage en Félin, comme le prévoit la fiche.
+  - Essayé puis écarté : le blocage de rage pour tous les Druides. L'Ours devenait le choix de tous les arbres, avec 50 % au niveau 5 et 80 % au niveau 10.
+- **L'arbre Équilibre :** Convergence céleste coûte 1 (0 améliorée).
+
+**Le bot :** il change de forme quand sa main le demande. Chaque carte de la forme active en main vaut un peu, un Sort vaut un peu plus en Astrale, une Attaque un peu plus en Félin. Il valorise la rage, le combo, Rôder, Fureur du tigre, les Sylvains, Tranquillité et Renaissance (contre un boss). Il lie toujours le Bâton du Veilleur en rendant le premier objet porté.
+
+**À surveiller :**
+- **Le Druide ⭐⭐⭐ reste un cran en dessous** des autres classes au niveau 10 (44-46 %, contre 48-65 %). C'est accepté pour une classe difficile, et le bot joue mal les changements de forme (il ne voit qu'une action à l'avance).
+- **Les mesures varient beaucoup d'une fois à l'autre** pour le Druide : 14 à 24 % pour le même profil farouche avant les réglages. Il faudra le vérifier avec des joueurs.
+

@@ -6,6 +6,7 @@ import { dispelMagic, dispelPoison, gainAegis } from './pretre';
 import { applyPoison, enterStealth, stun } from './voleur';
 import { activateSeal, dispelAll, judge, palHeal } from './paladin';
 import { companionAct, companionGuard } from './chasseur';
+import { gainCatCombo } from './druide';
 import { ENEMIES, isInterruptible } from './enemies';
 import { TALENT_SPELLS } from './talents';
 import type { ItemEffects } from './items';
@@ -665,6 +666,96 @@ const CHASSEUR_SPELLS: Omit<SpellDef, 'classId'>[] = [
 ];
 for (const d of CHASSEUR_SPELLS) SPELLS[d.id] = { ...d, classId: 'chasseur' };
 
+/** Les sorts de barre du Druide. Référence : docs/classes/DRUIDE.md (§6) */
+const DRUIDE_SPELLS: Omit<SpellDef, 'classId'>[] = [
+  {
+    id: 'seve_vitale', name: 'Sève vitale', cost: 0, cooldown: 3, needsTarget: false, icon: 'hausse',
+    text: 'Gagne 2 énergie.',
+    cast: (c) => {
+      c.player.energy += 2;
+      fx(c, { kind: 'buff', who: 'player', label: 'Sève vitale' });
+    },
+  },
+  {
+    id: 'cyclone', name: 'Cyclone', cost: 1, cooldown: 4, needsTarget: true, icon: 'etoile',
+    text: 'La cible est Contrôlée 2 tours. Contre un boss : Interruption.',
+    cast: (c, target) => {
+      if (!target) return;
+      if (stun(c, target, 2)) return;
+      if (isInterruptible(target.intent) && !target.interrupted) {
+        target.interrupted = true;
+        fx(c, { kind: 'interrupt', who: target.uid });
+        log(c, `${target.name} est interrompu !`);
+      }
+    },
+  },
+  {
+    id: 'ecorce', name: 'Écorce', cost: 0, cooldown: 4, needsTarget: false, icon: 'bouclier',
+    text: 'Jusqu\'à ton prochain tour, les dégâts que tu subis sont réduits de 30 %.',
+    cast: (c) => {
+      c.barkskin = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Écorce' });
+    },
+  },
+  {
+    id: 'regeneration_sauvage', name: 'Régénération sauvage', cost: 0, cooldown: 4, needsTarget: false, icon: 'coeur',
+    text: 'En forme d\'ours seulement : dépense toute ta rage, soigne 2 PV par point.',
+    usable: (c) => c.form === 'ours' && (c.bearRage ?? 0) > 0,
+    cast: (c) => {
+      const n = c.bearRage ?? 0;
+      c.bearRage = 0;
+      healPlayer(c, n * 2);
+    },
+  },
+  {
+    id: 'instinct_survie_druide', name: 'Instinct de survie', cost: 0, cooldown: 5, needsTarget: false, icon: 'bouclier',
+    text: 'Gagne 15 blocage.',
+    cast: (c) => gainBlock(c, 15, false),
+  },
+  {
+    id: 'renaissance', name: 'Renaissance', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'coeur',
+    text: 'Si tu tombes à 0 PV pendant ce combat, tu reviens à 40 % de tes PV max. Une fois par combat.',
+    cast: (c) => {
+      c.rebirth = true;
+      fx(c, { kind: 'buff', who: 'player', label: 'Renaissance' });
+    },
+  },
+  {
+    id: 'benediction_sylvestre', name: 'Bénédiction sylvestre', cost: 1, cooldown: 4, needsTarget: false, icon: 'coeur',
+    text: 'Soigne 8 PV et gagne 8 blocage.',
+    cast: (c) => {
+      healPlayer(c, 8);
+      gainBlock(c, 8, false);
+    },
+  },
+  // Sorts de loot
+  {
+    id: 'fureur_meute', name: 'Fureur de la meute', cost: 0, cooldown: 4, needsTarget: false, icon: 'hausse',
+    text: 'En forme de félin seulement : +2 combo et 1 énergie.',
+    usable: (c) => c.form === 'felin',
+    cast: (c) => {
+      gainCatCombo(c, 2);
+      c.player.energy += 1;
+    },
+  },
+  {
+    id: 'rugissement_defi', name: 'Rugissement de défi', cost: 0, cooldown: 4, needsTarget: false, icon: 'bouclier',
+    text: 'Tous les ennemis sont Démoralisés 1 tour. Gagne 6 blocage.',
+    cast: (c) => {
+      for (const e of livingEnemies(c)) e.buffs.demoralise = Math.max(e.buffs.demoralise, 1);
+      gainBlock(c, 6, false);
+    },
+  },
+  {
+    id: 'faveur_lune', name: 'Faveur de la lune', cost: 0, cooldown: 3, needsTarget: true, icon: 'etoile',
+    text: 'Inflige 7 dégâts.',
+    cast: (c, target) => {
+      if (target) playerAttack(c, target, 7);
+    },
+  },
+];
+for (const d of DRUIDE_SPELLS) SPELLS[d.id] = { ...d, classId: 'druide' };
+
 /** La classe d'un sort de barre. */
 export function spellClass(id: string): string {
   return SPELLS[id]?.classId ?? 'guerrier';
@@ -681,7 +772,7 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
 
 /** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
-  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement', 'tir_arcanique']);
+  const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement', 'tir_arcanique', 'seve_vitale']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));
 }
 

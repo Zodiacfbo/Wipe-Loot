@@ -163,6 +163,19 @@ export interface ItemEffects {
   startTrap?: number; // un Piège explosif posé au début de chaque combat
   trapEnergy?: number; // un Piège se déclenche : +X énergie au prochain tour
   cordeAnciens?: number; // le légendaire du Chasseur : le compagnon agit X fois de plus
+  // Talents du Druide
+  wrathDruidBonus?: number; // Colère +X dégâts
+  moonfireBonus?: number; // Feu de lune +X dégâts par tour
+  starfireDiscount?: number; // une fois par tour, Feu stellaire coûte 1 de moins
+  eclipseInnate?: number; // Éclipse est Inné
+  feralBonus?: number; // tes Attaques [Ours] et [Félin] +X dégâts
+  bearEnterRage?: number; // entrer en forme d'Ours donne X rage
+  rageBlock?: number; // en Ours, à la fin de ton tour, X blocage par point de rage
+  catEnterCombo?: number; // entrer en forme de Félin donne X combo
+  freeShift?: number; // une fois par tour, le bouton de forme coûte 0
+  freeShiftAll?: number; // le légendaire du Druide : le bouton de forme ne coûte plus d'énergie
+  renewBonus?: number; // Renouveau soigne X PV de plus par tour
+  harmony?: number; // en forme normale, chaque soin donne la moitié de son montant en blocage
   gelKeep?: number; // le Gel ne diminue plus
   freezeEarly?: number; // Gelé à 5 − X cumuls
   shatterBonus?: number; // Fracasser +X dégâts
@@ -388,6 +401,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
   item('equinoxe', 'Équinoxe', 'arme', 'legendaire', 'Dans la Lumière : tes soins rendent +3 PV et chaque soin te donne 1 Foi. En Forme d\'Ombre : tes DoT infligent +2 dégâts et chacun de leurs ticks te soigne de 1 PV.', { equinoxe: 1 }),
   item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Jugements infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
+  item('baton_veilleur_druide', 'Bâton du Veilleur (Druide)', 'arme', 'legendaire', 'Changer de forme avec le bouton ne coûte plus d\'énergie.', { freeShiftAll: 1 }),
   item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Ton compagnon agit une fois de plus à la fin de chacun de tes tours.', { cordeAnciens: 1 }),
   item('sillon_orage', 'Sillon d\'orage', 'arme', 'legendaire', 'Toutes les 3 Attaques que tu joues, un éclair inflige 6 dégâts à tous les ennemis.', { stormblade: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
@@ -561,11 +575,12 @@ KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin', 'chaman', 'd
 KEY_CLASSES.firstSpellTwice = KEY_CLASSES.spellBonus;
 KEY_CLASSES.dispelDraw = ['pretre', 'paladin'];
 for (const k of ['aegisBonus', 'maxAegis', 'martyr', 'startAegis', 'smiteBonus', 'maxFaith', 'blessedLight', 'equinoxe'] as const) KEY_CLASSES[k] = ['pretre'];
-KEY_CLASSES.healBonus = ['pretre', 'paladin'];
+KEY_CLASSES.healBonus = ['pretre', 'paladin', 'druide'];
 KEY_CLASSES.allyBonus = ['demoniste', 'chasseur', 'chaman']; // familier, compagnon, totems
 KEY_CLASSES.freePact = ['demoniste'];
 for (const k of ['compBonus', 'compBleed', 'compOpening', 'packFree', 'shotBonus', 'markBonus', 'fatalBonus', 'hunterFirstFree', 'trapBonus', 'disengageBonus', 'startTrap', 'trapEnergy', 'cordeAnciens'] as const) KEY_CLASSES[k] = ['chasseur'];
-KEY_CLASSES.dotDuration = ['demoniste', 'pretre'];
+KEY_CLASSES.dotDuration = ['demoniste', 'pretre', 'druide'];
+for (const k of ['wrathDruidBonus', 'moonfireBonus', 'starfireDiscount', 'eclipseInnate', 'feralBonus', 'bearEnterRage', 'rageBlock', 'catEnterCombo', 'freeShift', 'freeShiftAll', 'renewBonus', 'harmony'] as const) KEY_CLASSES[k] = ['druide'];
 KEY_CLASSES.dotBonus = ['demoniste'];
 
 /** Les effets d'un objet qui ne servent pas à cette classe. */

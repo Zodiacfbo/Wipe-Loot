@@ -7,6 +7,7 @@ import {
   canUseSpell,
   cardBlockReason,
   changePosture,
+  changeForm,
   choosePet,
   endTurn,
   isEnraged,
@@ -57,6 +58,8 @@ import {
   campfireAurore,
   canForgeCorde,
   campfireCorde,
+  campfireBindStaffDruid,
+  druidOfferings,
   offerCompanion,
   chooseCompanion,
   campfireBindStaff,
@@ -93,11 +96,12 @@ import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save
 // Outil de test (version dev seulement)
 import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
+import { FORMS, FORM_IDS, MAX_BEAR_RAGE, MAX_CAT_COMBO, canShift, shiftCost } from './engine/druide';
 import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, companionDamage, companionTarget, markBonus, trapVictim } from './engine/chasseur';
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
-import type { CardInstance, CombatState, CompanionId, EnemyState, Intent, Posture, RunState } from './engine/types';
+import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, Posture, RunState } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
@@ -111,6 +115,10 @@ const ANIMES: Record<string, number> = {
   'voleur.png': 4,
   'demoniste.png': 4,
   'chasseur.png': 4,
+  'druide.png': 4,
+  'druide_ours.png': 4,
+  'druide_felin.png': 4,
+  'druide_astrale.png': 4,
   'familier_loup.png': 4,
   'familier_ours.png': 4,
   'familier_raptor.png': 4,
@@ -129,11 +137,13 @@ const ANIMES: Record<string, number> = {
 /** Le sprite du héros en combat : le Prêtre change de tenue en Forme d'Ombre. */
 function heroSprite(sprite: string | undefined, c: CombatState): string {
   if (sprite === 'pretre.png' && c.shadowForm) return 'pretre_ombre.png';
+  // Le Druide change de sprite avec sa forme.
+  if (sprite === 'druide.png' && c.form && c.form !== 'normale') return `druide_${c.form}.png`;
   return sprite ?? 'guerrier.png';
 }
 
 /** Couleur du flash quand le héros change de tenue, selon la nouvelle tenue. */
-const FLASH_TENUE: Record<string, string> = { 'pretre_ombre.png': '#9a5af0', 'pretre.png': '#ffe27a' };
+const FLASH_TENUE: Record<string, string> = { 'pretre_ombre.png': '#9a5af0', 'pretre.png': '#ffe27a', 'druide.png': '#8fd49a', 'druide_ours.png': '#c8a070', 'druide_felin.png': '#e8b84a', 'druide_astrale.png': '#8fb8e8' };
 let tenueHeros: string | null = null;
 
 /** Après chaque affichage : si la tenue du héros a changé depuis le dernier, flash de transformation. */
@@ -1097,6 +1107,18 @@ const POWER_LABEL: Record<string, [string, string]> = {
   maitre_tireur: ['Maître tireur', 'La Marque donne +2 dégâts'],
   maitre_pieges: ['Maître des pièges', 'Tes Pièges se déclenchent deux fois'],
   pieges_serie: ['Pièges en série', 'Un Piège se déclenche : pioche 1'],
+  epines_druide: ['Épines', 'Tes attaquants subissent des dégâts'],
+  grace_nature: ['Grâce de la nature', 'Sort à 2 énergie ou plus : blocage'],
+  puissance_astrale: ['Puissance astrale', 'En Astrale : Sorts +dégâts'],
+  eclipse: ['Éclipse', 'Feu stellaire et Sorts lunaires s\'alternent'],
+  convergence: ['Convergence céleste', 'Chaque Sort : dégâts à tous'],
+  cuir_epais: ['Cuir épais', 'En Ours : +Robustesse'],
+  instinct_protecteur: ['Instinct protecteur', 'Rage gagnée → blocage'],
+  coeur_sauvage: ['Cœur sauvage', 'Rage et combo gardés en changeant de forme'],
+  germination: ['Germination', 'Renouveau : +1 tour, +1 PV'],
+  esprit_foret: ['Esprit de la forêt', 'Soin au début de ton tour'],
+  symbiose: ['Symbiose', 'Chaque soin frappe un ennemi'],
+  arbre_vie: ['Arbre de vie', 'Soins +50 %, 2 blocage par soin'],
 };
 
 function playerChips(c: CombatState): string {
@@ -1146,6 +1168,16 @@ function playerChips(c: CombatState): string {
   if (c.undying) chips.push('<span class="chip">Égide des anciens : PV ≥ 1</span>');
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
+  // Druide
+  if (c.prowl) chips.push('<span class="chip">Rôder : prochaine Attaque ×2</span>');
+  if (c.tigerFury) chips.push(`<span class="chip">Fureur du tigre : +${c.tigerFury}</span>`);
+  if (c.eclipseLunar) chips.push('<span class="chip">Éclipse : prochain Sort lunaire ×2</span>');
+  if (c.eclipseSolar) chips.push('<span class="chip">Éclipse : Feu stellaire −1</span>');
+  if (c.treants?.turns) chips.push(`<span class="chip" title="${c.treants.count} × ${c.treants.dmg} dégâts à ta cible à la fin de tes tours">Sylvains (${c.treants.turns}t)</span>`);
+  if (c.tranquility) chips.push(`<span class="chip">Tranquillité (${c.tranquility}t)</span>`);
+  if (c.rebirth) chips.push('<span class="chip">Renaissance prête</span>');
+  if (c.barkskin) chips.push('<span class="chip">Écorce : dégâts −30 %</span>');
+  if (c.rooted) chips.push('<span class="chip">Enraciné</span>');
   // Chasseur
   if (c.feign) chips.push('<span class="chip" title="Les attaques ennemies t\'infligent 50 % de dégâts en moins jusqu\'à ton prochain tour">Feindre la mort</span>');
   if (c.rapidFire) chips.push('<span class="chip">Tir rapide : Attaques −1</span>');
@@ -1221,6 +1253,26 @@ const ICON_HUNT: Record<string, string> = {
   immolation: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22c4 0 7-3 7-7 0-5-5-7-5-12-3 2-5 5-5 8-1-1-2-2-2-4-2 2-2 5-2 8 0 4 3 7 7 7z"/></svg>',
   venin: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3c3 5 6 8 6 12a6 6 0 0 1-12 0c0-4 3-7 6-12z"/></svg>',
 };
+
+/** Le Druide : la jauge de la forme (rage de l'Ours, combo du Félin) et les quatre boutons de forme. */
+function druidResource(c: CombatState): string {
+  const form = c.form ?? 'normale';
+  const pips = (n: number, max: number) => Array.from({ length: max }, (_, i) => `<i class="${i < n ? 'plein' : ''}"></i>`).join('');
+  const gauge = form === 'ours'
+    ? `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${pips(c.bearRage ?? 0, MAX_BEAR_RAGE)}</div><span class="rage-label" style="width:auto">${c.bearRage ?? 0}</span></div>`
+    : form === 'felin'
+      ? `<div class="ligne"><span class="rage-label combo-label">COMBO</span><div class="rage combo">${pips(c.catCombo ?? 0, MAX_CAT_COMBO)}</div><span class="rage-label" style="width:auto">${c.catCombo ?? 0}</span></div>`
+      : '';
+  const cost = shiftCost(c);
+  const buttons = FORM_IDS.map((id) => {
+    const actif = form === id;
+    return `<button type="button" class="${actif ? 'actif' : ''}" data-action="forme" data-form="${id}" ${actif || canShift(c, id) ? '' : 'disabled'} aria-pressed="${actif}" title="${FORMS[id].name} : ${FORMS[id].text}">${FORMS[id].short}</button>`;
+  }).join('');
+  const why = c.rooted ? ' · enraciné ce tour-ci' : (c.player.debuffs?.lignee ?? 0) > 0 ? ' · forme bloquée' : cost === 0 ? ' · changer est gratuit' : ' · changer coûte 1 énergie';
+  return `${gauge}
+    <div class="postures formes" role="group" aria-label="Forme">${buttons}</div>
+    <div class="aide-posture"><b>${FORMS[form].short}</b> : ${FORMS[form].text}${why}</div>`;
+}
 
 /** Le compagnon, l'Esprit et les Pièges du Chasseur : une rangée de tuiles (maquette C). */
 function hunterResource(c: CombatState): string {
@@ -1300,7 +1352,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const resource = mage
     ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
         <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
-    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : run.classId === 'chasseur' ? hunterResource(c) : '';
+    : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : run.classId === 'chasseur' ? hunterResource(c) : run.classId === 'druide' ? druidResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
     const disabled = !actif && p.postureChanged;
@@ -1812,6 +1864,18 @@ function campfireScreen(run: RunState): string {
       <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
     </div>`;
   }
+  if (ui.bindStaff && run.classId === 'druide') {
+    const items = druidOfferings(run).map((k) => {
+      const it = ITEMS[run.equipment[k]!];
+      return `<button type="button" class="choix-feu" data-action="offrande" data-slot="${k}"><span class="case-equipement ${it.rarity}">${SLOT_ICON[it.slot]}</span><span class="texte-choix"><b>${it.name}</b><span>${it.text}</span></span></button>`;
+    }).join('');
+    return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
+      <h2>Lier par la nature</h2>
+      <p>Le bâton demande un don : choisis un objet à rendre à la terre. Il disparaît, et le Bâton du Veilleur remplace ton arme.</p>
+      <div class="choix-liste">${items}</div>
+      <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
+    </div>`;
+  }
   if (ui.bindStaff) {
     const cards = deckList(run.deck, (card) => {
       const ok = CARDS[card.id].rarity === 'rare';
@@ -1829,7 +1893,7 @@ function campfireScreen(run: RunState): string {
   // Les légendaires à forger : une tuile dorée chacun (le texte de l'étape et l'objet obtenu).
   const forges = [
     canReforge(run) && { action: 'reforger', label: 'Reforger Brisemonts', item: 'brisemonts', text: 'Tu poses la Lame brisée sur les braises, et le Cœur de la montagne se met à battre. Reforger Brisemonts prend toute la nuit : pas de repos ni d\'entraînement. L\'épée remplacera ton arme actuelle.' },
-    canBindStaff(run) && { action: 'lier-fragments', label: 'Lier les fragments', item: 'baton_veilleur', text: 'Tu poses le Fragment et la Tête du bâton près du feu. Les runes s\'éveillent : le Veilleur attend un dernier sacrifice.' },
+    canBindStaff(run) && { action: 'lier-fragments', label: run.classId === 'druide' ? 'Lier par la nature' : 'Lier les fragments', item: run.classId === 'druide' ? 'baton_veilleur_druide' : 'baton_veilleur', text: 'Tu poses le Fragment et la Tête du bâton près du feu. Les runes s\'éveillent : le Veilleur attend un dernier sacrifice.' },
     canForgeEquinoxe(run) && { action: 'equinoxe', label: 'Rituel de l\'équinoxe', item: 'equinoxe', text: 'Tu sertis la Larme d\'Ysolde au sommet du Bâton nu. La pierre s\'illumine, puis s\'assombrit, puis s\'illumine encore.' },
     canForgeCorde(run) && { action: 'corde', label: 'Façonner l\'arc', item: 'corde_anciens', text: 'Tu tends le Tendon de drake sur le Bois ancien, près des braises. Le bois chante quand la corde vibre pour la première fois.' },
     canForgeAurore(run) && { action: 'aurore', label: 'Rallumer l\'Aurore ardente', item: 'aurore_ardente', text: 'Tu poses la lame purifiée dans les braises. Une lueur d\'aube monte de l\'acier, comme si elle n\'attendait que ce feu-là.' },
@@ -2647,6 +2711,11 @@ function handleClick(ev: MouseEvent): void {
     case 'familier':
       if (run.combat && choosePet(run.combat, el.dataset.pet as 'diablotin' | 'rodeur')) commit();
       break;
+    case 'forme':
+      if (run.combat) changeForm(run.combat, el.dataset.form as FormId);
+      ui.selection = null;
+      commit();
+      break;
     case 'posture':
       if (run.combat) changePosture(run.combat, el.dataset.posture as Posture);
       ui.selection = null;
@@ -2677,6 +2746,7 @@ function handleClick(ev: MouseEvent): void {
     case 'equinoxe': campfireEquinoxe(run); commit(); break;
     case 'aurore': campfireAurore(run); commit(); break;
     case 'corde': campfireCorde(run); commit(); break;
+    case 'offrande': ui.bindStaff = false; campfireBindStaffDruid(run, el.dataset.slot as SlotKey); commit(); break;
     case 'compagnon': ui.companion = el.dataset.id as CompanionId; render(); break;
     case 'compagnon-partir': {
       const id = ui.companion ?? loadProfile().lastCompanion ?? 'loup';

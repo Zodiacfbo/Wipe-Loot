@@ -128,7 +128,7 @@
 - [x] Paladin : Sceaux et Jugement, Auras, Censure ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprite, le tag Démon sur les ennemis, et son légendaire l'Aurore ardente avec sa quête (forgé à l'acte 2 en attendant l'acte 3)
 - [x] Chasseur : compagnon animal (Loup, Ours, Raptor) choisi au départ, Esprits animaux, Pièges, Marque de la proie ; 53 cartes illustrées, 9 sorts de barre, 27 talents, sprites animés (le Chasseur et ses 3 compagnons), et son légendaire Corde-des-anciens avec sa quête
 - [ ] Chaman
-- [ ] Druide
+- [x] Druide : quatre formes (normale, Ours avec sa rage, Félin avec son combo, Astrale), cartes de forme qui coûtent 1 de plus hors de leur forme ; 54 cartes illustrées, 10 sorts de barre, 27 talents, sprite animé dans les 4 formes, et sa version du Bâton du Veilleur (rendre un objet à la terre)
 
 Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de barre, ses talents, son légendaire et sa quête, et son sprite.
 

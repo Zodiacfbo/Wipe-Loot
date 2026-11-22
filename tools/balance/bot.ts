@@ -1,8 +1,10 @@
 // Un bot qui joue des runs entières avec le moteur du jeu, pour mesurer l'équilibrage.
 // En combat, il essaie chaque action possible sur une copie de l'état et garde la meilleure
 // (une évaluation simple : dégâts infligés, dégâts qu'il va encaisser, ressources, ennemis vaincus).
-import { CARDS } from '../../src/engine/cards';
-import { canPlayCard, canUseSpell, choosePet, endTurn, playCard, useSpell } from '../../src/engine/combat';
+import { CARDS, energyCost } from '../../src/engine/cards';
+import { canPlayCard, canUseSpell, changeForm, choosePet, endTurn, playCard, useSpell } from '../../src/engine/combat';
+import { FORM_IDS, canShift } from '../../src/engine/druide';
+import type { FormId } from '../../src/engine/types';
 import { ENEMIES } from '../../src/engine/enemies';
 import { EVENTS } from '../../src/engine/events';
 import { ITEMS, slotsFor } from '../../src/engine/items';
@@ -12,7 +14,7 @@ import {
   afterCombatAction, barCapacity, buyCard, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
   canDrink, chooseBlessing, chooseNode, chooseReward, drinkPotion, equipPending, eventChoiceLock, leaveEvent, leavePending,
   leaveShop, learnSpell, newRun, offerBlessing, resolveEvent, retryAfterWipe, takePotion,
-  campfireBindStaff, canBindStaff, canRest, startNextAct, campfireEquinoxe, campfireAurore, campfireCorde,
+  campfireBindStaff, canBindStaff, canRest, startNextAct, campfireEquinoxe, campfireAurore, campfireCorde, campfireBindStaffDruid, druidOfferings,
 } from '../../src/engine/run';
 import { previewIntentDamage } from '../../src/engine/combat';
 import type { CombatState, EnemyState, RunState } from '../../src/engine/types';
@@ -78,7 +80,7 @@ function evaluate(c: CombatState): number {
   const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0)
     + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0)
     // Voleur : les points de combo, le Camouflage (s'il reste une Ouverture en main), le Poison d'arme, Danse des lames.
-    + rogueValue(c) + paladinValue(c) + hunterValue(c)
+    + rogueValue(c) + paladinValue(c) + hunterValue(c) + druidValue(c)
     // Prêtre : la Forme d'Ombre n'est pas dans c.powers, elle vaut un Pouvoir posé (sinon le bot ne la joue jamais).
     + (c.shadowForm ? 8 : 0);
   return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
@@ -120,9 +122,26 @@ function hunterValue(c: CombatState): number {
   return v;
 }
 
+/** Druide : la rage et le combo de la forme, les cartes en main qui vont avec la forme, Sylvains, Tranquillité. */
+function druidValue(c: CombatState): number {
+  if (c.form === undefined) return 0;
+  const big = c.enemies.some((e) => !e.dead && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss));
+  let v = (c.bearRage ?? 0) * 1 + (c.catCombo ?? 0) * 2.5 + (c.prowl ? 5 : 0) + (c.tigerFury ?? 0) * 1.5
+    + (c.treants?.turns ? c.treants.dmg * c.treants.count * c.treants.turns * 0.8 : 0) + (c.tranquility ?? 0) * 10
+    + (c.rebirth && big ? 12 : 0) + (c.eclipseLunar || c.eclipseSolar ? 3 : 0);
+  // Les cartes en main qui se jouent au juste prix dans la forme actuelle.
+  for (const k of c.hand) {
+    const d = CARDS[k.id];
+    if (d.form && d.form === c.form) v += 3;
+    if (c.form === 'astrale' && d.type === 'Sort') v += 1;
+    if (c.form === 'felin' && d.type === 'Attaque') v += 1;
+  }
+  return v;
+}
+
 const clone = (c: CombatState): CombatState => JSON.parse(JSON.stringify(c));
 
-interface Action { kind: 'card' | 'spell'; index: number; target?: number }
+interface Action { kind: 'card' | 'spell' | 'form'; index: number; target?: number; form?: FormId }
 
 function candidates(c: CombatState): Action[] {
   const list: Action[] = [];
@@ -134,14 +153,17 @@ function candidates(c: CombatState): Action[] {
   });
   c.spells.forEach((s, i) => {
     if (!canUseSpell(c, i)) return;
-    const needs = ['charge', 'coup_de_pommeau', 'coup_de_pied', 'jugement', 'marteau_jugement', 'charge_sacree', 'tir_arcanique', 'fleche_museliere', 'fleche_apaisante'].includes(s.id);
+    const needs = ['charge', 'coup_de_pommeau', 'coup_de_pied', 'jugement', 'marteau_jugement', 'charge_sacree', 'tir_arcanique', 'fleche_museliere', 'fleche_apaisante', 'cyclone', 'faveur_lune'].includes(s.id);
     if (needs) targets.forEach((t) => list.push({ kind: 'spell', index: i, target: t }));
     else list.push({ kind: 'spell', index: i });
   });
+  // Druide : changer de forme.
+  if (c.form !== undefined) for (const f of FORM_IDS) if (canShift(c, f)) list.push({ kind: 'form', index: -1, form: f });
   return list;
 }
 
 function apply(c: CombatState, a: Action): boolean {
+  if (a.kind === 'form') return changeForm(c, a.form!);
   return a.kind === 'card' ? playCard(c, a.index, a.target) : useSpell(c, a.index, a.target);
 }
 
@@ -174,6 +196,13 @@ export function playTurn(run: RunState): void {
       const playable = c.hand.some((k) => CARDS[k.id].type !== 'Statut' && CARDS[k.id].type !== 'Pouvoir' && CARDS[k.id].cost === 1);
       if (pact >= 0 && c.player.energy === 0 && playable && c.player.hp > c.player.maxHp * 0.45 && canUseSpell(c, pact)) {
         useSpell(c, pact);
+        continue;
+      }
+      // Sève vitale (Druide) : +2 énergie, si une carte de la main devient jouable.
+      const seve = c.spells.findIndex((sp) => sp.id === 'seve_vitale');
+      const wanted = c.hand.some((k) => CARDS[k.id].type !== 'Statut' && !CARDS[k.id].unplayable && energyCost(c, k.id, k.upgraded) > c.player.energy && energyCost(c, k.id, k.upgraded) <= c.player.energy + 2);
+      if (seve >= 0 && wanted && canUseSpell(c, seve)) {
+        useSpell(c, seve);
         continue;
       }
       break;
@@ -377,6 +406,7 @@ export function simulateRun(seed: number, talents: string[], difficulty = 0, cla
       case 'shop': handleShop(run); break;
       case 'campfire': {
         if (campfireReforge(run) || campfireEquinoxe(run) || campfireAurore(run) || campfireCorde(run)) break;
+        if (run.classId === 'druide' && druidOfferings(run).length && campfireBindStaffDruid(run, druidOfferings(run)[0])) break;
         if (canBindStaff(run)) {
           const rare = run.deck.find((k) => CARDS[k.id].rarity === 'rare');
           if (rare && campfireBindStaff(run, rare.uid)) break;

@@ -31,11 +31,12 @@ import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStar
 import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
 import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
 import { afterHunterCard, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
+import { afterDruidCard, druidDamageTaken, druidEndTurn, druidOnAttacked, druidStartCombat, druidStartTurn, enterForm, isDruid, setForm } from './druide';
 import { SPELLS, spellCooldown } from './spells';
 import { ENEMIES, TUNING, hasTag, intentAt, type Encounter } from './enemies';
 import { random, shuffle } from './rng';
 import type { ItemEffects } from './items';
-import type { CardInstance, CombatMods, CombatState, CompanionId, EnemyState, Intent, PetId, PlayerCurse, Posture } from './types';
+import type { CardInstance, CombatMods, CombatState, CompanionId, EnemyState, FormId, Intent, PetId, PlayerCurse, Posture } from './types';
 
 // --- Sorts de barre : voir spells.ts ---
 export { SPELLS, type SpellDef } from './spells';
@@ -76,6 +77,8 @@ export function createCombat(
     ...(classId === 'paladin' ? { seals: [], aura: null, blockedSince: 0, zealGained: 0 } : {}),
     // Le Chasseur : son compagnon, sans Esprit ni Piège au départ.
     ...(classId === 'chasseur' ? { companion: companion ?? 'loup', aspect: null, traps: [], mark: null, frenzyStacks: 0 } : {}),
+    // Le Druide commence en forme normale ; son premier changement de forme est gratuit.
+    ...(classId === 'druide' ? { form: 'normale' as FormId, bearRage: 0, catCombo: 0, formRobustesse: 0 } : {}),
     enemies: [],
     draw: [],
     hand: [],
@@ -93,7 +96,7 @@ export function createCombat(
   c.draw = shuffle(c, deck.map((card) => ({ ...card })));
   // Cartes innées (Furie croissante+) : en haut de la pioche.
   // Gardien céleste : Ange gardien est Inné.
-  const innate = c.draw.filter((card) => (card.upgraded && CARDS[card.id].innateUp) || (card.id === 'ange_gardien' && gear.guardianInnate));
+  const innate = c.draw.filter((card) => (card.upgraded && CARDS[card.id].innateUp) || (card.id === 'ange_gardien' && gear.guardianInnate) || (card.id === 'eclipse' && gear.eclipseInnate));
   c.draw = [...innate, ...c.draw.filter((card) => !innate.includes(card))];
   c.enemies = encounter.enemies.map((id) => makeEnemy(c, id));
   // Difficulté : PV, Puissance de départ et enrage des ennemis.
@@ -183,6 +186,7 @@ export function createCombat(
   if (gear.petOpening) petAct(c, gear.petOpening);
   // Chasseur : Esprit animal, Piégeur né.
   hunterStartCombat(c);
+  druidStartCombat(c);
   if (gear.startFiole) addStatusToHand(c, 'fiole_instable', gear.startFiole);
   // Butin d'Yzhar : Bague du dieu dormant, Lame de l'oubli.
   for (let i = 0; i < (gear.startCopyUp ?? 0); i++) {
@@ -292,6 +296,9 @@ export function startPlayerTurn(c: CombatState): void {
   const wisdomDraw = isPaladin(c) ? paladinStartTurn(c) : 0;
   // Chasseur : Feindre la mort et Tir rapide s'arrêtent, l'Esprit du guépard fait piocher.
   const aspectDraw = hunterStartTurn(c);
+  // Druide : Rôder, Fureur du tigre et Écorce s'arrêtent ; Tranquillité soigne et protège.
+  const tranquil = druidStartTurn(c);
+  if (tranquil > 0) healPlayer(c, tranquil);
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
@@ -570,7 +577,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     c.spellTwiceUsed = true;
     twice = true;
   }
-  c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort'), opener: def.opener };
+  c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort'), opener: def.opener, form: def.form };
   def.play(ctx);
   if (twice && c.phase === 'player' && (!target || !target.dead)) def.play(ctx);
   c.playing = undefined;
@@ -614,6 +621,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   if (isPaladin(c)) afterPaladinCard(c, def, attack);
   // Chasseur : Concentration et Respiration lente ne servent qu'à une Attaque.
   if (isHunter(c)) afterHunterCard(c, attack);
+  // Druide : rage des Attaques d'Ours, Rôder, Éclipse, Grâce de la nature, Convergence céleste.
+  if (isDruid(c)) afterDruidCard(c, def, cost, ctx.dealt);
   // Voix de stentor : les Cris donnent plus de rage et démoralisent plus longtemps.
   if (c.gear?.shoutBonus && SHOUTS.has(card.id)) {
     gainRage(c, c.gear.shoutBonus);
@@ -803,8 +812,9 @@ export function endTurn(c: CombatState): void {
     }
   }
   if (c.phase !== 'player') return;
-  // Chasseur : le compagnon et le Loup spectral.
+  // Chasseur : le compagnon et le Loup spectral. Druide : les Sylvains.
   hunterEndTurn(c);
+  druidEndTurn(c);
   if (c.phase !== 'player') return;
   felhunterLock(c);
   checkDebuffs(c);
@@ -840,7 +850,7 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent
   // Écaille de Prismagor, Carapace divine : un pourcentage de dégâts en plus ou en moins.
   if (c.gear?.hurtPct) dmg *= 1 + c.gear.hurtPct / 100;
   // Chasseur : Esprit du guépard, Feindre la mort.
-  if (intent.kind === 'attack') dmg = hunterDamageTaken(c, dmg);
+  if (intent.kind === 'attack') dmg = druidDamageTaken(c, hunterDamageTaken(c, dmg));
   return Math.max(0, Math.floor(dmg));
 }
 
@@ -888,6 +898,7 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         paladinOnAttacked(c, e, dmg, blockBefore - c.player.block, lost);
         // Chasseur : Contre-attaque, Riposte sauvage.
         hunterOnAttacked(c, e, dmg, Math.min(blockBefore, dmg));
+        druidOnAttacked(c, e, dmg);
         if (intent.stealGold && lost > 0) {
           c.goldStolen = (c.goldStolen ?? 0) + intent.stealGold;
           fx(c, { kind: 'buff', who: e.uid, label: `Avale ${intent.stealGold} or !` });
@@ -1363,6 +1374,9 @@ function lineageCurse(c: CombatState): void {
   } else if (c.classId === 'paladin') {
     c.seals = [];
     log(c, 'Malédiction de lignée : ton Sceau se brise, et tu ne peux plus en activer pendant 2 tours.');
+  } else if (c.classId === 'druide') {
+    setForm(c, 'normale');
+    log(c, 'Malédiction de lignée : tu reprends ta forme normale, et tu ne peux plus en changer pendant 2 tours.');
   } else if (c.classId === 'chasseur') {
     log(c, 'Malédiction de lignée : ton compagnon s\'enfuit, il ne fait rien pendant 2 tours.');
   } else if (c.classId === 'demoniste') {
@@ -1474,6 +1488,13 @@ export function choosePet(c: CombatState, pet: PetId): boolean {
   if (c.turn !== 1 || (c.cardsThisTurn ?? 0) > 0 || c.pet === pet) return false;
   c.pet = pet;
   return true;
+}
+
+// --- Druide ---
+
+/** Le bouton de forme du Druide (1 énergie ; gratuit au premier tour avant la première carte). */
+export function changeForm(c: CombatState, form: FormId): boolean {
+  return enterForm(c, form, false);
 }
 
 // --- Voleur ---

@@ -9,6 +9,7 @@ import { afterEnemyDamaged, immuneTo, onIremDeath, slimeDamage } from './irem';
 import { carapaceDamage, yzharAwakens } from './yzhar';
 import { isPaladin, lastOath, onPaladinHit, paladinAttackBonus, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
 import { hunterAttackBonus, isHunter } from './chasseur';
+import { druidDamageBonus, druidDamageMult, druidHealAmount, druidOnHeal, isDruid } from './druide';
 import type { CombatState, EnemyState, FxEvent, PlayerDebuffs } from './types';
 
 export function emptyDebuffs(): PlayerDebuffs {
@@ -77,6 +78,8 @@ export function healPlayer(c: CombatState, amount: number): number {
   let heal = amount;
   const paladin = isPaladin(c) && heal > 0;
   if (paladin) heal = paladinHealAmount(c, heal);
+  const druid = isDruid(c) && heal > 0;
+  if (druid) heal = druidHealAmount(c, heal);
   if (priest && heal > 0) {
     heal += c.gear?.healBonus ?? 0; // Soins améliorés
     if (c.gear?.equinoxe && !c.shadowForm) heal += 3; // Équinoxe (Lumière)
@@ -95,6 +98,7 @@ export function healPlayer(c: CombatState, amount: number): number {
   const healed = Math.max(0, Math.min(heal, p.maxHp - p.hp));
   p.hp += healed;
   if (paladin) paladinOnHeal(c, healed);
+  if (druid) druidOnHeal(c, healed);
   if (priest && heal > 0) {
     c.healedFlag = true;
     // Rien n'est perdu : le soin en trop devient de l'Égide (la moitié, ou tout avec Esprit de guérison).
@@ -134,6 +138,8 @@ export function gainBlock(c: CombatState, amount: number, fromCard = true): void
   if (p.posture === 'defensive') total += 3;
   // Esprit de la tortue (Chasseur) : les cartes de blocage donnent +3 blocage.
   if (fromCard && c.aspect === 'tortue') total += 3;
+  // Cœur sauvage (Druide) : en Félin, les cartes de blocage donnent +3 blocage.
+  if (fromCard && c.form === 'felin' && power(c, 'coeur_sauvage')) total += 3;
   // Ralenti (Garde draconique, Souffle de foudre, Affliction bronze) : 25 % de blocage en moins.
   const d = p.debuffs;
   if ((d?.ralenti ?? 0) > 0 || d?.afflictions?.includes('bronze')) total = Math.floor(total * 0.75);
@@ -190,6 +196,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (paladinAttack) dmg += paladinAttackBonus(c, target);
   // Chasseur : Esprit de l'aigle, Marque de la proie, Bête intérieure, Concentration…
   if (isHunter(c) && c.playing?.type === 'Attaque') dmg += hunterAttackBonus(c, target);
+  // Druide : les bonus de forme (Félin, Astrale), Fureur du tigre, Férocité, Cœur sauvage.
+  dmg += druidDamageBonus(c);
   if ((p.debuffs?.demoralise ?? 0) > 0) dmg *= 0.75;
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
@@ -204,6 +212,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   // Forme d'Ombre : les Sorts d'Ombre +30 %. Châtiment amélioré, Esprit sombre.
   if (c.shadowForm && c.playing?.school === 'ombre') dmg *= 1.5;
   if ((p.fureur ?? 0) > 0) dmg *= 1.5;
+  dmg *= druidDamageMult(c); // Rôder, Éclipse
   if (rogueAttack && target.vendetta) dmg *= 1.5;
   if (rogueAttack && c.coldBlood) dmg *= 2;
   if (rogueAttack && c.stealth && power(c, 'seigneur_ombres')) dmg *= 1.5; // Seigneur des ombres
@@ -454,6 +463,13 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
     if (hpLoss === 0) p.blockedFullAttack = true;
   }
   if (p.hp <= 0 && c.soulstone) soulstoneRise(c); // Pierre d'âme
+  // Renaissance (Druide) : une fois par combat, on revient à 40 % des PV.
+  if (p.hp <= 0 && c.rebirth) {
+    c.rebirth = false;
+    p.hp = Math.max(1, Math.floor(p.maxHp * 0.4));
+    fx(c, { kind: 'banner', text: 'Renaissance !' });
+    log(c, 'La sève te relève : tu reviens à la vie.');
+  }
   if (p.hp <= 0 && c.gear?.cheatDeath && !c.cheatedDeath) {
     // Phylactère brisé
     c.cheatedDeath = true;

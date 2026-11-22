@@ -21,13 +21,15 @@ import { ENEMIES, isInterruptible } from './enemies';
 import { random } from './rng';
 import { basicAttack } from './spells';
 import type { ItemEffects } from './items';
-import type { CardInstance, CardType, CombatState, EnemyState, Rarity, School } from './types';
+import type { CardInstance, CardType, CombatState, EnemyState, FormId, Rarity, School } from './types';
+import { druidCostDelta } from './druide';
 import { MAGE_CARDS } from './cards_mage';
 import { DEMONISTE_CARDS } from './cards_demoniste';
 import { PRETRE_CARDS } from './cards_pretre';
 import { VOLEUR_CARDS } from './cards_voleur';
 import { PALADIN_CARDS } from './cards_paladin';
 import { CHASSEUR_CARDS } from './cards_chasseur';
+import { DRUIDE_CARDS } from './cards_druide';
 
 export interface PlayContext {
   c: CombatState;
@@ -75,6 +77,8 @@ export interface CardDef {
   /** Chasseur : une carte Ordre (Dressage), une carte Piège. */
   order?: boolean;
   trap?: boolean;
+  /** Druide : la forme de la carte ([Ours], [Félin], [Astrale]) ; hors de sa forme, elle coûte 1 de plus. */
+  form?: FormId;
   unplayableText?: string;
   /** Carte injouable (Fardeau). */
   unplayable?: boolean;
@@ -754,7 +758,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   },
 };
 
-export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS, ...VOLEUR_CARDS, ...PALADIN_CARDS, ...CHASSEUR_CARDS };
+export const CARDS: Record<string, CardDef> = { ...WARRIOR_CARDS, ...MAGE_CARDS, ...DEMONISTE_CARDS, ...PRETRE_CARDS, ...VOLEUR_CARDS, ...PALADIN_CARDS, ...CHASSEUR_CARDS, ...DRUIDE_CARDS };
 
 /** La classe d'une carte. */
 export function cardClass(id: string): string {
@@ -801,6 +805,8 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   if (def.order) cost = Math.max(0, cost - power(c, 'dressage'));
   if ((id === 'tir_ajuste' || id === 'tir_precision') && power(c, 'calme_absolu') && !c.calmUsed) cost = Math.max(0, cost - 1);
   if (def.type === 'Attaque' && c.rapidFire) cost = Math.max(0, cost - 1);
+  // Druide : +1 hors de sa forme ; Éclipse et Lumière stellaire réduisent le Feu stellaire.
+  cost = Math.max(0, cost + druidCostDelta(c, id, def.form));
   const d = c.player.debuffs;
   if (d && (d.impie > 0 || d.afflictions?.includes('bleue')) && (c.cardsThisTurn ?? 0) === 0) cost += 1; // Malédiction de l'impie, Affliction bleue
   if (def.type === 'Compétence') cost += c.gear?.skillCost ?? 0; // Marteau des profondeurs
