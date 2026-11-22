@@ -183,7 +183,7 @@ describe('les Pièges', () => {
     c.companion = 'loup';
     c.player.debuffs!.lignee = 5; // le compagnon ne compte pas ici
     endTurn(c);
-    expect(lost(c)).toBe(48);
+    expect(lost(c)).toBe(72); // 3 Pièges de 12 (Champ de pièges), déclenchés deux fois
   });
 
   it('le Piège givrant contrôle un ennemi normal', () => {
@@ -194,11 +194,12 @@ describe('les Pièges', () => {
     expect(c.player.hp).toBe(hp);
   });
 
-  it('Instinct du chasseur : +1 énergie au tour qui suit un Piège', () => {
+  it('Instinct du chasseur : +1 énergie et +1 carte au tour qui suit un Piège', () => {
     const c = fight(['lieutenant'], ['piege_venin'], { trapEnergy: 1 });
-    play(c, 'piege_venin');
-    endTurn(c);
+    const sans = fight(['lieutenant'], ['piege_venin']);
+    for (const x of [c, sans]) { play(x, 'piege_venin'); endTurn(x); }
     expect(c.player.energy).toBe(4);
+    expect(c.hand.length).toBe(sans.hand.length + 1);
     expect(c.enemies[0].dots?.some((d) => d.id === 'piege_venin')).toBe(true);
   });
 });

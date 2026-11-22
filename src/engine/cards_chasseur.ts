@@ -407,9 +407,9 @@ const LIST: HunterCard[] = [
   },
   {
     id: 'champ_pieges', name: 'Champ de pièges', type: 'Compétence', rarity: 'epique', cost: 1, costUp: 0, needsTarget: false, exhaust: true, icon: 'feu',
-    text: () => 'Pose 2 Pièges explosifs (8 dégâts à tous les ennemis). Épuisé.',
+    text: () => 'Pose 3 Pièges explosifs (12 dégâts à tous les ennemis). Épuisé.',
     play: (ctx) => {
-      for (let i = 0; i < 2; i++) placeTrap(ctx.c, 'explosif', 8);
+      for (let i = 0; i < 3; i++) placeTrap(ctx.c, 'explosif', 12);
     },
   },
 ];

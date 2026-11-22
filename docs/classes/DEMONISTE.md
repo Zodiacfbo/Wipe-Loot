@@ -186,7 +186,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Corruption améliorée** : tes DoT infligent +2 dégâts par tour. | **Malédictions durables** : tes Malédictions durent 2 tours de plus. |
+| **1** | **Corruption améliorée** : tes DoT infligent +1 dégât par tour. | **Malédictions durables** : tes Malédictions durent 2 tours de plus. |
 | **2** | **Moisson d'âmes** : quand un ennemi meurt avec un de tes DoT, gagne 1 éclat supplémentaire. | **Double malédiction** : chaque ennemi peut porter 2 de tes Malédictions au lieu d'une. |
 | **3** | **Amplifier la malédiction** : ajoute ce sort à ta barre. | **Spirale mortelle** : ajoute ce sort à ta barre. |
 | **4** | **Contagion naturelle** : tes DoT durent 1 tour de plus, et quand un ennemi meurt, ses DoT passent à un autre ennemi. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
@@ -206,7 +206,7 @@ Le Démoniste combat toujours avec **un démon**. Le familier :
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Trait de l'ombre amélioré** : Trait de l'ombre inflige +5 dégâts. | **Dévastation** : Immolation inflige +3 dégâts par tour. |
+| **1** | **Trait de l'ombre amélioré** : Trait de l'ombre inflige +3 dégâts. | **Dévastation** : Immolation inflige +3 dégâts par tour. |
 | **2** | **Pyroclasme** : Pluie de feu et Déflagration d'ombre appliquent Démoralisé (1 tour). | **Intensité** : Pacte de sang ne coûte que 3 PV. |
 | **3** | **Brûlure de l'ombre** : ajoute ce sort à ta barre. | **Rempart d'ombre** : ajoute ce sort à ta barre. |
 | **4** | **Ruine améliorée** : Feu de l'âme coûte 0 énergie (il coûte toujours 1 éclat). | **Embrasement durable** : Conflagration ne consomme plus l'Immolation. |

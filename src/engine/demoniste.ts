@@ -30,7 +30,6 @@ export function loseHp(c: CombatState, n: number, label = 'Pacte'): void {
   const p = c.player;
   if (n <= 0) return;
   p.hp -= n;
-  if ((c.undying ?? 0) > 0 && p.hp < 1) p.hp = 1; // Égide des anciens
   fx(c, { kind: 'tick', who: 'player', amount: n, label });
   onHpLost(c);
   if (power(c, 'contrecoup')) c.shadowFree = true;

@@ -280,9 +280,10 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'bouclier_croise', name: 'Bouclier du croisé', type: 'Compétence', rarity: 'epique', cost: 2, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 16 : 12} blocage. D'ici ton tour, attaque bloquée : renvoi 4, +2 PV.`,
+    text: (up) => `${up ? 16 : 12} blocage. Tout le combat : attaque bloquée, renvoi 4 et +2 PV.`,
     play: (ctx) => {
       gainBlock(ctx.c, ctx.up ? 16 : 12);
+      // Jusqu'à la fin du combat (avant : jusqu'au prochain tour seulement).
       ctx.c.crusaderShield = { dmg: 4, heal: 2 };
     },
   },

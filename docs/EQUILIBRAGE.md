@@ -566,3 +566,39 @@ Run complète (trois actes), difficulté 0, **200 runs par profil** (marge d'err
 - Le Druide et le Chaman (⭐⭐⭐) ne sont plus un cran en dessous des autres classes.
 
 Mesures : `RUNS=200 PROFIL="Voleur" npm run balance -- --silent=false` (une classe : environ 1 heure, 4 cœurs partagés entre 9 classes).
+
+---
+
+## 21. Les réglages après le bilan (22 novembre 2026)
+
+Règle retenue : les arbres d'une classe doivent se valoir **à peu près**. Un arbre ou un talent un peu plus fort est voulu : les joueurs doivent pouvoir optimiser leur classe. On ne corrige que ce qui sort nettement des cibles.
+
+**Ce qui a changé :**
+- **Prêtre :** Égide des anciens renvoie 3 dégâts à chaque coup absorbé par l'Égide, jusqu'à la fin du combat (avant : 2 tours sans passer sous 1 PV). Ascension lumineuse coûte 1 (0) au lieu de 3 (2) : à 3, elle faisait perdre des victoires. Égide améliorée donne +5 Égide (avant +3).
+- **Mage :** Feu intense ne compte plus que pour les applications de 2 Brûlure ou plus. Sans lui, le niveau 5 tombait de 39 à 20 % : c'était le moteur du Mage. Souffle du dragon applique Brûlure 1 (avant 2).
+- **Démoniste :** Trait de l'ombre amélioré +3 (avant +5), Corruption améliorée +1 par tour (avant +2).
+- **Chaman :** Convection +1 (avant +2). À +2, sur les 4 Éclairs du deck de départ, elle valait 17 points au niveau 5.
+- **Chasseur :** Tirs améliorés +1 (avant +2). Champ de pièges pose 3 Pièges de 12 dégâts (avant 2 de 8) et reste Épuisé. Instinct du chasseur fait aussi piocher 1 carte.
+  - Essayé puis écarté : Champ de pièges sans Épuisé. Survie montait à 77-89 %.
+- **Paladin :** Bouclier du croisé dure jusqu'à la fin du combat (avant : jusqu'au prochain tour). Sans ce changement, l'épique faisait perdre des points.
+
+**À retenir :** un talent du palier 1 qui renforce l'attaque de base du deck de départ (4 copies) vaut beaucoup plus que ses chiffres ne le laissent croire.
+
+Run complète (trois actes), difficulté 0, 200 runs par profil (± 5 à 7 points) :
+
+| Classe | Niv. 1 | Niv. 5 | Niv. 10 (arbre de 7 points) |
+|---|---|---|---|
+| Guerrier | 7 % | 48 % | Protection 57 · Armes 60 · Fureur 58 (inchangé, §20) |
+| Mage | 2 % | 32 % | Givre 75 · Arcane 74 · Feu 67 |
+| Démoniste ⭐⭐⭐ | 8 % | 34 % | Affliction 47 · Démonologie 87 · Destruction 73 |
+| Voleur | 4 % | 18 % | Assassinat 51 · Finesse 45 · Combat 48 (inchangé, §20) |
+| Prêtre | 4 % | 17 % | Discipline 48 · Ombre 57 · Sacré 43 |
+| Paladin | 6 % | 27 % | Vindicte 47 · Protection 60 · Sacré 52 |
+| Chasseur | 7 % | 32 % | Bêtes 46 · Précision 64 · Survie 41 |
+| Druide ⭐⭐⭐ | 2 % | 29 % | Équilibre 77 · Farouche 75 · Restauration 73 (inchangé, §20) |
+| Chaman ⭐⭐⭐ | 12 % | 33 % | Élémentaire 80 · Amélioration 63 · Restauration 47 |
+
+**À surveiller :**
+- **Démonologie (87 %)** reste l'arbre le plus fort du jeu. Ni Démon robuste, ni Pierre d'âme, ni un Seigneur infernal à 10 dégâts n'y changent rien. La force vient du familier et de la combinaison avec Destruction : c'est le prochain arbre à regarder si les joueurs le trouvent trop facile.
+- **Le niveau 5** reste un peu au-dessus de la cible pour le Guerrier (48 %) et plusieurs classes (32-34 %). Le nouveau bot choisit bien ses cartes : un joueur moyen fera moins.
+- **Le Chasseur** a un niveau 10 un peu bas (41-64 %) pour un niveau 5 normal (32 %).

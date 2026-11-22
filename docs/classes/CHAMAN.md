@@ -169,7 +169,7 @@ Le Chaman est l'intermédiaire entre les mortels et les **esprits des éléments
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Convection** : Éclair inflige +2 dégâts. | **Fureur des cieux** : Chaîne d'éclairs touche un ennemi de plus. |
+| **1** | **Convection** : Éclair inflige +1 dégât. | **Fureur des cieux** : Chaîne d'éclairs touche un ennemi de plus. |
 | **2** | **Totems de feu améliorés** : tes Totems de Feu infligent +1 dégât. | **Appel des flammes** : Choc de flammes inflige +1 dégât par tour. |
 | **3** | **Maîtrise élémentaire** : ajoute ce sort à ta barre. | **Purge** : ajoute ce sort à ta barre. |
 | **4** | **Tempête naissante** : commence chaque combat avec un Totem des vents posé. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |

@@ -196,6 +196,10 @@ describe('les autres cartes', () => {
     expect(c.player.block).toBe(12);
     expect(c.crusaderShield).toEqual({ dmg: 4, heal: 2 });
     expect(c.discard.some((k) => k.id === 'bouclier_croise')).toBe(true);
+    // Il dure jusqu'à la fin du combat.
+    endTurn(c);
+    endTurn(c);
+    expect(c.crusaderShield).toEqual({ dmg: 4, heal: 2 });
   });
 
   it('Juste châtiment rend les dégâts bloqués depuis ton dernier tour', () => {

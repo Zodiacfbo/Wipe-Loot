@@ -203,7 +203,6 @@ export function dispelAll(c: CombatState): void {
 export function paladinStartTurn(c: CombatState): number {
   const p = c.player;
   c.pavois = 0;
-  c.crusaderShield = undefined;
   c.illumUsed = false;
   c.ferventUsed = false;
   c.healFree = false;

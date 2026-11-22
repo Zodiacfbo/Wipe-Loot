@@ -135,7 +135,7 @@ Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes d
 | **Aura d'épines sacrées** | 1 | Pouvoir (Aura) | PC | Chaque fois qu'un ennemi t'attaque, il subit 3 dégâts. | 5 dégâts |
 | **Dernier serment** | 1 | Pouvoir | R | La première fois de ce combat que tu passerais sous 20 % de tes PV max, soigne 15 PV. | Coûte 0 |
 | **Juste châtiment** | 1 | Attaque | R | Inflige des dégâts égaux au **total des dégâts que tu as bloqués** depuis ton dernier tour. | Coûte 0 |
-| **Bouclier du croisé** | 2 | Compétence | É | Gagne 12 blocage. Jusqu'à ton prochain tour, chaque attaque bloquée inflige 4 dégâts à l'attaquant et te soigne de 2 PV. | 16 blocage |
+| **Bouclier du croisé** | 2 | Compétence | É | Gagne 12 blocage. Jusqu'à la fin du combat, chaque attaque bloquée inflige 4 dégâts à l'attaquant et te soigne de 2 PV. | 16 blocage |
 
 ### 5.4 Arbre Vindicte (14 cartes) : la croisade
 

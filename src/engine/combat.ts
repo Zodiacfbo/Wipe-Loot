@@ -269,7 +269,6 @@ export function startPlayerTurn(c: CombatState): void {
   if (power(c, 'armure_demoniaque')) healPlayer(c, 1);
   // Prêtre : Grâce, Égide des anciens, Transfusion, et ses Pouvoirs de début de tour.
   c.costDown = false;
-  if (c.turn > 1 && (c.undying ?? 0) > 0) c.undying! -= 1;
   if (c.renew && c.renew.turns > 0) {
     const healed = healPlayer(c, c.renew.amount);
     if (healed > 0) fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });

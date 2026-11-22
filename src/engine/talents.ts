@@ -109,10 +109,10 @@ export const MAGE_TREES: TreeDef[] = [
   {
     id: 'feu', name: 'Feu', theme: 'La Brûlure qui consume',
     tiers: [
-      [t('feu_intense', 'Feu intense', 'Toutes tes applications de Brûlure sont augmentées de 1.', { fx: { burnBonus: 1 } }),
+      [t('feu_intense', 'Feu intense', 'Tes applications de 2 Brûlure ou plus sont augmentées de 1.', { fx: { burnBonus: 1 } }),
         t('m_impact', 'Impact', 'Boule de feu inflige +3 dégâts.', { fx: { fireballBonus: 3 } })],
       [t('brasier', 'Brasier', 'Quand tu appliques de la Brûlure à une cible qui en a déjà 5 ou plus, applique 2 de plus.', { fx: { brasier: 2 } }),
-        t('souffle_du_dragon', 'Souffle du dragon', 'Au début de chaque combat, applique Brûlure 2 à tous les ennemis.', { fx: { startBurn: 2 } })],
+        t('souffle_du_dragon', 'Souffle du dragon', 'Au début de chaque combat, applique Brûlure 1 à tous les ennemis.', { fx: { startBurn: 1 } })],
       [t('t_combustion', 'Combustion', 'Ajoute ce sort à ta barre : double la Brûlure de tous les ennemis.', { spell: 'combustion' }),
         t('t_souffle_ardent', 'Souffle ardent', 'Ajoute ce sort à ta barre : 4 dégâts et Brûlure 2 à tous les ennemis.', { spell: 'souffle_ardent' })],
       [t('pyromane', 'Pyromane', 'La recharge de Combustion et de Souffle ardent diminue de 1.', { fx: { fireSpellCd: 1 } }),
@@ -145,7 +145,7 @@ export const DEMONISTE_TREES: TreeDef[] = [
   {
     id: 'affliction', name: 'Affliction', theme: 'DoT et Malédictions',
     tiers: [
-      [t('corruption_amelioree', 'Corruption améliorée', 'Tes DoT infligent +2 dégâts par tour.', { fx: { dotBonus: 2 } }),
+      [t('corruption_amelioree', 'Corruption améliorée', 'Tes DoT infligent +1 dégât par tour.', { fx: { dotBonus: 1 } }),
         t('malediction_durable', 'Malédictions durables', 'Tes Malédictions durent 2 tours de plus.', { fx: { curseDuration: 2 } })],
       [t('moisson_ames', 'Moisson d\'âmes', 'Quand un ennemi meurt avec un de tes DoT, gagne 1 éclat d\'âme de plus.', { fx: { harvestShard: 1 } }),
         t('double_malediction', 'Double malédiction', 'Chaque ennemi peut porter 2 de tes Malédictions au lieu d\'une.', { fx: { doubleCurse: 1 } })],
@@ -177,7 +177,7 @@ export const DEMONISTE_TREES: TreeDef[] = [
   {
     id: 'destruction', name: 'Destruction', theme: 'Ombre et flammes',
     tiers: [
-      [t('trait_ombre_ameliore', 'Trait de l\'ombre amélioré', 'Trait de l\'ombre inflige +5 dégâts.', { fx: { shadowBoltBonus: 5 } }),
+      [t('trait_ombre_ameliore', 'Trait de l\'ombre amélioré', 'Trait de l\'ombre inflige +3 dégâts.', { fx: { shadowBoltBonus: 3 } }),
         t('devastation', 'Dévastation', 'Immolation inflige +3 dégâts par tour.', { fx: { immolationBonus: 3 } })],
       [t('pyroclasme', 'Pyroclasme', 'Pluie de feu et Déflagration d\'ombre démoralisent (1 tour).', { fx: { pyroclasm: 1 } }),
         t('intensite', 'Intensité', 'Pacte de sang ne coûte que 3 PV.', { fx: { bloodPactCost: 2 } })],
@@ -197,7 +197,7 @@ export const PRETRE_TREES: TreeDef[] = [
   {
     id: 'discipline', name: 'Discipline', theme: 'L\'Égide',
     tiers: [
-      [t('egide_amelioree', 'Égide améliorée', 'Tes cartes d\'Égide donnent +3 Égide.', { fx: { aegisBonus: 3 } }),
+      [t('egide_amelioree', 'Égide améliorée', 'Tes cartes d\'Égide donnent +5 Égide.', { fx: { aegisBonus: 5 } }),
         t('volonte', 'Volonté', '+6 PV max.', { maxHp: 6 })],
       [t('meditation_profonde', 'Méditation profonde', 'Ton Égide maximale passe à 40.', { fx: { maxAegis: 40 } }),
         t('esprit_martyr', 'Esprit martyr', 'Quand ton Égide est entièrement détruite, pioche 2 cartes.', { fx: { martyr: 2 } })],
@@ -369,7 +369,7 @@ export const CHASSEUR_TREES: TreeDef[] = [
   {
     id: 'precision', name: 'Précision', theme: 'Le tireur d\'élite',
     tiers: [
-      [t('tirs_ameliores', 'Tirs améliorés', 'Tir et Tir ajusté infligent +2 dégâts.', { fx: { shotBonus: 2 } }),
+      [t('tirs_ameliores', 'Tirs améliorés', 'Tir et Tir ajusté infligent +1 dégât.', { fx: { shotBonus: 1 } }),
         t('oeil_faucon', 'Œil de faucon', 'Marque de la proie donne +1 dégât de plus.', { fx: { markBonus: 1 } })],
       [t('mortalite', 'Mortalité', 'Tir fatal triple ses dégâts sous 30 % de PV au lieu de 20 %.', { fx: { fatalBonus: 10 } }),
         t('h_sang_froid', 'Sang-froid', 'Ta première Attaque de chaque combat coûte 0.', { fx: { hunterFirstFree: 1 } })],
@@ -391,7 +391,7 @@ export const CHASSEUR_TREES: TreeDef[] = [
         t('piegeur_ne', 'Piégeur né', 'Commence chaque combat avec un Piège explosif posé.', { fx: { startTrap: 1 } })],
       [t('t_fleche_apaisante', 'Flèche apaisante', 'Ajoute ce sort à ta barre : retire les buffs de la cible, suspend le Berserk d\'un boss.', { spell: 'fleche_apaisante' }),
         t('t_feindre_mort_s', 'Feindre la mort', 'Ajoute ce sort à ta barre (si tu ne l\'as pas déjà) : les attaques ennemies t\'infligent 50 % de dégâts en moins.', { spell: 'feindre_mort' })],
-      [t('instinct_chasseur', 'Instinct du chasseur', 'Quand un de tes Pièges se déclenche, gagne 1 énergie au prochain tour (1 fois par tour).', { fx: { trapEnergy: 1 } }),
+      [t('instinct_chasseur', 'Instinct du chasseur', 'Quand un de tes Pièges se déclenche, gagne 1 énergie et pioche 1 carte au prochain tour (1 fois par tour).', { fx: { trapEnergy: 1 } }),
         t('survivant', 'Survivant', 'À la fin de chaque combat gagné, soigne 4 PV.', { fx: { healAfterCombat: 4 } })],
       [t('t_champ_pieges', 'Champ de pièges', 'Carte épique : un exemplaire dans ton deck de départ.', { card: 'champ_pieges' })],
     ],
@@ -457,7 +457,7 @@ export const CHAMAN_TREES: TreeDef[] = [
   {
     id: 'elementaire', name: 'Élémentaire', theme: 'La foudre et la lave',
     tiers: [
-      [t('convection', 'Convection', 'Éclair inflige +2 dégâts.', { fx: { lightningBonus: 2 } }),
+      [t('convection', 'Convection', 'Éclair inflige +1 dégât.', { fx: { lightningBonus: 1 } }),
         t('fureur_cieux', 'Fureur des cieux', 'Chaîne d\'éclairs touche un ennemi de plus.', { fx: { chainExtra: 1 } })],
       [t('totems_feu', 'Totems de feu améliorés', 'Tes Totems de Feu infligent +1 dégât.', { fx: { fireTotemBonus: 1 } }),
         t('appel_flammes', 'Appel des flammes', 'Choc de flammes inflige +1 dégât par tour.', { fx: { flameShockBonus: 1 } })],

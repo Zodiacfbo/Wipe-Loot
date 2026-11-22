@@ -310,7 +310,7 @@ const LIST: PriestCard[] = [
     play: (ctx) => powerCard(ctx, 'esprit_guerison', 1, 'Esprit de guérison'),
   },
   {
-    id: 'ascension_lumineuse', name: 'Ascension lumineuse', type: 'Pouvoir', rarity: 'epique', cost: 2, costUp: 1, needsTarget: false, icon: 'pouvoir',
+    id: 'ascension_lumineuse', name: 'Ascension lumineuse', type: 'Pouvoir', rarity: 'epique', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
     text: () => `Chaque soin : autant de dégâts à un ennemi au hasard. +1 Foi par tour.`,
     play: (ctx) => powerCard(ctx, 'ascension', 1, 'Ascension lumineuse'),
   },

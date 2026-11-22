@@ -194,8 +194,8 @@ Mêmes règles que pour toutes les classes (voir [le fonctionnement des classes]
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Feu intense** : toutes tes applications de Brûlure sont augmentées de 1. | **Impact** : Boule de feu inflige +3 dégâts. |
-| **2** | **Brasier** : quand tu appliques de la Brûlure à une cible qui en a déjà 5 ou plus, applique 2 de plus. | **Souffle du dragon** : au début de chaque combat, applique Brûlure 2 à tous les ennemis. |
+| **1** | **Feu intense** : tes applications de 2 Brûlure ou plus sont augmentées de 1. | **Impact** : Boule de feu inflige +3 dégâts. |
+| **2** | **Brasier** : quand tu appliques de la Brûlure à une cible qui en a déjà 5 ou plus, applique 2 de plus. | **Souffle du dragon** : au début de chaque combat, applique Brûlure 1 à tous les ennemis. |
 | **3** | **Combustion** : ajoute ce sort à ta barre. | **Souffle ardent** : ajoute ce sort à ta barre. |
 | **4** | **Pyromane** : la recharge de Combustion et de Souffle ardent diminue de 1. | **Flammes éternelles** : la Brûlure des boss ne diminue plus. |
 | **5** | **Pyrolance** (carte épique) | — |

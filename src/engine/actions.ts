@@ -89,7 +89,7 @@ export function healPlayer(c: CombatState, amount: number): number {
     if (c.shadowForm) heal = Math.floor(heal * 0.75); // Forme d'Ombre
     // Malédiction de lignée du Prêtre : ses soins le blessent.
     if ((d?.lignee ?? 0) > 0) {
-      p.hp = Math.max(c.undying ? 1 : 0, p.hp - heal);
+      p.hp = Math.max(0, p.hp - heal);
       fx(c, { kind: 'tick', who: 'player', amount: heal, label: 'Soin maudit' });
       if (p.hp <= 0) c.phase = 'defeat';
       return 0;
@@ -451,8 +451,6 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
   // Le Prêtre : l'Égide encaisse après le blocage.
   const hpLoss = absorbAegis(c, amount - absorbed);
   p.hp -= hpLoss;
-  // Égide des anciens : les PV ne descendent pas sous 1.
-  if ((c.undying ?? 0) > 0 && p.hp < 1) p.hp = 1;
   // Dernier serment (Paladin) : sous 20 % des PV max, une fois par combat.
   if (hpLoss > 0) lastOath(c);
   // Ange gardien : une fois par combat, on reste à 1 PV et on est soigné.
@@ -552,7 +550,8 @@ export function applyBrulure(c: CombatState, target: EnemyState, amount: number)
   if (target.dead || target.submerged || amount <= 0) return;
   const g = c.gear ?? {};
   const before = target.buffs.brulure ?? 0;
-  let add = amount + (g.burnBonus ?? 0);
+  // Feu intense : seulement sur les applications de 2 Brûlure ou plus (sinon les petites applications répétées doublaient tout).
+  let add = amount + (amount >= 2 ? g.burnBonus ?? 0 : 0);
   if (g.brasier && before >= 5) add += g.brasier;
   target.buffs.brulure = before + add;
 }

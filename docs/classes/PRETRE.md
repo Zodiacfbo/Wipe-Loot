@@ -112,7 +112,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 | **Clarté** | 0 | Compétence | PC | Si tu as 10 Égide ou plus, gagne 1 énergie. | 2 énergie |
 | **Expiation** | 1 | Pouvoir | R | Chaque fois que tu infliges des dégâts avec un Sort, soigne 2 PV. | 3 PV |
 | **Âme inébranlable** | 2 | Pouvoir | R | Ton Égide maximale passe à 50. Au début de ton tour, gagne 2 Égide. | Coûte 1 |
-| **Égide des anciens** | 1 + toute la Foi | Compétence | É | Dépense toute ta Foi : gagne 4 Égide par point. Ce tour-ci et le suivant, **tes PV ne peuvent pas descendre sous 1**. | 5 Égide par point |
+| **Égide des anciens** | 1 + toute la Foi | Compétence | É | Dépense toute ta Foi : gagne 4 Égide par point. Jusqu'à la fin du combat, **chaque coup absorbé par ton Égide renvoie 3 dégâts** à l'attaquant. | 5 Égide par point |
 
 ### 5.3 Arbre Sacré (14 cartes) : soins et colère divine
 
@@ -131,7 +131,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 | **Courroux céleste** | 1 + toute la Foi | Sort | R | Inflige **4 dégâts par point de Foi** dépensé. | 5 par point |
 | **Ange gardien** | 2 | Pouvoir | R | La première fois de ce combat que tu tomberais à 0 PV, tu restes à 1 PV et tu es soigné de 15 PV. | Coûte 1 |
 | **Esprit de guérison** | 1 | Pouvoir | R | **Tout** le soin excédentaire devient de l'Égide (au lieu de la moitié). | Coûte 0 |
-| **Ascension lumineuse** | 3 | Pouvoir | É | Chaque fois que tu te soignes, inflige le même montant de dégâts à un ennemi au hasard. Gagne 1 Foi au début de chaque tour. | Coûte 2 |
+| **Ascension lumineuse** | 1 | Pouvoir | É | Chaque fois que tu te soignes, inflige le même montant de dégâts à un ennemi au hasard. Gagne 1 Foi au début de chaque tour. | Coûte 0 |
 
 ### 5.4 Arbre Ombre (14 cartes) : DoT et dégâts mentaux
 
@@ -176,7 +176,7 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Égide améliorée** : tes cartes d'Égide donnent +3 Égide. | **Volonté** : +6 PV max. |
+| **1** | **Égide améliorée** : tes cartes d'Égide donnent +5 Égide. | **Volonté** : +6 PV max. |
 | **2** | **Méditation profonde** : ton Égide maximale passe à 40. | **Esprit martyr** : quand ton Égide est entièrement détruite, pioche 2 cartes. |
 | **3** | **Transfusion de puissance** : ajoute ce sort à ta barre. | **Focalisation intérieure** : ajoute ce sort à ta barre. |
 | **4** | **Lumière intérieure** : commence chaque combat avec 8 Égide. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |

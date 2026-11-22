@@ -143,11 +143,14 @@ export function hunterStartTurn(c: CombatState): number {
   c.calmUsed = false;
   c.breathNow = c.breathNext ?? 0;
   c.breathNext = 0;
+  // Instinct du chasseur : un Piège déclenché donne 1 énergie et 1 carte au tour suivant.
+  let draw = 0;
   if (c.trapEnergyNext) {
     c.player.energy += c.trapEnergyNext;
     c.trapEnergyNext = 0;
+    draw = 1;
   }
-  return c.aspect === 'guepard' ? 1 : 0;
+  return (c.aspect === 'guepard' ? 1 : 0) + draw;
 }
 
 /** Au début du combat : Esprit animal (le compagnon agit), Piégeur né (un Piège explosif posé). */

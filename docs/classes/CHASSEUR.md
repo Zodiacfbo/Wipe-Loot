@@ -157,7 +157,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | **Instinct de survie** | 1 | Pouvoir | PC | Gagne 2 Robustesse. | 3 Robustesse |
 | **Maître des pièges** | 2 | Pouvoir | R | Tes Pièges se déclenchent **deux fois**. | Coûte 1 |
 | **Pièges en série** | 1 | Pouvoir | R | Chaque fois qu'un de tes Pièges se déclenche, pioche 1 carte. | Gagne aussi 2 blocage |
-| **Champ de pièges** | 2 | Compétence | É | Pose 3 **Pièges explosifs**. | Coûte 1 |
+| **Champ de pièges** | 1 | Compétence | É | Pose 3 **Pièges explosifs** de 12 dégâts. Épuisé. | Coûte 0 |
 
 ---
 
@@ -192,7 +192,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Tirs améliorés** : Tir et Tir ajusté infligent +2 dégâts. | **Œil de faucon** : Marque de la proie donne +1 dégât de plus. |
+| **1** | **Tirs améliorés** : Tir et Tir ajusté infligent +1 dégât. | **Œil de faucon** : Marque de la proie donne +1 dégât de plus. |
 | **2** | **Mortalité** : Tir fatal triple ses dégâts sous 30 % de PV au lieu de 20 %. | **Sang-froid** : ta première Attaque de chaque combat coûte 0. |
 | **3** | **Tir rapide** : ajoute ce sort à ta barre. | **Flèche muselière** : ajoute ce sort à ta barre. |
 | **4** | **Tireur d'élite** : tes Attaques qui coûtent 2 énergie ou plus infligent +3 dégâts. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
@@ -205,7 +205,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | **1** | **Pièges améliorés** : tes Pièges infligent +3 dégâts. | **Endurance** : +8 PV max. |
 | **2** | **Réflexes** : Désengagement donne +3 blocage de plus. | **Piégeur né** : commence chaque combat avec un Piège explosif posé. |
 | **3** | **Flèche apaisante** : ajoute ce sort à ta barre. | **Feindre la mort** : ajoute ce sort à ta barre. |
-| **4** | **Instinct du chasseur** : quand un de tes Pièges se déclenche, gagne 1 énergie (1 fois par tour). | **Survivant** : à la fin de chaque combat gagné, soigne 4 PV. |
+| **4** | **Instinct du chasseur** : quand un de tes Pièges se déclenche, gagne 1 énergie et pioche 1 carte (1 fois par tour). | **Survivant** : à la fin de chaque combat gagné, soigne 4 PV. |
 | **5** | **Champ de pièges** (carte épique) | — |
 
 ---
