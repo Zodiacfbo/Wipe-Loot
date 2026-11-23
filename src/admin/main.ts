@@ -14,7 +14,7 @@ import { DAY_MS, LIMITE_ECRITURES, LIMITE_LECTURES, cardPickRates, dailyActivity
 
 /** L'organisateur (même liste que admin() dans firestore.rules). */
 const ADMIN_UIDS = ['PUomfoQPqgX5FYny6rz1Z2pVgry1'];
-type Site = 'dev' | 'playtest';
+type Site = 'dev' | 'playtest' | 'main';
 type Tab = 'tableau' | 'joueurs' | 'equilibrage' | 'messages' | 'news' | 'moderation';
 const TABS: [Tab, string][] = [['tableau', '📊 Tableau de bord'], ['joueurs', '👥 Joueurs'], ['equilibrage', '⚖️ Équilibrage'], ['messages', '💡 Messages'], ['news', '📰 News'], ['moderation', '🛡️ Modération']];
 
@@ -48,7 +48,7 @@ const state = {
   user: null as User | null,
   ready: false,
   loginError: null as string | null,
-  site: (store.get('site') === 'dev' ? 'dev' : 'playtest') as Site,
+  site: (['dev', 'main'].includes(store.get('site') ?? '') ? store.get('site') : 'playtest') as Site,
   tab: 'tableau' as Tab,
   days: 7,
   data: null as Data | null,
@@ -134,7 +134,7 @@ function render(): void {
   const nouveaux = d ? d.messages.filter((m) => m.etat === 'recu').length : 0;
   root.innerHTML = `
     <header class="a-top"><h1>Wipe &amp; Loot · Admin</h1>
-      <div class="a-site">${(['dev', 'playtest'] as Site[]).map((s) => `<button class="${s === state.site ? 'on' : ''}" data-act="site" data-v="${s}">${s}</button>`).join('')}</div>
+      <div class="a-site">${(['dev', 'playtest', 'main'] as Site[]).map((s) => `<button class="${s === state.site ? 'on' : ''}" data-act="site" data-v="${s}">${s}</button>`).join('')}</div>
       <button class="a-lien" data-act="deconnexion">Se déconnecter</button></header>
     <nav class="a-onglets">${TABS.map(([id, label]) => `<button class="${id === state.tab ? 'on' : ''}" data-act="onglet" data-v="${id}">${label}${id === 'messages' && nouveaux > 0 ? `<span class="a-badge">${nouveaux}</span>` : ''}</button>`).join('')}</nav>
     <main class="a-main">
