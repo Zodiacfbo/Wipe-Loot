@@ -1798,15 +1798,22 @@ function difficultyPicker(): string {
 
 /** Tout premier lancement : le titre du jeu, puis le choix de la classe. */
 function firstLaunchScreen(): string {
-  return `<div class="ecran">
-    <img class="px sprite-titre" src="${A('guerrier.png')}" alt="">
+  const tiles: [string, string, string][] = [
+    ['icone_bouclier.png', 'Choisis ton héros', 'Guerrier, mage, druide… neuf héros, chacun avec ses pouvoirs.'],
+    ['icone_epee.png', 'Pars en expédition', 'Trois chapitres, des gardiens à chaque détour, et un seigneur au bout du chemin.'],
+    ['icone_feu.png', 'Tombe et relève-toi', 'Vaincu ? Panse tes blessures, répare ton armure, et repars au combat.'],
+    ['icone_enclume.png', 'Rapporte le butin', 'Arrache leurs armes aux seigneurs, et deviens plus fort d\'une expédition à l\'autre.'],
+  ];
+  return `<div class="ecran ecran-accueil">
+    <img class="px sprite-titre" ${spriteAttrs('guerrier.png')} alt="">
     <div class="titre-jeu">Wipe &amp; Loot</div>
-    <div class="sous-titre">Un deckbuilder roguelite dans les raids d'Eldrava</div>
+    <div class="sous-titre">Un jeu de cartes et d'aventure au royaume d'Eldrava</div>
+    <q class="accroche">Tomber, se relever, et rapporter le butin.</q>
+    <div class="tuiles-accueil">${tiles.map(([icon, title, text]) => `<div class="tuile-accueil"><img class="px" src="${A(icon)}" alt=""><b>${title}</b><span>${text}</span></div>`).join('')}</div>
     <div class="actions">
       <button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>
       ${fullscreenButton('gros-bouton secondaire')}
     </div>
-    <p>Choisis ta classe, entre dans les Profondeurs Ardentes, et choisis ton chemin : combats, boss secondaires, coffres, feux de camp et rencontres inattendues. Tu peux wiper : on paie la réparation et on retente. La partie est sauvegardée automatiquement dans ce navigateur.</p>
   </div>`;
 }
 
