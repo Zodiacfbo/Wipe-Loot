@@ -84,6 +84,8 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { siteOf, versionLabel } from './version';
+import { cloud, initCloud, signIn, signOut, signUp } from './cloud';
+import { PASSWORD_MIN, PSEUDO_MAX, PSEUDO_MIN } from './cloud_logic';
 import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost, toggleTalent, treePoints, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
@@ -173,7 +175,9 @@ interface UiState {
   /** Chasseur : le compagnon sélectionné sur l'écran du choix (avant de partir). */
   companion?: CompanionId | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | 'connexion' | 'roue' | 'saison' | null;
+  /** Fenêtre de connexion : l'onglet, le pseudo tapé, le message d'erreur, l'attente de Firebase. */
+  login?: { tab: 'connexion' | 'creation'; pseudo: string; error: string | null; busy: boolean };
   /** Outil de test : la classe choisie dans le panneau. */
   devClass?: string;
   /** Objet du coffre choisi dans le hall pour la prochaine expédition (index). */
@@ -223,6 +227,8 @@ interface UiState {
 
 const ui: UiState = { run: null, selection: null, overlay: null, campfireUpgrade: false, shopMode: null, shopItem: null, potionSlot: null, shopPotion: null, depositSlot: null, blessingRemove: false, talentScreen: false, talentSel: null, classScreen: false, classSel: null, upgradeUid: null, pileKind: 'draw', heirloom: null, archivesScreen: false, archiveTab: 'monstres' };
 let stage: HTMLElement;
+/** Un texte écrit par un joueur, sans risque d'injecter du HTML. */
+const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 let busy = false; // une animation est en cours : on ignore les clics
 
 // ---------- Icônes ----------
@@ -1521,6 +1527,8 @@ function combatScreen(run: RunState, c: CombatState): string {
 /** Le hall de la guilde : l'écran principal du jeu. */
 function titleScreen(): string {
   const profile = loadProfile();
+  // Avec les comptes en ligne, on ne passe pas l'accueil sans être connecté.
+  if (cloud.enabled && !cloud.user) return firstLaunchScreen();
   if (!profile.startClass) return firstLaunchScreen();
   const saved = localSave.load();
   // Une victoire dont le passage au coffre n'est pas fait peut encore être reprise.
@@ -1570,7 +1578,7 @@ function titleScreen(): string {
   const stats = profile.stats;
   return `<div class="hall">
     <header class="hall-tete"><span class="titre-jeu petit">Wipe &amp; Loot</span><span class="hall-nom">Hall de la guilde</span>
-      <div class="hall-options"><button type="button" class="bouton tuto-bouton" data-action="tuto" aria-label="Revoir la visite du hall" title="Revoir la visite du hall">?</button>${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${fullscreenButton('bouton')}</div></header>
+      <div class="hall-options"><button type="button" class="bouton tuto-bouton" data-action="tuto" aria-label="Revoir la visite du hall" title="Revoir la visite du hall">?</button>${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${cloud.user ? `<span class="hall-pseudo">👤 <b>${esc(cloud.user.pseudo)}</b></span>` : ''}<button type="button" class="bouton bouton-roue ${ui.overlay === 'roue' ? 'actif' : ''}" data-action="roue" aria-label="Menu" title="Menu">⚙</button></div></header>
     <section class="hall-heros">
       ${switcher}
       <img class="px" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}" width="160" height="160">
@@ -1813,7 +1821,7 @@ function firstLaunchScreen(): string {
     <q class="accroche">Tomber, se relever, et rapporter le butin.</q>
     <div class="tuiles-accueil">${tiles.map(([icon, title, text]) => `<div class="tuile-accueil"><img class="px" src="${A(icon)}" alt=""><b>${title}</b><span>${text}</span></div>`).join('')}</div>
     <div class="actions">
-      <button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>
+      ${cloud.enabled && !cloud.ready ? '<button type="button" class="gros-bouton" disabled>Connexion…</button>' : '<button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>'}
       ${fullscreenButton('gros-bouton secondaire')}
     </div>
   </div>`;
@@ -2287,7 +2295,75 @@ function endScreen(run: RunState, victory: boolean): string {
   </div>`;
 }
 
+// ---------- Comptes en ligne (src/cloud.ts) ----------
+
+/** Fenêtre de connexion (maquette B) : deux onglets, pseudo et mot de passe. */
+function loginHtml(): string {
+  const l = ui.login ?? { tab: 'connexion', pseudo: '', error: null, busy: false };
+  const creation = l.tab === 'creation';
+  return `<div class="overlay fenetre-centree" data-action="fermer-fond"><form class="boite-connexion" data-form="connexion" novalidate>
+    <div class="onglets-connexion" role="tablist">
+      <button type="button" role="tab" class="${creation ? '' : 'actif'}" aria-selected="${!creation}" data-action="connexion-onglet" data-tab="connexion">Se connecter</button>
+      <button type="button" role="tab" class="${creation ? 'actif' : ''}" aria-selected="${creation}" data-action="connexion-onglet" data-tab="creation">Créer un compte</button>
+    </div>
+    <label class="champ">Pseudo<input name="pseudo" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="${PSEUDO_MAX}" value="${esc(l.pseudo)}" ${l.busy ? 'disabled' : ''}></label>
+    <label class="champ">Mot de passe<input name="mdp" type="password" autocomplete="${creation ? 'new-password' : 'current-password'}" ${l.busy ? 'disabled' : ''}></label>
+    ${creation ? `<p class="aide-connexion">Pseudo : ${PSEUDO_MIN} à ${PSEUDO_MAX} lettres ou chiffres. Mot de passe : ${PASSWORD_MIN} caractères au moins. Retiens-le bien : il n'y a pas de récupération automatique.</p>` : ''}
+    ${l.error ? `<p class="erreur-connexion" role="alert">${esc(l.error)}</p>` : ''}
+    <button type="submit" class="gros-bouton" ${l.busy ? 'disabled' : ''}>${l.busy ? 'Un instant…' : creation ? 'Créer mon compte' : 'Entrer dans la guilde'}</button>
+    ${creation ? '' : '<p class="aide-connexion">Mot de passe oublié ? Écris à l\'organisateur.</p>'}
+    <p class="aide-connexion">Ta progression est gardée en ligne : tu la retrouves sur n'importe quel appareil.</p>
+  </form></div>`;
+}
+
+/** Le menu de la roue ⚙ du hall. */
+function gearMenuHtml(): string {
+  const items: string[] = [];
+  if (canFullscreen()) items.push(`<button type="button" data-action="plein-ecran"><span>⛶ ${document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'}</span></button>`);
+  if (cloud.user) items.push(`<button type="button" data-action="deconnexion"><span>👤 Mon compte<small>${esc(cloud.user.pseudo)} · se déconnecter</small></span></button>`);
+  else items.push('<p class="menu-roue-note">Sauvegarde sur cet appareil seulement.</p>');
+  return `<div class="overlay transparent" data-action="fermer-fond"><div class="menu-roue" role="menu">${items.join('')}</div></div>`;
+}
+
+/** Une nouvelle saison a remis la sauvegarde à zéro. */
+function seasonHtml(): string {
+  return `<div class="overlay fenetre-centree"><div class="boite-connexion">
+    <h2>Nouvelle saison !</h2>
+    <p>Le jeu a beaucoup changé depuis ta dernière visite : ta progression repart de zéro pour la saison ${cloud.newSeason ?? ''}. Merci de tester à nouveau !</p>
+    <button type="button" class="gros-bouton" data-action="saison-ok">En route</button>
+  </div></div>`;
+}
+
+/** Firebase a changé d'état (connexion retrouvée, synchronisation faite, déconnexion). */
+function cloudChanged(): void {
+  if (cloud.user && ui.overlay === 'connexion') {
+    ui.overlay = null;
+    ui.login = undefined; // la prochaine fois (après une déconnexion), on rouvre sur « Se connecter »
+    // Le joueur venait de toucher « Commencer » : un nouveau compte part au choix de la classe.
+    if (!loadProfile().startClass) ui.classScreen = true;
+  }
+  if (cloud.user && cloud.newSeason !== null) { ui.overlay = 'saison'; ui.run = null; ui.classScreen = false; }
+  if (!cloud.user && cloud.enabled) ui.run = null;
+  render();
+}
+
+/** Envoi du formulaire de connexion (bouton ou touche Entrée). */
+async function submitLogin(form: HTMLFormElement): Promise<void> {
+  const l = ui.login ?? { tab: 'connexion', pseudo: '', error: null, busy: false };
+  const pseudo = (form.elements.namedItem('pseudo') as HTMLInputElement).value;
+  const mdp = (form.elements.namedItem('mdp') as HTMLInputElement).value;
+  ui.login = { ...l, pseudo, error: null, busy: true };
+  render();
+  const error = l.tab === 'creation' ? await signUp(pseudo, mdp) : await signIn(pseudo, mdp);
+  ui.login = { ...ui.login, error, busy: false };
+  // En cas de succès, cloudChanged() ferme la fenêtre quand la sauvegarde est prête.
+  if (error) render();
+}
+
 function overlayHtml(run: RunState | null): string {
+  if (ui.overlay === 'connexion') return loginHtml();
+  if (ui.overlay === 'roue') return gearMenuHtml();
+  if (ui.overlay === 'saison') return seasonHtml();
   if (ui.overlay === 'test') return devPanelHtml(run); // Outil de test
   if (ui.overlay === 'abandon') return confirmAbandonHtml();
   if (ui.overlay === 'difficultes') {
@@ -2695,7 +2771,28 @@ function handleClick(ev: MouseEvent): void {
   }
   if (action?.startsWith('tuto') && onTuto(action)) return;
   switch (action) {
+    case 'connexion-onglet':
+      ui.login = { tab: el.dataset.tab === 'creation' ? 'creation' : 'connexion', pseudo: (stage.querySelector<HTMLInputElement>('input[name="pseudo"]')?.value ?? ''), error: null, busy: false };
+      render();
+      return;
+    case 'fermer-fond':
+      // Toucher le fond sombre ferme la fenêtre (pas un clic dans la fenêtre elle-même).
+      if (ev.target === el && !ui.login?.busy) { ui.overlay = null; render(); }
+      return;
+    case 'saison-ok':
+      cloud.newSeason = null;
+      ui.overlay = null;
+      ui.classScreen = !loadProfile().startClass;
+      render();
+      return;
+    case 'roue': ui.overlay = ui.overlay === 'roue' ? null : 'roue'; render(); return;
+    case 'deconnexion':
+      ui.overlay = null;
+      ui.run = null;
+      void signOut().then(render);
+      return;
     case 'nouvelle': {
+      if (cloud.enabled && !cloud.user) { ui.overlay = 'connexion'; ui.login ??= { tab: 'connexion', pseudo: '', error: null, busy: false }; render(); return; }
       if (!loadProfile().startClass) { ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return; }
       const saved = localSave.load();
       const inProgress = saved && saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
@@ -2796,7 +2893,7 @@ function handleClick(ev: MouseEvent): void {
     case 'loot': ui.overlay = 'loot'; ui.itemSel = null; render(); return;
     case 'pile': ui.overlay = 'pile'; ui.pileKind = el.dataset.pile as 'draw' | 'discard' | 'exhaust'; render(); return;
     case 'potion': ui.overlay = 'potion'; ui.potionSlot = Number(el.dataset.slot); render(); return;
-    case 'plein-ecran': void toggleFullscreen(); return;
+    case 'plein-ecran': if (ui.overlay === 'roue') ui.overlay = null; void toggleFullscreen(); return;
   }
   if (!run) return;
   switch (action) {
@@ -2937,6 +3034,13 @@ export function mount(root: HTMLElement): void {
   initFx(root);
   initAides(root, () => ui.run?.combat, () => (ui.selection?.kind === 'card' ? ui.selection.index : null));
   stage.addEventListener('click', handleClick);
+  stage.addEventListener('submit', (ev) => {
+    const form = ev.target as HTMLFormElement;
+    if (form.dataset.form !== 'connexion') return;
+    ev.preventDefault();
+    if (!ui.login?.busy) void submitLogin(form);
+  });
+  initCloud(cloudChanged);
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', () => {
     fit();

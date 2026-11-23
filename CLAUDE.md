@@ -92,6 +92,7 @@ npm test            # vitest (doit rester vert)
 npm run build       # tsc + vite build
 npx tsc --noEmit -p .
 npm run e2e         # test navigateur, PC + téléphone (après npm run build)
+bash tools/e2e/cloud.sh   # comptes et sauvegarde en ligne, avec l'émulateur Firebase (Java requis) : 15 vérifications, règles comprises
 RUNS=200 PROFIL="Prêtre" npm run balance -- --silent=false  # équilibrage par le bot, avec la marge d'erreur (≈ 1 h par classe ; BOT=simple : l'ancien bot, rapide ; tools/balance/yzhar.sim.ts : Yzhar seul)
 cd tools/pixel && python3 illustrations.py                  # régénère les illustrations de cartes
 cd tools/pixel && python3 icones_talents.py                  # régénère les icônes de talents sans carte proche
@@ -112,6 +113,13 @@ cd tools/pixel && python3 animations.py                      # planches animées
   - `talent_icons.ts` : l'icône de chaque talent (illustration d'une carte proche, ou `talent_<id>.png` dessinée par `tools/pixel/icones_talents.py`) et `TALENT_REFS`, les cartes et sorts qu'un talent cite (rappelés dans sa fiche). Un nouveau talent → une ligne ici (vérifié par `tests/talent_icons.test.ts`).
   - `progression.ts` (score, expérience, niveaux ; par classe : victoires `wins` et légendaire forgé `legendary`, retenus depuis novembre 2026), `guild.ts` (coffre), `archives.ts` (lore des monstres).
   - `devtools.ts` : **l'outil de test** (niveaux, remises à zéro, déblocages, triches de run), affiché seulement sur `/dev/` et en local. **À retirer avant la version 1.0** (avec `tests/devtools.test.ts` et les lignes « Outil de test » de `ui.ts` et `style.css`).
+- **Comptes et sauvegarde en ligne (Firebase, issue #9)** :
+  - `src/cloud.ts` : connexion « pseudo + mot de passe » (le pseudo devient une adresse factice `pseudo@joueurs.wipe-loot.invalid`), copie du profil et de la run dans `sites/{dev|playtest|main}/joueurs/{uid}`, saison lue dans `sites/{site}/config/general`. Firebase est chargé à part (`import()`), seulement si la configuration existe. **Sans configuration (local, tests), tout est désactivé** et le jeu marche comme avant.
+  - La sauvegarde du navigateur reste la principale : `save.ts` prévient `cloud.ts` à chaque écriture (`onLocalSave`) ; l'envoi en ligne se fait au changement d'étape (`runStepKey`), quand le profil change et quand on quitte la page. Rien n'est envoyé tant que la saison n'est pas connue (connexion sans réseau).
+  - `src/cloud_logic.ts` : les règles sans Firebase (pseudo, messages d'erreur en français, `syncChoice` : appareil ou en ligne à la connexion, saison), testées dans `tests/cloud.test.ts`.
+  - `firestore.rules` : les règles de sécurité, **à recoller dans la console Firebase** (Firestore Database → Règles → Publier) à chaque changement. `admin()` attend l'UID de l'organisateur (page admin, plus tard).
+  - Configuration : 4 secrets du dépôt GitHub (`FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_APP_ID`), injectés par `deploy.yml` en `VITE_FIREBASE_*`. `VITE_FIREBASE_EMULATOR` ne sert qu'à `tools/e2e/cloud.sh`.
+  - Interface : fenêtre de connexion après « Commencer » (maquette B, deux onglets) ; dans le hall, le pseudo et la roue ⚙ (plein écran, mon compte et déconnexion ; news et messages viendront dedans) ; le « ? » reste à part. Message « Nouvelle saison ! » quand la saison change.
 - `src/version.ts` : le numéro de version affiché dans le hall (`versionLabel`, `siteOf`), rempli à la construction par `vite.config.ts`.
 - `src/ui.ts` : tout l'affichage (HTML en chaînes, délégation d'événements via `data-action`). `src/style.css`. `src/fx.ts` : animations à partir de `c.fx`.
   - `src/keywords.ts` : le lexique des infobulles (mots-clés soulignés dans les cartes, pastilles). Un nouveau mot-clé (Folie, Résonance, Piège…) → une entrée dans `KEYWORDS`. Une pastille avec un `title` garde cette aide précise.
@@ -160,7 +168,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
 
 ## §5 Où en est le projet
 
-- **Joueurs :** moi seul (sur PC et sur téléphone). Aucun compte ni aucune donnée en ligne : la sauvegarde reste dans le navigateur. Les comptes (Firebase) sont prévus pour la phase 4.
+- **Joueurs :** moi, puis les potes sur `/playtest/`. **Comptes en ligne (23 novembre 2026, étape 1 de l'issue #9)** : pseudo + mot de passe, sauvegarde copiée en ligne, saison. Restent (issue #9) : journal des runs et page admin, bugs et messages, news, stats et modération.
 - **Classes jouables : les 9** (52-54 cartes, 9-10 sorts, 27 talents chacune). Le Chasseur, le Druide et le Chaman sont faits depuis le 22 novembre 2026 (issue #4 fermée ; fiches §12, `EQUILIBRAGE.md` §17 à §19) :
   - Chasseur : compagnon (Loup, Ours, Raptor) choisi sur un écran avant Brégan (le dernier est retenu dans le profil, `lastCompanion`), Esprits, Pièges (étiquette « ici » sur l'ennemi qui les déclenche), Marque ; interface en tuiles (maquette C).
   - Druide : 4 formes avec boutons (1 énergie, premier changement du combat gratuit), cartes de forme +1 hors de leur forme (le mot de forme dans le bandeau), sprite qui change avec la forme.
@@ -182,7 +190,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
 - **Armes jumelles (novembre 2026) :** chaque arme de boss existe en mêlée (Attaques) et en incantation (Sorts), au même effet ; un boss donne la version de ta famille (`WEAPON_FAMILIES`, `WEAPON_TWINS`, `itemFor`), et ne fait jamais tomber un objet inutile à ta classe (`rollTable`). Détail dans `CONCEPT.md` §12.2. Une nouvelle arme de boss → sa jumelle.
 - **Râtelier :** le légendaire forgé (`legendary` du profil, par classe) est emporté par défaut depuis le hall (`newRun(…, legendary)`), en plus d'un objet du coffre qui n'est alors pas une arme ; sa quête passe à « forged » pour l'expédition (`LEGENDARY_QUEST` dans `run.ts`). Une nouvelle classe → une ligne dans `LEGENDARY_QUEST`.
 - **Décisions de novembre 2026 :** pas de déblocage de cartes par niveau (tout est disponible dès le départ) ; l'amélioration des sorts de barre est rangée dans « Plus tard ».
-- **Versions :** tout est sur `dev`. `playtest` (prévu le 23 novembre 2026 ; la branche naît à la première « Publication sur playtest ») est la copie donnée aux testeurs, sans l'outil de test. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
+- **Versions :** tout est sur `dev`. `playtest` (créé le 23 novembre 2026) est la copie donnée aux testeurs, sans l'outil de test. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
 - **Décisions de design à respecter :**
   - Équilibrage des talents (novembre 2026) : les 3 arbres d'une classe doivent se valoir **à peu près** ; une classe ou un arbre plus fort est voulu (les joueurs doivent pouvoir « theorycrafter » et optimiser leurs choix), on ne corrige que ce qui sort nettement des cibles. Mesurer avec les choix des profils du bot, pas l'option A partout (le bot n'utilise pas certains sorts, comme Amplifier la malédiction).

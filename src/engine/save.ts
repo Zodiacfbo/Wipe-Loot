@@ -1,5 +1,6 @@
-// Sauvegarde de la run. Pour l'instant dans le navigateur (localStorage) ;
-// Firebase pourra remplacer ou compléter ce module plus tard sans toucher au reste.
+// Sauvegarde de la run et du profil dans le navigateur (localStorage). C'est la sauvegarde principale :
+// le jeu marche sans réseau. La copie en ligne (src/cloud.ts) est prévenue à chaque écriture
+// par `onLocalSave`, et passe par exportLocal / importLocal / clearLocal.
 import type { ArchiveProfile } from './archives';
 import type { ProgressProfile } from './progression';
 import type { TalentAlloc } from './talents';
@@ -8,6 +9,11 @@ import type { CompanionId, RunState } from './types';
 // La clé dépend du chemin du site : la version officielle (/) et la version de test (/dev/)
 // ont chacune leur sauvegarde.
 const KEY = `wipe-and-loot:${import.meta.env.BASE_URL === './' ? location.pathname.replace(/[^/]*$/, '') : import.meta.env.BASE_URL}:run`;
+
+/** Une clé de stockage propre à ce site (ex. « compte » pour le propriétaire de la sauvegarde). */
+export function localKey(name: string): string {
+  return KEY.replace(/:run$/, `:${name}`);
+}
 
 /** Met une ancienne sauvegarde au format actuel. Renvoie null si elle est trop ancienne. */
 export function migrate(raw: unknown): RunState | null {
@@ -151,6 +157,39 @@ export function migrate(raw: unknown): RunState | null {
   return run.version === 25 ? (run as unknown as RunState) : null;
 }
 
+/** Prévenu à chaque écriture locale (run ou profil) : sert à la sauvegarde en ligne. */
+type SaveListener = (what: 'run' | 'profil', run?: RunState | null) => void;
+let saveListener: SaveListener | null = null;
+export function onLocalSave(fn: SaveListener | null): void {
+  saveListener = fn;
+}
+
+/** La sauvegarde locale brute (textes JSON), pour l'envoyer en ligne. */
+export function exportLocal(): { profil: string | null; run: string | null } {
+  try {
+    return { profil: localStorage.getItem(PROFILE_KEY), run: localStorage.getItem(KEY) };
+  } catch {
+    return { profil: null, run: null };
+  }
+}
+
+/** Remplace la sauvegarde locale par celle reçue en ligne (sans prévenir l'écouteur). */
+export function importLocal(data: { profil: string | null; run: string | null }): void {
+  try {
+    if (data.profil) localStorage.setItem(PROFILE_KEY, data.profil);
+    else localStorage.removeItem(PROFILE_KEY);
+    if (data.run) localStorage.setItem(KEY, data.run);
+    else localStorage.removeItem(KEY);
+  } catch {
+    // stockage indisponible
+  }
+}
+
+/** Efface la run et le profil de cet appareil (déconnexion, nouvelle saison). */
+export function clearLocal(): void {
+  importLocal({ profil: null, run: null });
+}
+
 export interface SaveBackend {
   load(): RunState | null;
   save(run: RunState): void;
@@ -171,6 +210,7 @@ export const localSave: SaveBackend = {
   save(run) {
     try {
       localStorage.setItem(KEY, JSON.stringify(run));
+      saveListener?.('run', run);
     } catch {
       // Stockage indisponible (navigation privée, quota…) : la partie continue sans sauvegarde.
     }
@@ -178,6 +218,7 @@ export const localSave: SaveBackend = {
   clear() {
     try {
       localStorage.removeItem(KEY);
+      saveListener?.('run', null);
     } catch {
       // rien à faire
     }
@@ -262,6 +303,7 @@ export function emptyProfile(): Profile {
 export function saveProfile(profile: Profile): void {
   try {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    saveListener?.('profil');
   } catch {
     // stockage indisponible
   }

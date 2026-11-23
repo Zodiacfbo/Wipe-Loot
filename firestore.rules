@@ -1,0 +1,32 @@
+rules_version = '2';
+// Règles de sécurité de la base (Firestore) de Wipe & Loot.
+// À coller dans la console Firebase : Firestore Database → Règles → Publier.
+// La vraie protection est ici : le code du jeu est public, la configuration Firebase aussi.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function connecte() { return request.auth != null; }
+    // L'organisateur (moi) : son identifiant (UID) sera ajouté ici avec la page admin.
+    function admin() { return connecte() && request.auth.uid in []; }
+    function siteValide(site) { return site in ['dev', 'playtest', 'main']; }
+
+    // La configuration d'un site (la saison) : tout le monde la lit, seul l'organisateur l'écrit.
+    match /sites/{site}/config/{doc} {
+      allow read: if siteValide(site);
+      allow write: if admin();
+    }
+
+    // La fiche d'un joueur : lui seul la lit et l'écrit (et l'organisateur la lit).
+    match /sites/{site}/joueurs/{uid} {
+      allow read: if siteValide(site) && connecte() && (request.auth.uid == uid || admin());
+      allow create, update: if siteValide(site) && connecte() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['pseudo', 'profil', 'run', 'saison', 'majMs', 'version'])
+        && request.resource.data.pseudo is string && request.resource.data.pseudo.size() <= 16
+        && (request.resource.data.profil == null || (request.resource.data.profil is string && request.resource.data.profil.size() < 300000))
+        && (request.resource.data.run == null || (request.resource.data.run is string && request.resource.data.run.size() < 600000))
+        && request.resource.data.saison is int
+        && request.resource.data.majMs is int
+        && request.resource.data.version is string && request.resource.data.version.size() <= 40;
+      allow delete: if admin();
+    }
+  }
+}

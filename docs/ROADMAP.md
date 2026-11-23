@@ -146,11 +146,12 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 
 ## Phase 4 — Comptes et sauvegarde en ligne
 
-- [ ] Firebase : création du projet, règles de sécurité Firestore
-- [ ] Connexion anonyme au premier lancement, puis liaison d'un compte Google ou e-mail
-- [ ] Synchronisation du profil et de la run en cours (à chaque nœud)
-- [ ] Gestion des conflits entre deux appareils
+- [x] Firebase : création du projet, règles de sécurité Firestore (`firestore.rules`, novembre 2026)
+- [x] Connexion par pseudo + mot de passe (décidé à la place de la connexion anonyme ; un compte Google pourra s'ajouter plus tard)
+- [x] Synchronisation du profil et de la run en cours (à chaque nœud), saison pour remettre à zéro
+- [x] Gestion des conflits entre deux appareils (la sauvegarde en ligne gagne, sauf partie plus récente jouée sans réseau)
 - [ ] Export et import de la sauvegarde (fichier ou code)
+- [x] Site `/playtest/` pour les testeurs ✅ ; la suite (journal des runs, page admin, bugs et messages, news) : issue #9
 
 ---
 

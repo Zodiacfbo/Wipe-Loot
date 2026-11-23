@@ -21,6 +21,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Configuration Firebase (comptes et sauvegarde en ligne), rangée dans les secrets du dépôt.
+    # Sans ces secrets, le jeu se construit quand même, sans comptes (sauvegarde sur l'appareil seulement).
+    env:
+      VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
     steps:
       - name: Récupérer main
         uses: actions/checkout@v4
