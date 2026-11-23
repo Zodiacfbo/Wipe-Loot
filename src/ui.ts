@@ -83,6 +83,7 @@ import {
   repairItem,
 } from './engine/run';
 import { POTIONS } from './engine/potions';
+import { siteOf, versionLabel } from './version';
 import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost, toggleTalent, treePoints, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
@@ -1605,6 +1606,7 @@ function titleScreen(): string {
       <div class="hall-stats">
         <span>Expéditions <b>${stats.runs}</b></span><span>Victoires <b>${stats.wins}</b></span><span>Objets découverts <b>${profile.discoveredItems.length}</b></span>
       </div>
+      <p class="hall-version">${versionLabel(siteOf(location.pathname, location.hostname))}</p>
     </section>
   </div>`;
 }

@@ -8,10 +8,11 @@ Dépôt : `Zodiacfbo/Wipe-Loot` (l'ancien nom `zodiacfbo/projetwow` redirige enc
 ## §0 Mes commandes
 
 À rappeler en une ligne au début de toute conversation sur ce jeu :
-> Commandes : « Parlons du jeu » · « Publication sur dev » · « Publication sur main » · « Fin de discussion »
+> Commandes : « Parlons du jeu » · « Publication sur dev » · « Publication sur playtest » · « Publication sur main » · « Fin de discussion »
 
 - **« Parlons du jeu »** : lire les issues GitHub ouvertes et `docs/ROADMAP.md`. Résumer en 5 lignes maximum : où en est le jeu, ce qui est en cours, ce qui attend une décision. Rappeler les commandes, puis demander « De quoi on parle aujourd'hui ? ».
 - **« Publication sur dev »** : publier le travail validé sur `dev` (la version de test), en suivant le §2.
+- **« Publication sur playtest »** : donner aux testeurs la version actuelle de `dev`, en suivant le §2.
 - **« Publication sur main »** : publier sur `main` (la version officielle), en suivant le §2.
 - **« Fin de discussion »** :
   1. noter dans l'issue qui convient ce qui a été décidé, mis de côté ou reste à faire (une idée va en commentaire dans « 💡 Idées pour plus tard ») ;
@@ -26,7 +27,7 @@ Dépôt : `Zodiacfbo/Wipe-Loot` (l'ancien nom `zodiacfbo/projetwow` redirige enc
 - **Toujours répondre en français**, simplement, sans jargon. Réponses courtes par défaut.
 - **On discute d'abord, on propose, puis on code.** Pour ce qui touche l'interface, montrer d'abord une maquette (une capture). Pour une classe ou un acte, la fiche dans `docs/` sert de plan.
 - **« Pas d'action » ou « on en discute »** veut dire : aucune modification (ni code, ni commit, ni push).
-- **Aucune publication sans ma commande explicite** (« Publication sur dev » ou « Publication sur main »). Une question ou une idée approuvée ne veut pas dire « vas-y ». Seule exception : le CLAUDE.md à la « Fin de discussion ».
+- **Aucune publication sans ma commande explicite** (« Publication sur dev », « Publication sur playtest » ou « Publication sur main »). Une question ou une idée approuvée ne veut pas dire « vas-y ». Seule exception : le CLAUDE.md à la « Fin de discussion ».
 - **Secrets :** ne jamais écrire une clé, un mot de passe ou un jeton dans le chat ni dans le dépôt. Il n'y en a aucun pour l'instant. Quand Firebase arrivera (phase 4), ses clés seront gérées à part et ne seront jamais copiées ici.
 - Ne pas écrire l'e-mail de l'utilisateur dans le dépôt, ni l'envoyer dans des requêtes extérieures.
 - `INSPIRATIONS.md` (anciennes notes privées) n'est plus utilisé : ne pas le recréer ni le demander.
@@ -43,9 +44,12 @@ Dépôt : `Zodiacfbo/Wipe-Loot` (l'ancien nom `zodiacfbo/projetwow` redirige enc
 | Branche | Rôle | Adresse |
 |---|---|---|
 | `dev` | Version de test : tout arrive ici d'abord. | https://zodiacfbo.github.io/Wipe-Loot/dev/ |
+| `playtest` | Version des testeurs (les potes) : une copie de `dev` à un moment choisi, **sans l'outil de test**. | https://zodiacfbo.github.io/Wipe-Loot/playtest/ |
 | `main` | Version officielle. | https://zodiacfbo.github.io/Wipe-Loot/ |
 
-À chaque push sur `main` ou `dev`, GitHub (`.github/workflows/deploy.yml`) lance les tests, construit le jeu et le met en ligne. Chaque version a sa propre sauvegarde dans le navigateur.
+À chaque push sur `main`, `dev` ou `playtest`, GitHub (`.github/workflows/deploy.yml`) lance les tests, construit les trois versions et les met en ligne. Chaque version a sa propre sauvegarde dans le navigateur (la clé dépend du chemin, `save.ts`). Le fichier de déploiement est celui de la branche poussée : `playtest` étant une copie de `dev`, il a toujours le bon.
+
+**Numéro de version** (`src/version.ts`, rempli par `vite.config.ts`) : affiché en bas du hall, par exemple « v0.1.0 · 23/11/2026 · 1c9c433 · playtest » (numéro du `package.json`, date et code du dernier commit, site). Le numéro du `package.json` se change à la main quand une étape importante est franchie.
 
 **Au début de chaque conversation**, partir de `dev` à jour (`main` est en retard sur `dev`) :
 ```bash
@@ -64,6 +68,11 @@ npm run build
 2. `git fetch origin dev`. Si `dev` a bougé, fusionner `origin/dev` dans la branche, puis relancer les tests et le build.
 3. `git push origin HEAD:dev`, en avance rapide uniquement.
 4. Vérifier que le déploiement GitHub est passé, puis donner l'adresse.
+
+**« Publication sur playtest »** (seulement des choses déjà publiées sur `dev`) :
+1. `git fetch origin dev playtest`. Si `playtest` existe, vérifier qu'il est en retard sur `dev` (`git merge-base --is-ancestor origin/playtest origin/dev`).
+2. `git push origin origin/dev:playtest` : `playtest` devient une copie de `dev`, en avance rapide.
+3. Vérifier le déploiement, puis donner l'adresse et le numéro de version.
 
 **« Publication sur main »** : pour l'instant, **`main` reste vide** (seulement le premier README). On n'y publiera le jeu qu'une fois la « version 1.0 » définie (ROADMAP, phase 6). Ce jour-là :
 1. `git fetch origin main dev`, puis vérifier que `main` est bien en retard sur `dev` (`git merge-base --is-ancestor origin/main origin/dev`).
@@ -103,6 +112,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
   - `talent_icons.ts` : l'icône de chaque talent (illustration d'une carte proche, ou `talent_<id>.png` dessinée par `tools/pixel/icones_talents.py`) et `TALENT_REFS`, les cartes et sorts qu'un talent cite (rappelés dans sa fiche). Un nouveau talent → une ligne ici (vérifié par `tests/talent_icons.test.ts`).
   - `progression.ts` (score, expérience, niveaux ; par classe : victoires `wins` et légendaire forgé `legendary`, retenus depuis novembre 2026), `guild.ts` (coffre), `archives.ts` (lore des monstres).
   - `devtools.ts` : **l'outil de test** (niveaux, remises à zéro, déblocages, triches de run), affiché seulement sur `/dev/` et en local. **À retirer avant la version 1.0** (avec `tests/devtools.test.ts` et les lignes « Outil de test » de `ui.ts` et `style.css`).
+- `src/version.ts` : le numéro de version affiché dans le hall (`versionLabel`, `siteOf`), rempli à la construction par `vite.config.ts`.
 - `src/ui.ts` : tout l'affichage (HTML en chaînes, délégation d'événements via `data-action`). `src/style.css`. `src/fx.ts` : animations à partir de `c.fx`.
   - `src/keywords.ts` : le lexique des infobulles (mots-clés soulignés dans les cartes, pastilles). Un nouveau mot-clé (Folie, Résonance, Piège…) → une entrée dans `KEYWORDS`. Une pastille avec un `title` garde cette aide précise.
   - `src/tuto.ts` : le **tutoriel**. Textes des bulles : `HALL_STEPS` (visite du hall), `COMBAT_STEPS` (partie commune du combat), `CLASS_STEPS` (3-4 bulles par classe, reprises dans l'encart « Comment ça se joue » de la fiche de classe). Chaque bulle éclaire un élément trouvé par sélecteur CSS (`cible`, du plus précis au plus large). Le profil retient `tuto.hall`, `tuto.classes` (« Compris » par classe) et `tuto.mini`. Un élément d'interface renommé ou déplacé → vérifier les sélecteurs (`TUTO=1 npm run e2e` capture chaque bulle et signale celles qui ne trouvent rien).
@@ -172,7 +182,7 @@ cd tools/pixel && python3 animations.py                      # planches animées
 - **Armes jumelles (novembre 2026) :** chaque arme de boss existe en mêlée (Attaques) et en incantation (Sorts), au même effet ; un boss donne la version de ta famille (`WEAPON_FAMILIES`, `WEAPON_TWINS`, `itemFor`), et ne fait jamais tomber un objet inutile à ta classe (`rollTable`). Détail dans `CONCEPT.md` §12.2. Une nouvelle arme de boss → sa jumelle.
 - **Râtelier :** le légendaire forgé (`legendary` du profil, par classe) est emporté par défaut depuis le hall (`newRun(…, legendary)`), en plus d'un objet du coffre qui n'est alors pas une arme ; sa quête passe à « forged » pour l'expédition (`LEGENDARY_QUEST` dans `run.ts`). Une nouvelle classe → une ligne dans `LEGENDARY_QUEST`.
 - **Décisions de novembre 2026 :** pas de déblocage de cartes par niveau (tout est disponible dès le départ) ; l'amélioration des sorts de barre est rangée dans « Plus tard ».
-- **Versions :** tout est sur `dev`. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
+- **Versions :** tout est sur `dev`. `playtest` (prévu le 23 novembre 2026 ; la branche naît à la première « Publication sur playtest ») est la copie donnée aux testeurs, sans l'outil de test. `main` reste vide jusqu'à la version 1.0. Sur `dev`, l'outil de test (« 🛠 Test » dans le hall) sert à changer de niveau, tout débloquer ou tricher pendant une run.
 - **Tags d'ennemis :** Démon (Morvax, Croc-de-lave, Molosses de braise, Molosses enragés) à l'acte 1 ; Mort-vivant à l'acte 2. À répartir aussi dans les actes 3 et bonus.
 - **Décisions de design à respecter :**
   - Équilibrage des talents (novembre 2026) : les 3 arbres d'une classe doivent se valoir **à peu près** ; une classe ou un arbre plus fort est voulu (les joueurs doivent pouvoir « theorycrafter » et optimiser leurs choix), on ne corrige que ce qui sort nettement des cibles. Mesurer avec les choix des profils du bot, pas l'option A partout (le bot n'utilise pas certains sorts, comme Amplifier la malédiction).
