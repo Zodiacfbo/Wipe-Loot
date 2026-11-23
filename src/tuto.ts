@@ -90,7 +90,7 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
     { cible: ['.jauges > .ligne'], icone: 'vigueur_ancestrale', texte: 'Une fois par expédition, au lieu de tomber, tu te **réincarnes** avec 30 % de tes PV.' },
   ],
   druide: [
-    { cible: ['.formes'], icone: 'instinct_sauvage', texte: 'Change de **forme** avec ces boutons : 1 énergie, le premier changement du combat est gratuit.' },
+    { cible: ['.formes'], icone: 'instinct_sauvage', texte: 'Change de **forme** : 1 énergie, le premier changement du combat est gratuit.' },
     { cible: ['.formes'], icone: 'coup_de_griffe', texte: '**Ours** : robuste, gagne de la rage. **Félin** : Attaques plus fortes et points de combo. **Astrale** : Sorts plus forts.' },
     { cible: ['.main'], icone: 'griffure', texte: 'Une carte Ours, Félin ou Astrale coûte **1 de plus** hors de sa forme.' },
     { cible: ['.jauges .rage', '.formes'], ligne: true, icone: 'coeur_sauvage', texte: 'Quitter une forme fait perdre sa **rage** ou son **combo**.' },
