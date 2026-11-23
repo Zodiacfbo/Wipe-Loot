@@ -69,7 +69,7 @@ jobs:
           if [ -d playtest/dist ]; then mkdir -p site/playtest && cp -r playtest/dist/. site/playtest/; fi
           # La page admin : une seule adresse, /admin/ (construite avec dev), pour les données des 3 sites.
           # Ses fichiers vont dans site/assets (noms uniques), et les copies dans /dev/ et /playtest/ sont retirées.
-          if [ -d dev/dist/admin ]; then mkdir -p site/admin site/assets && cp -r dev/dist/admin/. site/admin/ && cp -r dev/dist/assets/. site/assets/ && cp dev/dist/icone-192.png site/ ; fi
+          if [ -d dev/dist/admin ]; then mkdir -p site/admin site/assets && cp -r dev/dist/admin/. site/admin/ && cp -r dev/dist/assets/. site/assets/; fi
           rm -rf site/dev/admin site/playtest/admin
           if [ ! -f site/index.html ]; then echo '<!doctype html><meta charset="utf-8"><title>Wipe &amp; Loot</title><p>La version officielle arrive bientôt. <a href="dev/">Version de test</a></p>' > site/index.html; fi
       - uses: actions/upload-pages-artifact@v3
