@@ -1,4 +1,4 @@
-// Les cartes du Druide : le deck de départ, le tronc commun, et les arbres Équilibre, Combat farouche et Restauration.
+// Les cartes du Druide : le paquet de départ, le tronc commun, et les arbres Équilibre, Combat farouche et Restauration.
 // Référence : docs/classes/DRUIDE.md (§4 et §5)
 import { addPower, applySaignement, drawCards, fx, gainBlock, healPlayer, isBossEnemy, livingEnemies, log, playerAttack, power } from './actions';
 import { isInterruptible } from './enemies';
@@ -312,12 +312,12 @@ const LIST: DruidCard[] = [
   },
   {
     id: 'morsure_feroce', name: 'Morsure féroce', type: 'Attaque', form: 'felin', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up) => `Félin : finisher. Inflige 5 dégâts + ${up ? 8 : 6} par combo.`,
+    text: (up) => `Félin : coup final. Inflige 5 dégâts + ${up ? 8 : 6} par combo.`,
     play: (ctx) => hit(ctx, 5 + (ctx.up ? 8 : 6) * spendCatCombo(ctx.c)),
   },
   {
     id: 'dechirure', name: 'Déchirure', type: 'Attaque', form: 'felin', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up) => `Félin : finisher. Saignement ${up ? 5 : 4} par combo.`,
+    text: (up) => `Félin : coup final. Saignement ${up ? 5 : 4} par combo.`,
     play: (ctx) => {
       const n = spendCatCombo(ctx.c);
       if (ctx.target && n > 0) applySaignement(ctx.target, (ctx.up ? 5 : 4) * n, ctx.c);

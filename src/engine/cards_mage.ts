@@ -1,4 +1,4 @@
-// Les cartes du Mage : le deck de départ, le tronc commun et les trois écoles (Arcane, Feu, Givre).
+// Les cartes du Mage : le paquet de départ, le tronc commun et les trois écoles (Arcane, Feu, Givre).
 // Référence : docs/classes/MAGE.md (§4 et §5)
 import {
   addPower,

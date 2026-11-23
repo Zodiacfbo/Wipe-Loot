@@ -1,4 +1,4 @@
-// Les cartes du Paladin : le deck de départ, le tronc commun, et les arbres Sacré, Protection et Vindicte.
+// Les cartes du Paladin : le paquet de départ, le tronc commun, et les arbres Sacré, Protection et Vindicte.
 // Référence : docs/classes/PALADIN.md (§4 et §5)
 import { addPower, drawCards, fx, gainBlock, isBossEnemy, livingEnemies, log, playerAttack } from './actions';
 import { isInterruptible } from './enemies';

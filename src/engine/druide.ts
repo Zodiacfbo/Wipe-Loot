@@ -107,7 +107,7 @@ export function gainCatCombo(c: CombatState, n: number): void {
   c.catCombo = Math.min(MAX_CAT_COMBO, (c.catCombo ?? 0) + n);
 }
 
-/** Un finisher [Félin] consomme tous les points de combo. */
+/** Un coup final [Félin] consomme tous les points de combo. */
 export function spendCatCombo(c: CombatState): number {
   const n = c.catCombo ?? 0;
   c.catCombo = 0;

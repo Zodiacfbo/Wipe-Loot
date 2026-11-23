@@ -1,4 +1,4 @@
-// Le lexique des infobulles : les mots-clés des cartes, des buffs et des débuffs.
+// Le lexique des infobulles : les mots-clés des cartes, des buffs et des maléfices.
 // Appui long (téléphone) ou survol (PC) sur un mot souligné d'une carte, sur une carte ou sur une pastille.
 // Les textes restent courts et sans chiffre propre à une carte (le chiffre est sur la carte ou la pastille).
 
@@ -12,6 +12,25 @@ export interface Keyword {
   discret?: boolean;
 }
 
+/**
+ * Le vocabulaire de l'aventure (issue #8) : seulement dans le glossaire des archives,
+ * ces mots ne sont pas soulignés dans les cartes.
+ */
+export const GLOSSARY_EXTRA: { name: string; text: string }[] = [
+  { name: 'Expédition', text: 'Une partie complète : trois chapitres, du premier combat jusqu\'au dernier seigneur.' },
+  { name: 'Chapitre', text: 'Une région à traverser en 10 étapes, avec un seigneur au bout du chemin.' },
+  { name: 'Étape', text: 'Une case de la carte : combat, gardien, événement, vendeur, feu de camp ou coffre.' },
+  { name: 'Chute', text: 'Tu tombes à 0 PV : le combat est perdu.' },
+  { name: 'Relève', text: 'Après une chute, tu te relèves et retentes le combat, contre une réparation. Le nombre de relèves par expédition est limité.' },
+  { name: 'Gardien', text: 'Un ennemi plus fort qui garde une étape de la carte. Il fait tomber du butin.' },
+  { name: 'Seigneur', text: 'Le maître d\'un chapitre, qui t\'attend à la dernière étape.' },
+  { name: 'Sbires', text: 'Les ennemis qui accompagnent un gardien ou un seigneur.' },
+  { name: 'Paquet', text: 'Toutes tes cartes. Tu en pioches 5 à chaque tour.' },
+  { name: 'Se déchaîner', text: 'Au bout de quelques tours, un boss se déchaîne : ses coups sont doublés. Le compte à rebours est affiché.' },
+  { name: 'Butin', text: 'Les objets que font tomber les gardiens et les seigneurs. Les tables de butin montrent ce qu\'on peut obtenir.' },
+  { name: 'Bienfait et maléfice', text: 'Un effet qui t\'aide (bienfait) ou qui te gêne (maléfice), le temps de quelques tours.' },
+];
+
 export const KEYWORDS: Keyword[] = [
   // Communs
   { name: 'Puissance', words: ['Puissance'], text: '+1 dégât par point sur chaque attaque et chaque Sort de dégâts.' },
@@ -20,6 +39,7 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Démoralisé', words: ['Démoralisé', 'Démoralisée', 'Démoralisés', 'Démoralisées'], text: 'Inflige 25 % de dégâts en moins. Le nombre indique les tours restants.' },
   { name: 'Ralenti', words: ['Ralenti', 'Ralentie', 'Ralentis', 'Ralenties'], text: 'Gagne 25 % de blocage en moins. Le nombre indique les tours restants.' },
   { name: 'Saignement', words: ['Saignement'], text: 'Perd ce nombre de PV au début de chacun de ses tours, en ignorant le blocage. Un nouveau Saignement s\'ajoute et relance la durée.' },
+  { name: 'Boss', words: ['boss'], text: 'Un gardien ou un seigneur. Certains effets ne marchent pas, ou moins bien, sur eux.', discret: true },
   { name: 'DoT', words: ['DoT', 'DoTs'], text: 'Dégâts sur la durée : la cible perd des PV au début de chacun de ses tours.' },
   { name: 'Contrôlé', words: ['Contrôlé', 'Contrôlée', 'Contrôlés', 'Contrôlées', 'Contrôle'], text: 'Ne fait rien pendant le nombre de tours indiqué. Les boss y sont immunisés.' },
   { name: 'Assommé', words: ['Assommé', 'Assommée', 'Assommés'], text: 'Ne fait rien, mais se réveille s\'il subit des dégâts. Les boss y sont immunisés.' },
@@ -32,7 +52,7 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Démon', words: ['Démon', 'Démons'], text: 'Type d\'ennemi : certaines cartes et certains objets sont plus forts contre lui.' },
   // Acte 3
   { name: 'Folie', words: ['Folie'], text: 'À 5 ou plus, une Hallucination arrive dans ta main à chaque tour. À 10 : Crise de folie, tu perds ton prochain tour. Une Dissipation (Magie) en retire 3. Retombe à 0 après le combat.' },
-  { name: 'Hallucination', words: ['Hallucination', 'Hallucinations'], text: 'Une fausse carte qui imite une carte de ton deck (cadre violacé, texte qui tremble). La jouer : aucun effet et tu perds 2 PV.' },
+  { name: 'Hallucination', words: ['Hallucination', 'Hallucinations'], text: 'Une fausse carte qui imite une carte de ton paquet (cadre violacé, texte qui tremble). La jouer : aucun effet et tu perds 2 PV.' },
   { name: 'Sable', words: ['Sable'], text: 'Une carte injouable qui prend une place dans ta main. Disparaît à la fin du tour.' },
   { name: 'Enseveli', words: ['Enseveli', 'Ensevelissement'], text: 'Sous le sable : il ne peut pas être ciblé, mais les DoT et les attaques de zone le touchent. Il resurgit en frappant.' },
   { name: 'Résistance', words: ['Résistance'], text: 'Il subit 50 % de dégâts en moins du type indiqué (Attaques ou Sorts).' },
@@ -41,7 +61,7 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Copie', words: ['Copie', 'Copies'], text: 'Un reflet de Méhkar : même aspect, moitié moins de dégâts, et il disparaît dès qu\'il subit 15 dégâts. On ne sait pas lequel est le vrai tant qu\'il n\'a pas été touché.' },
   { name: 'Domination mentale', words: ['Domination mentale'], text: 'Pendant ton prochain tour, ta première Attaque te frappe toi-même : tu subis ses dégâts (ton blocage compte), et ses autres effets sont perdus.' },
   { name: 'Vengeance royale', words: ['Vengeance royale'], text: 'Quand un enfant de la ruche meurt, les autres se soignent de 20 PV et frappent 50 % plus fort jusqu\'à la fin du combat.' },
-  { name: 'Figeage', words: ['Figeage'], text: 'Chaque débuff appliqué au Limon (Ralenti, Démoralisé, Armure fracassée, Gel, Malédictions…, mais pas les DoT) ajoute 1 cumul. À 5, il est Figé.' },
+  { name: 'Figeage', words: ['Figeage'], text: 'Chaque maléfice appliqué au Limon (Ralenti, Démoralisé, Armure fracassée, Gel, Malédictions…, mais pas les DoT) ajoute 1 cumul. À 5, il est Figé.' },
   { name: 'Figé', words: ['Figé'], text: 'N\'agit plus pendant 2 tours et subit double dégâts au lieu de moitié. S\'il meurt Figé, il ne se divise pas.' },
   { name: 'Corps visqueux', words: ['Corps visqueux'], text: 'Le Limon subit 50 % de dégâts en moins, sauf quand il est Figé.' },
   { name: 'Suprématie', words: ['Suprématie'], text: 'Sartaq gagne 25 blocage au début de chacun de ses tours. Le Cristal d\'obsidienne la brise un moment.' },
@@ -62,8 +82,8 @@ export const KEYWORDS: Keyword[] = [
   // Voleur
   { name: 'Camouflé', words: ['Camouflé', 'Camouflage'], text: 'Tu commences chaque combat Camouflé. Tant que tu l\'es, tu peux jouer les Ouvertures. Une Attaque qui n\'est pas une Ouverture te fait sortir de l\'ombre.' },
   { name: 'Ouverture', words: ['Ouverture', 'Ouvertures'], text: 'Une Attaque très forte, jouable seulement quand tu es Camouflé.' },
-  { name: 'Points de combo', words: ['points de combo', 'point de combo', 'combo'], text: 'De 0 à 5. Tes Attaques en donnent ; les finishers les dépensent tous.', discret: true },
-  { name: 'Finisher', words: ['Finisher', 'finisher'], text: 'Consomme tous tes points de combo : plus tu en as, plus l\'effet est fort. Un finisher qui inflige des dégâts est une Attaque (il profite des bonus aux Attaques) ; les autres sont des Compétences.' },
+  { name: 'Points de combo', words: ['points de combo', 'point de combo', 'combo'], text: 'De 0 à 5. Tes Attaques en donnent ; les coups finaux les dépensent tous.', discret: true },
+  { name: 'Coup final', words: ['Coups finaux', 'coups finaux', 'Coup final', 'coup final'], text: 'Consomme tous tes points de combo : plus tu en as, plus l\'effet est fort. Un coup final qui inflige des dégâts est une Attaque (il profite des bonus aux Attaques) ; les autres sont des Compétences.' },
   { name: 'Poison', words: ['Poison'], text: 'Chaque Attaque qui touche la cible lui inflige ce nombre de dégâts en plus. Baisse de 1 à la fin de son tour.' },
   // Prêtre
   { name: 'Égide', words: ['Égide'], text: 'Un bouclier qui absorbe les dégâts après le blocage et ne disparaît pas d\'un tour à l\'autre. 30 au plus.' },

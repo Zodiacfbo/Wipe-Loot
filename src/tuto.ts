@@ -22,7 +22,7 @@ export const HALL_STEPS: TutoStep[] = [
   { cible: ['[data-action="classes"]'], texte: 'Les autres **classes** se débloquent avec l\'expérience. Chacune a sa propre façon de jouer.' },
   { cible: ['.choix-difficulte'], texte: 'Gagne une expédition pour débloquer la **difficulté** suivante. Plus c\'est dur, plus le score monte.' },
   { cible: ['.hall-coffre'], texte: 'Après une victoire, mets un objet à l\'abri dans le **coffre** : tu pourras l\'emporter la fois suivante. Les **Archives** gardent tout ce que tu as découvert.' },
-  { cible: ['.hall-expedition [data-action="nouvelle"]', '[data-action="nouvelle"]'], texte: '3 actes de 10 étages, un boss au bout de chacun. Pendant les combats, touche **?** en haut pour te faire expliquer l\'écran. Bonne chasse !' },
+  { cible: ['.hall-expedition [data-action="nouvelle"]', '[data-action="nouvelle"]'], texte: '3 chapitres de 10 étapes, un seigneur au bout de chacun. Pendant les combats, touche **?** en haut pour te faire expliquer l\'écran. Bonne chasse !' },
 ];
 
 /** Le tuto du combat, partie commune : 10 bulles. */
@@ -35,7 +35,7 @@ export const COMBAT_STEPS: TutoStep[] = [
   { cible: ['.barre-sorts'], texte: 'Tes **sorts** : toujours disponibles, sans passer par ta main. Après usage, ils se rechargent pendant quelques tours.' },
   { cible: ['.piles'], texte: 'Quand ta **pioche** est vide, ta **défausse** est mélangée pour la remplir. Touche-les pour voir les cartes.' },
   { cible: ['.topbar .potions'], texte: 'Tes **potions** : 3 places, à boire sans dépenser d\'énergie.' },
-  { cible: ['.topbar .pips'], texte: 'Si tu tombes, c\'est un **wipe** : tu recommences le combat. 3 essais par expédition, mais chaque wipe coûte une réparation.' },
+  { cible: ['.topbar .pips'], texte: 'Si tu tombes, c\'est une **chute** : tu te relèves et recommences le combat. 3 **relèves** par expédition, mais chacune coûte une réparation.' },
   { cible: ['.fin-tour'], texte: 'Quand tu as fini, touche **Fin du tour** : les ennemis agissent, puis tu repioches.' },
 ];
 
@@ -62,7 +62,7 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
     { cible: ['.pal-tuile.aura', '.pal-tuiles'], icone: 'aura_devotion', texte: 'Les **Auras** sont des pouvoirs qui durent tout le combat. Une seule à la fois.' },
   ],
   voleur: [
-    { cible: ['.jauges .combo'], ligne: true, icone: 'evisceration', texte: 'Tes Attaques donnent des **points de combo**, jusqu\'à 5. Les **Finishers** les dépensent tous : plus tu en as, plus ils frappent fort.' },
+    { cible: ['.jauges .combo'], ligne: true, icone: 'evisceration', texte: 'Tes Attaques donnent des **points de combo**, jusqu\'à 5. Les **coups finaux** les dépensent tous : plus tu en as, plus ils frappent fort.' },
     { cible: ['.jauges .aide-posture', '.jauges'], icone: 'embuscade', texte: 'Tu commences chaque combat **Camouflé** : c\'est le moment de jouer une **Ouverture**, très forte. Une autre Attaque te fait sortir de l\'ombre.' },
     { cible: ['.heros .buffs', '.heros'], icone: 'poison_mortel', texte: 'Un **Poison d\'arme** s\'applique à toutes tes Attaques jusqu\'à la fin du combat. Un seul à la fois.' },
   ],

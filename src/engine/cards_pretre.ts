@@ -1,4 +1,4 @@
-// Les cartes du Prêtre : le deck de départ, le tronc commun, et les arbres Discipline, Sacré et Ombre.
+// Les cartes du Prêtre : le paquet de départ, le tronc commun, et les arbres Discipline, Sacré et Ombre.
 // Référence : docs/classes/PRETRE.md (§4 et §5)
 import { addPower, drawCards, fx, gainBlock, healPlayer, isBossEnemy, livingEnemies, playerAttack } from './actions';
 import { applyDot, loseHp, triggerDots } from './demoniste';
@@ -107,7 +107,7 @@ const LIST: PriestCard[] = [
   },
   {
     id: 'benediction_vigueur', name: 'Bénédiction de vigueur', type: 'Compétence', rarity: 'rare', cost: 1, needsTarget: false, exhaust: true, icon: 'sang',
-    text: (up) => `Gagne ${up ? 6 : 4} PV max pour toute la run. Épuisé.`,
+    text: (up) => `Gagne ${up ? 6 : 4} PV max pour toute l\'expédition. Épuisé.`,
     play: (ctx) => {
       const n = ctx.up ? 6 : 4;
       ctx.c.player.maxHp += n;

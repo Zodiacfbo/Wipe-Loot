@@ -1,4 +1,4 @@
-// Les cartes du Voleur : le deck de départ, le tronc commun, et les arbres Assassinat, Combat et Finesse.
+// Les cartes du Voleur : le paquet de départ, le tronc commun, et les arbres Assassinat, Combat et Finesse.
 // Référence : docs/classes/VOLEUR.md (§4 et §5)
 import { addPower, applySaignement, drawCards, fx, gainBlock, isBossEnemy, livingEnemies, log, playerAttack } from './actions';
 import { isInterruptible } from './enemies';
@@ -27,9 +27,9 @@ function hitAll(ctx: PlayContext, base: number): void {
   }
 }
 
-/** Les points de combo dépensés par un finisher. */
+/** Les points de combo dépensés par un coup final. */
 const pts = (ctx: PlayContext): number => ctx.comboSpent ?? 0;
-/** Finesse meurtrière : les finishers qui frappent infligent +X dégâts par point de combo. */
+/** Finesse meurtrière : les coups finaux qui frappent infligent +X dégâts par point de combo. */
 const fb = (g?: ItemEffects): number => g?.finisherBonus ?? 0;
 
 function powerCard(ctx: PlayContext, id: string, value: number, label: string): void {
@@ -63,7 +63,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'evisceration', name: 'Éviscération', type: 'Attaque', finisher: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige 4 dégâts + ${(up ? 8 : 6) + fb(g)} par combo.`,
+    text: (up, g) => `Coup final : inflige 4 dégâts + ${(up ? 8 : 6) + fb(g)} par combo.`,
     play: (ctx) => hit(ctx, 4 + ((ctx.up ? 8 : 6) + fb(ctx.c.gear)) * pts(ctx)),
   },
   {
@@ -97,7 +97,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_aux_reins', name: 'Coup aux reins', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Finisher : Contrôlée 1 tour${up ? ' (2 dès 4 combo)' : ''}. Boss : Démoralisé 1 tour par combo.`,
+    text: (up) => `Coup final : Contrôlée 1 tour${up ? ' (2 dès 4 combo)' : ''}. Boss : Démoralisé 1 tour par combo.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t || pts(ctx) === 0) return;
@@ -111,7 +111,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'danse_lames', name: 'Danse des lames', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Finisher : pendant 1 tour par combo, tes Attaques infligent +${up ? 4 : 3} dégâts.`,
+    text: (up) => `Coup final : pendant 1 tour par combo, tes Attaques infligent +${up ? 4 : 3} dégâts.`,
     play: (ctx) => {
       if (pts(ctx) === 0) return;
       ctx.c.bladeDance = { bonus: ctx.up ? 4 : 3, turns: pts(ctx) };
@@ -157,7 +157,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'rupture', name: 'Rupture', type: 'Attaque', finisher: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up) => `Finisher : applique Saignement ${up ? 4 : 3} par combo.`,
+    text: (up) => `Coup final : applique Saignement ${up ? 4 : 3} par combo.`,
     play: (ctx) => {
       if (ctx.target && pts(ctx) > 0) applySaignement(ctx.target, (ctx.up ? 4 : 3) * pts(ctx), ctx.c);
     },
@@ -174,7 +174,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'envenimer', name: 'Envenimer', type: 'Attaque', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'sang',
-    text: (up, g) => `Finisher : double le Poison. Inflige ${(up ? 5 : 3) + fb(g)} dégâts par combo.`,
+    text: (up, g) => `Coup final : double le Poison. Inflige ${(up ? 5 : 3) + fb(g)} dégâts par combo.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
@@ -217,12 +217,12 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'opportunite', name: 'Opportunité', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Finisher à 5 combo : +1 énergie et +${up ? 2 : 1} combo.`,
+    text: (up) => `Coup final à 5 combo : +1 énergie et +${up ? 2 : 1} combo.`,
     play: (ctx) => powerCard(ctx, 'opportunite', ctx.up ? 2 : 1, 'Opportunité'),
   },
   {
     id: 'coup_au_coeur', name: 'Coup au cœur', type: 'Attaque', finisher: true, rarity: 'rare', cost: 2, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par combo. Double sous 30 % de PV.`,
+    text: (up, g) => `Coup final : inflige ${(up ? 8 : 6) + fb(g)} dégâts par combo. Double sous 30 % de PV.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t || pts(ctx) === 0) return;
@@ -314,7 +314,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'second_souffle', name: 'Second souffle', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Chaque fois que tu joues un finisher, gagne ${up ? 6 : 4} blocage.`,
+    text: (up) => `Chaque fois que tu joues un coup final, gagne ${up ? 6 : 4} blocage.`,
     play: (ctx) => powerCard(ctx, 'second_souffle', ctx.up ? 6 : 4, 'Second souffle'),
   },
   {
@@ -327,7 +327,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'embrocher', name: 'Embrocher', type: 'Attaque', finisher: true, rarity: 'rare', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Finisher : inflige ${(up ? 8 : 6) + fb(g)} dégâts par combo, ${up ? 4 : 3} par combo aux autres.`,
+    text: (up, g) => `Coup final : inflige ${(up ? 8 : 6) + fb(g)} dégâts par combo, ${up ? 4 : 3} par combo aux autres.`,
     play: (ctx) => {
       const n = pts(ctx);
       if (n === 0 || !ctx.target) return;
@@ -426,7 +426,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'coup_fourre', name: 'Coup fourré', type: 'Compétence', finisher: true, rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Finisher : gagne ${up ? 7 : 5} blocage par combo. Camouflé au prochain tour.`,
+    text: (up) => `Coup final : gagne ${up ? 7 : 5} blocage par combo. Camouflé au prochain tour.`,
     play: (ctx) => {
       if (pts(ctx) > 0) gainBlock(ctx.c, (ctx.up ? 7 : 5) * pts(ctx));
       ctx.c.stealthNext = true;
@@ -447,7 +447,7 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'tenebres_voleur', name: 'Ténèbres', type: 'Pouvoir', rarity: 'rare', cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
-    text: () => 'Pour la run : ton Camouflage de début de combat dure 2 tours. Épuisé.',
+    text: () => 'Pour l\'expédition : ton Camouflage initial dure 2 tours. Épuisé.',
     play: (ctx) => {
       ctx.c.tenebres = true;
       fx(ctx.c, { kind: 'buff', who: 'player', label: 'Ténèbres' });

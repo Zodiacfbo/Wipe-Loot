@@ -25,7 +25,7 @@ import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeHit, splitRibbon } from './cardte
 import { afterRender, explainCard, initAides } from './aides';
 import { closeMini, combatTutoDone, howToPlayHtml, miniHtml, placeTuto, startCombatTuto, startHallTuto, tutoActive, tutoFinish, tutoHtml, tutoMove, tutoStop } from './tuto';
 import { cardReady } from './engine/hints';
-import { KEYWORDS, markKeywords } from './keywords';
+import { GLOSSARY_EXTRA, KEYWORDS, markKeywords } from './keywords';
 import { ACTS, LAST_ACT, actDef } from './engine/acts';
 import { BLESSINGS, EVENTS } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
@@ -318,7 +318,7 @@ function cardConfirmWindow(run: RunState, verb: string, button: string, action: 
   const tag = (text: string) => `<span class="type-talent">${text}</span>`;
   return `<div class="fenetre-boutique"><aside class="fiche-talent fiche-boutique">
     <div class="titre-fiche">${verb} ${name} ?</div>
-    <div class="etiquettes">${tag(def.type)}${tag(CARD_RARITY_LABEL[def.rarity] ?? def.rarity)}${copies > 1 ? tag(`×${copies} dans ton deck`) : ''}</div>
+    <div class="etiquettes">${tag(def.type)}${tag(CARD_RARITY_LABEL[def.rarity] ?? def.rarity)}${copies > 1 ? tag(`×${copies} dans ton paquet`) : ''}</div>
     <div class="cartes-rappel">${cardHtml(card, { action: 'disabled' })}</div>
     <p class="note">${note}</p>
     <div class="boutons-fiche"><button type="button" class="gros-bouton" data-action="${action}" data-uid="${card.uid}">${button}</button><button type="button" class="gros-bouton secondaire" data-action="annuler-confirmation">Retour</button></div>
@@ -453,7 +453,7 @@ function equipmentSheet(run: RunState, sel: string): string {
     const id = run.spells[Number(sel.slice(5))];
     if (!id) {
       return `<aside class="fiche-talent fiche-equipement"><div class="haut-fiche"><span class="case-equipement case-sort vide grande"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></span><div class="titre-fiche">Emplacement libre</div></div>
-        <div class="texte-fiche"><p>Un sort de barre de ta classe peut tomber des boss secondaires : il se range ici.</p></div>${close}</aside>`;
+        <div class="texte-fiche"><p>Un sort de barre de ta classe peut tomber des gardiens : il se range ici.</p></div>${close}</aside>`;
     }
     const d = SPELLS[id];
     return `<aside class="fiche-talent fiche-equipement"><div class="haut-fiche"><span class="case-equipement case-sort grande">${ICON[d.icon]}</span><div><div class="titre-fiche">${d.name}</div>
@@ -466,7 +466,7 @@ function equipmentSheet(run: RunState, sel: string): string {
   if (!id) {
     const what = slotOf(key) === 'bague' || slotOf(key) === 'bijou' ? `Tu peux porter 2 ${SLOT_LABEL[key].toLowerCase()}x.` : '';
     return `<aside class="fiche-talent fiche-equipement"><div class="haut-fiche"><span class="case-equipement vide grande">${icon}</span><div class="titre-fiche">${SLOT_LABEL[key]} · vide</div></div>
-      <div class="texte-fiche"><p>${what} On trouve des objets chez les boss secondaires, dans les coffres et chez le vendeur gobelin.</p></div>${close}</aside>`;
+      <div class="texte-fiche"><p>${what} On trouve des objets chez les gardiens, dans les coffres et chez le vendeur gobelin.</p></div>${close}</aside>`;
   }
   const it = ITEMS[id];
   const broken = run.broken.includes(key);
@@ -556,13 +556,13 @@ function topbar(run: RunState, hp: number): string {
       <span class="potions">${run.potions.map((id, i) => `<button type="button" class="potion-slot ${id ? '' : 'vide'}" ${id ? `data-action="potion" data-slot="${i}" aria-label="${POTIONS[id].name}" title="${POTIONS[id].name}"` : 'disabled aria-label="Emplacement de potion vide"'}>${potionIcon(id)}</button>`).join('')}</span>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-      <span class="etape">Acte ${run.act} · ${actDef(run.act).name} · ${etageLabel(run)}</span>
-      <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Wipes ${pips} <span>${run.wipesLeft} restant${run.wipesLeft > 1 ? 's' : ''}</span></span>
+      <span class="etape">${chapitre(run.act)} · ${actDef(run.act).name} · ${etageLabel(run)}</span>
+      <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Relèves ${pips} <span>${run.wipesLeft} restante${run.wipesLeft > 1 ? 's' : ''}</span></span>
     </div>
     <div class="groupe">
       ${fullscreenButton('bouton')}
       <button type="button" class="bouton" data-action="equipement">Équipement · ${SLOT_KEYS.filter((k) => run.equipment[k]).length}/6${run.broken.length > 0 ? ` <span class="mention-brise">· ${run.broken.length} brisé${run.broken.length > 1 ? 's' : ''}</span>` : ''}</button>
-      <button type="button" class="bouton" data-action="deck">Deck · ${run.deck.length}</button>
+      <button type="button" class="bouton" data-action="deck">Paquet · ${run.deck.length}</button>
       ${run.screen === 'combat' ? `<button type="button" class="bouton tuto-bouton ${combatTutoDone(loadProfile(), run.classId) ? '' : 'brille'}" data-action="tuto" aria-label="Tutoriel du combat" title="Tutoriel du combat">?</button>` : ''}
       <button type="button" class="bouton" data-action="menu">Menu</button>
     </div>
@@ -573,13 +573,19 @@ function etageLabel(run: RunState): string {
   const node = currentNode(run);
   if (!node) return 'Entrée';
   const where = run.screen === 'combat' && run.encounter ? ` · ${run.encounter.name}` : '';
-  return `Étage ${node.floor + 1}/${FLOORS}${where}`;
+  return `Étape ${node.floor + 1}/${FLOORS}${where}`;
 }
 
 // ---------- Carte de l'acte ----------
 
+const ROMAINS = ['', 'I', 'II', 'III', 'IV', 'V'];
+/** « Chapitre II » : un acte, dans le vocabulaire du jeu (issue #8). */
+function chapitre(act: number): string {
+  return `Chapitre ${ROMAINS[act] ?? act}`;
+}
+
 const NODE_LABEL: Record<NodeType, string> = {
-  combat: 'Combat', elite: 'Boss secondaire', event: '?', shop: 'Vendeur', campfire: 'Feu de camp', chest: 'Coffre', boss: 'Boss',
+  combat: 'Combat', elite: 'Gardien', event: '?', shop: 'Vendeur', campfire: 'Feu de camp', chest: 'Coffre', boss: 'Seigneur',
 };
 
 const NODE_ICON: Record<NodeType, string> = {
@@ -600,15 +606,15 @@ function nodePos(n: MapNode): { x: number; y: number } {
 /** Les quêtes en cours, affichées sur la carte. */
 function questTracker(run: RunState): string {
   const lines: string[] = [];
-  if (run.sourcesQuest === 'active') lines.push('<b>Gardiens des Sources</b> : bats le prochain boss secondaire, il portera la rune.');
-  if (run.sourcesQuest === 'rune') lines.push('<b>Gardiens des Sources</b> : bats le boss qui porte la rune.');
+  if (run.sourcesQuest === 'active') lines.push('<b>Gardiens des Sources</b> : bats le prochain gardien, il portera la rune.');
+  if (run.sourcesQuest === 'rune') lines.push('<b>Gardiens des Sources</b> : bats le gardien qui porte la rune.');
   if (run.sourcesQuest === 'done') lines.push('<b>Eau des profondeurs</b> : Vulkhar commencera affaibli.');
-  if (run.veilleur === 'fragment') lines.push(run.act >= 2 ? '<b>Bâton du Veilleur</b> : trouve l\'observatoire en ruine (un « ? » de l\'acte 2).' : '<b>Bâton du Veilleur</b> : garde le Fragment. L\'esprit du Veilleur t\'attend à l\'acte 2.');
-  if (run.equinoxe === 'baton') lines.push(run.act >= 2 ? '<b>Équinoxe</b> : bats Ysolde la Rouge (boss secondaire de l\'acte 2) pour sa Larme.' : '<b>Équinoxe</b> : garde le Bâton nu. La pierre qu\'il lui faut est gardée par Ysolde la Rouge, à l\'acte 2.');
-  if (run.sillon === 'gauche' || run.sillon === 'droit') lines.push(run.act > 1 ? '<b>Sillon d\'orage</b> : il te manquait un fermoir. La quête ne pourra pas être terminée cette fois.' : `<b>Sillon d'orage</b> : bats ${run.sillon === 'gauche' ? 'le Baron Vossk' : 'Gorlok le Fragmenté'} (boss secondaire) pour le second fermoir.`);
-  if (run.sillon === 'deux') lines.push(run.act >= 2 ? '<b>Sillon d\'orage</b> : Ventor t\'attend derrière un « ? » de cet acte.' : '<b>Sillon d\'orage</b> : les deux fermoirs sont réunis. Ventor t\'attendra derrière un « ? » de l\'acte 2.');
-  if (run.aurore === 'lame') lines.push(run.act >= 3 ? '<b>L\'Aurore ardente</b> : les Veilleurs de l\'Aurore campent derrière un « ? » de cet acte. Ils peuvent bénir la Lame ternie.' : '<b>L\'Aurore ardente</b> : bats Ossyrax, le Drake ressuscité (boss secondaire de l\'acte 2), pour purifier la Lame ternie. Sinon, les Veilleurs de l\'Aurore t\'attendront à l\'acte 3.');
-  if (run.aurore === 'benie') lines.push('<b>L\'Aurore ardente</b> : la lame est bénie. Bats un boss secondaire d\'Irem : elle s\'embrasera.');
+  if (run.veilleur === 'fragment') lines.push(run.act >= 2 ? '<b>Bâton du Veilleur</b> : trouve l\'observatoire en ruine (un « ? » du chapitre II).' : '<b>Bâton du Veilleur</b> : garde le Fragment. L\'esprit du Veilleur t\'attend au chapitre II.');
+  if (run.equinoxe === 'baton') lines.push(run.act >= 2 ? '<b>Équinoxe</b> : bats Ysolde la Rouge (gardien du chapitre II) pour sa Larme.' : '<b>Équinoxe</b> : garde le Bâton nu. La pierre qu\'il lui faut est gardée par Ysolde la Rouge, au chapitre II.');
+  if (run.sillon === 'gauche' || run.sillon === 'droit') lines.push(run.act > 1 ? '<b>Sillon d\'orage</b> : il te manquait un fermoir. La quête ne pourra pas être terminée cette fois.' : `<b>Sillon d'orage</b> : bats ${run.sillon === 'gauche' ? 'le Baron Vossk' : 'Gorlok le Fragmenté'} (gardien) pour le second fermoir.`);
+  if (run.sillon === 'deux') lines.push(run.act >= 2 ? '<b>Sillon d\'orage</b> : Ventor t\'attend derrière un « ? » de ce chapitre.' : '<b>Sillon d\'orage</b> : les deux fermoirs sont réunis. Ventor t\'attendra derrière un « ? » du chapitre II.');
+  if (run.aurore === 'lame') lines.push(run.act >= 3 ? '<b>L\'Aurore ardente</b> : les Veilleurs de l\'Aurore campent derrière un « ? » de ce chapitre. Ils peuvent bénir la Lame ternie.' : '<b>L\'Aurore ardente</b> : bats Ossyrax, le Drake ressuscité (gardien du chapitre II), pour purifier la Lame ternie. Sinon, les Veilleurs de l\'Aurore t\'attendront au chapitre III.');
+  if (run.aurore === 'benie') lines.push('<b>L\'Aurore ardente</b> : la lame est bénie. Bats un gardien d\'Irem : elle s\'embrasera.');
   if (run.aurore === 'purifiee') lines.push('<b>L\'Aurore ardente</b> : rallume la lame au prochain feu de camp.');
   if (run.equinoxe === 'larme') lines.push('<b>Équinoxe</b> : accomplis le Rituel de l\'équinoxe au prochain feu de camp.');
   if (run.veilleur === 'tete') lines.push('<b>Bâton du Veilleur</b> : lie les fragments au prochain feu de camp (une carte rare à sacrifier).');
@@ -618,7 +624,7 @@ function questTracker(run: RunState): string {
   else if (run.brisemonts === 'lame') lines.push(run.map.nodes.some((n) => n.type === 'elite' && n.elite === KRAGG_INDEX)
     ? '<b>Brisemonts</b> : bats Krâgg le Mange-roche pour obtenir le Cœur de la montagne.'
     : '<b>Brisemonts</b> : Krâgg n\'est pas sur cette carte. La quête ne pourra pas être terminée cette fois.');
-  if (run.brisemonts === 'coeur') lines.push(run.act >= LEGENDARY_MIN_ACT ? '<b>Brisemonts</b> : reforge l\'épée au prochain feu de camp.' : `<b>Brisemonts</b> : garde la Lame et le Cœur. Tu pourras reforger l'épée à un feu de camp de l'acte ${LEGENDARY_MIN_ACT}.`);
+  if (run.brisemonts === 'coeur') lines.push(run.act >= LEGENDARY_MIN_ACT ? '<b>Brisemonts</b> : reforge l\'épée au prochain feu de camp.' : `<b>Brisemonts</b> : garde la Lame et le Cœur. Tu pourras reforger l'épée à un feu de camp du ${chapitre(LEGENDARY_MIN_ACT).toLowerCase()}.`);
   return lines.length ? `<div class="quetes"><span class="butin-titre">Quêtes</span>${lines.map((l) => `<p>${l}</p>`).join('')}</div>` : '';
 }
 
@@ -648,7 +654,7 @@ function mapScreen(run: RunState): string {
     // L'indice des Veilleurs de l'Aurore : ce « ? » cache un combat, ou un vrai événement.
     const hint = n.hint ? `<span class="indice ${n.hint}" title="${n.hint === 'combat' ? 'Indice des Veilleurs : un combat' : 'Indice des Veilleurs : un vrai événement'}">${n.hint === 'combat' ? '⚔' : '✓'}</span>` : '';
     return `<button type="button" class="noeud ${n.type} ${state} ${run.position === n.id ? 'ici' : ''}" style="left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px"
-      ${can.has(n.id) ? `data-action="noeud" data-id="${n.id}"` : 'disabled'} aria-label="Étage ${n.floor + 1} : ${label}${n.hint ? (n.hint === 'combat' ? ' (un combat)' : ' (un événement)') : ''}">${NODE_ICON[n.type]}${hint}</button>`;
+      ${can.has(n.id) ? `data-action="noeud" data-id="${n.id}"` : 'disabled'} aria-label="Étape ${n.floor + 1} : ${label}${n.hint ? (n.hint === 'combat' ? ' (un combat)' : ' (un événement)') : ''}">${NODE_ICON[n.type]}${hint}</button>`;
   }).join('');
 
   const floorsLabels = Array.from({ length: FLOORS }, (_, f) => `<span class="etage-num" style="left:${80 + f * 124 - 30}px">${f + 1}</span>`).join('');
@@ -664,7 +670,7 @@ function mapScreen(run: RunState): string {
       ${buttons}
       <div class="legende">${legend}</div>
       ${questTracker(run)}
-      ${run.map.nodes.some((n) => n.type === 'elite') ? '<button type="button" class="bouton bouton-loot" data-action="loot">Tables de loot</button>' : ''}
+      ${run.map.nodes.some((n) => n.type === 'elite') ? '<button type="button" class="bouton bouton-loot" data-action="loot">Tables de butin</button>' : ''}
     </div>`;
 }
 
@@ -715,10 +721,10 @@ function blessingScreen(run: RunState): string {
     const cards = deckList(run.deck, (card) => cardHtml(card, { action: `data-action="carte-a-confirmer" data-uid="${card.uid}"` }));
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Allègement</h2>
-      <p>Choisis la carte à retirer de ton deck.</p>
+      <p>Choisis la carte à retirer de ton paquet.</p>
       <div class="liste-deck">${cards}</div>
       <button type="button" class="gros-bouton secondaire" data-action="benediction-retour">Retour</button>
-    </div>${cardConfirmWindow(run, 'Retirer', 'Retirer', 'benediction-carte', 'La carte disparaît de ton deck pour toute l\'expédition.')}`;
+    </div>${cardConfirmWindow(run, 'Retirer', 'Retirer', 'benediction-carte', 'La carte disparaît de ton paquet pour toute l\'expédition.')}`;
   }
   const choices = run.blessings.map((id) => {
     const b = BLESSINGS[id];
@@ -750,10 +756,10 @@ function shopScreen(run: RunState): string {
     });
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>${remove ? 'Retirer une carte' : 'Améliorer une carte'}</h2>
-      <p>${remove ? 'Choisis la carte à retirer définitivement de ton deck.' : 'Choisis la carte à améliorer.'} Prix : ${servicePrice(remove ? run.removals : run.upgradesBought)} or.</p>
+      <p>${remove ? 'Choisis la carte à retirer définitivement de ton paquet.' : 'Choisis la carte à améliorer.'} Prix : ${servicePrice(remove ? run.removals : run.upgradesBought)} or.</p>
       <div class="liste-deck">${cards}</div>
       <button type="button" class="gros-bouton secondaire" data-action="boutique-retour">Retour</button>
-    </div>${remove ? cardConfirmWindow(run, 'Retirer', `Retirer · ${servicePrice(run.removals)} or`, 'service-carte', 'La carte disparaît de ton deck pour toute l\'expédition.') : ''}`;
+    </div>${remove ? cardConfirmWindow(run, 'Retirer', `Retirer · ${servicePrice(run.removals)} or`, 'service-carte', 'La carte disparaît de ton paquet pour toute l\'expédition.') : ''}`;
   }
 
   const piece = (price: number, ok: boolean, promo = false) => `<span class="prix ${ok ? '' : 'trop-cher'} ${promo ? 'promo' : ''}">${ICON.piece}${price}${promo ? ' · promo' : ''}</span>`;
@@ -1090,9 +1096,9 @@ const POWER_LABEL: Record<string, [string, string]> = {
   bagarreur: ['Bagarreur', 'Puissance'],
   toxines_virulentes: ['Toxines virulentes', 'Le Poison passe d\'un mort à un vivant'],
   lames_empoisonnees: ['Lames empoisonnées', 'Le Poison ne diminue plus'],
-  opportunite: ['Opportunité', 'Finisher à 5 points : énergie et combo'],
+  opportunite: ['Opportunité', 'Coup final à 5 points : énergie et combo'],
   tourbillon_lames: ['Tourbillon de lames', 'Cible unique : un 2e ennemi à moitié'],
-  second_souffle: ['Second souffle', 'Finisher : blocage'],
+  second_souffle: ['Second souffle', 'Coup final : blocage'],
   ambidextrie_experte: ['Ambidextrie experte', '1re Attaque du tour jouée deux fois'],
   initiative: ['Initiative', 'Ouverture : +2 combo'],
   opportuniste: ['Opportuniste', 'Ennemis contrôlés : +dégâts'],
@@ -1268,7 +1274,7 @@ function rogueResource(c: CombatState): string {
   const pips = Array.from({ length: 5 }, (_, i) => `<i class="${i < n ? 'plein' : ''}"></i>`).join('');
   const stealth = c.stealth
     ? `<b class="camoufle">Camouflé</b>${(c.stealthTurns ?? 1) > 1 ? ` (${c.stealthTurns} tours)` : ''} : tu peux jouer tes Ouvertures. Une Attaque qui n'en est pas une te fait sortir de l'ombre.`
-    : 'Les générateurs donnent du combo, les finishers le dépensent.';
+    : 'Les générateurs donnent du combo, les coups finaux le dépensent.';
   return `<div class="ligne"><span class="rage-label combo-label">COMBO</span><div class="rage combo">${pips}</div><span class="rage-label" style="width:auto">${n}</span></div>
     <div class="aide-posture">${stealth}</div>`;
 }
@@ -1435,7 +1441,7 @@ function combatScreen(run: RunState, c: CombatState): string {
       ${e === compTarget ? `<span class="chs-cible" title="Ton ${COMPANIONS[c.companion!].name} attaquera cet ennemi à la fin de ton tour">${ICON_HUNT.patte}cible</span>` : ''}
       ${e === trapTarget ? `<span class="chs-ici" title="Il agit en premier : tes Pièges se déclencheront sur lui">${c.traps!.map((t) => ICON_HUNT[t.id]).join('')}ici</span>` : ''}
       <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${size}" height="${size}">
-      <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Boss secondaire · ' : ''}${e.name}</span>
+      <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Gardien · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}${c.mark?.uid === e.uid ? `<span class="chip marque" title="Tes Attaques et ton compagnon lui infligent +${markBonus(c, e)} dégâts">Marqué +${markBonus(c, e)}</span>` : ''}</div>
       ${def.passive ? `<div class="passif-ennemi">${(e.phase ?? 1) >= 2 && def.passive2 ? def.passive2 : def.passive}</div>` : ''}
@@ -1469,8 +1475,8 @@ function combatScreen(run: RunState, c: CombatState): string {
   let enrage = '';
   if (c.enrageTurn !== null) {
     enrage = isEnraged(c)
-      ? `<div class="enrage actif">${ICON.sablier}<span>ENRAGE : dégâts du boss doublés</span></div>`
-      : `<div class="enrage">${ICON.sablier}<span>Enrage dans ${c.enrageTurn - c.turn} tour${c.enrageTurn - c.turn > 1 ? 's' : ''} : ses dégâts doubleront</span></div>`;
+      ? `<div class="enrage actif">${ICON.sablier}<span>Il se déchaîne : ses coups sont doublés</span></div>`
+      : `<div class="enrage">${ICON.sablier}<span>Il se déchaîne dans ${c.enrageTurn - c.turn} tour${c.enrageTurn - c.turn > 1 ? 's' : ''} : ses coups doubleront</span></div>`;
   }
 
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
@@ -1572,7 +1578,7 @@ function titleScreen(): string {
     : chest.length ? 'Tu peux emporter un objet du coffre : touche-le.' : '';
   const run = canContinue && saved ? `<div class="run-en-cours">
       <span class="butin-titre">Expédition en cours · ${classInfo(saved.classId).name}</span>
-      <p>Acte ${saved.act ?? 1} · ${saved.position === null ? 'Entrée' : `Étage ${saved.map.nodes[saved.position].floor + 1}/${FLOORS}`} · ${ICON.coeur} ${saved.hp}/${saved.maxHp} · ${ICON.piece} ${saved.gold} · ${saved.wipesLeft} wipe${saved.wipesLeft > 1 ? 's' : ''} restant${saved.wipesLeft > 1 ? 's' : ''}</p>
+      <p>${chapitre(saved.act ?? 1)} · ${saved.position === null ? 'Entrée' : `Étape ${saved.map.nodes[saved.position].floor + 1} sur ${FLOORS}`} · ${ICON.coeur} ${saved.hp}/${saved.maxHp} · ${ICON.piece} ${saved.gold} · ${saved.wipesLeft} relève${saved.wipesLeft > 1 ? 's' : ''} restante${saved.wipesLeft > 1 ? 's' : ''}</p>
       <button type="button" class="gros-bouton" data-action="continuer">Continuer</button>
     </div>` : '';
   const stats = profile.stats;
@@ -1588,15 +1594,15 @@ function titleScreen(): string {
         <span><img class="px" src="${A('icone_epee.png')}" alt="">${hero.role}</span>
         <span><img class="px" src="${A('icone_pouvoir.png')}" alt="">${hero.resource}</span>
       </div>
-      <div class="barre-xp"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div>
+      <div class="barre-xp"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} expérience` : 'Niveau maximum'}</span></div>
       <div class="hall-arbres">${trees}</div>
       <button type="button" class="gros-bouton secondaire" data-action="talents">Talents · ${pointsUsed(alloc)}/${lvl.level} points</button>
       <button type="button" class="bouton" data-action="classes">Classes${unlocks > 0 ? ` · ${unlocks} à débloquer` : ''}</button>
     </section>
     <section class="hall-expedition">
-      <span class="butin-titre">L'expédition · ${Object.keys(ACTS).length} actes</span>
+      <span class="butin-titre">L'expédition · ${Object.keys(ACTS).length} chapitres</span>
       <h2>${ACTS[1].name} → ${ACTS[2].name}</h2>
-      <p>Les Profondeurs Ardentes et Vulkhar, puis l'Aire de Vhaeryx au sommet du mont Durgal. 10 étages par acte, des boss secondaires différents à chaque expédition.</p>
+      <p>Les Profondeurs Ardentes et Vulkhar, puis l'Aire de Vhaeryx au sommet du mont Durgal. 10 étapes par chapitre, des gardiens différents à chaque expédition.</p>
       ${run}
       ${difficultyPicker()}
       <button type="button" class="gros-bouton ${canContinue ? 'secondaire' : ''}" data-action="nouvelle">${canContinue ? 'Nouvelle expédition' : 'Partir en expédition'}</button>
@@ -1657,7 +1663,7 @@ function archiveGroups(tab: UiState['archiveTab']): ArchiveGroup[] {
     const groups: [string, string[]][] = [['Coffres et vendeur gobelin', withTwins(COMMON_POOL)],
       ...[...ELITE_ENCOUNTERS, ...ELITE_ENCOUNTERS_2, ...ELITE_ENCOUNTERS_3].map((e) => [e.name, withTwins(LOOT_TABLES[e.loot!])] as [string, string[]]),
       // Les boss de fin d'acte : leur table, puis leur butin épique.
-      ...[1, 2, 3].map((n) => [`${ACTS[n].boss.name.split(',')[0]} (fin de l'acte ${n})`, withTwins([...BOSS_LOOT[n].table, ...BOSS_LOOT[n].epics])] as [string, string[]]),
+      ...[1, 2, 3].map((n) => [`${ACTS[n].boss.name.split(',')[0]} (seigneur du ${chapitre(n).toLowerCase()})`, withTwins([...BOSS_LOOT[n].table, ...BOSS_LOOT[n].epics])] as [string, string[]]),
       ['Légendaires', Object.keys(ITEMS).filter((id) => ITEMS[id].rarity === 'legendaire')]];
     return groups.map(([title, ids]) => ({
       title,
@@ -1673,14 +1679,14 @@ function archiveGroups(tab: UiState['archiveTab']): ArchiveGroup[] {
     const ids = Object.keys(ENEMIES).filter((id) => enemyAct(id) === act && !ENEMIES[id].copyOf);
     const kinds: [string, (id: string) => boolean][] = [
       ['Monstres', (id) => !ENEMIES[id].elite && !ENEMIES[id].boss],
-      ['Boss secondaires', (id) => !!ENEMIES[id].elite && !ENEMIES[id].boss],
-      ['Boss', (id) => !!ENEMIES[id].boss],
+      ['Gardiens', (id) => !!ENEMIES[id].elite && !ENEMIES[id].boss],
+      ['Seigneurs', (id) => !!ENEMIES[id].boss],
     ];
     for (const [kind, test] of kinds) {
       const list = ids.filter(test);
       if (list.length === 0) continue;
       groups.push({
-        title: `Acte ${act} · ${kind}`,
+        title: `${chapitre(act)} · ${kind}`,
         entries: list.map((id) => ({
           key: id, seen: p.seenEnemies.includes(id), cls: ENEMIES[id].boss ? 'boss' : ENEMIES[id].elite ? 'elite' : '',
           icon: `<img class="px" src="${A(`ennemi_${id}.png`)}" alt="">`,
@@ -1728,7 +1734,7 @@ function archivesScreen(): string {
 
 /** Le glossaire des archives : tous les mots-clés expliqués, dans l'ordre alphabétique. */
 function glossaryScreen(tabs: string): string {
-  const words = [...KEYWORDS].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  const words = [...KEYWORDS, ...GLOSSARY_EXTRA].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   const list = words.map((k) => `<div class="mot-glossaire"><b>${k.name}</b><span>${k.text}</span></div>`).join('');
   return `<div class="ecran ecran-archives">
     <div class="archives-gauche">
@@ -1781,8 +1787,8 @@ function archiveSheet(tab: UiState['archiveTab'], e: ArchiveEntry): string {
   }
   const d = ENEMIES[e.key];
   const act = enemyAct(e.key);
-  const kind = d.boss ? 'Boss' : d.elite ? 'Boss secondaire' : 'Monstre';
-  const kindTag = tag(`${kind} · acte ${act}`, d.boss ? 'r-legendaire' : d.elite ? 'r-epique' : '');
+  const kind = d.boss ? 'Seigneur' : d.elite ? 'Gardien' : 'Monstre';
+  const kindTag = tag(`${kind} · ${chapitre(act).toLowerCase()}`, d.boss ? 'r-legendaire' : d.elite ? 'r-epique' : '');
   if (!e.seen) return `<aside class="fiche-talent">${head('???', kindTag)}<div class="texte-fiche"><p class="note">Pas encore rencontré.</p></div></aside>`;
   const kills = p.kills[e.key] ?? 0;
   return `<aside class="fiche-talent">${head(d.name, kindTag + tag(`${d.hpMax} PV`) + tag(`vaincu ${kills} fois`))}<div class="texte-fiche">${LORE[e.key] ? `<p class="lore-archive">${LORE[e.key]}</p>` : ''}${d.passive ? `<p class="note"><b>Passif :</b> ${d.passive}</p>` : ''}</div></aside>`;
@@ -1874,7 +1880,7 @@ function rewardScreen(run: RunState): string {
       ${run.pendingItem ? run.pendingAlts.map((alt, i) => `<div class="butin"><span class="butin-titre">ou</span>${itemHtml(alt)}${equipChoices(run, alt, `data-action="equiper" data-alt="${i}"`, i === run.pendingAlts.length - 1 ? '<button type="button" class="bouton-objet secondaire" data-action="laisser">Aucun</button>' : '')}</div>`).join('') : ''}
       ${run.pendingPotion ? potionReward(run, run.pendingPotion) : ''}
     </div>` : ''}
-    ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton deck.</p>' : ''}
+    ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton paquet.</p>' : ''}
     ${run.rewardChoices.length > 0 ? `<div class="choix-cartes ${crowded ? 'compact' : ''}">${cards}</div>` : ''}
     <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">${run.rewardChoices.length > 0 ? 'Passer' : 'Continuer'}</button>
   </div>`;
@@ -1902,11 +1908,11 @@ function upgradePreview(run: RunState, uid: number, label: string, confirm: stri
 function actScreen(run: RunState): string {
   const next = actDef(run.act + 1);
   return `${topbar(run, run.hp)}<div class="ecran ecran-acte">
-    <span class="butin-titre">Acte ${run.act} terminé</span>
+    <span class="butin-titre">${chapitre(run.act)} terminé</span>
     <h1>${next.name}</h1>
     <p class="texte-evenement">${next.intro}</p>
     <p>Avant de repartir, la guilde panse tes blessures : <b>tes PV remontent au maximum</b>.</p>
-    <button type="button" class="gros-bouton" data-action="acte-suivant">Entrer dans l'acte ${run.act + 1}</button>
+    <button type="button" class="gros-bouton" data-action="acte-suivant">Entrer dans le ${chapitre(run.act + 1).toLowerCase()}</button>
   </div>`;
 }
 
@@ -1945,7 +1951,7 @@ function campfireScreen(run: RunState): string {
     });
     return `${topbar(run, run.hp)}<div class="ecran" style="justify-content:flex-start;padding-top:70px;gap:14px">
       <h2>Lier les fragments</h2>
-      <p>Le bâton exige un sacrifice : choisis une carte rare de ton deck. Elle disparaît, et le Bâton du Veilleur remplace ton arme.</p>
+      <p>Le bâton exige un sacrifice : choisis une carte rare de ton paquet. Elle disparaît, et le Bâton du Veilleur remplace ton arme.</p>
       <div class="liste-deck">${cards}</div>
       <button type="button" class="gros-bouton secondaire" data-action="feu-retour">Retour</button>
     </div>${cardConfirmWindow(run, 'Sacrifier', 'Sacrifier', 'lier-baton', 'La carte est détruite, et le Bâton du Veilleur remplace ton arme.')}`;
@@ -1981,7 +1987,7 @@ function campfireScreen(run: RunState): string {
       <p>La chaleur de la montagne se fait oublier un instant. Une seule action avant de repartir.</p>
       ${forgeTiles}
       ${rest}
-      <button type="button" class="choix-feu" data-action="feu-ameliorer"><img class="px" src="${A('icone_enclume.png')}" alt=""><span class="texte-choix"><b>Améliorer une carte</b><span>Le maître de classe améliore une carte de ton deck.</span></span></button>
+      <button type="button" class="choix-feu" data-action="feu-ameliorer"><img class="px" src="${A('icone_enclume.png')}" alt=""><span class="texte-choix"><b>Améliorer une carte</b><span>Le maître de classe améliore une carte de ton paquet.</span></span></button>
     </div>
   </div>`;
 }
@@ -1991,16 +1997,16 @@ function wipeScreen(run: RunState): string {
   const canPay = run.gold >= bill;
   const breakable = breakableSlots(run).length > 0;
   return `${topbar(run, 0)}<div class="ecran">
-    <h1>Wipe !</h1>
-    <p>Tu peux retenter le combat depuis le début, avec au moins la moitié de tes PV et les potions que tu avais en entrant. Il te reste ${run.wipesLeft} wipe${run.wipesLeft > 1 ? 's' : ''}.</p>
+    <h1>Tu es tombé !</h1>
+    <p>Tu peux te relever et retenter le combat depuis le début, avec au moins la moitié de tes PV et les potions que tu avais en entrant. Il te reste ${run.wipesLeft} relève${run.wipesLeft > 1 ? 's' : ''}.</p>
     <div class="facture">
       <span class="facture-titre">Facture de réparation</span>
       <b>${ICON.piece} ${bill} or</b>
       <span>${canPay ? `Tu as ${run.gold} or.` : breakable ? `Tu n'as que ${run.gold} or : <strong class="mention-brise">un de tes objets, au hasard, sera brisé</strong>. Son effet sera désactivé jusqu'à ce que le vendeur gobelin le répare.` : `Tu n'as que ${run.gold} or, mais aucun objet à briser : le gobelin te fait crédit, pour cette fois.`}</span>
     </div>
     <div class="actions">
-      <button type="button" class="gros-bouton" data-action="retenter">${canPay ? `Payer ${bill} or et retenter` : breakable ? 'Retenter (un objet sera brisé)' : 'Retenter le combat'}</button>
-      <button type="button" class="gros-bouton secondaire" data-action="abandonner">Abandonner la run</button>
+      <button type="button" class="gros-bouton" data-action="retenter">${canPay ? `Te relever · ${bill} or` : breakable ? 'Te relever (un objet sera brisé)' : 'Te relever'}</button>
+      <button type="button" class="gros-bouton secondaire" data-action="abandonner">Abandonner l'expédition</button>
     </div>
   </div>`;
 }
@@ -2092,7 +2098,7 @@ function classScreen(): string {
     jouee: ['<button type="button" class="gros-bouton" disabled>Classe jouée</button>', 'C\'est la classe de tes prochaines expéditions.'],
     debloquee: [`<button type="button" class="gros-bouton" data-action="classe-active" data-id="${c.id}">Jouer le ${c.name}</button>`, ''],
     'a-debloquer': [`<button type="button" class="gros-bouton" data-action="debloquer" data-id="${c.id}">Débloquer le ${c.name}</button>`, `Tu peux débloquer ${n} classe${n > 1 ? 's' : ''} : c'est toi qui choisis.`],
-    verrouillee: ['<button type="button" class="gros-bouton" disabled>À débloquer</button>', next ? `Prochaine classe à ${next} exp. (tu en as ${totalXp(profile)}).` : ''],
+    verrouillee: ['<button type="button" class="gros-bouton" disabled>À débloquer</button>', next ? `Prochaine classe à ${next} d\'expérience (tu en as ${totalXp(profile)}).` : ''],
     bientot: ['<button type="button" class="gros-bouton" disabled>En préparation</button>', 'Cette classe arrive dans une prochaine version.'],
   }[st];
   const sub = first
@@ -2145,7 +2151,7 @@ function classProgressHtml(profile: ReturnType<typeof loadProfile>, cls: string)
     entry?.legendary && ITEMS[entry.legendary] ? tag(`Légendaire forgé : ${ITEMS[entry.legendary].name}`, 'r-legendaire') : '',
   ].join('');
   return `<div class="progression-classe"><span class="titre-rappel">Ta progression</span>
-    <div class="ligne-niveau"><b>Niveau ${lvl.level}</b><div class="barre-xp petite"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} exp.` : 'Niveau maximum'}</span></div></div>
+    <div class="ligne-niveau"><b>Niveau ${lvl.level}</b><div class="barre-xp petite"><div style="width:${pct}%"></div><span>${lvl.needed ? `${lvl.into} / ${lvl.needed} expérience` : 'Niveau maximum'}</span></div></div>
     <div class="etiquettes">${tags}</div></div>`;
 }
 
@@ -2233,7 +2239,7 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
   if (d.card) {
     const c = CARDS[d.card];
     chips.push(`<span class="type-talent">${c.type} · ${c.cost} énergie${c.rageCost ? ` + ${c.rageCost === 'all' ? 'toute ta' : c.rageCost} rage` : ''}</span>`);
-    body = `<p>${c.text(false)}</p><p class="ameliore">Améliorée : ${c.text(true)}</p><p class="note">Un exemplaire dans ton deck de départ.</p>`;
+    body = `<p>${c.text(false)}</p><p class="ameliore">Améliorée : ${c.text(true)}</p><p class="note">Un exemplaire dans ton paquet de départ.</p>`;
   } else if (d.spell) {
     // « Ajoute ce sort à ta barre (…) : effet » : le type est déjà dans l'étiquette, on garde l'effet.
     const m = /^Ajoute ce sort à ta barre(?: \(([^)]*)\))? : (.*)$/.exec(d.text);
@@ -2287,8 +2293,8 @@ function endScreen(run: RunState, victory: boolean): string {
     </div>`;
   }
   return `<div class="ecran" style="gap:14px">
-    <h1>${victory ? 'Yzhar est vaincu !' : 'Fin de la run'}</h1>
-    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes, l'Aire de Vhaeryx et Irem avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} wipe${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : `${actDef(run.act).name} ${run.act === 1 ? 'ont' : 'a'} eu raison de toi. La guilde enverra un autre champion.`}</p>
+    <h1>${victory ? 'Yzhar est vaincu !' : 'Fin de l\'expédition'}</h1>
+    <p>${victory ? `Bravo : tu as traversé les Profondeurs Ardentes, l'Aire de Vhaeryx et Irem avec ${run.hp} PV et ${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft} chute${(run.maxWipes ?? MAX_WIPES) - run.wipesLeft > 1 ? 's' : ''}${run.difficulty ? `, en difficulté ${run.difficulty}` : ''}.` : `${actDef(run.act).name} ${run.act === 1 ? 'ont' : 'a'} eu raison de toi. La guilde enverra un autre champion.`}</p>
     ${run.summary ? summaryHtml(run.summary, run.classId) : ''}
     ${victory ? chestPanel(run) : run.heirloom ? `<p class="mention-brise">${ITEMS[run.heirloom].name}, emporté du coffre de la guilde, est perdu.</p>` : ''}
     <div class="actions"><button type="button" class="gros-bouton" data-action="titre">Retour au hall de la guilde</button></div>
@@ -2408,10 +2414,10 @@ function overlayHtml(run: RunState | null): string {
     const count = (t: string) => run.deck.filter((card) => CARDS[card.id].type === t).length;
     const filters = [`<button type="button" class="${!ui.deckType ? 'actif' : ''}" data-action="deck-type" data-type="">Toutes · ${run.deck.length}</button>`,
       ...types.map((t) => `<button type="button" class="${ui.deckType === t ? 'actif' : ''}" data-action="deck-type" data-type="${t}">${t} · ${count(t)}</button>`)].join('');
-    const sorts = ([['deck', 'Ordre du deck'], ['cout', 'Coût'], ['nom', 'Nom']] as const)
+    const sorts = ([['deck', 'Ordre du paquet'], ['cout', 'Coût'], ['nom', 'Nom']] as const)
       .map(([id, label]) => `<button type="button" class="${sort === id ? 'actif' : ''}" data-action="deck-tri" data-tri="${id}">${label}</button>`).join('');
     return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:28px;gap:10px">
-      <h2>Ton deck (${run.deck.length} cartes)</h2>
+      <h2>Ton paquet (${run.deck.length} cartes)</h2>
       <div class="filtres-deck"><div class="choix-filtre">${filters}</div><div class="choix-filtre">${sorts}</div></div>
       <div class="liste-deck">${cards || '<p><i>Aucune carte de ce type.</i></p>'}</div>
       <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
@@ -2443,12 +2449,12 @@ function overlayHtml(run: RunState | null): string {
       // Les armes montrées dans la version de ta classe.
       const table = enc.loot ? [...new Set(LOOT_TABLES[enc.loot].map((id) => itemFor(id, run.classId)))] : [];
       return {
-        title: `${enc.name} · étage${floors.includes(',') ? 's' : ''} ${floors}`,
+        title: `${enc.name} · étape${floors.includes(',') ? 's' : ''} ${floors}`,
         entries: table.map((id) => ({ key: `${enc.name}|${id}`, id, seen: profile.discoveredItems.includes(id) })),
         spell: true,
       };
     });
-    return itemGridOverlay('Tables de loot', 'Les boss secondaires de cette carte, et ce qu\'ils peuvent faire tomber. Un objet reste caché tant que tu ne l\'as jamais obtenu.', groups);
+    return itemGridOverlay('Tables de butin', 'Les gardiens de cette carte, et ce qu\'ils peuvent faire tomber. Un objet reste caché tant que tu ne l\'as jamais obtenu.', groups);
   }
   if (ui.overlay === 'menu') {
     return `<div class="overlay"><div class="ecran">

@@ -433,7 +433,7 @@ const VOLEUR_SPELLS: SpellDef[] = [
   },
   {
     id: 'voile_obscur', name: 'Voile de l\'ombre', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'etoile',
-    text: 'Retire tous tes débuffs. Une fois par combat.',
+    text: 'Retire tous tes maléfices. Une fois par combat.',
     cast: (c) => {
       dispelMagic(c);
       dispelPoison(c);
@@ -625,7 +625,7 @@ const CHASSEUR_SPELLS: Omit<SpellDef, 'classId'>[] = [
   },
   {
     id: 'fleche_apaisante', name: 'Flèche apaisante', cost: 0, cooldown: 5, needsTarget: true, icon: 'etoile',
-    text: 'Retire les buffs de la cible (Puissance, blocage). Un boss en Berserk ne l\'est plus ce tour-ci.',
+    text: 'Retire les bienfaits de la cible (Puissance, blocage). Un boss en Berserk ne l\'est plus ce tour-ci.',
     cast: (c, target) => {
       if (!target) return;
       target.buffs.puissance = Math.min(0, target.buffs.puissance);
@@ -786,7 +786,7 @@ const CHAMAN_SPELLS: Omit<SpellDef, 'classId'>[] = [
   },
   {
     id: 'purge', name: 'Purge', cost: 0, cooldown: 4, needsTarget: true, icon: 'etoile', noSpell: true,
-    text: 'Retire les buffs de la cible (Puissance, blocage).',
+    text: 'Retire les bienfaits de la cible (Puissance, blocage).',
     cast: (c, target) => {
       if (!target) return;
       target.buffs.puissance = Math.min(0, target.buffs.puissance);
@@ -871,7 +871,7 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
   return Math.max(1, cd);
 }
 
-/** Les sorts qu'une classe peut trouver dans les tables de loot (les sorts de talent s'obtiennent par les talents). */
+/** Les sorts qu'une classe peut trouver dans les tables de butin (les sorts de talent s'obtiennent par les talents). */
 export function lootSpells(classId = 'guerrier'): string[] {
   const start = new Set(['charge', 'contresort', 'pacte_de_sang', 'egide_sacree', 'sprint', 'jugement', 'tir_arcanique', 'seve_vitale', 'choc_tellurique']);
   return Object.keys(SPELLS).filter((id) => spellClass(id) === classId && !start.has(id) && !TALENT_SPELLS.has(id));

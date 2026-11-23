@@ -1,4 +1,4 @@
-// Les cartes du Chaman : le deck de départ, le tronc commun, et les arbres Élémentaire, Amélioration et Restauration.
+// Les cartes du Chaman : le paquet de départ, le tronc commun, et les arbres Élémentaire, Amélioration et Restauration.
 // Référence : docs/classes/CHAMAN.md (§4 et §5)
 import { addPower, drawCards, fx, gainBlock, healPlayer, isBossEnemy, livingEnemies, playerAttack } from './actions';
 import { applyDot } from './demoniste';

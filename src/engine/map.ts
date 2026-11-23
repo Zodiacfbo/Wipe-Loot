@@ -11,7 +11,7 @@ export interface MapNode {
   lane: number; // 0 à 3 (position verticale à l'écran)
   type: NodeType;
   next: number[]; // ids des nœuds de l'étage suivant
-  /** Boss secondaire de ce nœud (index dans la liste des boss secondaires de l'acte), choisi dès la création de la carte. */
+  /** Boss secondaire de ce nœud (index dans la liste des gardiens de l'acte), choisi dès la création de la carte. */
   elite?: number;
   /** Un indice des Veilleurs de l'Aurore : ce « ? » cache un combat, ou un vrai événement. */
   hint?: 'combat' | 'event';
@@ -59,7 +59,7 @@ function typeForFloor(s: HasRng, floor: number, eliteWeight: number, shape: MapS
   if (floor === 8) return 'campfire';
   if (floor === 9) return 'boss';
   if (floor <= 3) return weighted(s, shape.early);
-  // Les boss secondaires juste après les combats (même ordre de tirage qu'avant).
+  // Les gardiens juste après les combats (même ordre de tirage qu'avant).
   return weighted(s, [shape.late[0], ['elite', eliteWeight], ...shape.late.slice(1)]);
 }
 
@@ -68,7 +68,7 @@ function crosses(a1: number, a2: number, b1: number, b2: number): boolean {
   return (a1 < b1 && a2 > b2) || (a1 > b1 && a2 < b2);
 }
 
-/** `eliteWeight` : la fréquence des boss secondaires (plus haut en difficulté 1 et plus). */
+/** `eliteWeight` : la fréquence des gardiens (plus haut en difficulté 1 et plus). */
 export function generateMap(s: HasRng, eliteWeight = 22, shape: MapShape = DEFAULT_SHAPE): ActMap {
   // edges[f] : liste des arêtes [laneDépart, laneArrivée] entre l'étage f et f+1 (f de 0 à 7)
   const edges: [number, number][][] = Array.from({ length: FLOORS - 2 }, () => []);

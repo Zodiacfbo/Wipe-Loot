@@ -7,39 +7,39 @@ export const MAX_DIFFICULTY = 20;
 
 export const DIFFICULTY_TEXT: string[] = [
   'Difficulté normale.',
-  'Les boss secondaires sont plus fréquents sur la carte.',
+  'Les gardiens sont plus fréquents sur la carte.',
   'Les ennemis normaux ont 10 % de PV en plus.',
-  'Les boss secondaires ont 15 % de PV en plus.',
-  'L\'enrage des boss arrive 2 tours plus tôt.',
+  'Les gardiens ont 15 % de PV en plus.',
+  'Les boss se déchaînent 2 tours plus tôt.',
   'Le feu de camp soigne 25 % des PV max au lieu de 30 %.',
   'Tu commences la run avec 80 % de tes PV.',
-  'Un wipe autorisé de moins (2).',
+  'Une relève de moins (2).',
   'Les ennemis normaux infligent 10 % de dégâts en plus.',
-  'Les boss secondaires infligent 10 % de dégâts en plus.',
-  'Ton deck de départ contient une Malédiction.',
+  'Les gardiens infligent 10 % de dégâts en plus.',
+  'Ton paquet de départ contient une Malédiction.',
   'Tu gagnes 25 % d\'or en moins.',
-  'Un wipe autorisé de moins (1).',
+  'Une relève de moins (1).',
   'Le vendeur gobelin est 20 % plus cher.',
   'Les factures de réparation coûtent 50 % de plus.',
   'Tu trouves moins de potions après les combats.',
-  'Les boss de fin d\'acte (Vulkhar, Vhaeryx) ont 15 % de PV en plus.',
-  'Les boss de fin d\'acte infligent 10 % de dégâts en plus.',
-  'Les boss secondaires commencent chaque combat avec 1 Puissance.',
+  'Les seigneurs (Vulkhar, Vhaeryx, Yzhar) ont 15 % de PV en plus.',
+  'Les seigneurs infligent 10 % de dégâts en plus.',
+  'Les gardiens commencent chaque combat avec 1 Puissance.',
   'Les ennemis normaux ont encore 10 % de PV en plus (20 % au total).',
-  'Les Souverains enragés : les boss de fin d\'acte commencent avec 2 Puissance, et leur enrage arrive 2 tours plus tôt.',
+  'Les Souverains enragés : les seigneurs commencent avec 2 Puissance, et se déchaînent 2 tours plus tôt.',
 ];
 
 /** Tous les effets d'un niveau de difficulté, contraintes des niveaux précédents comprises. */
 export interface DifficultyMods {
-  eliteWeight: number; // poids des boss secondaires sur la carte (22 normalement)
+  eliteWeight: number; // poids des gardiens sur la carte (22 normalement)
   normalHp: number; // multiplicateur de PV
   eliteHp: number;
   bossHp: number;
   normalDmg: number; // multiplicateur de dégâts
   eliteDmg: number;
-  bossDmg: number; // dégâts des boss de fin d'acte
+  bossDmg: number; // dégâts des seigneurs
   enrageEarlier: number; // tours d'avance de l'enrage (boss secondaires et boss)
-  bossEnrageEarlier: number; // tours d'avance en plus pour les boss de fin d'acte
+  bossEnrageEarlier: number; // tours d'avance en plus pour les seigneurs
   campfireHeal: number; // part des PV max soignée au feu de camp
   startHpRatio: number; // PV au départ de la run
   wipes: number;
@@ -64,7 +64,7 @@ export function difficultyMods(level: number): DifficultyMods {
     bossEnrageEarlier: at(20) ? 2 : 0,
     campfireHeal: at(5) ? 0.25 : 0.3,
     startHpRatio: at(6) ? 0.8 : 1,
-    // Pas de niveau sans wipe : une run fait deux actes, deux boss de fin d'acte.
+    // Pas de niveau sans wipe : une run fait deux actes, deux seigneurs.
     wipes: at(12) ? 1 : at(7) ? 2 : 3,
     normalDmg: at(8) ? 1.1 : 1,
     eliteDmg: at(9) ? 1.1 : 1,

@@ -1,4 +1,4 @@
-// Acte 3 : les mécaniques des boss secondaires d'Irem.
+// Acte 3 : les mécaniques des gardiens d'Irem.
 // Référence : docs/actes/ACTE3_IREM.md (§6)
 // - Méhkar : des Copies à 75, 50 et 25 % de PV ; on ne sait pas qui est le vrai tant qu'il n'a pas été touché.
 //   Domination mentale : ta prochaine Attaque te frappe toi-même (ses autres effets sont perdus).
@@ -6,7 +6,7 @@
 //   et le jumeau tombé se relève 2 tours plus tard si l'autre vit encore.
 // - Gharul : Grondement (une carte Sable par tour tant qu'il est enseveli).
 // - Triade de la Ruche : Vengeance royale.
-// - Limon : Corps visqueux, Figeage (les débuffs, pas les DoT), division à 0 PV s'il n'est pas Figé.
+// - Limon : Corps visqueux, Figeage (les maléfices, pas les DoT), division à 0 PV s'il n'est pas Figé.
 // - Sartaq : Suprématie et Cristal d'obsidienne.
 // - Nebet : Chœur des murmures.
 import { addStatusToHand, damageEnemy, damagePlayer, fx, livingEnemies, log, makeEnemy } from './actions';
@@ -109,9 +109,9 @@ export function onIremDeath(c: CombatState, target: EnemyState): void {
   }
 }
 
-// --- Les débuffs : Figeage, Fiole de limon, Bague primordiale ---
+// --- Les maléfices : Figeage, Fiole de limon, Bague primordiale ---
 
-/** Les débuffs (pas les DoT) que porte un ennemi : une hausse = une application. */
+/** Les maléfices (pas les DoT) que porte un ennemi : une hausse = une application. */
 function debuffState(e: EnemyState): Record<string, number> {
   const b = e.buffs;
   return {
@@ -125,8 +125,8 @@ function debuffState(e: EnemyState): Record<string, number> {
 const DURATIONS = ['ralenti', 'demoralise', 'armureFracassee', 'peur'] as const;
 
 /**
- * À appeler après chaque action : repère les débuffs appliqués aux ennemis depuis le dernier contrôle.
- * Chaque débuff appliqué : 1 cumul de Figeage (Limon), 2 dégâts (Fiole de limon), 1 tour de plus (Bague primordiale).
+ * À appeler après chaque action : repère les maléfices appliqués aux ennemis depuis le dernier contrôle.
+ * Chaque maléfice appliqué : 1 cumul de Figeage (Limon), 2 dégâts (Fiole de limon), 1 tour de plus (Bague primordiale).
  */
 export function checkDebuffs(c: CombatState): void {
   const g = c.gear ?? {};

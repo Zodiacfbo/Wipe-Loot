@@ -1,4 +1,4 @@
-// Les cartes du Chasseur : le deck de départ, le tronc commun, et les arbres Maîtrise des bêtes, Précision et Survie.
+// Les cartes du Chasseur : le paquet de départ, le tronc commun, et les arbres Maîtrise des bêtes, Précision et Survie.
 // Référence : docs/classes/CHASSEUR.md (§4 et §5)
 import { addPower, applySaignement, drawCards, fx, gainBlock, livingEnemies, log, playerAttack, power } from './actions';
 import { isInterruptible } from './enemies';

@@ -43,7 +43,7 @@ export interface PlayContext {
   shardsSpent?: number;
   /** Prêtre : la Foi dépensée pour jouer la carte. */
   faithSpent?: number;
-  /** Voleur : les points de combo dépensés par un finisher (avec Impitoyable). */
+  /** Voleur : les points de combo dépensés par un coup final (avec Impitoyable). */
   comboSpent?: number;
 }
 
@@ -103,7 +103,7 @@ function hit(ctx: PlayContext, base: number, opts: { rageCard?: boolean; ignoreB
   }
 }
 
-/** Un boss ou un boss secondaire (résiste à la Peur et au Désarmement). */
+/** Un boss ou un gardien (résiste à la Peur et au Désarmement). */
 function isBoss(e: EnemyState): boolean {
   const def = ENEMIES[e.defId];
   return !!(def.boss || def.elite);
@@ -653,7 +653,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
     text: () => `Malédiction permanente. Injouable.`,
     play: () => {},
   },
-  // --- Cartes-statut de l'acte 2 ---
+  // --- Cartes-statut du chapitre II ---
   sceptre_domination: {
     id: 'sceptre_domination', name: 'Sceptre de domination', type: 'Statut', rarity: 'statut', cost: 1, needsTarget: true,
     ethereal: true, exhaust: true, icon: 'pouvoir',

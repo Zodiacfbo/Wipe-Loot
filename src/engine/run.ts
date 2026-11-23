@@ -3,7 +3,7 @@ import { CARDS, rewardPool } from './cards';
 import { classInfo } from './classes';
 import { createCombat } from './combat';
 import { type Encounter } from './enemies';
-import { LAST_ACT, actDef } from './acts';
+import { LAST_ACT, actDef, chapterName } from './acts';
 import { BLESSINGS, EVENTS, HIDDEN_FIGHTS, tradeable } from './events';
 import { BOSS_LOOT, COMMON_POOL, ITEMS, itemFor, uselessFor, LOOT_TABLES, REPAIR_PRICE, SLOT_KEYS, emptyEquipment, gearEffects, slotsFor, type ItemEffects, type SlotKey } from './items';
 import { generateMap, reachable } from './map';
@@ -20,7 +20,7 @@ export const SAVE_VERSION = 25;
 export const LEGENDARY_MIN_ACT = 2;
 /** La facture de réparation du 1er, 2e et 3e wipe. */
 export const REPAIR_BILLS = [50, 100, 150];
-/** Chance de trouver une potion après un combat gagné (hors boss de fin d'acte). */
+/** Chance de trouver une potion après un combat gagné (hors seigneurs). */
 export const POTION_DROP_CHANCE = 0.4;
 export const SERVICE_BASE_PRICE = 75;
 export const SERVICE_PRICE_STEP = 25;
@@ -74,7 +74,7 @@ function mapFor(run: RunState, act: number) {
   return generateMap(run, difficultyMods(run.difficulty ?? 0).eliteWeight, { early: def.earlyNodes, late: def.lateNodes, elites: def.elites.length });
 }
 
-/** Le boss de fin d'acte est vaincu : sa table de loot, puis le butin de boss, puis l'acte suivant. */
+/** Le seigneurs est vaincu : sa table de butin, puis le butin de boss, puis l'acte suivant. */
 function bossDefeated(run: RunState): void {
   const loot = BOSS_LOOT[run.act];
   run.bossStage = 'loot';
@@ -96,7 +96,7 @@ function rollTable(run: RunState, table: string[]): void {
   else if (useful.length > 0) run.pendingItem = useful[roll % useful.length];
 }
 
-/** Le butin de boss : un objet épique au choix parmi 3 (utile à ta classe). */
+/** Le butin du seigneur : un objet épique au choix parmi 3 (utile à ta classe). */
 function offerEpics(run: RunState): void {
   const pool = [...new Set(BOSS_LOOT[run.act].epics.map((id) => itemFor(id, run.classId, () => random(run))))].filter((id) => !uselessFor(id, run.classId));
   const picks: string[] = [];
@@ -105,7 +105,7 @@ function offerEpics(run: RunState): void {
     if (!picks.includes(id)) picks.push(id);
   }
   run.rewardChoices = [];
-  run.rewardTitle = 'Le butin de boss';
+  run.rewardTitle = 'Le butin du seigneur';
   run.rewardGold = 0;
   run.questNote = null;
   run.pendingItem = picks[0] ?? null;
@@ -284,7 +284,7 @@ export function startEncounter(run: RunState, encounter: Encounter): void {
 }
 
 function backToMap(run: RunState): void {
-  // Après le boss de fin d'acte : le butin de boss, puis l'entrée dans l'acte suivant.
+  // Après le seigneurs : le butin de boss, puis l'entrée dans l'acte suivant.
   if (run.bossStage === 'loot') {
     run.combat = null;
     run.pendingPotion = null;
@@ -333,7 +333,7 @@ export function afterCombatAction(run: RunState): void {
     if (slot >= 0) run.potions[slot] = id;
   }
   c.newPotions = [];
-  // Voleur : Ténèbres reste active jusqu'à la fin de la run.
+  // Voleur : Ténèbres reste active jusqu'à la fin de l\'expédition.
   if (c.tenebres) run.tenebres = true;
   // Prêtre : Bénédiction de vigueur (PV max pour toute la run).
   if (c.maxHpGain) {
@@ -350,7 +350,7 @@ export function afterCombatAction(run: RunState): void {
     run.hp = Math.min(run.maxHp, c.player.hp + (runGear(run).healAfterCombat ?? 0));
     // Archives : les monstres vaincus.
     for (const e of c.enemies) if (e.dead && !e.gone) run.kills[e.defId] = (run.kills[e.defId] ?? 0) + 1;
-    // Un boss secondaire (sa rencontre a une table de loot ; l'outil de test en lance hors de la carte).
+    // Un boss secondaire (sa rencontre a une table de butin ; l'outil de test en lance hors de la carte).
     const eliteFight = currentNode(run)?.type === 'elite' || !!run.encounter?.loot;
     if (eliteFight) run.stats.elites += 1;
     else run.stats.combats += 1;
@@ -396,7 +396,7 @@ export function afterCombatAction(run: RunState): void {
       // Le Marteau des ancêtres (Chaman) : Skarn laisse le Manche, l'épreuve des éléments bénit le marteau.
       if (enc?.loot === 'skarn' && run.classId === 'chaman' && run.marteau === 'tete') {
         run.marteau = 'manche';
-        run.questNote = 'Manche en écaille de dragon : il s\'emboîte parfaitement dans la Tête du marteau. Les éléments t\'attendent derrière un « ? » de l\'acte 2 pour l\'épreuve finale.';
+        run.questNote = 'Manche en écaille de dragon : il s\'emboîte parfaitement dans la Tête du marteau. Les éléments t\'attendent derrière un « ? » du chapitre II pour l\'épreuve finale.';
       }
       if (enc?.marteau && run.classId === 'chaman' && run.marteau === 'manche') {
         putOn(run, 'marteau_ancetres', 'arme');
@@ -415,7 +415,7 @@ export function afterCombatAction(run: RunState): void {
       }
       if (enc?.loot === 'zhaal' && ['mage', 'demoniste', 'druide'].includes(run.classId) && !run.veilleur) {
         run.veilleur = 'fragment';
-        run.questNote = 'Fragment du Veilleur : un éclat du bâton du premier gardien des arcanes. L\'esprit du Veilleur t\'attend dans un observatoire en ruine, à l\'acte 2.';
+        run.questNote = 'Fragment du Veilleur : un éclat du bâton du premier gardien des arcanes. L\'esprit du Veilleur t\'attend dans un observatoire en ruine, au chapitre II.';
       }
       // Sillon d'orage (Voleur) : les deux Fermoirs de l'orage, sur Gorlok et sur le Baron Vossk.
       if ((enc?.loot === 'gorlok' || enc?.loot === 'vossk') && run.classId === 'voleur' && run.sillon !== 'deux' && run.sillon !== 'forged') {
@@ -423,11 +423,11 @@ export function afterCombatAction(run: RunState): void {
         if (run.sillon !== side) {
           run.sillon = run.sillon ? 'deux' : side;
           run.questNote = run.sillon === 'deux'
-            ? `Fermoir ${side} de l'orage : les deux fermoirs sont réunis. Ventor, le Prince des tempêtes, t'attend derrière un « ? » de l'acte ${LEGENDARY_MIN_ACT}.`
+            ? `Fermoir ${side} de l'orage : les deux fermoirs sont réunis. Ventor, le Prince des tempêtes, t'attend derrière un « ? » du ${chapterName(LEGENDARY_MIN_ACT)}.`
             : `Fermoir ${side} de l'orage : il en manque un, gardé par ${side === 'gauche' ? 'le Baron Vossk' : 'Gorlok le Fragmenté'}.`;
         }
       }
-      // L'Aurore ardente (Paladin) : bénie par les Veilleurs, la lame s'embrase sur un boss secondaire d'Irem.
+      // L'Aurore ardente (Paladin) : bénie par les Veilleurs, la lame s'embrase sur un gardien d'Irem.
       if (enc?.loot && run.act === 3 && run.classId === 'paladin' && run.aurore === 'benie') {
         putOn(run, 'aurore_ardente', 'arme');
         run.aurore = 'forged';
@@ -435,7 +435,7 @@ export function afterCombatAction(run: RunState): void {
       }
       if (enc?.loot === 'kragg' && run.brisemonts === 'lame') {
         run.brisemonts = 'coeur';
-        run.questNote = `Cœur de la montagne : la pierre en fusion de Krâgg. Au premier feu de camp de l'acte ${LEGENDARY_MIN_ACT}, tu pourras reforger Brisemonts.`;
+        run.questNote = `Cœur de la montagne : la pierre en fusion de Krâgg. Au premier feu de camp du ${chapterName(LEGENDARY_MIN_ACT)}, tu pourras reforger Brisemonts.`;
       }
     }
   } else if (c.phase === 'defeat') {
@@ -818,7 +818,7 @@ export function resolveEvent(run: RunState, choice: number): void {
   switch (`${ev.id}:${choice}`) {
     case 'sources:0':
       run.sourcesQuest = 'active';
-      return outcome(run, 'Les Gardiens tracent une rune d\'eau sur ta lame. Le prochain boss secondaire que tu affronteras portera la rune qui les enchaîne.');
+      return outcome(run, 'Les Gardiens tracent une rune d\'eau sur ta lame. Le prochain gardien que tu affronteras portera la rune qui les enchaîne.');
     case 'sources:1':
       run.sourcesQuest = 'refused';
       return outcome(run, `Ils t'aspergent d'une eau fraîche. Tu récupères ${heal(10)} PV.`);
@@ -861,7 +861,7 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'cercle:0': {
       const i = run.deck.findIndex((c) => c.id === 'malediction');
       if (i >= 0) run.deck.splice(i, 1);
-      return outcome(run, 'Les esprits murmurent, et le poids qui t\'accablait se dissipe. Une Malédiction quitte ton deck.');
+      return outcome(run, 'Les esprits murmurent, et le poids qui t\'accablait se dissipe. Une Malédiction quitte ton paquet.');
     }
     case 'cercle:1':
       return outcome(run, `Le silence des pierres t'apaise. Tu récupères ${heal(10)} PV.`);
@@ -875,7 +875,7 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'chapelle:1':
       run.gold += 80;
       addCurse(run);
-      return outcome(run, 'Tu remplis ta bourse : 80 or. Mais une ombre te suit désormais : une Malédiction rejoint ton deck.');
+      return outcome(run, 'Tu remplis ta bourse : 80 or. Mais une ombre te suit désormais : une Malédiction rejoint ton paquet.');
     case 'fantome:0':
       hurt(10);
       run.weaponUpgrade = run.equipment.arme;
@@ -896,7 +896,7 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'gobelin:1':
       run.gold += 120;
       addCurse(run);
-      return outcome(run, 'Tu repars avec le coffre sous le bras : 120 or. Les jurons du gobelin te suivent : une Malédiction rejoint ton deck.');
+      return outcome(run, 'Tu repars avec le coffre sous le bras : 120 or. Les jurons du gobelin te suivent : une Malédiction rejoint ton paquet.');
     case 'fonceur:0':
       run.eventId = null;
       startEncounter(run, { ...pick(run, actDef(run.act).hard), name: 'Le joueur qui fonce', bonusItem: 'rare' });
@@ -937,7 +937,7 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'reliquaire:0': {
       const i = run.deck.findIndex((c) => c.id === 'malediction');
       if (i >= 0) run.deck.splice(i, 1);
-      return outcome(run, 'Tu rends les reliques à leurs autels. Une Malédiction quitte ton deck.');
+      return outcome(run, 'Tu rends les reliques à leurs autels. Une Malédiction quitte ton paquet.');
     }
     case 'reliquaire:2':
       run.aurore = 'lame';
@@ -945,7 +945,7 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'reliquaire:1':
       run.gold += 100;
       addCurse(run);
-      return outcome(run, 'Tu remplis ton sac : 100 or. Les prières oubliées te maudissent : une Malédiction rejoint ton deck.');
+      return outcome(run, 'Tu remplis ton sac : 100 or. Les prières oubliées te maudissent : une Malédiction rejoint ton paquet.');
     case 'laboratoire:0': {
       const roll = Math.floor(random(run) * 4);
       if (roll === 0) {
@@ -990,25 +990,25 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'cobayes:1':
       run.gold -= 60;
       run.actBuffs.startPuissance = (run.actBuffs.startPuissance ?? 0) + 1;
-      return outcome(run, 'Le sérum pique. Jusqu\'à la fin de l\'acte, tu commences chaque combat avec 1 Puissance.');
+      return outcome(run, 'Le sérum pique. Jusqu\'à la fin du chapitre, tu commences chaque combat avec 1 Puissance.');
     case 'autel:0':
       run.actBuffs.startPuissance = (run.actBuffs.startPuissance ?? 0) + 1;
       run.maxHp = Math.max(1, run.maxHp - 5);
       run.hp = Math.min(run.hp, run.maxHp);
-      return outcome(run, 'Le sang rouge te brûle les veines. +1 Puissance au début de chaque combat de l\'acte, −5 PV max.');
+      return outcome(run, 'Le sang rouge te brûle les veines. +1 Puissance au début de chaque combat du chapitre, −5 PV max.');
     case 'autel:1':
       run.actBuffs.firstTurnDraw = (run.actBuffs.firstTurnDraw ?? 0) + 1;
       run.actBuffs.potionSlots = (run.actBuffs.potionSlots ?? 0) - 1;
       syncPotionSlots(run);
-      return outcome(run, 'Le sang bleu t\'éclaircit l\'esprit. Pioche 1 carte de plus au premier tour, mais un emplacement de potion de moins, jusqu\'à la fin de l\'acte.');
+      return outcome(run, 'Le sang bleu t\'éclaircit l\'esprit. Pioche 1 carte de plus au premier tour, mais un emplacement de potion de moins, jusqu\'à la fin du chapitre.');
     case 'autel:2':
       run.actBuffs.healAfterCombat = (run.actBuffs.healAfterCombat ?? 0) + 3;
-      return outcome(run, 'Le sang vert apaise tes blessures : 3 PV après chaque combat gagné, jusqu\'à la fin de l\'acte.');
+      return outcome(run, 'Le sang vert apaise tes blessures : 3 PV après chaque combat gagné, jusqu\'à la fin du chapitre.');
     case 'autel:3':
       run.actBuffs.attackBonus = (run.actBuffs.attackBonus ?? 0) + 2;
       run.actBuffs.spellBonus = (run.actBuffs.spellBonus ?? 0) + 2;
       run.actBuffs.extraHurt = (run.actBuffs.extraHurt ?? 0) + 2;
-      return outcome(run, 'Le sang noir te rend féroce : +2 dégâts, mais tu subis 2 dégâts de plus par attaque, jusqu\'à la fin de l\'acte.');
+      return outcome(run, 'Le sang noir te rend féroce : +2 dégâts, mais tu subis 2 dégâts de plus par attaque, jusqu\'à la fin du chapitre.');
     case 'fantome_raideur:0':
       addCurse(run);
       backToMap(run);
@@ -1026,10 +1026,10 @@ export function resolveEvent(run: RunState, choice: number): void {
       return itemReward(run, 'Le gong des Sables', rollItem(run, 'epique'), 'Le gong résonne dans toute la cité. Un éclat de bronze se détache… et quelque chose se réveille au loin.');
     case 'veilleurs:0':
       run.aurore = 'benie';
-      return outcome(run, 'Les Veilleurs posent la Lame ternie sur leur autel et prient jusqu\'à l\'aube. La nécromancie recule, mais la flamme attend encore. Vaincs un boss secondaire d\'Irem : la lame s\'embrasera.');
+      return outcome(run, 'Les Veilleurs posent la Lame ternie sur leur autel et prient jusqu\'à l\'aube. La nécromancie recule, mais la flamme attend encore. Vaincs un gardien d\'Irem : la lame s\'embrasera.');
     case 'veilleurs:1':
       run.runBuffs.undeadBonus = (run.runBuffs.undeadBonus ?? 0) + 3;
-      return outcome(run, 'Leur capitaine trace un soleil sur ton front. Tes Attaques infligent +3 dégâts aux Morts-vivants, jusqu\'à la fin de la run.');
+      return outcome(run, 'Leur capitaine trace un soleil sur ton front. Tes Attaques infligent +3 dégâts aux Morts-vivants, jusqu\'à la fin de l\'expédition.');
     case 'veilleurs:2': {
       const options = run.map.nodes.filter((n) => n.type === 'event' && !run.path.includes(n.id) && !n.hint);
       if (options.length === 0) return outcome(run, 'Leur éclaireur hausse les épaules : il ne reste rien à révéler sur ton chemin.');
@@ -1052,7 +1052,7 @@ export function resolveEvent(run: RunState, choice: number): void {
     case 'oasis:2': {
       const n = run.deck.filter((c) => c.id === 'malediction').length;
       run.deck = run.deck.filter((c) => c.id !== 'malediction');
-      return outcome(run, `L'eau emporte ce qui te pesait : ${n} Malédiction${n > 1 ? 's quittent' : ' quitte'} ton deck.`);
+      return outcome(run, `L'eau emporte ce qui te pesait : ${n} Malédiction${n > 1 ? 's quittent' : ' quitte'} ton paquet.`);
     }
     case 'bibliotheque:0':
       hurt(8);
@@ -1072,7 +1072,7 @@ export function resolveEvent(run: RunState, choice: number): void {
       const id = epics.length > 0 ? pick(run, epics) : null;
       if (id) run.deck.push({ uid: run.nextUid++, id, upgraded: false });
       run.actBuffs.startFolie = (run.actBuffs.startFolie ?? 0) + 3;
-      return outcome(run, `La statue te murmure un secret : ${id ? CARDS[id].name : 'rien'} rejoint ton deck. Mais sa voix ne te quitte plus : 3 Folie au début de chaque combat de l'acte.`);
+      return outcome(run, `La statue te murmure un secret : ${id ? CARDS[id].name : 'rien'} rejoint ton paquet. Mais sa voix ne te quitte plus : 3 Folie au début de chaque combat du chapitre.`);
     }
     case 'statue:1':
       hurt(6);
@@ -1221,7 +1221,7 @@ export function chooseBlessing(run: RunState, id: string, uid?: number): boolean
 
 // --- Feu de camp : reforger Brisemonts ---
 
-/** Peut-on reforger Brisemonts ici ? Il faut la Lame et le Cœur, et être au moins à l'acte 2. */
+/** Peut-on reforger Brisemonts ici ? Il faut la Lame et le Cœur, et être au moins au chapitre II. */
 export function canReforge(run: RunState): boolean {
   return run.screen === 'campfire' && run.brisemonts === 'coeur' && run.act >= LEGENDARY_MIN_ACT;
 }

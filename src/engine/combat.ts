@@ -178,7 +178,7 @@ export function createCombat(
   if (gear.startAoe) {
     for (const e of livingEnemies(c)) damageEnemy(c, e, gear.startAoe, false);
   }
-  // Butin de l'acte 2
+  // Butin du chapitre II
   if (gear.startBlockPerEnemy) p.block += gear.startBlockPerEnemy * livingEnemies(c).length;
   if (gear.startDragonFracture) for (const e of livingEnemies(c)) if (hasTag(e.defId, 'dragon')) e.buffs.armureFracassee = Math.max(e.buffs.armureFracassee, gear.startDragonFracture);
   if (gear.startZone) addStatusToHand(c, 'zone_de_feu', gear.startZone);
@@ -412,7 +412,7 @@ function applyCurse(c: CombatState, e: EnemyState, curse: PlayerCurse & { label:
   const d = (c.player.debuffs ??= emptyDebuffs());
   const less = c.gear?.debuffReduce ?? 0;
   const turns = (n?: number) => Math.max(0, (n ?? 0) - less);
-  // Écaille de Prismagor : les débuffs magiques glissent sur toi.
+  // Écaille de Prismagor : les maléfices magiques glissent sur toi.
   if (c.gear?.magicImmune) {
     curse = { ...curse, demoralise: 0, impie: 0, arcane: 0, manaBurn: 0, energyLoss: 0, affliction: false, lignee: false };
   }
@@ -558,7 +558,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     }
   }
 
-  // Voleur : un finisher consomme tous les points de combo (Impitoyable : un de plus).
+  // Voleur : un coup final consomme tous les points de combo (Impitoyable : un de plus).
   const comboHeld = c.combo ?? 0;
   const comboSpent = def.finisher && c.combo !== undefined ? comboHeld + (c.gear?.ruthless ?? 0) : undefined;
   if (def.finisher && c.combo !== undefined) c.combo = 0;
@@ -855,7 +855,7 @@ function enemyDamage(c: CombatState, e: EnemyState, base: number, intent: Intent
   if (e.disarmed) dmg *= 0.7; // un boss désarmé frappe moins fort
   if (e.gele === 'half') dmg *= 0.5; // un boss Gelé
   if (e.vengeance) dmg *= 1.5; // Vengeance royale (Triade de la Ruche)
-  // Difficulté : les ennemis normaux et les boss secondaires frappent plus fort.
+  // Difficulté : les ennemis normaux et les gardiens frappent plus fort.
   const def = ENEMIES[e.defId];
   if (c.mods) dmg *= def.boss ? c.mods.bossDmg ?? 1 : def.elite ? c.mods.eliteDmg : c.mods.normalDmg;
   if (isEnraged(c) && (ENEMIES[e.defId].elite || ENEMIES[e.defId].boss)) dmg *= 2;
@@ -1306,7 +1306,7 @@ function fixIntent(c: CombatState, e: EnemyState): void {
   }
 }
 
-/** Ce que font certains ennemis de l'acte 2 au début de leur tour. */
+/** Ce que font certains ennemis du chapitre II au début de leur tour. */
 function enemyPassivesAct2(c: CombatState, e: EnemyState): void {
   if (e.giant) e.giant -= 1;
   // Mutations actives
@@ -1435,7 +1435,7 @@ function startTurnAct2(c: CombatState): void {
   }
   // Malédiction de lignée du Guerrier : forcé en Berserker.
   if ((d.lignee ?? 0) > 0 && (c.classId ?? 'guerrier') === 'guerrier') p.posture = 'berserker';
-  // Amulette de sang pur : un débuff dissipé tous les 2 tours.
+  // Amulette de sang pur : un maléfice dissipé tous les 2 tours.
   if (c.gear?.purifyEvery2 && c.turn % 2 === 0) purifyOne(c);
   // Transformé : tu perds ce tour, puis les Afflictions disparaissent.
   if (d.transformed) {
@@ -1523,7 +1523,7 @@ export function changeForm(c: CombatState, form: FormId): boolean {
 
 // --- Voleur ---
 
-/** Après une carte du Voleur : le Camouflage, les Ouvertures, les finishers, Sang-froid, Sillon d'orage. */
+/** Après une carte du Voleur : le Camouflage, les Ouvertures, les coups finaux, Sang-froid, Sillon d'orage. */
 function afterRogueCard(c: CombatState, def: (typeof CARDS)[string], comboHeld: number, attack: boolean): void {
   const g = c.gear ?? {};
   if (def.opener) gainCombo(c, power(c, 'initiative') + (g.openerCombo ?? 0)); // Initiative, Préparé
@@ -1535,7 +1535,7 @@ function afterRogueCard(c: CombatState, def: (typeof CARDS)[string], comboHeld: 
   }
   if (def.finisher) {
     if (power(c, 'second_souffle')) gainBlock(c, power(c, 'second_souffle'), false);
-    // Opportunité : un finisher à 5 points rend de l'énergie et du combo.
+    // Opportunité : un coup final à 5 points rend de l'énergie et du combo.
     if (comboHeld >= 5 && power(c, 'opportunite')) {
       c.player.energy += 1;
       gainCombo(c, power(c, 'opportunite'));

@@ -1,4 +1,4 @@
-// Les ennemis de l'acte 3 : Irem, la cité ensevelie.
+// Les ennemis du chapitre III : Irem, la cité ensevelie.
 // Référence : docs/actes/ACTE3_IREM.md (§4, §6, §7 et §8.2)
 import type { EnemyDef, Encounter } from './enemies';
 
@@ -139,7 +139,7 @@ export const ENEMIES_ACTE3: Record<string, EnemyDef> = {
   },
   limon: {
     id: 'limon', name: 'Le Limon primordial', hpMin: 110, hpMax: 110, elite: true, tags: ['aberration'],
-    passive: 'Corps visqueux : −50 % de dégâts. Figeage : 5 débuffs le Figent 2 tours (il n\'agit plus, double dégâts). À 0 PV, s\'il n\'est pas Figé, il se divise en 3.',
+    passive: 'Corps visqueux : −50 % de dégâts. Figeage : 5 maléfices le Figent 2 tours (il n\'agit plus, double dégâts). À 0 PV, s\'il n\'est pas Figé, il se divise en 3.',
     cycle: [
       { kind: 'attack', dmg: 8, label: 'Globule toxique', effect: toxine },
       { kind: 'heal', amount: 15, cast: 'Absorption', self: true },
@@ -235,7 +235,7 @@ export const HIDDEN_FIGHTS_3: Encounter[] = [
   { kind: 'combat', name: 'La garde du temple', enemies: ['garde_royale', 'gardien_obsidienne'], bonusItem: 'rare' },
 ];
 
-// Le Gobelin mimique de l'acte 3 : encore plus solide.
+// Le Gobelin mimique du chapitre III : encore plus solide.
 ENEMIES_ACTE3.mimique_3 = {
   id: 'mimique_3', name: 'Gobelin mimique', hpMin: 75, hpMax: 75,
   passive: 'S\'il te fait perdre des PV avec Avaler, il te vole 25 or.',
@@ -260,7 +260,7 @@ export const YZHAR = {
   innerTentacles: 2,
 };
 
-/** Les réglages des boss secondaires d'Irem (à ajuster au lot 5). */
+/** Les réglages des gardiens d'Irem (à ajuster au lot 5). */
 export const IREM = {
   mehkarCopies: 2, // copies créées à chaque palier (75 %, 50 %, 25 %)
   twinsSwapEvery: 3, // les Rois-Jumeaux échangent leurs immunités tous les N tours

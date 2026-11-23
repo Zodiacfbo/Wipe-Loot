@@ -1,4 +1,4 @@
-// Les événements des nœuds « ? », la bénédiction d'entrée de Brégan et les combats cachés de l'acte 1.
+// Les événements des nœuds « ? », la bénédiction d'entrée de Brégan et les combats cachés du chapitre I.
 // Référence : docs/actes/ACTE1_PROFONDEURS_ARDENTES.md (§7)
 // Les conséquences des choix sont appliquées dans run.ts (resolveEvent, chooseBlessing).
 import type { Encounter } from './enemies';
@@ -35,7 +35,7 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'Les Gardiens des Sources',
     text: 'Des élémentaires d\'eau, prisonniers d\'une coulée de lave, t\'appellent d\'une voix qui ruisselle. « Un serviteur de Vulkhar garde la rune qui nous enchaîne. Abats-le, et l\'eau des profondeurs affaiblira le Souverain. »',
     choices: [
-      { label: 'Accepter leur quête', detail: 'Le prochain boss secondaire que tu affronteras porte la rune. Bats-le pour obtenir l\'Eau des profondeurs : Vulkhar commencera affaibli.' },
+      { label: 'Accepter leur quête', detail: 'Le prochain gardien que tu affronteras porte la rune. Bats-le pour obtenir l\'Eau des profondeurs : Vulkhar commencera affaibli.' },
       { label: 'Refuser', detail: 'Ils te soignent de 10 PV.' },
     ],
     available: (run) => !run.sourcesQuest,
@@ -79,7 +79,7 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'Le cercle des anciens',
     text: 'Un cercle de pierres dressées où murmurent des esprits. Leurs voix parlent de la montagne d\'avant le feu.',
     choices: [
-      { label: 'Écouter leur sagesse', detail: 'Retire une Malédiction de ton deck.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
+      { label: 'Écouter leur sagesse', detail: 'Retire une Malédiction de ton paquet.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
       { label: 'Te recueillir', detail: 'Soigne 10 PV.' },
       { label: 'Appeler les esprits des chamans', detail: 'Ils te confient la Tête du marteau : quête légendaire le Marteau des ancêtres, étape 1 sur 3.', locked: (run) => (run.classId !== 'chaman' ? 'Réservé au Chaman' : run.marteau ? 'Tu l\'as déjà' : null) },
     ],
@@ -90,7 +90,7 @@ export const EVENTS: Record<string, EventDef> = {
     text: 'Une chapelle naine écrasée par la roche. Sur l\'autel, des offrandes d\'or ont fondu en flaques brillantes.',
     choices: [
       { label: 'Prier', detail: '+5 PV max.' },
-      { label: 'Piller l\'autel', detail: 'Gagne 80 or, mais une Malédiction rejoint ton deck.' },
+      { label: 'Piller l\'autel', detail: 'Gagne 80 or, mais une Malédiction rejoint ton paquet.' },
       { label: 'Fouiller sous les décombres', detail: 'Tu trouves le Bâton nu : quête légendaire Équinoxe, étape 1 sur 3.', locked: (run) => (run.classId !== 'pretre' ? 'Réservé au Prêtre' : run.equinoxe ? 'Tu l\'as déjà' : null) },
     ],
   },
@@ -99,7 +99,7 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'Le fantôme du forgeron',
     text: 'Un forgeron spectral martèle une enclume invisible. Il voudrait finir son dernier ouvrage, mais ses mains passent à travers le métal.',
     choices: [
-      { label: 'L\'aider', detail: 'Perds 10 PV. Ton arme gagne +2 dégâts pour la run.', locked: (run) => (run.equipment.arme ? null : 'Il te faut une arme équipée') },
+      { label: 'L\'aider', detail: 'Perds 10 PV. Ton arme gagne +2 dégâts pour l\'expédition.', locked: (run) => (run.equipment.arme ? null : 'Il te faut une arme équipée') },
       { label: 'Le libérer', detail: 'Il t\'offre un objet d\'équipement rare.', locked: () => 'Réservé au Paladin et au Prêtre' },
       { label: 'Partir', detail: 'Rien ne se passe.' },
     ],
@@ -110,7 +110,7 @@ export const EVENTS: Record<string, EventDef> = {
     text: 'Un coffre renforcé gigote et jure en gobelin. « Sors-moi de là, et je te ferai un prix ! »',
     choices: [
       { label: 'Le libérer', detail: '50 % : il te donne un objet. 50 % : c\'est un Gobelin mimique !' },
-      { label: 'Prendre le coffre et partir', detail: 'Gagne 120 or, mais une Malédiction rejoint ton deck.' },
+      { label: 'Prendre le coffre et partir', detail: 'Gagne 120 or, mais une Malédiction rejoint ton paquet.' },
     ],
   },
   fonceur: {
@@ -119,7 +119,7 @@ export const EVENTS: Record<string, EventDef> = {
     text: 'Un aventurier fonce dans un pack de Molosses en hurlant son propre nom. Il est clairement en train de perdre.',
     choices: [
       { label: 'L\'aider', detail: 'Un combat difficile, puis il te donne un objet rare.' },
-      { label: 'Le laisser', detail: 'Rien ne se passe. On entend un wipe au loin.' },
+      { label: 'Le laisser', detail: 'Rien ne se passe. On entend une expédition entière tomber au loin.' },
     ],
   },
   source_chaude: {
@@ -134,7 +134,7 @@ export const EVENTS: Record<string, EventDef> = {
   cadavre: {
     id: 'cadavre',
     title: 'Le raideur tombé',
-    text: 'Un aventurier gît contre la paroi, son sac encore sur le dos. Il n\'a pas survécu à son dernier wipe. La roche autour de lui est encore chaude.',
+    text: 'Un aventurier gît contre la paroi, son sac encore sur le dos. Il ne s\'est pas relevé de sa dernière chute. La roche autour de lui est encore chaude.',
     choices: [
       { label: 'Fouiller le sac', detail: 'Perds 6 PV. Choisis une carte parmi 3.' },
       { label: 'Le laisser reposer', detail: 'Rien ne se passe.' },
@@ -188,8 +188,8 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'Le reliquaire profané',
     text: 'Une crypte où Vhaeryx entasse les reliques volées aux temples de la vallée. L\'air y est lourd de prières oubliées.',
     choices: [
-      { label: 'Purifier le reliquaire', detail: 'Retire une Malédiction de ton deck.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
-      { label: 'Le piller', detail: 'Gagne 100 or, mais une Malédiction rejoint ton deck.' },
+      { label: 'Purifier le reliquaire', detail: 'Retire une Malédiction de ton paquet.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
+      { label: 'Le piller', detail: 'Gagne 100 or, mais une Malédiction rejoint ton paquet.' },
       { label: 'Descendre au fond de la crypte', detail: 'Tu trouves la Lame ternie : quête légendaire l\'Aurore ardente, étape 1 sur 3.', locked: (run) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore ? 'Tu l\'as déjà' : null) },
     ],
   },
@@ -219,14 +219,14 @@ export const EVENTS: Record<string, EventDef> = {
     text: 'Un gobelin en blouse tachée t\'accoste : « Des échantillons ! J\'achète, je vends, je ne pose pas de questions. »',
     choices: [
       { label: 'Vendre ton sang', detail: 'Perds 6 PV max. Gagne 100 or.' },
-      { label: 'Acheter un sérum (60 or)', detail: '+1 Puissance au début de chaque combat de cet acte.', locked: (run) => (run.gold >= 60 ? null : 'Il te faut 60 or') },
+      { label: 'Acheter un sérum (60 or)', detail: '+1 Puissance au début de chaque combat de ce chapitre.', locked: (run) => (run.gold >= 60 ? null : 'Il te faut 60 or') },
       { label: 'Partir', detail: 'Rien ne se passe.' },
     ],
   },
   autel: {
     id: 'autel', act: 2,
     title: 'L\'autel chromatique',
-    text: 'Cinq vasques de sang de dragon, chacune d\'une couleur. Boire l\'une d\'elles te marquera jusqu\'à la fin de l\'acte.',
+    text: 'Cinq vasques de sang de dragon, chacune d\'une couleur. Boire l\'une d\'elles te marquera jusqu\'à la fin du chapitre.',
     choices: [
       { label: 'Rouge', detail: '+1 Puissance au début de chaque combat. −5 PV max.' },
       { label: 'Bleue', detail: 'Pioche 1 carte de plus au premier tour de chaque combat. −1 emplacement de potion.' },
@@ -238,19 +238,19 @@ export const EVENTS: Record<string, EventDef> = {
   fantome_raideur: {
     id: 'fantome_raideur', act: 2,
     title: 'Le fantôme du raideur',
-    text: 'Le fantôme d\'un aventurier mort lors d\'un wipe précédent erre près de son équipement. Il ne semble pas vouloir le garder.',
+    text: 'Le fantôme d\'un aventurier tombé lors d\'une expédition précédente erre près de son équipement. Il ne semble pas vouloir le garder.',
     choices: [
-      { label: 'Récupérer son équipement', detail: 'Un objet d\'équipement au hasard, mais une Malédiction rejoint ton deck.' },
+      { label: 'Récupérer son équipement', detail: 'Un objet d\'équipement au hasard, mais une Malédiction rejoint ton paquet.' },
       { label: 'Le laisser reposer', detail: 'Soigne 12 PV.' },
     ],
   },
   fonceur2: {
     id: 'fonceur2', act: 2,
     title: 'Le joueur qui fonce (le retour)',
-    text: 'L\'aventurier de l\'acte 1 a survécu. Et il recommence : il fonce seul sur une patrouille draconique, en hurlant son propre nom.',
+    text: 'L\'aventurier du chapitre I a survécu. Et il recommence : il fonce seul sur une patrouille draconique, en hurlant son propre nom.',
     choices: [
       { label: 'L\'aider', detail: 'Un combat difficile, puis il te donne un objet rare.' },
-      { label: 'Le laisser', detail: 'Rien ne se passe. On entend un wipe au loin. Encore.' },
+      { label: 'Le laisser', detail: 'Rien ne se passe. On entend une expédition entière tomber au loin. Encore.' },
     ],
   },
 };
@@ -273,8 +273,8 @@ Object.assign(EVENTS, {
     title: 'Les Veilleurs de l\'Aurore',
     text: 'Un campement de croisés, entre deux dunes. Leurs tabards portent un soleil levant. Ils chassent les morts-vivants qui sortent des tombeaux d\'Irem.',
     choices: [
-      { label: 'Leur demander de purifier la lame', detail: 'Ils bénissent la Lame ternie. Vaincs un boss secondaire d\'Irem : la lame s\'embrasera (l\'Aurore ardente, étape 2 sur 3).', locked: (run: RunState) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore !== 'lame' ? 'Il te faut la Lame ternie' : null) },
-      { label: 'Recevoir leur bénédiction', detail: 'Tes Attaques infligent +3 dégâts aux Morts-vivants, jusqu\'à la fin de la run.' },
+      { label: 'Leur demander de purifier la lame', detail: 'Ils bénissent la Lame ternie. Vaincs un gardien d\'Irem : la lame s\'embrasera (l\'Aurore ardente, étape 2 sur 3).', locked: (run: RunState) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore !== 'lame' ? 'Il te faut la Lame ternie' : null) },
+      { label: 'Recevoir leur bénédiction', detail: 'Tes Attaques infligent +3 dégâts aux Morts-vivants, jusqu\'à la fin de l\'expédition.' },
       { label: 'Leur demander un indice', detail: 'Un « ? » de la carte est révélé : tu sauras s\'il cache un combat ou un événement.' },
     ],
   },
@@ -285,7 +285,7 @@ Object.assign(EVENTS, {
     choices: [
       { label: 'Boire', detail: 'Soigne 20 PV.' },
       { label: 'Remplir tes gourdes', detail: '2 Potions de soins (si tu as de la place).' },
-      { label: 'Te baigner', detail: 'Retire toutes les Malédictions de ton deck.', locked: (run: RunState) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
+      { label: 'Te baigner', detail: 'Retire toutes les Malédictions de ton paquet.', locked: (run: RunState) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
     ],
   },
   bibliotheque: {
@@ -303,7 +303,7 @@ Object.assign(EVENTS, {
     title: 'La statue qui murmure',
     text: 'Une statue d\'Yzhar, haute comme trois hommes. Sa bouche de pierre s\'ouvre lentement, et une voix douce te promet un secret.',
     choices: [
-      { label: 'L\'écouter', detail: 'Une carte épique au hasard de ta classe rejoint ton deck. Mais tu commences chaque combat de l\'acte avec 3 Folie.' },
+      { label: 'L\'écouter', detail: 'Une carte épique au hasard de ta classe rejoint ton paquet. Mais tu commences chaque combat du chapitre avec 3 Folie.' },
       { label: 'La briser', detail: 'Perds 6 PV. Gagne 80 or.' },
       { label: 'Partir', detail: 'Rien ne se passe.' },
     ],
@@ -339,9 +339,9 @@ Object.assign(EVENTS, {
   fantome_raideur3: {
     id: 'fantome_raideur3', act: 3,
     title: 'Le fantôme du raideur',
-    text: 'Encore un aventurier tombé lors d\'un wipe, cette fois à moitié enseveli dans le sable. Son équipement brille encore.',
+    text: 'Encore un aventurier tombé lors d\'une expédition, cette fois à moitié enseveli dans le sable. Son équipement brille encore.',
     choices: [
-      { label: 'Récupérer son équipement', detail: 'Un objet d\'équipement au hasard, mais une Malédiction rejoint ton deck.' },
+      { label: 'Récupérer son équipement', detail: 'Un objet d\'équipement au hasard, mais une Malédiction rejoint ton paquet.' },
       { label: 'Le laisser reposer', detail: 'Soigne 15 PV.' },
     ],
   },
@@ -351,7 +351,7 @@ Object.assign(EVENTS, {
     text: 'Il est encore là, un bandage sur la tête. Il fonce seul sur une garde royale d\'Irem, en hurlant son propre nom.',
     choices: [
       { label: 'L\'aider', detail: 'Un combat difficile, puis il te donne un objet épique.' },
-      { label: 'Le laisser', detail: 'Il wipe. Mais cette fois, il te salue avant.' },
+      { label: 'Le laisser', detail: 'Il tombe. Mais cette fois, il te salue avant.' },
     ],
   },
 } satisfies Record<string, EventDef>);
@@ -392,8 +392,8 @@ export const BLESSINGS: Record<string, BlessingDef> = {
   bourse: { id: 'bourse', name: 'Bourse de la guilde', text: '+100 or.' },
   potions: { id: 'potions', name: 'Potions de route', text: '2 potions au hasard.' },
   entrainement: { id: 'entrainement', name: 'Entraînement', text: 'Améliore 2 cartes au hasard.' },
-  allegement: { id: 'allegement', name: 'Allègement', text: 'Retire 1 carte de ton deck.' },
+  allegement: { id: 'allegement', name: 'Allègement', text: 'Retire 1 carte de ton paquet.' },
   pret: { id: 'pret', name: 'Équipement de prêt', text: 'Un objet d\'équipement commun au hasard.' },
   pari: { id: 'pari', name: 'Pari risqué', text: 'Perds 10 % de tes PV max. Choisis un objet rare parmi 3.' },
-  marche: { id: 'marche', name: 'Marché de l\'ombre', text: 'Une Malédiction permanente rejoint ton deck. Gagne 200 or.' },
+  marche: { id: 'marche', name: 'Marché de l\'ombre', text: 'Une Malédiction permanente rejoint ton paquet. Gagne 200 or.' },
 };

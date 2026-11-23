@@ -1,4 +1,4 @@
-// Les cartes du Démoniste : le deck de départ, le tronc commun, et les arbres Affliction, Démonologie et Destruction.
+// Les cartes du Démoniste : le paquet de départ, le tronc commun, et les arbres Affliction, Démonologie et Destruction.
 // Référence : docs/classes/DEMONISTE.md (§4 et §5)
 import { drawCards, fx, gainBlock, healPlayer, isBossEnemy, livingEnemies, log, playerAttack, power, addPower } from './actions';
 import {

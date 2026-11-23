@@ -1,4 +1,4 @@
-// Les ennemis de l'acte 1 (et, dans enemies_acte2.ts, ceux de l'acte 2).
+// Les ennemis du chapitre I (et, dans enemies_acte2.ts, ceux du chapitre II).
 // Référence : docs/actes/ACTE1_PROFONDEURS_ARDENTES.md
 import { ENEMIES_ACTE2 } from './enemies_acte2';
 import { ENEMIES_ACTE3 } from './enemies_acte3';

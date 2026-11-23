@@ -14,9 +14,9 @@ export interface ActDef {
   hard: Encounter[];
   elites: Encounter[];
   boss: Encounter;
-  /** Les combats cachés derrière un « ? » (ceux de l'acte 1 sont dans events.ts). */
+  /** Les combats cachés derrière un « ? » (ceux du chapitre I sont dans events.ts). */
   hidden?: Encounter[];
-  /** La part de chaque type de nœud aux étages 2 à 4, puis 6 à 8 (le poids des boss secondaires vient de la difficulté). */
+  /** La part de chaque type de nœud aux étages 2 à 4, puis 6 à 8 (le poids des gardiens vient de la difficulté). */
   earlyNodes: [NodeType, number][];
   lateNodes: [NodeType, number][];
 }
@@ -47,6 +47,11 @@ export const ACTS: Record<number, ActDef> = {
 
 /** Le dernier acte jouable dans cette version : la run se termine après son boss. */
 export const LAST_ACT = 3;
+
+/** « chapitre II » : un acte, dans le vocabulaire du jeu (issue #8). */
+export function chapterName(num: number): string {
+  return `chapitre ${['', 'I', 'II', 'III', 'IV', 'V'][num] ?? num}`;
+}
 
 export function actDef(num: number): ActDef {
   return ACTS[num] ?? ACTS[1];

@@ -35,7 +35,7 @@ export const LORE: Record<string, string> = {
   chimere: 'Une expérience d\'essai, faite de lion, de serpent et de dragon. Blessée, elle mute : carapace, frénésie ou régénération.',
   garde_draconique: 'L\'élite de la citadelle. Un bouclier plus grand qu\'un homme, et une charge qui ralentit les plus vifs.',
   drakonide_chroma: 'Les drakônides au sang mêlé que Vhaeryx appelle à ses côtés. Ils se relèvent quand leur maître faiblit.',
-  serviteur_os: 'Les adds tombés pendant le combat contre Vhaeryx, relevés par son dernier élixir.',
+  serviteur_os: 'Les sbires tombés pendant le combat contre Vhaeryx, relevés par son dernier élixir.',
   skarn: 'Le gardien des couvoirs. Tant que ses œufs vivent, rien ne l\'atteint, mais ses propres dragonnets peuvent se retourner contre lui.',
   ysolde: 'Une dragonne rouge, noble et ancienne, enchaînée par l\'alchimie. Elle supplie qu\'on la libère, même s\'il faut la tuer, et elle offre sa force pour y parvenir.',
   draksis: 'Le contremaître des couvoirs. Il frappe de plus en plus fort tant qu\'on lui laisse le temps.',

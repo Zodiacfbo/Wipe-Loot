@@ -1,4 +1,4 @@
-// Les ennemis de l'acte 2 : l'Aire de Vhaeryx.
+// Les ennemis du chapitre II : l'Aire de Vhaeryx.
 // Référence : docs/actes/ACTE2_AIRE_DE_VHAERYX.md (§3, §5 et §6)
 import type { EnemyDef, Encounter } from './enemies';
 
@@ -166,7 +166,7 @@ export const ENEMIES_ACTE2: Record<string, EnemyDef> = {
   // --- Boss de fin d'acte ---
   vhaeryx: {
     id: 'vhaeryx', name: 'Vhaeryx', hpMin: 320, hpMax: 320, boss: true, tags: ['dragon'],
-    passive: 'À 60 % de PV, il boit son élixir et devient dragon. Sous 20 %, les adds tombés se relèvent.',
+    passive: 'À 60 % de PV, il boit son élixir et devient dragon. Sous 20 %, les sbires tombés se relèvent.',
     cycle: [
       { kind: 'attack', dmg: 14 },
       { kind: 'curse', label: 'Malédiction de lignée', lignee: true },
@@ -245,7 +245,7 @@ export const HIDDEN_FIGHTS_2: Encounter[] = [
   { kind: 'combat', name: 'La patrouille de l\'Aire', enemies: ['garde_draconique', 'alchimiste'], bonusItem: 'commun' },
 ];
 
-// Le Gobelin mimique de l'acte 2 : plus solide.
+// Le Gobelin mimique du chapitre II : plus solide.
 ENEMIES_ACTE2.mimique_2 = {
   id: 'mimique_2', name: 'Gobelin mimique', hpMin: 60, hpMax: 60,
   passive: 'S\'il te fait perdre des PV avec Avaler, il te vole 20 or.',

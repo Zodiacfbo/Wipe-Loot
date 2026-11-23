@@ -1,4 +1,4 @@
-// Actions élémentaires du combat : dégâts, blocage, rage, débuffs, pioche.
+// Actions élémentaires du combat : dégâts, blocage, rage, maléfices, pioche.
 // Les cartes et les ennemis s'appuient sur ces fonctions.
 import { ENEMIES, TUNING, hasTag, intentAt } from './enemies';
 import { random, shuffle } from './rng';
@@ -539,7 +539,7 @@ export function addStatusToHand(c: CombatState, id: string, count: number): void
 
 // --- Mage : Brûlure, Gel, charges arcaniques ---
 
-/** Un boss ou un boss secondaire (résiste à la Peur, au Désarmement, à la Métamorphose ; le Gel ne fait que réduire son attaque). */
+/** Un boss ou un gardien (résiste à la Peur, au Désarmement, à la Métamorphose ; le Gel ne fait que réduire son attaque). */
 export function isBossEnemy(e: EnemyState): boolean {
   const def = ENEMIES[e.defId];
   return !!(def.boss || def.elite);
