@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 /** Une commande git, ou la valeur de secours si git n'est pas disponible. */
@@ -21,6 +22,12 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_COMMIT__: JSON.stringify(git('rev-parse --short HEAD', 'local')),
     __BUILD_DATE__: JSON.stringify(git('log -1 --format=%cs', '')),
+  },
+  // Deux pages : le jeu et la page admin (/admin/, réservée à l'organisateur).
+  build: {
+    rollupOptions: {
+      input: { jeu: fileURLToPath(new URL('./index.html', import.meta.url)), admin: fileURLToPath(new URL('./admin/index.html', import.meta.url)) },
+    },
   },
   test: {
     include: ['tests/**/*.test.ts'],

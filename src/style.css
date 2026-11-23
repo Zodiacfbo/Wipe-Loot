@@ -969,3 +969,33 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .menu-roue button { display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 10px 12px; border: none; border-radius: 8px; background: #221913; font-size: 14px; }
 .menu-roue button small { display: block; color: var(--texte-2); font-size: 12px; }
 .menu-roue-note { margin: 4px 8px; font-size: 12px; color: var(--texte-2); }
+
+/* ---------- News et messages (roue du hall) ---------- */
+.bouton-roue .pastille, .mini-pastille { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--pv); color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+.bouton-roue .pastille { position: absolute; top: -7px; right: -7px; border: 2px solid var(--fond); }
+.boite-connexion.fenetre-large { width: 560px; text-align: left; }
+.boite-connexion.fenetre-large h2 { text-align: center; }
+.news { border: 1px solid #3a2a1f; border-radius: 12px; padding: 10px 14px; background: var(--panneau-sombre); }
+.news.nouv { border-color: var(--or); }
+.news small { color: var(--texte-2); }
+.news ul { margin: 6px 0 0; padding-left: 18px; }
+.news li { margin: 3px 0; }
+.tag-nouveau { margin-left: 8px; padding: 1px 7px; border-radius: 8px; background: var(--or); color: #1a0f08; font-size: 11px; font-weight: 800; }
+.types-message { display: flex; gap: 8px; }
+.types-message button { flex: 1; padding: 10px 6px; border-radius: 10px; border: 1px solid #5a4433; background: #221913; font-weight: 700; }
+.types-message button.actif { border-color: var(--or); background: #3a2a1f; }
+.boite-connexion textarea { width: 100%; height: 110px; resize: none; padding: 10px 12px; border-radius: 10px; border: 1px solid #5a4433; background: #120d0a; color: var(--texte); font: inherit; font-size: 15px; user-select: text; -webkit-user-select: text; }
+.boite-connexion textarea:focus { outline: 2px solid var(--or); outline-offset: 1px; }
+.compteur-message { margin-top: -6px; text-align: right; font-size: 12px; color: var(--texte-2); }
+.msg { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px solid #3a2a1f; background: var(--panneau-sombre); }
+.msg.nouv { border-color: var(--or); }
+.msg p { margin: 0; overflow-wrap: anywhere; }
+.msg-entete { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--texte-2); }
+.etat { padding: 1px 8px; border-radius: 8px; background: #3a2a1f; color: var(--texte); font-size: 12px; font-weight: 800; white-space: nowrap; }
+.etat-retenu { background: rgba(143, 212, 154, 0.18); color: var(--vert); }
+.etat-fait { background: rgba(143, 184, 232, 0.2); color: var(--blocage); }
+.etat-non { background: rgba(200, 65, 58, 0.18); color: #ffb3ad; }
+.reponse { padding: 4px 10px; border-left: 3px solid var(--or); background: #2b211a; font-size: 14px; overflow-wrap: anywhere; }
+.reponse b { color: var(--or); }
+.envoye { padding: 10px; border-radius: 10px; background: rgba(143, 212, 154, 0.12); color: var(--vert); text-align: center; }
+.lien-fermer { align-self: center; border: none; background: none; color: var(--texte-2); text-decoration: underline; font-size: 14px; }

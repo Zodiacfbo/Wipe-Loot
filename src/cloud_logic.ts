@@ -108,3 +108,70 @@ export function runStepKey(run: { act?: number; position?: number | null; screen
   if (!run) return 'aucune';
   return `${run.act ?? 1}:${run.position ?? '-'}:${run.screen ?? ''}`;
 }
+
+// ---------- News, messages (issue #9) ----------
+
+/** Une news, écrite depuis l'admin dans sites/{site}/config/general (champ `news`). */
+export interface NewsItem {
+  /** Numéro d'ordre, croissant. */
+  id: number;
+  /** AAAA-MM-JJ : la news n'apparaît qu'à partir de ce jour (on peut la préparer à l'avance). */
+  date: string;
+  items: string[];
+}
+
+/** Les news visibles aujourd'hui, la plus récente en premier (ordre de la liste, pas de tri par date). */
+export function visibleNews(news: NewsItem[], today: string): NewsItem[] {
+  return news.filter((n) => n.date <= today).sort((a, b) => b.id - a.id);
+}
+
+/** Combien de news pas encore lues (numéro plus grand que la dernière lue). */
+export function unreadNews(news: NewsItem[], lastRead: number, today: string): number {
+  return visibleNews(news, today).filter((n) => n.id > lastRead).length;
+}
+
+/** La date du jour, AAAA-MM-JJ (heure locale). */
+export function todayIso(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export type MessageType = 'bug' | 'idee' | 'message';
+export type MessageState = 'recu' | 'lu' | 'retenu' | 'fait' | 'non';
+export const MESSAGE_MAX = 300;
+export const REPLY_MAX = 300;
+export const MESSAGE_TYPES: Record<MessageType, string> = { bug: '🐞 Bug', idee: '💡 Idée', message: '✉ Message' };
+export const MESSAGE_STATES: Record<MessageState, string> = { recu: '⏳ Reçu', lu: '👀 Lu', retenu: '👍 Pris en compte', fait: '✅ Fait', non: '❌ Pas pour l\'instant' };
+
+/** Un message d'un joueur (sites/{site}/messages/{id}). */
+export interface MessageDoc {
+  uid: string;
+  pseudo: string;
+  type: MessageType;
+  texte: string;
+  etat: MessageState;
+  /** La réponse de l'organisateur (une seule). */
+  reponse: string | null;
+  /** Le joueur a vu le dernier changement (état ou réponse). L'organisateur le remet à false. */
+  vu: boolean;
+  dateMs: number;
+  version: string;
+  appareil: string;
+  ecran: string;
+  /** Pour un bug : une copie de la run en cours (JSON), pour la recharger chez l'organisateur. */
+  run: string | null;
+}
+
+/** Pourquoi ce message ne peut pas partir (null s'il est bon). */
+export function messageError(texte: string): string | null {
+  const t = texte.trim();
+  if (t.length < 3) return 'Écris quelques mots avant d\'envoyer.';
+  if (t.length > MESSAGE_MAX) return `${MESSAGE_MAX} caractères au plus.`;
+  return null;
+}
+
+/** L'appareil, en clair (« Téléphone · Chrome »), pour les bugs. */
+export function deviceLabel(ua: string, width: number): string {
+  const kind = /iPad|Tablet/i.test(ua) ? 'Tablette' : /Mobi|Android|iPhone/i.test(ua) ? 'Téléphone' : 'PC';
+  const browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'autre navigateur';
+  return `${kind} · ${browser} · ${width} px`;
+}

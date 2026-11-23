@@ -39,7 +39,7 @@ describe('score et expérience', () => {
     expect(profile.stats).toEqual({ runs: 1, wins: 0 });
   });
 
-  it('une victoire sans wipe : Vulkhar et « Aucun wipe »', () => {
+  it('une victoire sans chute : Vulkhar et « Aucune chute »', () => {
     const profile = fresh();
     const sum = awardRun(profile, finished(true, 10, 7, 2, 3));
     expect(sum.score).toBe(100 + 35 + 50 + 100 + 30);

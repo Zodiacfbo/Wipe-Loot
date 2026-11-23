@@ -84,8 +84,8 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { siteOf, versionLabel } from './version';
-import { cloud, initCloud, signIn, signOut, signUp } from './cloud';
-import { PASSWORD_MIN, PSEUDO_MAX, PSEUDO_MIN } from './cloud_logic';
+import { cloud, initCloud, logRun, markMessagesSeen, markNewsRead, messagesUnread, newsLastRead, newsUnread, refreshNews, sendMessage, shownNews, signIn, signOut, signUp } from './cloud';
+import { MESSAGE_MAX, MESSAGE_STATES, MESSAGE_TYPES, PASSWORD_MIN, PSEUDO_MAX, PSEUDO_MIN, type MessageType } from './cloud_logic';
 import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost, toggleTalent, treePoints, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
@@ -175,7 +175,12 @@ interface UiState {
   /** Chasseur : le compagnon sélectionné sur l'écran du choix (avant de partir). */
   companion?: CompanionId | null;
   selection: Selection;
-  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | 'connexion' | 'roue' | 'saison' | null;
+  overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | 'connexion' | 'roue' | 'saison' | 'news' | 'messages' | 'avis' | null;
+  /** Fenêtre des messages : l'onglet, le type choisi, le texte tapé, le message d'erreur, l'envoi en cours. */
+  /** News : le dernier numéro lu avant d'ouvrir la fenêtre (pour marquer « Nouveau »). Messages : ceux qui avaient du nouveau. */
+  newsBefore?: number;
+  msgFresh?: Set<string>;
+  msg?: { tab: 'ecrire' | 'liste'; type: MessageType; texte: string; error: string | null; busy: boolean; sent: boolean };
   /** Fenêtre de connexion : l'onglet, le pseudo tapé, le message d'erreur, l'attente de Firebase. */
   login?: { tab: 'connexion' | 'creation'; pseudo: string; error: string | null; busy: boolean };
   /** Outil de test : la classe choisie dans le panneau. */
@@ -1584,7 +1589,7 @@ function titleScreen(): string {
   const stats = profile.stats;
   return `<div class="hall">
     <header class="hall-tete"><span class="titre-jeu petit">Wipe &amp; Loot</span><span class="hall-nom">Hall de la guilde</span>
-      <div class="hall-options"><button type="button" class="bouton tuto-bouton" data-action="tuto" aria-label="Revoir la visite du hall" title="Revoir la visite du hall">?</button>${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${cloud.user ? `<span class="hall-pseudo">👤 <b>${esc(cloud.user.pseudo)}</b></span>` : ''}<button type="button" class="bouton bouton-roue ${ui.overlay === 'roue' ? 'actif' : ''}" data-action="roue" aria-label="Menu" title="Menu">⚙</button></div></header>
+      <div class="hall-options"><button type="button" class="bouton tuto-bouton" data-action="tuto" aria-label="Revoir la visite du hall" title="Revoir la visite du hall">?</button>${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${cloud.user ? `<span class="hall-pseudo">👤 <b>${esc(cloud.user.pseudo)}</b></span>` : ''}<button type="button" class="bouton bouton-roue ${ui.overlay === 'roue' ? 'actif' : ''}" data-action="roue" aria-label="Menu" title="Menu">⚙${gearCount() > 0 ? `<span class="pastille">${gearCount()}</span>` : ''}</button></div></header>
     <section class="hall-heros">
       ${switcher}
       <img class="px" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}" width="160" height="160">
@@ -2325,10 +2330,83 @@ function loginHtml(): string {
 /** Le menu de la roue ⚙ du hall. */
 function gearMenuHtml(): string {
   const items: string[] = [];
+  if (cloud.user) {
+    const n = newsUnread();
+    const m = messagesUnread();
+    items.push(`<button type="button" data-action="ouvrir-news"><span>📰 Quoi de neuf ?<small>${n > 0 ? `${n} nouveauté${n > 1 ? 's' : ''}` : 'Les dernières nouvelles du jeu'}</small></span>${n > 0 ? `<span class="mini-pastille">${n}</span>` : ''}</button>`);
+    items.push(`<button type="button" data-action="ouvrir-messages"><span>💡 Bugs, idées, messages<small>${m > 0 ? 'Du nouveau sur tes messages' : 'Écris à l\'organisateur'}</small></span>${m > 0 ? `<span class="mini-pastille">${m}</span>` : ''}</button>`);
+  }
   if (canFullscreen()) items.push(`<button type="button" data-action="plein-ecran"><span>⛶ ${document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran'}</span></button>`);
   if (cloud.user) items.push(`<button type="button" data-action="deconnexion"><span>👤 Mon compte<small>${esc(cloud.user.pseudo)} · se déconnecter</small></span></button>`);
   else items.push('<p class="menu-roue-note">Sauvegarde sur cet appareil seulement.</p>');
   return `<div class="overlay transparent" data-action="fermer-fond"><div class="menu-roue" role="menu">${items.join('')}</div></div>`;
+}
+
+const VERSION_TEXT = versionLabel(siteOf(location.pathname, location.hostname));
+
+/** Garde le texte tapé avant de redessiner la fenêtre. */
+function keepMessageText(): void {
+  const t = stage.querySelector<HTMLTextAreaElement>('textarea[name="texte"]');
+  if (t && ui.msg) ui.msg = { ...ui.msg, texte: t.value };
+}
+
+/** Marque les messages comme vus, en gardant la mise en avant le temps de la visite. */
+function markMessagesSeenLater(): void {
+  ui.msgFresh = new Set(cloud.messages.filter((m) => !m.vu).map((m) => m.id));
+  markMessagesSeen();
+}
+
+/** Le total sur la roue : news pas lues et messages avec du nouveau. */
+function gearCount(): number {
+  return cloud.user ? newsUnread() + messagesUnread() : 0;
+}
+
+/** « Quoi de neuf ? » (maquette A) : les news, la plus récente en premier. */
+function newsHtml(): string {
+  const list = shownNews();
+  const fmt = (d: string) => d.split('-').reverse().join('/');
+  const items = list.length
+    ? list.map((n) => `<div class="news ${ui.newsBefore !== undefined && n.id > ui.newsBefore ? 'nouv' : ''}"><small>${fmt(n.date)}</small>${ui.newsBefore !== undefined && n.id > ui.newsBefore ? '<span class="tag-nouveau">Nouveau</span>' : ''}<ul>${n.items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join('')
+    : '<p class="aide-connexion">Pas encore de nouvelles. Reviens bientôt !</p>';
+  return `<div class="overlay fenetre-centree" data-action="fermer-fond"><div class="boite-connexion fenetre-large">
+    <h2>📰 Quoi de neuf ?</h2>${items}
+    <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
+  </div></div>`;
+}
+
+/** Bugs, idées, messages (maquette A) : un onglet pour écrire, un pour relire ses messages et les réponses. */
+function messagesHtml(): string {
+  const m = ui.msg ?? { tab: 'ecrire', type: 'bug', texte: '', error: null, busy: false, sent: false };
+  const unread = messagesUnread();
+  const tabs = `<div class="onglets-connexion" role="tablist">
+      <button type="button" role="tab" class="${m.tab === 'ecrire' ? 'actif' : ''}" data-action="msg-onglet" data-tab="ecrire">✍ Écrire</button>
+      <button type="button" role="tab" class="${m.tab === 'liste' ? 'actif' : ''}" data-action="msg-onglet" data-tab="liste">📬 Mes messages${unread > 0 ? ` · ${unread}` : ''}</button>
+    </div>`;
+  let body: string;
+  if (m.tab === 'liste') {
+    body = cloud.messages.length ? cloud.messages.map((x) => `<div class="msg ${ui.msgFresh?.has(x.id) ? 'nouv' : ''}">
+        <div class="msg-entete"><span>${MESSAGE_TYPES[x.type]} · ${new Date(x.dateMs).toLocaleDateString('fr-FR')}</span><span class="etat etat-${x.etat}">${MESSAGE_STATES[x.etat]}</span></div>
+        <p>${esc(x.texte)}</p>${x.reponse ? `<div class="reponse"><b>Réponse :</b> ${esc(x.reponse)}</div>` : ''}
+      </div>`).join('') : '<p class="aide-connexion">Tu n\'as encore rien envoyé.</p>';
+  } else if (m.sent) {
+    body = '<p class="envoye">Merci, c\'est envoyé ! Tu verras ici quand l\'organisateur l\'aura lu ou t\'aura répondu.</p><button type="button" class="gros-bouton secondaire" data-action="msg-nouveau">Écrire un autre message</button>';
+  } else {
+    const ctx = ui.run ? `l'écran en cours (${ui.run.screen}) et une copie de ta partie pour retrouver le bug` : 'l\'écran en cours (hall)';
+    body = `<div class="types-message">${(Object.keys(MESSAGE_TYPES) as MessageType[]).map((t) => `<button type="button" class="${m.type === t ? 'actif' : ''}" data-action="msg-type" data-type="${t}">${MESSAGE_TYPES[t]}</button>`).join('')}</div>
+      <textarea name="texte" maxlength="${MESSAGE_MAX}" placeholder="${m.type === 'bug' ? 'Que s\'est-il passé ? Qu\'est-ce que tu faisais ?' : m.type === 'idee' ? 'Ton idée pour le jeu…' : 'Ton message…'}" ${m.busy ? 'disabled' : ''}>${esc(m.texte)}</textarea>
+      <div class="compteur-message"><span data-compteur>${m.texte.length}</span> / ${MESSAGE_MAX}</div>
+      ${m.type === 'bug' ? `<p class="aide-connexion">Joint automatiquement : la version (${VERSION_TEXT}), ton appareil, ${ctx}.</p>` : ''}
+      ${m.error ? `<p class="erreur-connexion" role="alert">${esc(m.error)}</p>` : ''}
+      <button type="button" class="gros-bouton" data-action="msg-envoyer" ${m.busy ? 'disabled' : ''}>${m.busy ? 'Envoi…' : 'Envoyer'}</button>`;
+  }
+  return `<div class="overlay fenetre-centree" data-action="fermer-fond"><div class="boite-connexion fenetre-large">${tabs}${body}
+    <button type="button" class="lien-fermer" data-action="fermer">Fermer</button></div></div>`;
+}
+
+/** Un message de l'organisateur ou du jeu (compte bloqué, progression remise à zéro). */
+function noticeHtml(): string {
+  return `<div class="overlay fenetre-centree"><div class="boite-connexion"><p>${esc(cloud.notice ?? '')}</p>
+    <button type="button" class="gros-bouton" data-action="avis-ok">Compris</button></div></div>`;
 }
 
 /** Une nouvelle saison a remis la sauvegarde à zéro. */
@@ -2350,6 +2428,7 @@ function cloudChanged(): void {
   }
   if (cloud.user && cloud.newSeason !== null) { ui.overlay = 'saison'; ui.run = null; ui.classScreen = false; }
   if (!cloud.user && cloud.enabled) ui.run = null;
+  if (cloud.notice && ui.overlay !== 'saison') { ui.overlay = 'avis'; ui.login = undefined; }
   render();
 }
 
@@ -2370,6 +2449,9 @@ function overlayHtml(run: RunState | null): string {
   if (ui.overlay === 'connexion') return loginHtml();
   if (ui.overlay === 'roue') return gearMenuHtml();
   if (ui.overlay === 'saison') return seasonHtml();
+  if (ui.overlay === 'news') return newsHtml();
+  if (ui.overlay === 'messages') return messagesHtml();
+  if (ui.overlay === 'avis') return noticeHtml();
   if (ui.overlay === 'test') return devPanelHtml(run); // Outil de test
   if (ui.overlay === 'abandon') return confirmAbandonHtml();
   if (ui.overlay === 'difficultes') {
@@ -2463,6 +2545,7 @@ function overlayHtml(run: RunState | null): string {
       <div class="actions">
         <button type="button" class="gros-bouton" data-action="fermer">Reprendre</button>
         <button type="button" class="gros-bouton secondaire" data-action="titre">Retour au hall de la guilde</button>
+        ${cloud.user ? '<button type="button" class="gros-bouton secondaire" data-action="ouvrir-messages">💡 Signaler un bug</button>' : ''}
         ${isDevBuild() ? '<button type="button" class="gros-bouton secondaire bouton-test" data-action="test">🛠 Outil de test</button>' : ''}
       </div>
     </div></div>`;
@@ -2567,6 +2650,7 @@ export function render(): void {
   if (!run) {
     stage.dataset.acte = '1';
     const hall = !ui.archivesScreen && !ui.classScreen && !ui.talentScreen;
+    if (hall) refreshNews(); // au plus une lecture toutes les 10 minutes
     if (tutoActive()?.kind === 'combat' || (!hall && tutoActive())) tutoStop();
     // La visite du hall se lance toute seule la première fois qu'on y arrive (après le choix de la classe).
     if (hall && !ui.overlay && !tutoActive()) {
@@ -2623,6 +2707,7 @@ async function commit(): Promise<void> {
       run.summary = awardRun(profile, run, run.classId);
       recordKills(profile, run.kills ?? {});
       saveProfile(profile);
+      logRun(run, run.summary); // le journal de l'expédition, pour la page admin
     }
     rememberArchives(run);
     localSave.save(run);
@@ -2785,6 +2870,39 @@ function handleClick(ev: MouseEvent): void {
       // Toucher le fond sombre ferme la fenêtre (pas un clic dans la fenêtre elle-même).
       if (ev.target === el && !ui.login?.busy) { ui.overlay = null; render(); }
       return;
+    case 'ouvrir-news':
+      ui.newsBefore = newsLastRead();
+      markNewsRead();
+      ui.overlay = 'news';
+      render();
+      return;
+    case 'ouvrir-messages':
+      ui.msg = { tab: messagesUnread() > 0 ? 'liste' : 'ecrire', type: 'bug', texte: '', error: null, busy: false, sent: false };
+      if (ui.msg.tab === 'liste') markMessagesSeenLater();
+      ui.overlay = 'messages';
+      render();
+      return;
+    case 'msg-onglet':
+      keepMessageText();
+      ui.msg = { ...ui.msg!, tab: el.dataset.tab === 'liste' ? 'liste' : 'ecrire', error: null };
+      if (ui.msg.tab === 'liste') markMessagesSeenLater();
+      render();
+      return;
+    case 'msg-type': keepMessageText(); ui.msg = { ...ui.msg!, type: el.dataset.type as MessageType }; render(); return;
+    case 'msg-nouveau': ui.msg = { ...ui.msg!, texte: '', sent: false, error: null }; render(); return;
+    case 'msg-envoyer': {
+      keepMessageText();
+      const m = ui.msg!;
+      ui.msg = { ...m, busy: true, error: null };
+      render();
+      const screen = ui.run ? ui.run.screen : 'hall';
+      void sendMessage(m.type, m.texte, screen, ui.run).then((error) => {
+        ui.msg = { ...ui.msg!, busy: false, error, sent: !error, texte: error ? ui.msg!.texte : '' };
+        render();
+      });
+      return;
+    }
+    case 'avis-ok': cloud.notice = null; ui.overlay = null; render(); return;
     case 'saison-ok':
       cloud.newSeason = null;
       ui.overlay = null;
@@ -2808,7 +2926,14 @@ function handleClick(ev: MouseEvent): void {
       launchFromHall();
       return;
     }
-    case 'nouvelle-confirmee': ui.overlay = null; launchFromHall(); return;
+    case 'nouvelle-confirmee': {
+      // L'expédition abandonnée laisse quand même son journal (cause « Abandon »).
+      const old = localSave.load();
+      if (old) logRun(old, undefined, true);
+      ui.overlay = null;
+      launchFromHall();
+      return;
+    }
     case 'difficulte': {
       const profile = loadProfile();
       profile.lastDifficulty = Math.max(0, Math.min(maxDifficulty(), chosenDifficulty() + Number(el.dataset.delta)));
@@ -3040,6 +3165,13 @@ export function mount(root: HTMLElement): void {
   initFx(root);
   initAides(root, () => ui.run?.combat, () => (ui.selection?.kind === 'card' ? ui.selection.index : null));
   stage.addEventListener('click', handleClick);
+  stage.addEventListener('input', (ev) => {
+    const t = ev.target as HTMLElement;
+    if (t instanceof HTMLTextAreaElement && t.name === 'texte') {
+      const c = stage.querySelector('[data-compteur]');
+      if (c) c.textContent = String(t.value.length);
+    }
+  });
   stage.addEventListener('submit', (ev) => {
     const form = ev.target as HTMLFormElement;
     if (form.dataset.form !== 'connexion') return;

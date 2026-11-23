@@ -1,32 +1,65 @@
 rules_version = '2';
 // Règles de sécurité de la base (Firestore) de Wipe & Loot.
-// À coller dans la console Firebase : Firestore Database → Règles → Publier.
+// À coller dans la console Firebase : Firestore Database → Règles → Publier (à chaque changement de ce fichier).
 // La vraie protection est ici : le code du jeu est public, la configuration Firebase aussi.
 service cloud.firestore {
   match /databases/{database}/documents {
     function connecte() { return request.auth != null; }
-    // L'organisateur (moi) : son identifiant (UID) sera ajouté ici avec la page admin.
-    function admin() { return connecte() && request.auth.uid in []; }
+    // L'organisateur : seul compte qui lit tout et écrit les news, les états et les réponses.
+    function admin() { return connecte() && request.auth.uid in ['PUomfoQPqgX5FYny6rz1Z2pVgry1']; }
     function siteValide(site) { return site in ['dev', 'playtest', 'main']; }
+    function moi(uid) { return connecte() && request.auth.uid == uid; }
+    function bloque(site) { return exists(/databases/$(database)/documents/sites/$(site)/bloques/$(request.auth.uid)); }
 
-    // La configuration d'un site (la saison) : tout le monde la lit, seul l'organisateur l'écrit.
+    // La configuration d'un site (saison, news) : tout le monde la lit, seul l'organisateur l'écrit.
     match /sites/{site}/config/{doc} {
       allow read: if siteValide(site);
       allow write: if admin();
     }
 
-    // La fiche d'un joueur : lui seul la lit et l'écrit (et l'organisateur la lit).
+    // La fiche d'un joueur : lui seul la lit et l'écrit ; l'organisateur peut tout (remise à zéro, pseudo).
     match /sites/{site}/joueurs/{uid} {
-      allow read: if siteValide(site) && connecte() && (request.auth.uid == uid || admin());
-      allow create, update: if siteValide(site) && connecte() && request.auth.uid == uid
+      allow read: if siteValide(site) && (moi(uid) || admin());
+      allow create, update: if admin() || (siteValide(site) && moi(uid) && !bloque(site)
         && request.resource.data.keys().hasOnly(['pseudo', 'profil', 'run', 'saison', 'majMs', 'version'])
         && request.resource.data.pseudo is string && request.resource.data.pseudo.size() <= 16
         && (request.resource.data.profil == null || (request.resource.data.profil is string && request.resource.data.profil.size() < 300000))
         && (request.resource.data.run == null || (request.resource.data.run is string && request.resource.data.run.size() < 600000))
         && request.resource.data.saison is int
         && request.resource.data.majMs is int
-        && request.resource.data.version is string && request.resource.data.version.size() <= 40;
+        && request.resource.data.version is string && request.resource.data.version.size() <= 40);
       allow delete: if admin();
+    }
+
+    // Le journal des expéditions : le joueur ajoute les siennes, seul l'organisateur les lit.
+    match /sites/{site}/runs/{id} {
+      allow create: if siteValide(site) && connecte() && request.resource.data.uid == request.auth.uid && !bloque(site)
+        && request.resource.data.classe is string && request.resource.data.classe.size() <= 20
+        && request.resource.data.paquet is list && request.resource.data.paquet.size() <= 120
+        && request.resource.data.talents is list && request.resource.data.talents.size() <= 30
+        && request.resource.data.version is string && request.resource.data.version.size() <= 40;
+      allow read, update, delete: if admin();
+    }
+
+    // Bugs, idées et messages : le joueur crée les siens (état « reçu », sans réponse) et les relit ;
+    // il ne peut changer que « vu ». L'organisateur lit tout, change l'état, répond, supprime.
+    match /sites/{site}/messages/{id} {
+      allow create: if siteValide(site) && connecte() && request.resource.data.uid == request.auth.uid && !bloque(site)
+        && request.resource.data.type in ['bug', 'idee', 'message']
+        && request.resource.data.texte is string && request.resource.data.texte.size() <= 300
+        && request.resource.data.etat == 'recu' && request.resource.data.reponse == null
+        && request.resource.data.pseudo is string && request.resource.data.pseudo.size() <= 16
+        && (request.resource.data.run == null || (request.resource.data.run is string && request.resource.data.run.size() < 600000));
+      allow read: if admin() || (connecte() && resource.data.uid == request.auth.uid);
+      allow update: if admin() || (connecte() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vu']) && request.resource.data.vu == true);
+      allow delete: if admin();
+    }
+
+    // Comptes bloqués : le joueur peut seulement savoir s'il l'est ; l'organisateur bloque et débloque.
+    match /sites/{site}/bloques/{uid} {
+      allow read: if moi(uid) || admin();
+      allow write: if admin();
     }
   }
 }

@@ -83,16 +83,16 @@ export function scoreRun(run: RunState): ScoreLine[] {
   const wipes = (run.maxWipes ?? MAX_WIPES) - run.wipesLeft;
   const floors = (run.floorsDone ?? 0) + run.path.length;
   const lines: ScoreLine[] = [
-    { label: `Étages atteints (${floors})`, points: floors * 10 },
+    { label: `Étapes franchies (${floors})`, points: floors * 10 },
     { label: `Combats gagnés (${run.stats.combats})`, points: run.stats.combats * 5 },
-    { label: `Boss secondaires vaincus (${run.stats.elites})`, points: run.stats.elites * 25 },
+    { label: `Gardiens vaincus (${run.stats.elites})`, points: run.stats.elites * 25 },
   ];
   if (victory || (run.act ?? 1) >= 2) lines.push({ label: 'Vulkhar vaincu', points: 100 });
   if ((run.act ?? 1) >= 3) lines.push({ label: 'Vhaeryx vaincu', points: 150 });
   if (victory && (run.act ?? 1) >= 3) lines.push({ label: 'Yzhar vaincu', points: 200 });
   if (run.sourcesQuest === 'done') lines.push({ label: 'Quête : les Gardiens des Sources', points: 20 });
-  if (victory && wipes === 0) lines.push({ label: 'Aucun wipe', points: 30 });
-  if (wipes > 0) lines.push({ label: `Wipes (${wipes})`, points: -15 * wipes });
+  if (victory && wipes === 0) lines.push({ label: 'Aucune chute', points: 30 });
+  if (wipes > 0) lines.push({ label: `Chutes (${wipes})`, points: -15 * wipes });
   return lines.filter((l) => l.points !== 0);
 }
 

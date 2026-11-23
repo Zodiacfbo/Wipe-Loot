@@ -1,0 +1,72 @@
+/* La page admin (maquette B) : mêmes couleurs que le jeu, pensée aussi pour le téléphone. */
+:root { --fond: #17110d; --panneau: #2b211a; --panneau-sombre: #221913; --bordure: #4a372a; --texte: #f3ebdd; --texte-2: #b9ae9f; --accent: #e8742a; --or: #e6c36a; --pv: #c8413a; --vert: #8fd49a; --blocage: #8fb8e8; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--fond); color: var(--texte); font-family: Nunito, system-ui, sans-serif; font-size: 14px; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+code { font-size: 12px; color: var(--texte-2); }
+.a-centre { min-height: 100vh; display: grid; place-content: center; gap: 12px; padding: 16px; text-align: center; }
+.a-centre h1, .a-top h1 { font-family: Cinzel, serif; color: var(--or); margin: 0; }
+.a-login { width: 340px; max-width: 100%; display: flex; flex-direction: column; gap: 12px; text-align: left; }
+.a-login label, .a-form label { display: flex; flex-direction: column; gap: 4px; color: var(--texte-2); font-size: 13px; }
+input, textarea, select { background: #120d0a; border: 1px solid #5a4433; border-radius: 8px; padding: 8px 10px; }
+textarea { width: 100%; resize: vertical; min-height: 60px; }
+.a-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; background: #120d0a; border-bottom: 1px solid var(--bordure); }
+.a-top h1 { font-size: 18px; }
+.a-site { display: flex; gap: 4px; padding: 3px; border-radius: 8px; background: var(--panneau-sombre); margin-left: auto; }
+.a-site button { border: none; background: none; padding: 5px 14px; border-radius: 6px; color: var(--texte-2); }
+.a-site button.on { background: var(--accent); color: #1a0f08; font-weight: 800; }
+.a-onglets { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--bordure); overflow-x: auto; }
+.a-onglets button { border: none; background: none; padding: 12px 12px; white-space: nowrap; color: var(--texte-2); border-bottom: 3px solid transparent; }
+.a-onglets button.on { color: var(--texte); border-color: var(--or); }
+.a-badge { margin-left: 6px; padding: 1px 6px; border-radius: 9px; background: var(--pv); color: #fff; font-size: 11px; font-weight: 800; }
+.a-main { padding: 16px; display: flex; flex-direction: column; gap: 14px; max-width: 1300px; margin: 0 auto; }
+.a-barre { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.a-tuiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.a-tuile { background: var(--panneau); border: 1px solid var(--bordure); border-radius: 12px; padding: 12px 14px; }
+.a-tuile small { display: block; color: var(--texte-2); font-size: 12px; }
+.a-tuile b { display: block; font-size: 26px; margin: 2px 0; }
+.a-tuile b.ok { color: var(--vert); } .a-tuile b.attention { color: var(--or); } .a-tuile b.danger { color: #ff8a80; }
+.a-carte { background: var(--panneau); border: 1px solid var(--bordure); border-radius: 12px; padding: 14px; min-width: 0; }
+.a-carte h3 { margin: 0 0 10px; font-size: 15px; }
+.a-carte.a-sommeil { opacity: 0.85; border-style: dashed; }
+.a-grille2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.a-defile { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 7px 8px; border-bottom: 1px solid #3a2a1f; text-align: left; vertical-align: middle; }
+th { color: var(--texte-2); font-weight: 600; white-space: nowrap; }
+.a-large { width: 40%; }
+.a-clic { cursor: pointer; } .a-clic:hover { background: #33271f; }
+.a-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: #3a2a1f; }
+.a-pill.r { background: rgba(200, 65, 58, 0.25); color: #ffb3ad; } .a-pill.v { background: rgba(143, 212, 154, 0.18); color: var(--vert); }
+.a-jauge { height: 8px; border-radius: 4px; background: #3a2a1f; overflow: hidden; min-width: 60px; }
+.a-jauge i { display: block; height: 100%; background: var(--accent); }
+.a-courbe { height: 130px; display: flex; align-items: stretch; gap: 4px; }
+.a-courbe div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
+.a-courbe i { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
+.a-courbe span { font-size: 10px; color: var(--texte-2); }
+.a-note { color: var(--texte-2); font-size: 12px; margin: 0; }
+.a-erreur { color: #ffb3ad; background: rgba(200, 65, 58, 0.15); border: 1px solid var(--pv); padding: 8px 10px; border-radius: 8px; margin: 0; }
+.a-flash { color: var(--vert); font-size: 13px; }
+.a-bouton { padding: 7px 12px; border-radius: 8px; border: 1px solid #5a4433; background: #241a13; font-weight: 600; }
+.a-bouton.plein { background: var(--accent); border-color: var(--accent); color: #1a0f08; font-weight: 800; }
+.a-bouton.danger, .a-lien.danger { border-color: var(--pv); color: #ffb3ad; }
+.a-lien { border: none; background: none; color: var(--or); text-decoration: underline; padding: 4px; }
+.a-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+.a-message { display: flex; flex-direction: column; gap: 8px; }
+.a-message.nouveau { border-color: var(--or); }
+.a-entete { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--texte-2); font-size: 12px; }
+.a-entete b { color: var(--texte); font-size: 14px; }
+.a-texte { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.a-news { border-bottom: 1px solid #3a2a1f; padding: 8px 0; }
+.a-news ul { margin: 6px 0 0; padding-left: 18px; }
+.a-form { display: flex; flex-direction: column; gap: 10px; }
+.a-cartes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.a-cartes span { padding: 4px 8px; border-radius: 8px; background: var(--panneau-sombre); border: 1px solid #3a2a1f; font-size: 12px; }
+.a-cartes span.rouge { border-color: var(--pv); color: #ffb3ad; }
+@media (max-width: 760px) {
+  .a-tuiles { grid-template-columns: repeat(2, 1fr); }
+  .a-grille2 { grid-template-columns: 1fr; }
+  .a-main { padding: 12px; }
+  .a-tuile b { font-size: 21px; }
+}

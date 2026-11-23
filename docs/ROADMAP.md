@@ -151,7 +151,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [x] Synchronisation du profil et de la run en cours (à chaque nœud), saison pour remettre à zéro
 - [x] Gestion des conflits entre deux appareils (la sauvegarde en ligne gagne, sauf partie plus récente jouée sans réseau)
 - [ ] Export et import de la sauvegarde (fichier ou code)
-- [x] Site `/playtest/` pour les testeurs ✅ ; la suite (journal des runs, page admin, bugs et messages, news) : issue #9
+- [x] Site `/playtest/` pour les testeurs, journal des runs, page admin (stats, modération), bugs et messages, news (issue #9, novembre 2026)
 
 ---
 
@@ -163,7 +163,7 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [ ] Options : vitesse des animations, volume, réduction des effets
 - [x] Tutoriel (novembre 2026, `src/tuto.ts`) : visite du hall (6 bulles, lancée toute seule la première fois, revue avec « ? »), tuto du combat avec le bouton « ? » de la barre du haut (10 bulles communes + 3-4 bulles de la classe jouée ; le « ? » brille jusqu'au « Compris », pour chaque classe), encart « Comment ça se joue » dans la fiche de classe (mêmes textes)
 - [x] Présentation du jeu sur l'écran d'accueil (novembre 2026) : sous-titre « Un jeu de cartes et d'aventure au royaume d'Eldrava », accroche « Tomber, se relever, et rapporter le butin. » et 4 tuiles, dans le nouveau vocabulaire
-- [ ] Vocabulaire du jeu : passer l'interface au lexique validé (expédition, chapitre, étape, chute et relève, butin, gardien, seigneur, sbires, paquet, se déchaîne, coup final, bienfait et maléfice, rôles des classes en langage RP). « DoT » et « boss » (mot de règle dans les cartes) restent, avec le glossaire
+- [x] Vocabulaire du jeu (novembre 2026) : passer l'interface au lexique validé (expédition, chapitre, étape, chute et relève, butin, gardien, seigneur, sbires, paquet, se déchaîne, coup final, bienfait et maléfice, rôles des classes en langage RP). « DoT » et « boss » (mot de règle dans les cartes) restent, avec le glossaire
 - [ ] Polish visuel de la présentation des classes : portraits, emblèmes dessinés, mise en page plus soignée de l'écran des classes et du hall
 - [ ] Disposition dédiée au téléphone (texte et cartes plus grands)
 - [ ] Accessibilité (contrastes, tailles de texte, lecteurs d'écran)
