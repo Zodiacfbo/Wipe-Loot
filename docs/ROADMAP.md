@@ -160,7 +160,8 @@ Pour chaque classe : ses mécaniques, ses cartes et illustrations, ses sorts de 
 - [x] Animations au repos : les 6 héros (avec la tenue d'ombre du Prêtre), les 5 familiers et tous les ennemis (4 images, style du feu de camp) ; arrêt sur image à l'impact. Tout nouveau sprite est animé dès sa création (direction artistique, §7)
 - [ ] Poses d'action des sprites (élan avant l'attaque, coup reçu, incantation, mort qui se défait)
 - [ ] Options : vitesse des animations, volume, réduction des effets
-- [ ] Tutoriel et aide en jeu
+- [x] Tutoriel (novembre 2026, `src/tuto.ts`) : visite du hall (6 bulles, lancée toute seule la première fois, revue avec « ? »), tuto du combat avec le bouton « ? » de la barre du haut (10 bulles communes + 3-4 bulles de la classe jouée ; le « ? » brille jusqu'au « Compris », pour chaque classe), encart « Comment ça se joue » dans la fiche de classe (mêmes textes)
+- [ ] Présentation du jeu sur l'écran titre (maquettes faites, variante à choisir)
 - [ ] Polish visuel de la présentation des classes : portraits, emblèmes dessinés, mise en page plus soignée de l'écran des classes et du hall
 - [ ] Disposition dédiée au téléphone (texte et cartes plus grands)
 - [ ] Accessibilité (contrastes, tailles de texte, lecteurs d'écran)

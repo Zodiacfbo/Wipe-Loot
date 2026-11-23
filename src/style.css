@@ -901,3 +901,38 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .tampon-hallucination { border-color: #c87aff; color: #e2c8ff; background: rgba(30, 10, 40, 0.88); }
 @keyframes hallucination-tremble { 0% { transform: translate(0, 0); } 50% { transform: translate(0.8px, -0.6px); } 100% { transform: translate(-0.6px, 0.5px); } }
 @media (prefers-reduced-motion: reduce) { .carte.hallucination .texte > span { animation: none; text-decoration: underline wavy #c87aff 1px; } }
+
+/* ---------- Tutoriel (src/tuto.ts) ---------- */
+.tuto-bouton { min-width: 40px; padding-left: 0; padding-right: 0; font-weight: 800; font-size: 18px; }
+.tuto-bouton.brille { background: var(--or); color: #1a120a; border-color: var(--or-clair); animation: tuto-brille 1.4s ease-in-out infinite; }
+@keyframes tuto-brille { 50% { box-shadow: 0 0 14px 4px rgba(230, 195, 106, 0.75); } }
+@media (prefers-reduced-motion: reduce) { .tuto-bouton.brille { animation: none; box-shadow: 0 0 10px 2px rgba(230, 195, 106, 0.7); } }
+.tuto-voile { position: absolute; inset: 0; z-index: 95; }
+.tuto-voile.sans-cible { background: rgba(0, 0, 0, 0.72); }
+.tuto-voile.sans-cible .tuto-trou { display: none; }
+.tuto-trou { position: absolute; border-radius: 12px; box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.72); outline: 3px solid var(--or); pointer-events: none; transition: left 0.2s, top 0.2s, width 0.2s, height 0.2s; }
+.tuto-bulle { position: absolute; width: 440px; padding: 16px 20px; border-radius: 14px; border: 2px solid var(--or); background: var(--panneau); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); }
+.tuto-bulle p { margin: 4px 0 12px; font-size: 19px; line-height: 1.4; color: var(--texte); max-width: none; }
+.tuto-bulle b { color: var(--or); }
+.tuto-titre { font-family: Cinzel, serif; font-weight: 700; color: var(--or); font-size: 16px; letter-spacing: 0.5px; }
+.tuto-boutons { display: flex; align-items: center; gap: 18px; }
+.tuto-boutons .gros-bouton { padding: 10px 26px; font-size: 18px; }
+.tuto-boutons .lien { align-self: center; font-size: 16px; }
+.tuto-boutons .tuto-passer { margin-left: auto; color: var(--texte-2); font-size: 14px; font-weight: 600; }
+.tuto-mini { position: absolute; z-index: 60; width: 300px; padding: 10px 14px; border-radius: 10px; border: 2px solid var(--or); background: var(--panneau); color: var(--texte); font-size: 16px; line-height: 1.35; pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
+.tuto-mini b { color: var(--or); }
+.tuto-mini::before { content: ""; position: absolute; top: -10px; left: calc(var(--fleche, 260px) - 9px); border: 9px solid transparent; border-top: 0; border-bottom-color: var(--or); }
+/* L'encart « Comment ça se joue » de la fiche de classe (les textes des bulles de la classe). */
+.comment-jouer { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--panneau-sombre); }
+.comment-jouer-titre { font-family: Cinzel, serif; color: var(--or); font-size: 16px; }
+.comment-jouer-ligne { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: start; font-size: 15px; line-height: 1.3; color: var(--texte); }
+.comment-jouer-ligne img { width: 28px; height: 28px; border-radius: 4px; }
+.comment-jouer-ligne b { color: var(--or); }
+/* La fiche de classe avec « Comment ça se joue » : portrait plus petit, infos sur une ligne (le bouton reste visible). */
+.fiche-classe-detail { gap: 8px; }
+.fiche-classe-detail .portrait-classe, .fiche-classe-detail.avec-progression .portrait-classe { height: 96px; }
+.fiche-classe-detail .portrait-classe img, .fiche-classe-detail.avec-progression .portrait-classe img { width: 88px; height: 88px; }
+.fiche-classe-detail .infos-classe { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 14px; }
+.fiche-classe-detail .infos-classe img { width: 20px; height: 20px; }
+.fiche-classe-detail .infos-classe .info { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; margin-right: 10px; }
+.fiche-classe-detail .note { font-size: 13px; }

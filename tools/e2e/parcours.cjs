@@ -1,6 +1,8 @@
 // Test navigateur : le parcours d'un nouveau joueur, sur PC et sur téléphone.
 //   Commencer → choix de la classe → hall de la guilde → Partir en expédition
 //   → (Chasseur : choix du compagnon) → Brégan (bénédiction) → carte → premier combat.
+//   La visite du hall (lancée toute seule) et le tuto du combat (bouton « ? ») sont parcourus
+//   bulle par bulle : une bulle qui ne trouve pas son élément est signalée.
 //
 // Utilisation (le jeu doit être construit : npm run build) :
 //   npm run e2e                                   # PC + téléphone, Guerrier
@@ -77,6 +79,19 @@ async function parcours(navigateur, url, nomEcran) {
     console.log(`  ✓ ${nom}`);
   };
 
+  // Parcourt le tutoriel affiché, bulle par bulle, jusqu'à « Compris ».
+  const tuto = async nom => {
+    const perdues = [];
+    for (let i = 1; i <= 30 && await page.locator('.tuto-voile').count(); i++) {
+      await page.waitForTimeout(250);
+      if (i === 1 || process.env.TUTO) await capture(`${nom}-${i}`);
+      if (await page.locator('.tuto-voile.sans-cible').count()) perdues.push(`${i} (« ${(await page.locator('.tuto-bulle p').innerText()).slice(0, 40)}… »)`);
+      await page.click('[data-action="tuto-suivant"]');
+    }
+    if (await page.locator('.tuto-voile').count()) throw new Error(`[${nomEcran}] ${nom} : le tuto ne se termine pas`);
+    console.log(`  ✓ ${nom}${perdues.length ? ` (bulles sans élément à montrer : ${perdues.join(', ')})` : ''}`);
+  };
+
   console.log(`${nomEcran} :`);
   await page.goto(url);
   await etape('titre', '[data-action="nouvelle"]');
@@ -87,7 +102,8 @@ async function parcours(navigateur, url, nomEcran) {
   await etape('fiche-classe', `[data-action="classe-depart"][data-id="${CLASSE}"]`);
   await page.click(`[data-action="classe-depart"][data-id="${CLASSE}"]`);
 
-  await etape('hall', '[data-action="talents"]');
+  await etape('hall', '.tuto-voile');
+  await tuto('visite-hall');
   await page.click('[data-action="nouvelle"]');
 
   // Le Chasseur choisit d'abord son compagnon.
@@ -105,7 +121,10 @@ async function parcours(navigateur, url, nomEcran) {
 
   await etape('carte', '[data-action="noeud"]');
   await page.locator('[data-action="noeud"]').first().click();
-  await etape('combat', '[data-action="fin-tour"]');
+  await etape('combat', '.tuto-mini');
+  await page.click('.topbar [data-action="tuto"]');
+  await tuto('tuto-combat');
+  if (await page.locator('.tuto-bouton.brille').count()) throw new Error(`[${nomEcran}] le « ? » brille encore après « Compris »`);
 
   if (process.env.ETAT) {
     // Ouvrir une run préparée (par exemple écrite par un test vitest jetable).

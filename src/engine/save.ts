@@ -205,6 +205,8 @@ export interface Profile extends ProgressProfile, ArchiveProfile {
   discoveredItems: string[];
   /** Le coffre de la guilde (6 objets au plus). */
   guildChest: string[];
+  /** Le tutoriel : visite du hall vue, classes dont le tuto du combat est fini (« Compris »), mini-bulles vues. */
+  tuto?: { hall?: boolean; classes?: string[]; mini?: string[] };
 }
 
 export function loadProfile(): Profile {

@@ -23,6 +23,7 @@ import { MUTATION_LABEL } from './engine/actions';
 import { cardHitValue } from './engine/preview';
 import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeHit, splitRibbon } from './cardtext';
 import { afterRender, explainCard, initAides } from './aides';
+import { closeMini, combatTutoDone, howToPlayHtml, miniHtml, placeTuto, startCombatTuto, startHallTuto, tutoActive, tutoFinish, tutoHtml, tutoMove, tutoStop } from './tuto';
 import { cardReady } from './engine/hints';
 import { KEYWORDS, markKeywords } from './keywords';
 import { ACTS, LAST_ACT, actDef } from './engine/acts';
@@ -555,6 +556,7 @@ function topbar(run: RunState, hp: number): string {
       ${fullscreenButton('bouton')}
       <button type="button" class="bouton" data-action="equipement">Équipement · ${SLOT_KEYS.filter((k) => run.equipment[k]).length}/6${run.broken.length > 0 ? ` <span class="mention-brise">· ${run.broken.length} brisé${run.broken.length > 1 ? 's' : ''}</span>` : ''}</button>
       <button type="button" class="bouton" data-action="deck">Deck · ${run.deck.length}</button>
+      ${run.screen === 'combat' ? `<button type="button" class="bouton tuto-bouton ${combatTutoDone(loadProfile(), run.classId) ? '' : 'brille'}" data-action="tuto" aria-label="Tutoriel du combat" title="Tutoriel du combat">?</button>` : ''}
       <button type="button" class="bouton" data-action="menu">Menu</button>
     </div>
   </div>`;
@@ -1567,7 +1569,7 @@ function titleScreen(): string {
   const stats = profile.stats;
   return `<div class="hall">
     <header class="hall-tete"><span class="titre-jeu petit">Wipe &amp; Loot</span><span class="hall-nom">Hall de la guilde</span>
-      <div class="hall-options">${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${fullscreenButton('bouton')}</div></header>
+      <div class="hall-options"><button type="button" class="bouton tuto-bouton" data-action="tuto" aria-label="Revoir la visite du hall" title="Revoir la visite du hall">?</button>${isDevBuild() ? '<button type="button" class="bouton bouton-test" data-action="test">🛠 Test</button>' : ''}${fullscreenButton('bouton')}</div></header>
     <section class="hall-heros">
       ${switcher}
       <img class="px" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}" width="160" height="160">
@@ -2090,13 +2092,12 @@ function classScreen(): string {
       <aside class="fiche-classe-detail ${st === 'jouee' || st === 'debloquee' ? 'avec-progression' : ''}" style="--couleur:${c.color}">
         <div class="portrait-classe ${st === 'bientot' || st === 'verrouillee' ? 'silhouette' : ''}">${sprite(c)}</div>
         <div class="nom-classe"><b>${c.name}</b><span class="etoiles">${'★'.repeat(c.difficulty)}<i>${'★'.repeat(3 - c.difficulty)}</i></span><em>Difficulté ${DIFFICULTY_WORD[c.difficulty]}</em></div>
-        <q>${c.quote}</q>
         <div class="infos-classe">
-          <img class="px" src="${A('icone_epee.png')}" alt=""><span>${c.role}</span>
-          <img class="px" src="${A('icone_pouvoir.png')}" alt=""><span>${c.resource}</span>
-          <img class="px" src="${A('icone_sang.png')}" alt=""><span>${c.hp} PV</span>
+          <span class="info"><img class="px" src="${A('icone_epee.png')}" alt="">${c.role}</span>
+          <span class="info"><img class="px" src="${A('icone_pouvoir.png')}" alt="">${c.resource}</span>
+          <span class="info"><img class="px" src="${A('icone_sang.png')}" alt="">${c.hp} PV</span>
         </div>
-        <p>${c.fantasy}</p>
+        ${howToPlayHtml(c.id, A)}
         ${st === 'jouee' || st === 'debloquee' ? classProgressHtml(profile, c.id) : ''}
         <div class="bas-fiche">${note ? `<p class="note">${note}</p>` : ''}${button}</div>
       </aside>
@@ -2474,8 +2475,16 @@ export function render(): void {
   const run = ui.run;
   if (!run) {
     stage.dataset.acte = '1';
-    stage.innerHTML = ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null);
+    const hall = !ui.archivesScreen && !ui.classScreen && !ui.talentScreen;
+    if (tutoActive()?.kind === 'combat' || (!hall && tutoActive())) tutoStop();
+    // La visite du hall se lance toute seule la première fois qu'on y arrive (après le choix de la classe).
+    if (hall && !ui.overlay && !tutoActive()) {
+      const profile = loadProfile();
+      if (profile.startClass && !profile.tuto?.hall) startHallTuto();
+    }
+    stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null)) + (hall ? tutoHtml() : '');
     afterRender();
+    placeTuto(stage);
     return;
   }
   stage.dataset.acte = String(run.act ?? 1);
@@ -2494,9 +2503,12 @@ export function render(): void {
     case 'victory': html = endScreen(run, true); break;
     case 'gameover': html = endScreen(run, false); break;
   }
-  stage.innerHTML = html + overlayHtml(run);
+  if (tutoActive() && (tutoActive()!.kind !== 'combat' || run.screen !== 'combat' || ui.overlay)) tutoStop();
+  const tuto = run.screen === 'combat' && !ui.overlay ? tutoHtml() + miniHtml(loadProfile(), run.classId) : '';
+  stage.innerHTML = html + overlayHtml(run) + tuto;
   verifierTenue();
   afterRender();
+  placeTuto(stage);
 }
 
 async function commit(): Promise<void> {
@@ -2635,6 +2647,30 @@ function onTarget(uid: number): void {
   commit();
 }
 
+/** Les boutons du tutoriel : « ? », Suivant, Retour, Passer, Tout revoir. */
+function onTuto(action: string): boolean {
+  const profile = loadProfile();
+  const run = ui.run;
+  switch (action) {
+    case 'tuto':
+      ui.selection = null;
+      if (run?.screen === 'combat') startCombatTuto(profile, run.classId);
+      else if (!run) startHallTuto();
+      break;
+    case 'tuto-tout':
+      if (run?.screen === 'combat') startCombatTuto(profile, run.classId, true);
+      break;
+    case 'tuto-suivant':
+      if (tutoMove(1)) { tutoFinish(profile, true); saveProfile(profile); }
+      break;
+    case 'tuto-retour': tutoMove(-1); break;
+    case 'tuto-passer': tutoFinish(profile, false); saveProfile(profile); break;
+    default: return false;
+  }
+  render();
+  return true;
+}
+
 function handleClick(ev: MouseEvent): void {
   if (busy) return;
   const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-action]');
@@ -2642,6 +2678,13 @@ function handleClick(ev: MouseEvent): void {
   const run = ui.run;
   const action = el.dataset.action;
   if (action && isDevBuild() && devAction(action, el)) return; // Outil de test
+  // La mini-bulle du « ? » se ferme au premier toucher en combat.
+  if (run?.screen === 'combat' && stage.querySelector('.tuto-mini')) {
+    const profile = loadProfile();
+    if (closeMini(profile, run.classId)) saveProfile(profile);
+    stage.querySelector('.tuto-mini')?.remove();
+  }
+  if (action?.startsWith('tuto') && onTuto(action)) return;
   switch (action) {
     case 'nouvelle': {
       if (!loadProfile().startClass) { ui.run = null; ui.overlay = null; ui.classScreen = true; render(); return; }
