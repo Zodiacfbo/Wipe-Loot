@@ -1937,9 +1937,8 @@ function actScreen(run: RunState): string {
     <span class="butin-titre">${chapitre(run.act)} terminé</span>
     <h1>${next.name}</h1>
     <p class="texte-evenement">${next.intro}</p>
-    <p>Avant de repartir, la guilde panse tes blessures : <b>tes PV remontent au maximum</b>.</p>
     <div class="choix-fin-chapitre">
-      <button type="button" class="choix-evenement" data-action="acte-suivant"><b>⚔ Entrer dans le ${chapitre(run.act + 1).replace('Chapitre', 'chapitre')}</b><span>Plus d'expérience et un meilleur butin.</span><span><b class="risque">Risque :</b> si tu tombes pour de bon, tu perds le butin de l'expédition${carried ? `, et l'objet emporté du coffre (${carried})` : ''}.</span></button>
+      <button type="button" class="choix-evenement" data-action="acte-suivant"><b>⚔ Entrer dans le ${chapitre(run.act + 1).replace('Chapitre', 'chapitre')}</b><span class="soin-acte">${run.hp < run.maxHp ? `❤ Tes PV remontent au maximum : ${run.hp} → ${run.maxHp}` : `❤ Tes PV sont au maximum (${run.maxHp})`}</span><span>Plus d'expérience et un meilleur butin.</span><span><b class="risque">Risque :</b> si tu tombes pour de bon, tu perds le butin de l'expédition${carried ? `, et l'objet emporté du coffre (${carried})` : ''}.</span></button>
       <button type="button" class="choix-evenement" data-action="rentrer-guilde"><b>🏰 Rentrer à la guilde</b><span>Dépose 1 objet au coffre.${carried ? ` L'objet emporté (${carried}) y retourne.` : ''}</span><span>L'expédition s'arrête là : pas de nouveau niveau de difficulté.</span></button>
     </div>
   </div>`;

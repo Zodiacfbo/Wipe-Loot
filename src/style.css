@@ -1017,5 +1017,6 @@ body.connexion-proposee #rotate-connexion-note { display: block; max-width: 300p
 .choix-fin-chapitre { display: flex; gap: 16px; width: 100%; max-width: 860px; }
 .choix-fin-chapitre .choix-evenement { flex: 1; text-align: left; }
 .choix-fin-chapitre .risque { color: #ff9a7a; }
+.choix-fin-chapitre .soin-acte { color: var(--vert); font-weight: 700; }
 .mention-coffre { color: #ffd36a; }
 .alerte-coffre { max-width: 520px; margin: 0 auto; }
