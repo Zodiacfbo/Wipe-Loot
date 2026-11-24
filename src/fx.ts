@@ -145,8 +145,64 @@ async function projectile(from: FxTarget, to: FxTarget, color: string, size = 22
   d.remove();
 }
 
+// ---------- Les barres suivent les animations ----------
+// L'écran montré pendant les animations est celui d'avant l'action : à chaque coup, soin ou blocage,
+// on fait bouger la barre de vie et le blocage de la cible, pour voir le combat « pas à pas ».
+// L'écran final (le vrai état) recale tout à la fin.
+
+function holder(t: FxTarget): HTMLElement | null {
+  const el = node(t);
+  return (el?.closest<HTMLElement>(t === 'player' ? '.heros' : '.ennemi')) ?? null;
+}
+
+/** Change les PV affichés d'une cible (delta négatif : dégâts). */
+function shiftHp(t: FxTarget, delta: number): void {
+  if (!delta) return;
+  const box = holder(t);
+  const bar = box?.querySelector<HTMLElement>('.barre-pv');
+  const span = bar?.querySelector('span');
+  const fill = bar?.querySelector<HTMLElement>(':scope > div:not(.apercu)');
+  const m = span?.textContent?.match(/(-?\d+)\s*\/\s*(\d+)/);
+  if (!span || !fill || !m) return;
+  const max = Number(m[2]);
+  const hp = Math.max(0, Math.min(max, Number(m[1]) + delta));
+  span.textContent = `${hp} / ${max}`;
+  fill.style.transition = `width ${ms(220)}ms ease-out`;
+  fill.style.width = `${(100 * hp) / max}%`;
+  // Les PV du héros sont aussi dans la barre du haut.
+  if (t === 'player') {
+    const top = stage.querySelector('.topbar .stat.pv > span');
+    if (top) top.textContent = `${hp} / ${max}`;
+  }
+}
+
+/** Change le blocage affiché d'une cible. */
+function shiftBlock(t: FxTarget, delta: number): void {
+  if (!delta) return;
+  const box = holder(t);
+  if (!box) return;
+  if (t === 'player') {
+    const span = box.querySelector('.bouclier-badge span');
+    if (span) span.textContent = String(Math.max(0, Number(span.textContent) + delta));
+    return;
+  }
+  const bloc = box.querySelector<HTMLElement>('.infos .bloc');
+  const now = Number(bloc?.textContent?.match(/\d+/)?.[0] ?? 0);
+  const next = Math.max(0, now + delta);
+  if (bloc) {
+    if (next > 0) bloc.lastChild!.textContent = ` ${next}`;
+    else bloc.remove();
+  } else if (next > 0) {
+    const infos = box.querySelector('.infos');
+    const icon = stage.querySelector('.infos .bloc svg, .intention.defense svg')?.outerHTML ?? '';
+    infos?.insertAdjacentHTML('afterbegin', `<span class="bloc">${icon} ${next}</span>`);
+  }
+}
+
 function impact(ev: Extract<FxEvent, { kind: 'hit' }>, delay = 0): void {
   const hpLoss = ev.amount - ev.blocked;
+  shiftBlock(ev.to, -ev.blocked);
+  shiftHp(ev.to, -hpLoss);
   shake(ev.to, hpLoss >= GROS_COUP ? 1.8 : 1);
   if (hpLoss > 0) floatText(ev.to, `-${hpLoss}`, '#ff6a5a', delay);
   if (ev.blocked > 0) floatText(ev.to, `${ev.blocked} bloqué${ev.blocked > 1 ? 's' : ''}`, '#8fb8e8', delay + 120, 18);
@@ -264,11 +320,13 @@ export async function playFx(events: FxEvent[]): Promise<void> {
         break;
       case 'tick':
         shake(ev.who);
+        shiftHp(ev.who, -ev.amount);
         floatText(ev.who, `-${ev.amount} ${ev.label}`, ev.label === 'Saignement' ? '#ff5a6a' : '#ffa04a', 0, 20);
         await wait(320);
         break;
       case 'block':
         glow(ev.who, '#8fb8e8');
+        shiftBlock(ev.who, ev.amount);
         floatText(ev.who, `+${ev.amount} blocage`, '#8fb8e8', 0, 18);
         await wait(ev.who === 'player' ? 120 : 280);
         break;
@@ -280,6 +338,7 @@ export async function playFx(events: FxEvent[]): Promise<void> {
       case 'heal':
         await projectile(ev.from, ev.to, '#7be07b', 18);
         glow(ev.to, '#7be07b');
+        shiftHp(ev.to, ev.amount);
         floatText(ev.to, `+${ev.amount}`, '#8fe08a');
         await wait(260);
         break;
