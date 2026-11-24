@@ -68,6 +68,9 @@ import {
   startNextAct,
   LEGENDARY_MIN_ACT,
   retryAfterWipe,
+  defaultBreakSlot,
+  retryHp,
+  wipeBreaks,
   servicePrice,
   buyPotion,
   canDrink,
@@ -212,6 +215,8 @@ interface UiState {
   classScreen: boolean;
   /** Classe regardée sur l'écran des classes. */
   classSel: string | null;
+  /** Écran de chute : l'objet choisi pour être brisé (le moins précieux par défaut). */
+  wipeBreak?: SlotKey | null;
   /** Premier lancement : la classe de départ dont on confirme le choix (fenêtre), ou null. */
   startConfirm?: string | null;
   /** Archives de la guilde : écran ouvert et onglet. */
@@ -2003,17 +2008,30 @@ function campfireScreen(run: RunState): string {
 function wipeScreen(run: RunState): string {
   const bill = repairBill(run);
   const canPay = run.gold >= bill;
-  const breakable = breakableSlots(run).length > 0;
+  const breaks = wipeBreaks(run);
+  const slots = breaks ? breakableSlots(run) : [];
+  if (!ui.wipeBreak || !slots.includes(ui.wipeBreak)) ui.wipeBreak = defaultBreakSlot(run);
+  const chosen = breaks ? ui.wipeBreak : null;
+  const hp = retryHp(run, chosen);
+  // Le choix de l'objet brisé : chaque objet avec son prix de réparation, le moins précieux présélectionné.
+  const choice = breaks
+    ? `<div class="grille-equipement choix-brise">${slots.map((k) => {
+      const it = ITEMS[run.equipment[k]!];
+      return `<button type="button" class="article-coffre ${k === chosen ? 'choisie' : ''}" data-action="briser-choix" data-slot="${k}" aria-pressed="${k === chosen}">
+        <div class="objet ${it.rarity}"><span class="objet-icone">${SLOT_ICON[it.slot]}</span><div><b>${it.name}</b><em>${SLOT_LABEL[slotsFor(it.id)[0]]} · ${RARITY_LABEL[it.rarity]}</em><span>Réparation : ${REPAIR_PRICE[it.rarity]} or</span></div></div></button>`;
+    }).join('')}</div>`
+    : '';
   return `${topbar(run, 0)}<div class="ecran">
     <h1>Tu es tombé !</h1>
-    <p>Tu peux te relever et retenter le combat depuis le début, avec au moins la moitié de tes PV et les potions que tu avais en entrant. Il te reste ${run.wipesLeft} relève${run.wipesLeft > 1 ? 's' : ''}.</p>
+    <p>Tu peux te relever et retenter le combat depuis le début, avec les potions que tu avais en entrant. Tu repartiras avec <b>${hp} PV</b> (tes PV d'entrée, au moins le quart de tes PV max). Il te reste ${run.wipesLeft} relève${run.wipesLeft > 1 ? 's' : ''}.</p>
     <div class="facture">
       <span class="facture-titre">Facture de réparation</span>
       <b>${ICON.piece} ${bill} or</b>
-      <span>${canPay ? `Tu as ${run.gold} or.` : breakable ? `Tu n'as que ${run.gold} or : <strong class="mention-brise">un de tes objets, au hasard, sera brisé</strong>. Son effet sera désactivé jusqu'à ce que le vendeur gobelin le répare.` : `Tu n'as que ${run.gold} or, mais aucun objet à briser : le gobelin te fait crédit, pour cette fois.`}</span>
+      <span>${canPay ? `Tu as ${run.gold} or.` : breaks ? `Tu n'as que ${run.gold} or : <strong class="mention-brise">choisis l'objet qui sera brisé</strong>. Son effet sera désactivé jusqu'à sa réparation chez le vendeur gobelin.` : `Tu n'as que ${run.gold} or, mais aucun objet à briser : le gobelin te fait crédit, pour cette fois.`}</span>
     </div>
+    ${choice}
     <div class="actions">
-      <button type="button" class="gros-bouton" data-action="retenter">${canPay ? `Te relever · ${bill} or` : breakable ? 'Te relever (un objet sera brisé)' : 'Te relever'}</button>
+      <button type="button" class="gros-bouton" data-action="retenter">${canPay ? `Te relever · ${bill} or` : chosen ? `Te relever · briser « ${ITEMS[run.equipment[chosen]!].name} »` : 'Te relever'}</button>
       <button type="button" class="gros-bouton secondaire" data-action="abandonner">Abandonner l'expédition</button>
     </div>
   </div>`;
@@ -3152,7 +3170,8 @@ function handleClick(ev: MouseEvent): void {
     case 'feu-ameliorer': ui.campfireUpgrade = true; render(); break;
     case 'feu-retour': ui.campfireUpgrade = false; ui.upgradeUid = null; ui.bindStaff = false; ui.cardConfirm = null; render(); break;
     case 'ameliorer': campfireUpgrade(run, Number(el.dataset.uid)); ui.campfireUpgrade = false; ui.upgradeUid = null; commit(); break;
-    case 'retenter': retryAfterWipe(run); render(); commit(); break; // on affiche le combat avant la bannière « Objet brisé »
+    case 'briser-choix': ui.wipeBreak = el.dataset.slot as SlotKey; render(); break;
+    case 'retenter': retryAfterWipe(run, ui.wipeBreak); ui.wipeBreak = null; render(); commit(); break; // on affiche le combat avant la bannière « Objet brisé »
     case 'abandonner': abandonRun(run); commit(); break;
   }
 }

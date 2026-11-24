@@ -1000,3 +1000,7 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .reponse b { color: var(--or); }
 .envoye { padding: 10px; border-radius: 10px; background: rgba(143, 212, 154, 0.12); color: var(--vert); text-align: center; }
 .lien-fermer { align-self: center; border: none; background: none; color: var(--texte-2); text-decoration: underline; font-size: 14px; }
+
+/* Écran de chute : le choix de l'objet brisé. */
+.choix-brise { max-width: 720px; margin: 4px auto 0; }
+.choix-brise .article-coffre.choisie { outline: 3px solid #ff6a3a; outline-offset: 2px; border-radius: 10px; }

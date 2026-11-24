@@ -3,7 +3,7 @@ import { changePosture, createCombat, endTurn, playCard, useSpell } from '../src
 import { TUNING, type Encounter } from '../src/engine/enemies';
 import { reachable } from '../src/engine/map';
 import {
-  afterCombatAction, buyCard, buyRemoval, buyUpgrade, chooseNode, chooseReward, newRun, retryAfterWipe, servicePrice,
+  afterCombatAction, buyCard, buyRemoval, buyUpgrade, chooseNode, chooseReward, defaultBreakSlot, newRun, retryAfterWipe, retryHp, servicePrice, wipeBreaks,
 } from '../src/engine/run';
 import { migrate } from '../src/engine/save';
 import type { RunState } from '../src/engine/types';
@@ -171,7 +171,37 @@ describe('run et carte', () => {
     expect(reachable(run.map, run.position).every((n) => n.floor === 1)).toBe(true);
   });
 
-  it('un wipe permet de retenter le même combat avec au moins 50 % des PV', () => {
+  it('se relever : PV d\'entrée, avec au moins 25 % des PV max', () => {
+    const run = newRun(7);
+    run.hp = 10;
+    chooseNode(run, reachable(run.map, null)[0].id);
+    run.combat!.player.hp = 0;
+    run.combat!.phase = 'defeat';
+    afterCombatAction(run);
+    expect(retryHp(run)).toBe(20); // 10 PV en entrant, mais 25 % de 80
+    retryAfterWipe(run);
+    expect(run.combat!.player.hp).toBe(20);
+  });
+
+  it('sans or pour la facture : on choisit l\'objet brisé (le moins précieux par défaut)', () => {
+    const run = newRun(7);
+    run.equipment.arme = 'hache_de_guerre';
+    run.equipment.amulette = 'amulette_vigueur';
+    run.maxHp += 8;
+    chooseNode(run, reachable(run.map, null)[0].id);
+    run.gold = 0;
+    run.combat!.player.hp = 0;
+    run.combat!.phase = 'defeat';
+    afterCombatAction(run);
+    expect(wipeBreaks(run)).toBe(true);
+    expect(defaultBreakSlot(run)).toBe('amulette');
+    expect(retryHp(run, 'amulette')).toBe(80); // l'amulette brisée retire ses 8 PV max
+    retryAfterWipe(run, 'arme');
+    expect(run.broken).toEqual(['arme']);
+    expect(run.maxHp).toBe(88);
+  });
+
+  it('un wipe permet de retenter le même combat', () => {
     const run = newRun(7);
     chooseNode(run, reachable(run.map, null)[0].id);
     const name = run.encounter!.name;

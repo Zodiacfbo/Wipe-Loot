@@ -1344,6 +1344,27 @@ export function breakableSlots(run: RunState): SlotKey[] {
   return SLOT_KEYS.filter((k) => run.equipment[k] && !run.broken.includes(k));
 }
 
+const RARITY_RANK: Record<string, number> = { commun: 0, rare: 1, epique: 2, legendaire: 3 };
+
+/** L'objet proposé par défaut quand il faut en briser un : le moins précieux (le premier à rareté égale). */
+export function defaultBreakSlot(run: RunState): SlotKey | null {
+  const slots = breakableSlots(run);
+  if (!slots.length) return null;
+  return slots.reduce((best, k) => (RARITY_RANK[ITEMS[run.equipment[k]!].rarity] < RARITY_RANK[ITEMS[run.equipment[best]!].rarity] ? k : best));
+}
+
+/** Les PV au moment de se relever : ceux d'entrée dans le combat, avec un minimum de 25 % des PV max. */
+export const RETRY_MIN_HP = 0.25;
+export function retryHp(run: RunState, breakSlot: SlotKey | null = null): number {
+  const maxHp = run.maxHp - (breakSlot ? ITEMS[run.equipment[breakSlot]!].fx.maxHp ?? 0 : 0);
+  return Math.min(maxHp, Math.max(run.entry?.hp ?? maxHp, Math.ceil(maxHp * RETRY_MIN_HP)));
+}
+
+/** Se relever brisera-t-il un objet (pas assez d'or pour la facture, et un objet à briser) ? */
+export function wipeBreaks(run: RunState): boolean {
+  return run.gold < repairBill(run) && breakableSlots(run).length > 0;
+}
+
 function breakItem(run: RunState, slot: SlotKey): void {
   run.broken.push(slot);
   const lost = ITEMS[run.equipment[slot]!].fx.maxHp ?? 0;
@@ -1352,23 +1373,25 @@ function breakItem(run: RunState, slot: SlotKey): void {
   syncPotionSlots(run);
 }
 
-export function retryAfterWipe(run: RunState): void {
+/**
+ * Se relever : payer la facture de réparation, ou briser l'objet choisi (le moins précieux par défaut),
+ * puis retenter le combat avec les PV d'entrée (25 % des PV max au moins).
+ */
+export function retryAfterWipe(run: RunState, breakSlot?: SlotKey | null): void {
   if (run.screen !== 'wipe' || !run.entry || !run.encounter || run.wipesLeft <= 0) return;
-  // La facture de réparation : on paie, ou un objet au hasard est brisé.
   const bill = repairBill(run);
   let brokenNow: string | null = null;
   if (run.gold >= bill) {
     run.gold -= bill;
   } else {
-    const slots = breakableSlots(run);
-    if (slots.length > 0) {
-      const slot = pick(run, slots);
+    const slot = breakSlot && breakableSlots(run).includes(breakSlot) ? breakSlot : defaultBreakSlot(run);
+    if (slot) {
       breakItem(run, slot);
       brokenNow = ITEMS[run.equipment[slot]!].name;
     }
   }
   run.wipesLeft -= 1;
-  run.hp = Math.min(run.maxHp, Math.max(run.entry.hp, Math.ceil(run.maxHp * 0.5)));
+  run.hp = retryHp(run);
   run.deck = run.entry.deck.map((c) => ({ ...c }));
   // Les potions bues pendant l'essai raté sont perdues… mais on retrouve celles qu'on avait en entrant.
   if (run.entry.potions) run.potions = [...run.entry.potions];
