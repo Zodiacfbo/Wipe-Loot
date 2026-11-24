@@ -1,0 +1,39 @@
+# Export pour analyse : un fichier anonymisé des parties (journaux des runs et progression des joueurs).
+# Lancé à la main (ou par Claude) ; le fichier est gardé 1 jour.
+# Il lit Firestore avec une clé de lecture seule, rangée dans le secret FIREBASE_SERVICE_ACCOUNT.
+name: Export pour analyse
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: 'Version du jeu : dev, playtest ou main'
+        default: playtest
+      jours:
+        description: 'Période en jours'
+        default: '14'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Installer la bibliothèque Firebase (lecture)
+        run: npm install --no-save --no-package-lock firebase-admin@12
+      - name: Lire et anonymiser les parties
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SITE: ${{ inputs.site }}
+          JOURS: ${{ inputs.jours }}
+        run: node tools/export/export.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: export-${{ inputs.site }}
+          path: export.json
+          retention-days: 1
