@@ -218,6 +218,8 @@ interface UiState {
   classScreen: boolean;
   /** Classe regardée sur l'écran des classes. */
   classSel: string | null;
+  /** Comptes en ligne : le joueur a passé l'écran d'accueil pendant cette visite (« Entrer dans la guilde »). */
+  entered?: boolean;
   /** Écran de chute : l'objet choisi pour être brisé (le moins précieux par défaut). */
   wipeBreak?: SlotKey | null;
   /** Premier lancement : la classe de départ dont on confirme le choix (fenêtre), ou null. */
@@ -1557,8 +1559,8 @@ function combatScreen(run: RunState, c: CombatState): string {
 /** Le hall de la guilde : l'écran principal du jeu. */
 function titleScreen(): string {
   const profile = loadProfile();
-  // Avec les comptes en ligne, on ne passe pas l'accueil sans être connecté.
-  if (cloud.enabled && !cloud.user) return firstLaunchScreen();
+  // Avec les comptes en ligne, l'accueil s'affiche à chaque visite : « Se connecter », ou « Entrer dans la guilde ».
+  if (cloud.enabled && (!cloud.user || !ui.entered)) return firstLaunchScreen();
   if (!profile.startClass) return firstLaunchScreen();
   const saved = localSave.load();
   // Une victoire dont le passage au coffre n'est pas fait peut encore être reprise.
@@ -1851,7 +1853,10 @@ function firstLaunchScreen(): string {
     <q class="accroche">Tomber, se relever, et rapporter le butin.</q>
     <div class="tuiles-accueil">${tiles.map(([icon, title, text]) => `<div class="tuile-accueil"><img class="px" src="${A(icon)}" alt=""><b>${title}</b><span>${text}</span></div>`).join('')}</div>
     <div class="actions">
-      ${cloud.enabled && !cloud.ready ? '<button type="button" class="gros-bouton" disabled>Connexion…</button>' : '<button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>'}
+      ${!cloud.enabled ? '<button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>'
+        : !cloud.ready ? '<button type="button" class="gros-bouton" disabled>Connexion…</button>'
+        : cloud.user ? '<button type="button" class="gros-bouton" data-action="entrer">Entrer dans la guilde</button>'
+        : '<button type="button" class="gros-bouton" data-action="nouvelle">Se connecter</button>'}
       ${fullscreenButton('gros-bouton secondaire')}
     </div>
   </div>`;
@@ -2486,6 +2491,7 @@ function cloudChanged(): void {
   if (cloud.user && ui.overlay === 'connexion') {
     ui.overlay = null;
     ui.login = undefined; // la prochaine fois (après une déconnexion), on rouvre sur « Se connecter »
+    ui.entered = true; // il vient de se connecter depuis l'accueil : on entre directement
     // Le joueur venait de toucher « Commencer » : un nouveau compte part au choix de la classe.
     if (!loadProfile().startClass) ui.classScreen = true;
   }
@@ -2971,13 +2977,22 @@ function handleClick(ev: MouseEvent): void {
     case 'saison-ok':
       cloud.newSeason = null;
       ui.overlay = null;
+      ui.entered = true;
       ui.classScreen = !loadProfile().startClass;
       render();
       return;
     case 'roue': ui.overlay = ui.overlay === 'roue' ? null : 'roue'; render(); return;
+    case 'entrer':
+      // Connecté : on passe l'accueil (au choix de la classe la première fois).
+      ui.entered = true;
+      ui.overlay = null;
+      if (!loadProfile().startClass) ui.classScreen = true;
+      render();
+      return;
     case 'deconnexion':
       ui.overlay = null;
       ui.run = null;
+      ui.entered = false;
       void signOut().then(render);
       return;
     case 'nouvelle': {
@@ -3032,6 +3047,7 @@ function handleClick(ev: MouseEvent): void {
     case 'classe-depart-annuler': ui.startConfirm = null; render(); return;
     case 'classe-depart': {
       ui.startConfirm = null;
+      ui.entered = true;
       const profile = loadProfile();
       if (chooseStartClass(profile, el.dataset.id!)) saveProfile(profile);
       // Premier lancement : la classe choisie, on arrive au hall de la guilde (l'expédition se lance de là).

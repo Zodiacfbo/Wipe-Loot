@@ -116,7 +116,7 @@ async function login(p, tab, pseudo, mdp) {
   await a.click('[data-form="news"] button[type="submit"]'); await a.waitForSelector('.a-news'); check(true, 'admin : news publiée');
   await a.click('[data-act="onglet"][data-v="equilibrage"]'); await a.screenshot({ path: `${OUT}/9_admin_equilibrage.png`, fullPage: true });
   // Le joueur voit la news et la réponse (pastille sur la roue)
-  await t.reload(); await t.waitForSelector('.hall', { timeout: 15000 });
+  await t.reload(); await t.click('[data-action="entrer"]', { timeout: 15000 }); await t.waitForSelector('.hall', { timeout: 15000 });
   check((await t.textContent('.bouton-roue')).includes('2'), 'joueur : pastille 2 sur la roue (1 news + 1 réponse)');
   await t.click('[data-action="roue"]'); await t.screenshot({ path: `${OUT}/10_roue_pastilles.png` });
   await t.click('[data-action="ouvrir-news"]'); check((await t.textContent('.boite-connexion')).includes('comme un conte'), 'joueur : la news s\'affiche');
