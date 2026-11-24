@@ -1030,7 +1030,8 @@ function intentNow(c: CombatState, e: EnemyState): string {
         : i.kind === 'curse' ? curseText(i)
         : 'Prend effet à la fin de ce tour';
     const locked = !isInterruptible(i);
-    return `<div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
+    // Au-dessus de l'ennemi, une étiquette ; le cadre complet (jauge, effet) passe sous sa barre de vie.
+    return `<div class="intention ${locked ? '' : 'soutien'} incante">${ICON.sablier}<span>${i.cast}</span></div><!--detail--><div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
   }
   switch (i.kind) {
     case 'attack': {
@@ -1473,13 +1474,18 @@ function combatScreen(run: RunState, c: CombatState): string {
     const tag = canTarget ? 'button' : 'div';
     // Au-dessus du sprite, seulement le nom de l'intention ; son explication passe sous la barre de vie.
     const intentAll = intentHtml(c, e);
-    const detailMatch = intentAll.match(/<div class="effet-intention">[\s\S]*?<\/div>/);
-    const intent = { badge: detailMatch ? intentAll.replace(detailMatch[0], '') : intentAll, detail: detailMatch?.[0] ?? '' };
+    const split = intentAll.indexOf('<!--detail-->');
+    const detailMatch = split < 0 ? intentAll.match(/<div class="effet-intention">[\s\S]*?<\/div>/) : null;
+    const intent = split >= 0
+      ? { badge: intentAll.slice(0, split), detail: intentAll.slice(split + '<!--detail-->'.length) }
+      : { badge: detailMatch ? intentAll.replace(detailMatch[0], '') : intentAll, detail: detailMatch?.[0] ?? '' };
+    // Un très grand seigneur avec une explication sous sa barre de vie : un peu plus petit, pour que tout tienne.
+    const shown = intent.detail && size >= 192 ? size - 40 : size;
     return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
       ${intent.badge}
       ${e === compTarget ? `<span class="chs-cible" title="Ton ${COMPANIONS[c.companion!].name} attaquera cet ennemi à la fin de ton tour">${ICON_HUNT.patte}cible</span>` : ''}
       ${e === trapTarget ? `<span class="chs-ici" title="Il agit en premier : tes Pièges se déclencheront sur lui">${c.traps!.map((t) => ICON_HUNT[t.id]).join('')}ici</span>` : ''}
-      <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${size}" height="${size}">
+      <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${shown}" height="${shown}">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Gardien · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
       ${intent.detail}

@@ -1037,3 +1037,5 @@ body.connexion-libre .types-message { flex-wrap: wrap; }
 .enrage-haut.imminent { animation: enrage-clignote 1s ease-in-out infinite; }
 @keyframes enrage-clignote { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { .enrage-haut.imminent { animation: none; } }
+/* La règle d'un seigneur seul ou presque : plus large, donc moins haute. */
+.ennemis:not(.nombreux) .passif-ennemi { max-width: 250px; }
