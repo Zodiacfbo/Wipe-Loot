@@ -104,6 +104,9 @@ describe('le compagnon', () => {
     play(c, 'ordre_attaque');
     expect(lost(c)).toBe(19 + 5);
     expect(c.frenzyStacks).toBe(1);
+    // Le bonus de Frénésie repart de zéro au tour suivant.
+    endTurn(c);
+    expect(c.frenzyStacks).toBe(0);
   });
 
   it('Fureur primitive et Corde-des-anciens : le compagnon agit 3 fois', () => {

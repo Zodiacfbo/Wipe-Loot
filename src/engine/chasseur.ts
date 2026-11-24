@@ -127,6 +127,7 @@ export function hunterEndTurn(c: CombatState): void {
     }
   }
   c.compTurnBonus = 0;
+  c.frenzyStacks = 0; // Frénésie : le bonus repart de zéro à chaque tour.
   c.huntTurnBonus = 0;
   c.focusNext = 0;
   c.breathNow = 0;

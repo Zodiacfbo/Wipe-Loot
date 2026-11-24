@@ -173,7 +173,7 @@ const LIST: HunterCard[] = [
   },
   {
     id: 'frenesie_chasseur', name: 'Frénésie', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, innateUp: true, icon: 'pouvoir',
-    text: (up) => `Ton compagnon gagne +1 dégât à chacune de ses attaques.${up ? ' Inné.' : ''}`,
+    text: (up) => `Chaque attaque du compagnon donne +1 dégât aux suivantes du tour.${up ? ' Inné.' : ''}`,
     play: (ctx) => powerCard(ctx, 'frenesie_chasseur', 1, 'Frénésie'),
   },
   {

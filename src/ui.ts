@@ -1138,7 +1138,7 @@ const POWER_LABEL: Record<string, [string, string]> = {
   vengeance_pal: ['Vengeance', 'Ennemi tué : +1 Puissance'],
   croisade: ['Croisade', 'Attaques +2, +4 contre Morts-vivants et Démons'],
   lien_sauvage: ['Lien sauvage', 'Ton compagnon agit : blocage'],
-  frenesie_chasseur: ['Frénésie', 'Ton compagnon gagne +1 dégât à chaque attaque'],
+  frenesie_chasseur: ['Frénésie', 'Chaque attaque du compagnon donne +1 dégât aux suivantes, jusqu\'à la fin du tour'],
   dressage: ['Dressage', 'Les Ordres coûtent 1 de moins'],
   instinct_tueur: ['Instinct de tueur', 'Ton compagnon tue : +1 énergie, pioche 1'],
   fureur_primitive: ['Fureur primitive', 'Ton compagnon agit deux fois'],
