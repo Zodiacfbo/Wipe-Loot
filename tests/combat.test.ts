@@ -171,16 +171,16 @@ describe('run et carte', () => {
     expect(reachable(run.map, run.position).every((n) => n.floor === 1)).toBe(true);
   });
 
-  it('se relever : PV d\'entrée, avec au moins 25 % des PV max', () => {
+  it('se relever : PV d\'entrée, avec au moins 50 % des PV max', () => {
     const run = newRun(7);
     run.hp = 10;
     chooseNode(run, reachable(run.map, null)[0].id);
     run.combat!.player.hp = 0;
     run.combat!.phase = 'defeat';
     afterCombatAction(run);
-    expect(retryHp(run)).toBe(20); // 10 PV en entrant, mais 25 % de 80
+    expect(retryHp(run)).toBe(40); // 10 PV en entrant, mais 50 % de 80
     retryAfterWipe(run);
-    expect(run.combat!.player.hp).toBe(20);
+    expect(run.combat!.player.hp).toBe(40);
   });
 
   it('sans or pour la facture : on choisit l\'objet brisé (le moins précieux par défaut)', () => {

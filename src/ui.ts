@@ -2023,7 +2023,7 @@ function wipeScreen(run: RunState): string {
     : '';
   return `${topbar(run, 0)}<div class="ecran">
     <h1>Tu es tombé !</h1>
-    <p>Tu peux te relever et retenter le combat depuis le début, avec les potions que tu avais en entrant. Tu repartiras avec <b>${hp} PV</b> (tes PV d'entrée, au moins le quart de tes PV max). Il te reste ${run.wipesLeft} relève${run.wipesLeft > 1 ? 's' : ''}.</p>
+    <p>Tu peux te relever et retenter le combat depuis le début, avec les potions que tu avais en entrant. Tu repartiras avec <b>${hp} PV</b> (tes PV d'entrée, au moins la moitié de tes PV max). Il te reste ${run.wipesLeft} relève${run.wipesLeft > 1 ? 's' : ''}.</p>
     <div class="facture">
       <span class="facture-titre">Facture de réparation</span>
       <b>${ICON.piece} ${bill} or</b>

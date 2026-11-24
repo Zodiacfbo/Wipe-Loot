@@ -1353,8 +1353,8 @@ export function defaultBreakSlot(run: RunState): SlotKey | null {
   return slots.reduce((best, k) => (RARITY_RANK[ITEMS[run.equipment[k]!].rarity] < RARITY_RANK[ITEMS[run.equipment[best]!].rarity] ? k : best));
 }
 
-/** Les PV au moment de se relever : ceux d'entrée dans le combat, avec un minimum de 25 % des PV max. */
-export const RETRY_MIN_HP = 0.25;
+/** Les PV au moment de se relever : ceux d'entrée dans le combat, avec un minimum de 50 % des PV max. */
+export const RETRY_MIN_HP = 0.5;
 export function retryHp(run: RunState, breakSlot: SlotKey | null = null): number {
   const maxHp = run.maxHp - (breakSlot ? ITEMS[run.equipment[breakSlot]!].fx.maxHp ?? 0 : 0);
   return Math.min(maxHp, Math.max(run.entry?.hp ?? maxHp, Math.ceil(maxHp * RETRY_MIN_HP)));
@@ -1375,7 +1375,7 @@ function breakItem(run: RunState, slot: SlotKey): void {
 
 /**
  * Se relever : payer la facture de réparation, ou briser l'objet choisi (le moins précieux par défaut),
- * puis retenter le combat avec les PV d'entrée (25 % des PV max au moins).
+ * puis retenter le combat avec les PV d'entrée (50 % des PV max au moins).
  */
 export function retryAfterWipe(run: RunState, breakSlot?: SlotKey | null): void {
   if (run.screen !== 'wipe' || !run.entry || !run.encounter || run.wipesLeft <= 0) return;
