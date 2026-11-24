@@ -114,7 +114,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | **Rage du compagnon** | 0 | Compétence | C | La prochaine attaque de ton compagnon inflige +4 dégâts. | +6 dégâts |
 | **Morsure partagée** | 0 | Attaque | C | Inflige 3 dégâts. Ton compagnon agit immédiatement. **Éphémère.** | 5 dégâts |
 | **Lien sauvage** | 1 | Pouvoir | PC | Chaque fois que ton compagnon agit, gagne 2 blocage. | 3 blocage |
-| **Frénésie** | 1 | Pouvoir | PC | Ton compagnon inflige +1 dégât de plus chaque fois qu'il agit (cumulatif pour le combat). | Inné |
+| **Frénésie** | 1 | Pouvoir | PC | Chaque attaque du compagnon donne +1 dégât aux suivantes, jusqu'à la fin du tour (depuis le 24 novembre 2026 : avant, le bonus durait tout le combat et s'emballait avec plusieurs copies). | Inné |
 | **Intimidation** | 1 | Compétence (Ordre) | PC | Ton compagnon effraie la cible : un ennemi normal est Contrôlé 1 tour. Contre un boss : **Interruption**. | Coûte 0 |
 | **Dressage** | 1 | Pouvoir | PC | Tes cartes Ordre coûtent 1 de moins (minimum 0). | Coûte 0 |
 | **Esprit de meute** | 2 | Pouvoir | R | Un **Loup spectral** se joint à toi pour ce combat : il inflige 3 dégâts à la fin de chacun de tes tours. | 5 dégâts |

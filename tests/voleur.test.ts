@@ -26,7 +26,8 @@ describe('le Voleur : la run', () => {
     const run = newRun(1, null, [], 0, 'voleur');
     expect(run.maxHp).toBe(70);
     expect(run.spells).toEqual(['sprint']);
-    expect(run.deck.filter((k) => k.id === 'attaque_sinistre')).toHaveLength(4);
+    expect(run.deck.filter((k) => k.id === 'attaque_sinistre')).toHaveLength(3);
+    expect(run.deck.filter((k) => k.id === 'evisceration')).toHaveLength(2);
     expect(run.deck.some((k) => k.id === 'embuscade')).toBe(true);
   });
 
@@ -58,7 +59,7 @@ describe('les points de combo', () => {
     expect(c.combo).toBe(5);
     const hp = e.hp;
     play(c, 'evisceration');
-    expect(hp - e.hp).toBe(4 + 6 * 5);
+    expect(hp - e.hp).toBe(5 + 6 * 5);
     expect(c.combo).toBe(0);
   });
 
@@ -71,7 +72,7 @@ describe('les points de combo', () => {
     c.player.energy = 3;
     const hp = c.enemies[0].hp;
     play(c, 'evisceration');
-    expect(hp - c.enemies[0].hp).toBe(4 + 6 * 2);
+    expect(hp - c.enemies[0].hp).toBe(5 + 6 * 2);
   });
 });
 
@@ -151,8 +152,8 @@ describe('les cartes épiques', () => {
     const e = c.enemies[0];
     c.combo = 3;
     let hp = e.hp;
-    play(c, 'evisceration'); // 4 + (6 + 3) × 3
-    expect(hp - e.hp).toBe(31);
+    play(c, 'evisceration'); // 5 + (6 + 3) × 3
+    expect(hp - e.hp).toBe(32);
     c.combo = 2;
     hp = e.hp;
     play(c, 'embrocher'); // (6 + 3) × 2 sur la cible
