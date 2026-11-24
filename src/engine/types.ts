@@ -659,7 +659,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 25;
+  version: 26;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
@@ -755,6 +755,8 @@ export interface RunState {
   chestDone: boolean;
   /** L'objet déposé au coffre (pour l'écran de fin). */
   chestDeposit: string | null;
+  /** Rentré à la guilde après un seigneur (« victoire mineure ») : le coffre comme une victoire, mais ce n'en est pas une. */
+  retreated: boolean;
   /** Les 3 emplacements de potion (null : vide). */
   potions: (string | null)[];
   /** Potion trouvée après un combat, en attente de décision. */

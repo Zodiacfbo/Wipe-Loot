@@ -38,8 +38,8 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 25, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
-    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null,
+    version: 26, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null, retreated: false,
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
@@ -115,6 +115,21 @@ function offerEpics(run: RunState): void {
 }
 
 /** On entre dans l'acte suivant : nouvelle carte, PV au maximum, les bonus de l'acte précédent s'arrêtent. */
+/**
+ * Rentrer à la guilde après un seigneur (au lieu d'entrer dans le chapitre suivant) : l'expédition s'arrête,
+ * l'objet emporté revient au coffre et on peut en déposer un. Ce n'est pas une victoire (ni difficulté ni bonus).
+ */
+export function returnToGuild(run: RunState): void {
+  if (run.screen !== 'act') return;
+  run.retreated = true;
+  run.screen = 'victory';
+}
+
+/** L'expédition est-elle vraiment gagnée (Yzhar vaincu), et pas seulement rentrée à la guilde ? */
+export function isFullVictory(run: RunState): boolean {
+  return run.screen === 'victory' && !run.retreated;
+}
+
 export function startNextAct(run: RunState): boolean {
   if (run.screen !== 'act' || run.act >= LAST_ACT) return false;
   run.floorsDone += run.path.length;

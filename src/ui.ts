@@ -66,6 +66,7 @@ import {
   campfireBindStaff,
   canRest,
   startNextAct,
+  returnToGuild,
   LEGENDARY_MIN_ACT,
   retryAfterWipe,
   defaultBreakSlot,
@@ -439,7 +440,7 @@ function equipmentOverlay(run: RunState): string {
     const [col, row] = EQUIP_LAYOUT[k];
     const cls = id ? `${ITEMS[id].rarity}${broken ? ' brise' : ''}` : 'vide';
     return `<button type="button" class="case-equipement ${cls} ${sel === k ? 'choisie' : ''}" style="grid-area:${row} / ${col === 'g' ? 1 : 3}" data-action="equip-voir" data-id="${k}" aria-label="${SLOT_LABEL[k]}${id ? ` : ${ITEMS[id].name}` : ' : vide'}">
-      ${SLOT_ICON[slotOf(k)]}${broken ? '<span class="pastille-brise">!</span>' : ''}<span class="nom-case">${SLOT_LABEL[k]}</span></button>`;
+      ${SLOT_ICON[slotOf(k)]}${broken ? '<span class="pastille-brise">!</span>' : ''}<span class="nom-case">${k === heirloomSlot(run) ? 'Coffre' : SLOT_LABEL[k]}</span></button>`;
   }).join('');
   const spells = Array.from({ length: cap }, (_, i) => {
     const id = run.spells[i];
@@ -484,8 +485,8 @@ function equipmentSheet(run: RunState, sel: string): string {
   const broken = run.broken.includes(key);
   const note = uselessNote(id);
   return `<aside class="fiche-talent fiche-equipement ${broken ? 'brisee' : ''}"><div class="haut-fiche"><span class="case-equipement ${it.rarity}${broken ? ' brise' : ''} grande">${icon}</span><div><div class="titre-fiche">${it.name}</div>
-    <div class="etiquettes"><span class="type-talent">${SLOT_LABEL[key]}</span><span class="type-talent r-${it.rarity}">${RARITY_LABEL[it.rarity]}</span>${broken ? '<span class="type-talent k-brise">brisé</span>' : ''}</div></div></div>
-    <div class="texte-fiche"><p>${it.text}</p>${broken ? `<p class="alerte-brise">Effet désactivé jusqu'à la réparation : ${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin.</p>` : ''}${note ? `<p class="note">${note}</p>` : ''}</div>${close}</aside>`;
+    <div class="etiquettes"><span class="type-talent">${SLOT_LABEL[key]}</span><span class="type-talent r-${it.rarity}">${RARITY_LABEL[it.rarity]}</span>${broken ? '<span class="type-talent k-brise">brisé</span>' : ''}${key === heirloomSlot(run) ? '<span class="type-talent">du coffre</span>' : ''}</div></div></div>
+    <div class="texte-fiche"><p>${it.text}</p>${key === heirloomSlot(run) ? '<p class="note">Emporté du coffre de la guilde : il y retourne si l\'expédition finit bien. S\'il est remplacé, ou si tu tombes pour de bon, il est perdu.</p>' : ''}${broken ? `<p class="alerte-brise">Effet désactivé jusqu'à la réparation : ${REPAIR_PRICE[it.rarity]} or chez le vendeur gobelin.</p>` : ''}${note ? `<p class="note">${note}</p>` : ''}</div>${close}</aside>`;
 }
 
 /** Une fenêtre « grille d'objets + fiche à droite » (coffre détaillé, tables de loot), comme les archives. */
@@ -513,15 +514,18 @@ function itemGridOverlay(title: string, intro: string, groups: { title: string; 
 
 /** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
 function equipChoices(run: RunState, id: string, action: string, leave: string): string {
+  const carried = heirloomSlot(run);
   const buttons = slotsFor(id).map((k) => {
     const current = run.equipment[k];
-    const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
+    const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}${k === carried ? ' <span class="mention-coffre">· Coffre</span>' : ''}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
     return `<button type="button" class="bouton-objet" ${action} data-slot="${k}">${label}</button>`;
   }).join('');
   // L'effet des objets qui seraient remplacés, pour comparer.
   const worn = slotsFor(id).map((k) => run.equipment[k]).filter((x, i, a): x is string => !!x && a.indexOf(x) === i);
   const compare = worn.length ? `<p class="comparaison">${worn.map((w) => `Tu portes <b>${ITEMS[w].name}</b> : ${ITEMS[w].text}`).join('<br>')}</p>` : '';
-  return `<div class="choix-objet">${buttons}${leave}</div>${compare}`;
+  // L'objet emporté du coffre serait remplacé : il serait perdu pour de bon.
+  const warn = carried && slotsFor(id).includes(carried) ? `<p class="mention-brise alerte-coffre">⚠ ${ITEMS[run.equipment[carried]!].name} vient du coffre de la guilde : le remplacer, c'est le perdre pour de bon.</p>` : '';
+  return `<div class="choix-objet">${buttons}${leave}</div>${warn}${compare}`;
 }
 
 /** Une fiole, teintée de la couleur de la potion. */
@@ -1923,12 +1927,17 @@ function upgradePreview(run: RunState, uid: number, label: string, confirm: stri
 /** Entre deux actes : le boss est vaincu, on entre dans l'acte suivant. */
 function actScreen(run: RunState): string {
   const next = actDef(run.act + 1);
+  // L'objet emporté du coffre (s'il est encore porté) : ce qu'on risque, ou ce qui revient.
+  const carried = heirloomSlot(run) ? ITEMS[run.heirloom!].name : '';
   return `${topbar(run, run.hp)}<div class="ecran ecran-acte">
     <span class="butin-titre">${chapitre(run.act)} terminé</span>
     <h1>${next.name}</h1>
     <p class="texte-evenement">${next.intro}</p>
     <p>Avant de repartir, la guilde panse tes blessures : <b>tes PV remontent au maximum</b>.</p>
-    <button type="button" class="gros-bouton" data-action="acte-suivant">Entrer dans le ${chapitre(run.act + 1).toLowerCase()}</button>
+    <div class="choix-fin-chapitre">
+      <button type="button" class="choix-evenement" data-action="acte-suivant"><b>⚔ Entrer dans le ${chapitre(run.act + 1).replace('Chapitre', 'chapitre')}</b><span>Plus d'expérience et un meilleur butin.</span><span><b class="risque">Risque :</b> si tu tombes pour de bon, tu perds le butin de l'expédition${carried ? `, et l'objet emporté du coffre (${carried})` : ''}.</span></button>
+      <button type="button" class="choix-evenement" data-action="rentrer-guilde"><b>🏰 Rentrer à la guilde</b><span>Dépose 1 objet au coffre.${carried ? ` L'objet emporté (${carried}) y retourne.` : ''}</span><span>L'expédition s'arrête là : pas de nouveau niveau de difficulté.</span></button>
+    </div>
   </div>`;
 }
 
@@ -2329,10 +2338,22 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
 }
 
 function endScreen(run: RunState, victory: boolean): string {
+  const back = run.retreated;
+  const lord = run.act >= 2 ? 'Vhaeryx' : 'Vulkhar';
   if (victory && !run.chestDone) {
     return `<div class="ecran" style="gap:14px">
-      <h1>Yzhar est vaincu !</h1>
+      <h1>${back ? 'Retour à la guilde' : 'Yzhar est vaincu !'}</h1>
+      ${back ? `<p>${lord} est vaincu. Tu rentres avec ton butin : choisis l'objet à déposer au coffre.</p>` : ''}
       ${chestPanel(run)}
+    </div>`;
+  }
+  if (back) {
+    return `<div class="ecran" style="gap:14px">
+      <h1>Retour à la guilde</h1>
+      <p>${lord} est vaincu, et tu rentres sain et sauf. La prochaine expédition repartira du ${chapitre(1).replace('Chapitre', 'chapitre')}.</p>
+      ${run.summary ? summaryHtml(run.summary, run.classId) : ''}
+      ${chestPanel(run)}
+      <div class="actions"><button type="button" class="gros-bouton" data-action="titre">Retour au hall de la guilde</button></div>
     </div>`;
   }
   return `<div class="ecran" style="gap:14px">
@@ -3109,6 +3130,7 @@ function handleClick(ev: MouseEvent): void {
       break;
     case 'lier-baton': ui.bindStaff = false; ui.cardConfirm = null; campfireBindStaff(run, Number(el.dataset.uid)); commit(); break;
     case 'acte-suivant': startNextAct(run); commit(); break;
+    case 'rentrer-guilde': returnToGuild(run); commit(); break;
     case 'equinoxe': campfireEquinoxe(run); commit(); break;
     case 'aurore': campfireAurore(run); commit(); break;
     case 'corde': campfireCorde(run); commit(); break;

@@ -155,7 +155,12 @@ export function migrate(raw: unknown): RunState | null {
     run.marteau = null;
     run.version = 25;
   }
-  return run.version === 25 ? (run as unknown as RunState) : null;
+  if (run.version === 25) {
+    // Rentrer à la guilde après un seigneur.
+    run.retreated = false;
+    run.version = 26;
+  }
+  return run.version === 26 ? (run as unknown as RunState) : null;
 }
 
 /** Prévenu à chaque écriture locale (run ou profil) : sert à la sauvegarde en ligne. */

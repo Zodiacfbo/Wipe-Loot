@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CHEST_SIZE, depositableSlots, settleChest, takeHeirloom } from '../src/engine/guild';
-import { newRun } from '../src/engine/run';
+import { isFullVictory, newRun, returnToGuild } from '../src/engine/run';
+import { awardRun, scoreRun } from '../src/engine/progression';
+import { runJournal } from '../src/journal';
 import { migrate } from '../src/engine/save';
 import type { RunState } from '../src/engine/types';
 
@@ -63,8 +65,58 @@ describe('coffre de la guilde', () => {
     delete old.heirloom;
     delete old.chestDone;
     const run = migrate(old)!;
-    expect(run.version).toBe(25);
+    expect(run.version).toBe(26);
     expect(run.heirloom).toBeNull();
     expect(run.chestDone).toBe(false);
+  });
+});
+
+describe('rentrer à la guilde après un seigneur', () => {
+  function afterVulkhar(heirloom: string | null = 'amulette_vigueur'): RunState {
+    const run = newRun(9, heirloom);
+    run.screen = 'act';
+    run.act = 1;
+    return run;
+  }
+
+  it('seulement depuis l\'écran de fin de chapitre', () => {
+    const run = newRun(9);
+    returnToGuild(run);
+    expect(run.retreated).toBe(false);
+  });
+
+  it('le coffre comme après une victoire : l\'objet emporté revient, on en dépose un', () => {
+    const profile = { guildChest: [] as string[] };
+    const run = afterVulkhar();
+    run.equipment.arme = 'hache_de_guerre';
+    returnToGuild(run);
+    expect(run.screen).toBe('victory');
+    expect(isFullVictory(run)).toBe(false);
+    expect(settleChest(profile, run, 'arme')).toBe(true);
+    expect(profile.guildChest).toEqual(['amulette_vigueur', 'hache_de_guerre']);
+  });
+
+  it('ce n\'est pas une victoire : Vulkhar compte, mais ni difficulté, ni victoire de classe, ni « Aucune chute »', () => {
+    const run = afterVulkhar(null);
+    run.difficulty = 0;
+    returnToGuild(run);
+    const labels = scoreRun(run).map((l) => l.label);
+    expect(labels).toContain('Vulkhar vaincu');
+    expect(labels).not.toContain('Aucune chute');
+    const profile = { classes: {}, stats: { runs: 0, wins: 0 }, difficulty: {} as Record<string, number> };
+    const sum = awardRun(profile, run, 'guerrier');
+    expect(sum.victory).toBe(false);
+    expect(sum.newDifficulty).toBeNull();
+    expect(profile.stats.wins).toBe(0);
+    const j = runJournal(run, sum, { uid: 'u', pseudo: 'p' }, 'v', null);
+    expect(j.victoire).toBe(false);
+    expect(j.cause).toBe('Retour à la guilde');
+  });
+
+  it('les anciennes runs reçoivent le champ (migration)', () => {
+    const run = newRun(9) as unknown as Record<string, unknown>;
+    run.version = 25;
+    delete run.retreated;
+    expect(migrate(run)?.retreated).toBe(false);
   });
 });

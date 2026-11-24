@@ -61,7 +61,9 @@ export interface RunSummary {
 }
 
 export function scoreRun(run: RunState): ScoreLine[] {
-  const victory = run.screen === 'victory';
+  const victory = run.screen === 'victory' && !run.retreated;
+  // Les seigneurs vaincus : ceux des chapitres finis (en rentrant à la guilde, celui du chapitre en cours aussi).
+  const lords = victory || run.retreated ? (run.act ?? 1) : (run.act ?? 1) - 1;
   const wipes = (run.maxWipes ?? MAX_WIPES) - run.wipesLeft;
   const floors = (run.floorsDone ?? 0) + run.path.length;
   const lines: ScoreLine[] = [
@@ -69,9 +71,9 @@ export function scoreRun(run: RunState): ScoreLine[] {
     { label: `Combats gagnés (${run.stats.combats})`, points: run.stats.combats * 5 },
     { label: `Gardiens vaincus (${run.stats.elites})`, points: run.stats.elites * 25 },
   ];
-  if (victory || (run.act ?? 1) >= 2) lines.push({ label: 'Vulkhar vaincu', points: 100 });
-  if ((run.act ?? 1) >= 3) lines.push({ label: 'Vhaeryx vaincu', points: 150 });
-  if (victory && (run.act ?? 1) >= 3) lines.push({ label: 'Yzhar vaincu', points: 200 });
+  if (lords >= 1) lines.push({ label: 'Vulkhar vaincu', points: 100 });
+  if (lords >= 2) lines.push({ label: 'Vhaeryx vaincu', points: 150 });
+  if (lords >= 3) lines.push({ label: 'Yzhar vaincu', points: 200 });
   if (run.sourcesQuest === 'done') lines.push({ label: 'Quête : les Gardiens des Sources', points: 20 });
   if (victory && wipes === 0) lines.push({ label: 'Aucune chute', points: 30 });
   if (wipes > 0) lines.push({ label: `Chutes (${wipes})`, points: -15 * wipes });
@@ -94,7 +96,7 @@ export function awardRun(profile: ProgressProfile, run: RunState, classId = 'gue
   const entry = (profile.classes[classId] ??= { xp: 0 });
   entry.xp += xp;
   const after = classLevel(profile, classId);
-  const victory = run.screen === 'victory';
+  const victory = run.screen === 'victory' && !run.retreated;
   profile.stats.runs += 1;
   if (victory) profile.stats.wins += 1;
   if (victory) entry.wins = (entry.wins ?? 0) + 1;

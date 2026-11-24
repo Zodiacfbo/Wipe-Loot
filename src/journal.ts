@@ -34,7 +34,7 @@ export interface RunJournal {
 }
 
 export function runJournal(run: RunState, summary: RunSummary | undefined, who: { uid: string; pseudo: string }, version: string, startMs: number | null, now = Date.now(), abandon = false): RunJournal {
-  const victory = !abandon && run.screen === 'victory';
+  const victory = !abandon && run.screen === 'victory' && !run.retreated;
   return {
     uid: who.uid,
     pseudo: who.pseudo,
@@ -44,8 +44,8 @@ export function runJournal(run: RunState, summary: RunSummary | undefined, who: 
     victoire: victory,
     chapitre: run.act ?? 1,
     etapes: (run.floorsDone ?? 0) + run.path.length,
-    cause: abandon ? 'Abandon' : victory ? null : run.encounter?.name ?? null,
-    causeEnnemis: victory || abandon ? [] : [...new Set(run.encounter?.enemies ?? [])],
+    cause: abandon ? 'Abandon' : victory ? null : run.retreated ? 'Retour à la guilde' : run.encounter?.name ?? null,
+    causeEnnemis: victory || abandon || run.retreated ? [] : [...new Set(run.encounter?.enemies ?? [])],
     chutes: (run.maxWipes ?? MAX_WIPES) - run.wipesLeft,
     combats: run.stats.combats,
     gardiens: run.stats.elites,

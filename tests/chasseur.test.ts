@@ -68,7 +68,7 @@ describe('le Chasseur : la run', () => {
     delete run.companion;
     delete run.corde;
     const m = migrate(run)!;
-    expect(m.version).toBe(25);
+    expect(m.version).toBe(26);
     expect(m.companion).toBe('loup');
     expect(m.corde).toBeNull();
   });

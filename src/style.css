@@ -1012,3 +1012,10 @@ body.connexion-libre .boite-connexion { font-size: 15px; }
 #rotate-connexion, #rotate-connexion-note { display: none; }
 body.connexion-proposee #rotate-connexion { display: block; margin-top: 18px; padding: 0 28px; }
 body.connexion-proposee #rotate-connexion-note { display: block; max-width: 300px; font-size: 13px; }
+
+/* Fin de chapitre : continuer ou rentrer à la guilde (maquette 1B). */
+.choix-fin-chapitre { display: flex; gap: 16px; width: 100%; max-width: 860px; }
+.choix-fin-chapitre .choix-evenement { flex: 1; text-align: left; }
+.choix-fin-chapitre .risque { color: #ff9a7a; }
+.mention-coffre { color: #ffd36a; }
+.alerte-coffre { max-width: 520px; margin: 0 auto; }

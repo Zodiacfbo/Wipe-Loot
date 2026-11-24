@@ -614,6 +614,8 @@ Dans Slay the Spire, rien de ce qu'on trouve ne survit à la run. Ici, **un peu 
 
 - **6 places**, partagées par toutes les classes.
 - **Après une run gagnée**, on **dépose 1 objet** de son équipement dans le coffre. Si le coffre est plein, on choisit l'objet qu'il remplace (l'ancien est perdu).
+- **Rentrer à la guilde (24 novembre 2026)** : après chaque seigneur (Vulkhar, Vhaeryx), l'écran de fin de chapitre propose de continuer ou de **rentrer à la guilde**. Rentrer termine l'expédition comme une « victoire mineure » : l'objet emporté revient au coffre et on en dépose 1, comme après une victoire. Ce n'est pas une victoire : pas de niveau de difficulté débloqué, pas de bonus « Aucune chute », pas compté dans les victoires de la classe (le journal note « Retour à la guilde »). Une expédition repart toujours du chapitre I.
+- **L'objet emporté est signalé** : « Coffre » sur sa case d'équipement, et un avertissement dès qu'un nouvel objet le remplacerait (« le remplacer, c'est le perdre pour de bon »).
 - **Au début d'une run**, on peut **emporter 1 objet** du coffre. Il est équipé dès le départ.
 - **L'objet emporté est en jeu :** si la run est gagnée (et qu'il est toujours équipé), il revient au coffre, en plus de l'objet déposé. Si la run échoue, ou s'il a été remplacé pendant la run, **il est perdu**.
 - Un objet brisé déposé au coffre est réparé par la guilde.
