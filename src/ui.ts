@@ -567,6 +567,15 @@ function rememberItems(run: RunState): void {
 
 // ---------- Barre du haut ----------
 
+/** Le compte à rebours avant que le boss se déchaîne, dans la barre du haut (il clignote au dernier tour). */
+function enrageChip(run: RunState): string {
+  const c = run.combat;
+  if (!c || run.screen !== 'combat' || c.enrageTurn === null) return '';
+  if (isEnraged(c)) return `<b class="enrage-haut actif" title="Ses coups sont doublés">${ICON.sablier}Déchaîné : coups doublés</b>`;
+  const n = c.enrageTurn - c.turn;
+  return `<b class="enrage-haut ${n <= 1 ? 'imminent' : ''}" title="Quand il se déchaîne, ses coups doublent">${ICON.sablier}Se déchaîne dans ${n} tour${n > 1 ? 's' : ''}</b>`;
+}
+
 function topbar(run: RunState, hp: number): string {
   const pips = Array.from({ length: run.maxWipes ?? MAX_WIPES }, (_, i) => `<i class="pip ${i < run.wipesLeft ? '' : 'vide'}"></i>`).join('');
   return `<div class="topbar">
@@ -579,7 +588,7 @@ function topbar(run: RunState, hp: number): string {
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="etape">${chapitre(run.act)} · ${actDef(run.act).name} · ${etageLabel(run)}</span>
-      <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Relèves ${pips} <span>${run.wipesLeft} restante${run.wipesLeft > 1 ? 's' : ''}</span></span>
+      <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Relèves ${pips} <span>${run.wipesLeft} restante${run.wipesLeft > 1 ? 's' : ''}</span>${enrageChip(run)}</span>
     </div>
     <div class="groupe">
       ${fullscreenButton('bouton')}
@@ -1462,13 +1471,18 @@ function combatScreen(run: RunState, c: CombatState): string {
     const pct = masked ? 100 : Math.max(0, (e.hp / e.maxHp) * 100);
     const canTarget = targeting && !e.untargetable;
     const tag = canTarget ? 'button' : 'div';
+    // Au-dessus du sprite, seulement le nom de l'intention ; son explication passe sous la barre de vie.
+    const intentAll = intentHtml(c, e);
+    const detailMatch = intentAll.match(/<div class="effet-intention">[\s\S]*?<\/div>/);
+    const intent = { badge: detailMatch ? intentAll.replace(detailMatch[0], '') : intentAll, detail: detailMatch?.[0] ?? '' };
     return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
-      ${intentHtml(c, e)}
+      ${intent.badge}
       ${e === compTarget ? `<span class="chs-cible" title="Ton ${COMPANIONS[c.companion!].name} attaquera cet ennemi à la fin de ton tour">${ICON_HUNT.patte}cible</span>` : ''}
       ${e === trapTarget ? `<span class="chs-ici" title="Il agit en premier : tes Pièges se déclencheront sur lui">${c.traps!.map((t) => ICON_HUNT[t.id]).join('')}ici</span>` : ''}
       <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${size}" height="${size}">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Gardien · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
+      ${intent.detail}
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}${c.mark?.uid === e.uid ? `<span class="chip marque" title="Tes Attaques et ton compagnon lui infligent +${markBonus(c, e)} dégâts">Marqué +${markBonus(c, e)}</span>` : ''}</div>
       ${def.passive ? `<div class="passif-ennemi">${(e.phase ?? 1) >= 2 && def.passive2 ? def.passive2 : def.passive}</div>` : ''}
     </${tag}>`;
@@ -1498,13 +1512,6 @@ function combatScreen(run: RunState, c: CombatState): string {
     disguise: true,
   })).join('');
 
-  let enrage = '';
-  if (c.enrageTurn !== null) {
-    enrage = isEnraged(c)
-      ? `<div class="enrage actif">${ICON.sablier}<span>Il se déchaîne : ses coups sont doublés</span></div>`
-      : `<div class="enrage">${ICON.sablier}<span>Il se déchaîne dans ${c.enrageTurn - c.turn} tour${c.enrageTurn - c.turn > 1 ? 's' : ''} : ses coups doubleront</span></div>`;
-  }
-
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
   const underLava = c.enemies.find((e) => !e.dead && e.submerged && !e.outside);
   const reviving = c.enemies.filter((e) => e.dead && e.reviveIn);
@@ -1526,7 +1533,6 @@ function combatScreen(run: RunState, c: CombatState): string {
 
   return `<div class="sol"></div>
     ${topbar(run, p.hp)}
-    ${enrage}
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
       <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" data-tenue="${heroSprite(hero.sprite, c)}" ${spriteAttrs(heroSprite(hero.sprite, c))} alt="Le ${hero.name}" width="192" height="192">
