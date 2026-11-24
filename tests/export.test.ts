@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-// @ts-expect-error : module JavaScript de l'outil d'export
 import { buildExport } from '../tools/export/anonymise.mjs';
 
 describe('export pour analyse', () => {

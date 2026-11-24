@@ -7,6 +7,7 @@ import { connectAuthEmulator, getAuth, onAuthStateChanged, signInWithEmailAndPas
 import { collection, connectFirestoreEmulator, deleteDoc, doc, getDoc, getDocs, getFirestore, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { MESSAGE_STATES, MESSAGE_TYPES, REPLY_MAX, authErrorText, pseudoError, pseudoToEmail, todayIso, type CloudDoc, type MessageDoc, type MessageState, type NewsItem } from '../cloud_logic';
 import type { RunJournal } from '../journal';
+import { buildExport } from '../../tools/export/anonymise.mjs';
 import { CARDS } from '../engine/cards';
 import { ITEMS } from '../engine/items';
 import { EVENTS } from '../engine/events';
@@ -145,7 +146,7 @@ function render(): void {
     <nav class="a-onglets">${TABS.map(([id, label]) => `<button class="${id === state.tab ? 'on' : ''}" data-act="onglet" data-v="${id}">${label}${id === 'messages' && nouveaux > 0 ? `<span class="a-badge">${nouveaux}</span>` : ''}</button>`).join('')}</nav>
     <main class="a-main">
       <div class="a-barre"><label>Période <select data-act="periode">${[1, 7, 14, 30, 90].map((n) => `<option value="${n}" ${n === state.days ? 'selected' : ''}>${n === 1 ? 'aujourd\'hui' : `${n} jours`}</option>`).join('')}</select></label>
-        <button class="a-bouton" data-act="rafraichir">↻ Rafraîchir</button>${state.loading ? '<span class="a-note">Chargement…</span>' : ''}${state.flash ? `<span class="a-flash">${esc(state.flash)}</span>` : ''}</div>
+        <button class="a-bouton" data-act="rafraichir">↻ Rafraîchir</button>${d ? '<button class="a-bouton" data-act="exporter" title="Un fichier anonymisé (Joueur 1, 2…) de la période, à envoyer à Claude pour une analyse">📦 Exporter pour analyse</button>' : ''}${state.loading ? '<span class="a-note">Chargement…</span>' : ''}${state.flash ? `<span class="a-flash">${esc(state.flash)}</span>` : ''}</div>
       ${state.error ? `<p class="a-erreur">${esc(state.error)}</p>` : ''}
       ${d ? tabHtml(d) : ''}
     </main>`;
@@ -356,6 +357,20 @@ root.addEventListener('click', (ev) => {
     case 'site': state.site = v as Site; store.set('site', v); state.playerSel = null; void load(); return;
     case 'onglet': state.tab = v as Tab; state.playerSel = null; state.flash = null; render(); return;
     case 'rafraichir': state.flash = null; void load(); return;
+    case 'exporter': {
+      if (!d) return;
+      // Le fichier pour l'analyse : runs et progression de la période, pseudos remplacés par « Joueur N ».
+      const file = buildExport({ site: state.site, days: state.days, now: Date.now(), runs: d.runs.map(({ id: _id, ...r }: RunJournal & { id: string }) => r), players: d.players });
+      const url = URL.createObjectURL(new Blob([JSON.stringify(file)], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `wipe-loot-${state.site}-${todayIso()}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      state.flash = `Export téléchargé : ${file.runs.length} runs, ${file.joueurs.length} joueurs.`;
+      render();
+      return;
+    }
     case 'joueur': state.playerSel = v || null; state.runSel = null; render(); return;
     case 'run-voir': state.runSel = state.runSel === Number(v) ? null : Number(v); render(); return;
     case 'renommer': {
