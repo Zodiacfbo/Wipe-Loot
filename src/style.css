@@ -1020,3 +1020,23 @@ body.connexion-proposee #rotate-connexion-note { display: block; max-width: 300p
 .choix-fin-chapitre .soin-acte { color: var(--vert); font-weight: 700; }
 .mention-coffre { color: #ffd36a; }
 .alerte-coffre { max-width: 520px; margin: 0 auto; }
+#rotate-menu { display: none; }
+body.menu-propose #rotate-menu { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; }
+body.menu-propose #rotate-menu span { font-size: 13px; }
+body.menu-propose #rotate-menu .gros-bouton { width: 280px; max-width: 90vw; font-size: 17px; }
+/* La roue ⚙ à la taille réelle de l'écran : le hall derrière est masqué (il n'est pas mis à l'échelle). */
+body.connexion-libre .overlay.transparent { background: rgba(12, 8, 6, 0.94); }
+body.connexion-libre .menu-roue { width: min(340px, calc(100% - 32px)); right: 16px; top: 16px; font-size: 16px; }
+/* À la taille réelle de l'écran (téléphone en portrait) : les fenêtres larges ne débordent pas. */
+body.connexion-libre .boite-connexion { box-sizing: border-box; max-width: calc(100vw - 24px); }
+body.connexion-libre .types-message { flex-wrap: wrap; }
+
+/* Le compte à rebours du boss dans la barre du haut (maquette C du 24 novembre 2026). */
+.enrage-haut { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; color: #ff9a3a; font-weight: 800; }
+.enrage-haut svg { width: 13px; height: 13px; }
+.enrage-haut.actif { color: #fff; background: #5a1a10; border: 1px solid #ff6a3a; border-radius: 8px; padding: 0 6px; }
+.enrage-haut.imminent { animation: enrage-clignote 1s ease-in-out infinite; }
+@keyframes enrage-clignote { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .enrage-haut.imminent { animation: none; } }
+/* La règle d'un seigneur seul ou presque : plus large, donc moins haute. */
+.ennemis:not(.nombreux) .passif-ennemi { max-width: 250px; }
