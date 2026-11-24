@@ -1019,3 +1019,13 @@ body.connexion-proposee #rotate-connexion-note { display: block; max-width: 300p
 .choix-fin-chapitre .risque { color: #ff9a7a; }
 .mention-coffre { color: #ffd36a; }
 .alerte-coffre { max-width: 520px; margin: 0 auto; }
+#rotate-menu { display: none; }
+body.menu-propose #rotate-menu { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; }
+body.menu-propose #rotate-menu span { font-size: 13px; }
+body.menu-propose #rotate-menu .gros-bouton { width: 280px; max-width: 90vw; font-size: 17px; }
+/* La roue ⚙ à la taille réelle de l'écran : le hall derrière est masqué (il n'est pas mis à l'échelle). */
+body.connexion-libre .overlay.transparent { background: rgba(12, 8, 6, 0.94); }
+body.connexion-libre .menu-roue { width: min(340px, calc(100% - 32px)); right: 16px; top: 16px; font-size: 16px; }
+/* À la taille réelle de l'écran (téléphone en portrait) : les fenêtres larges ne débordent pas. */
+body.connexion-libre .boite-connexion { box-sizing: border-box; max-width: calc(100vw - 24px); }
+body.connexion-libre .types-message { flex-wrap: wrap; }

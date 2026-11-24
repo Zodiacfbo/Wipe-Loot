@@ -3214,7 +3214,12 @@ function handleClick(ev: MouseEvent): void {
 function syncLoginMode(): void {
   // Pas encore connecté : l'écran « Tourne ton téléphone » propose aussi de se connecter en portrait.
   document.body.classList.toggle('connexion-proposee', cloud.enabled && cloud.ready && !cloud.user && !ui.run);
-  const on = !!stage.querySelector('.boite-connexion');
+  // Connecté : l'écran « Tourne ton téléphone » propose les messages (et le signalement d'un bug en expédition) et les news.
+  document.body.classList.toggle('menu-propose', !!cloud.user);
+  const rotMsg = document.getElementById('rotate-messages');
+  if (rotMsg) rotMsg.textContent = ui.run ? '💡 Signaler un bug' : '💡 Bugs, idées, messages';
+  // Les fenêtres de texte (connexion, messages, news, compte) et la roue ⚙ s'affichent à la taille réelle de l'écran.
+  const on = !!stage.querySelector('.boite-connexion, .menu-roue');
   if (document.body.classList.contains('connexion-libre') === on) return;
   document.body.classList.toggle('connexion-libre', on);
   fit();
@@ -3270,6 +3275,8 @@ export function mount(root: HTMLElement): void {
     if (!ui.login?.busy) void submitLogin(form);
   });
   initCloud(cloudChanged);
+  // Les boutons de l'écran « Tourne ton téléphone » (portrait) passent par les mêmes actions que le jeu.
+  document.getElementById('rotate-menu')?.addEventListener('click', handleClick);
   document.getElementById('rotate-connexion')?.addEventListener('click', () => {
     ui.overlay = 'connexion';
     ui.login ??= { tab: 'connexion', pseudo: '', error: null, busy: false };
