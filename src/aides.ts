@@ -29,14 +29,14 @@ function bubbleContent(el: HTMLElement, reasonOnly = false): string | null {
     const k = keywordByName(el.dataset.mot ?? '');
     return k ? `<b>${esc(k.name)}</b>${esc(k.text)}` : null;
   }
-  if (el.classList.contains('chip')) {
+  if (el.classList.contains('chip') || el.classList.contains('aide')) {
     // L'aide propre à la pastille (title) passe avant la définition générale ; on retire le title
     // pour que le navigateur n'affiche pas sa propre bulle par-dessus.
     if (el.title) {
       el.dataset.aide = el.title;
       el.removeAttribute('title');
     }
-    const label = el.textContent?.trim() ?? '';
+    const label = el.dataset.titre ?? el.textContent?.trim() ?? '';
     const k = keywordOfLabel(label);
     const text = el.dataset.aide ?? k?.text;
     return text ? `<b>${esc(label)}</b>${esc(text)}` : null;
@@ -96,7 +96,7 @@ function hideBubble(): void {
   bubble = null;
 }
 
-const TARGETS = '.mot, .chip, .carte';
+const TARGETS = '.mot, .chip, .aide, .carte';
 
 function cancelPress(): void {
   window.clearTimeout(pressTimer);
@@ -226,7 +226,7 @@ export function initAides(root: HTMLElement, combat: () => CombatState | null | 
   stage.addEventListener('pointerover', (ev) => {
     if (ev.pointerType !== 'mouse') return;
     const target = ev.target as HTMLElement;
-    const word = target.closest<HTMLElement>('.mot, .chip');
+    const word = target.closest<HTMLElement>('.mot, .chip, .aide');
     if (word) {
       if (!bubble || bubble.dataset.pour !== String(word.textContent)) {
         if (showBubble(word) && bubble) (bubble as HTMLElement).dataset.pour = String(word.textContent);

@@ -100,7 +100,7 @@ import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save
 // Outil de test (version dev seulement)
 import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
-import { ELEMENTS, ELEMENT_NAME, IMBUES, TOTEMS } from './engine/chaman';
+import { ELEMENTS, ELEMENT_NAME, IMBUES, TOTEMS, totemDescription } from './engine/chaman';
 import { FORMS, FORM_IDS, MAX_BEAR_RAGE, MAX_CAT_COMBO, canShift, shiftCost } from './engine/druide';
 import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, companionDamage, companionTarget, markBonus, trapVictim } from './engine/chasseur';
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
@@ -1310,12 +1310,13 @@ function shamanResource(c: CombatState): string {
   const tiles = ELEMENTS.map((el) => {
     const t = c.totems?.[el];
     return t
-      ? `<div class="chs-tuile actif totem-${el}" title="${TOTEMS[t.id].name} : ${TOTEMS[t.id].text(t)}">${ICON_ELEMENT[el]}<span>${TOTEMS[t.id].short}</span></div>`
-      : `<div class="chs-tuile vide totem-${el}" title="Emplacement ${ELEMENT_NAME[el]} libre">${ICON_ELEMENT[el]}<span>${ELEMENT_NAME[el]}</span></div>`;
+      ? `<div class="chs-tuile aide actif totem-${el}" data-titre="${TOTEMS[t.id].name}" title="${esc(totemDescription(c, el)!)}">${ICON_ELEMENT[el]}<span>${TOTEMS[t.id].short}${t.stacks ? `<i class="renfort">+${t.stacks}</i>` : ''}</span></div>`
+      : `<div class="chs-tuile aide vide totem-${el}" data-titre="Emplacement ${ELEMENT_NAME[el]}" title="Libre. Pose un totem de ${ELEMENT_NAME[el]} pour le remplir.">${ICON_ELEMENT[el]}<span>${ELEMENT_NAME[el]}</span></div>`;
   }).join('');
   const weapons = (c.imbues ?? []).map((w) => IMBUES[w.id].short).join(' + ');
+  const weaponsText = (c.imbues ?? []).map((w) => `${IMBUES[w.id].name} : ${IMBUES[w.id].text(w)}`).join(' ');
   const stunned = (c.petStunned ?? 0) > 0 ? ' · totems étourdis' : '';
-  return `<div class="ligne chs-tuiles">${tiles}<div class="chs-tuile ${weapons ? 'piege' : 'vide'}" title="Arme élémentaire">${ICON.epee}<span>${weapons || 'Arme'}</span></div></div>
+  return `<div class="ligne chs-tuiles">${tiles}<div class="chs-tuile aide ${weapons ? 'piege' : 'vide'}" data-titre="Arme élémentaire" title="${esc(weaponsText || 'Aucune. Joue une carte d\'Arme élémentaire.')}">${ICON.epee}<span>${weapons || 'Arme'}</span></div></div>
     <div class="aide-posture">${c.ankh ? 'Réincarnation prête' : 'Réincarnation utilisée'}${stunned}</div>`;
 }
 
@@ -1347,13 +1348,13 @@ function hunterResource(c: CombatState): string {
   const victim = trapVictim(c);
   const away = (c.player.debuffs?.lignee ?? 0) > 0 || (c.petStunned ?? 0) > 0;
   const tiles = [
-    `<div class="chs-tuile actif ${away ? 'absent' : ''}" title="${comp.name} : ${comp.text}">${ICON_HUNT.patte}<span>${comp.name} · ${companionDamage(c)}</span></div>`,
-    `<div class="chs-tuile ${aspect ? 'actif' : ''}" title="${aspect ? `${aspect.name} : ${aspect.text}` : 'Joue une carte Esprit (un seul à la fois)'}">${aspect ? ICON_HUNT[c.aspect!] : ICON_HUNT.aigle}<span>${aspect ? aspect.short : 'Esprit'}</span></div>`,
+    `<div class="chs-tuile aide actif ${away ? 'absent' : ''}" title="${comp.name} : ${comp.text}">${ICON_HUNT.patte}<span>${comp.name} · ${companionDamage(c)}</span></div>`,
+    `<div class="chs-tuile aide ${aspect ? 'actif' : ''}" title="${aspect ? `${aspect.name} : ${aspect.text}` : 'Joue une carte Esprit (un seul à la fois)'}">${aspect ? ICON_HUNT[c.aspect!] : ICON_HUNT.aigle}<span>${aspect ? aspect.short : 'Esprit'}</span></div>`,
     ...Array.from({ length: 3 }, (_, i) => {
       const t = traps[i];
       return t
-        ? `<div class="chs-tuile piege" title="${TRAPS[t.id].name}">${ICON_HUNT[t.id]}<span>${TRAPS[t.id].short}</span></div>`
-        : '<div class="chs-tuile vide" title="Emplacement de Piège libre"><span>Piège</span></div>';
+        ? `<div class="chs-tuile aide piege" title="${TRAPS[t.id].name}">${ICON_HUNT[t.id]}<span>${TRAPS[t.id].short}</span></div>`
+        : '<div class="chs-tuile aide vide" title="Emplacement de Piège libre"><span>Piège</span></div>';
     }),
   ].join('');
   const help = traps.length && victim

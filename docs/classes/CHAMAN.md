@@ -253,6 +253,10 @@ Le Chaman est l'intermédiaire entre les mortels et les **esprits des éléments
 
 ## 12. Ce qui est en jeu dans le prototype
 
+**Renfort des totems (24 novembre 2026) :** reposer le même totem le renforce : +50 % de ses valeurs par renfort, 2 renforts au plus (Totem de pierre : 4 → 6 → 8 blocage ; Totem de purification : une Dissipation de plus par renfort), et sa durée repart. Un autre totem du même élément remplace toujours l'ancien, sans renfort. La tuile affiche « +1 » ou « +2 ». Pas encore rééquilibré avec le bot (noté dans l'issue « ⚖️ Équilibrage avec de vrais joueurs »).
+
+**Bulles des tuiles (24 novembre 2026) :** l'appui long (téléphone) ou le survol (PC) sur une tuile de totem ou d'Arme élémentaire donne son effet avec les vraies valeurs (talents, objets, renforts, Marteau des ancêtres) : `totemDescription` dans `chaman.ts`. Les tuiles du Chasseur (compagnon, Esprit, Pièges) en profitent aussi (classe `aide`).
+
 **Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §19) :
 
 | Élément | Fiche | En jeu |

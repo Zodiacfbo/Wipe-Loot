@@ -4,6 +4,7 @@ import { createCombat, endTurn, playCard, useSpell } from '../src/engine/combat'
 import type { Encounter } from '../src/engine/enemies';
 import { afterCombatAction, newRun, resolveEvent } from '../src/engine/run';
 import { lootSpells } from '../src/engine/spells';
+import { totemDescription } from '../src/engine/chaman';
 import { CHAMAN_TREES, emptyAlloc, talentIds, toggleTalent } from '../src/engine/talents';
 import type { ItemEffects } from '../src/engine/items';
 import type { CardInstance, CombatState } from '../src/engine/types';
@@ -75,6 +76,30 @@ describe('les totems', () => {
     expect(c.player.puissance).toBe(1);
     play(c, 'totem_pierre');
     expect(c.player.puissance).toBe(0);
+  });
+
+  it('le même totem reposé est renforcé : +50 % par renfort, 2 fois au plus', () => {
+    const c = fight(['lieutenant'], ['totem_pierre', 'totem_pierre', 'totem_pierre', 'totem_pierre', 'totem_force']);
+    play(c, 'totem_pierre');
+    expect(c.totems!.terre!.value).toBe(4);
+    play(c, 'totem_pierre');
+    expect(c.totems!.terre).toMatchObject({ value: 6, stacks: 1 });
+    play(c, 'totem_pierre');
+    expect(c.totems!.terre).toMatchObject({ value: 8, stacks: 2 });
+    expect(totemDescription(c, 'terre')).toContain('Renfort au maximum');
+    play(c, 'totem_pierre');
+    expect(c.totems!.terre).toMatchObject({ value: 8, stacks: 2 });
+    // Un autre totem du même élément remplace, sans renfort.
+    play(c, 'totem_force');
+    expect(c.totems!.terre!.stacks).toBeUndefined();
+    expect(c.player.puissance).toBe(1);
+  });
+
+  it('la bulle d\'un totem donne ses valeurs réelles', () => {
+    const c = fight(['lieutenant'], ['totem_lave'], { fireTotemBonus: 2 });
+    play(c, 'totem_lave');
+    expect(totemDescription(c, 'feu')).toContain('4 dégâts à tous les ennemis');
+    expect(totemDescription(c, 'eau')).toBeNull();
   });
 
   it('le Marteau des ancêtres fait agir les totems deux fois', () => {

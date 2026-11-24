@@ -694,6 +694,7 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .pal-tuile.aura.actif { border-color: #f0e6c0; background: #34302a; color: #fff6dc; }
 .chs-tuiles { align-items: stretch; gap: 4px; }
 .chs-tuile { width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 2px; border-radius: 8px; border: 1px dashed #4d5a33; color: #626d4f; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
+.chs-tuile .renfort { font-style: normal; margin-left: 2px; color: #ffd36a; }
 .chs-tuile.actif { border: 1px solid #8fd49a; background: #22301b; color: #cfeec0; box-shadow: 0 0 10px #8fd49a44; }
 .chs-tuile.actif.absent { opacity: 0.45; filter: grayscale(0.8); }
 .chs-tuile.piege { border: 1px solid #ff9a2a; background: #3a2414; color: #ffc27a; box-shadow: 0 0 10px #ff9a2a44; }

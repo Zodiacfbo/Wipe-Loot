@@ -100,7 +100,7 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Aura', words: ['Aura', 'Auras'], text: 'Un Pouvoir du Paladin. Une seule Aura active à la fois : une nouvelle remplace l\'ancienne.' },
   { name: 'Censure', words: ['Censure'], text: 'Inflige ce nombre de dégâts au début du tour de la cible. Le Jugement du Sceau de vengeance la consomme.' },
   // Chaman
-  { name: 'Totem', words: ['Totem', 'Totems', 'totem', 'totems'], text: '4 emplacements : Terre, Feu, Eau, Air. Un nouveau totem remplace celui de son élément. Il agit au début de chacun de tes tours, jusqu\'à la fin du combat.' },
+  { name: 'Totem', words: ['Totem', 'Totems', 'totem', 'totems'], text: '4 emplacements : Terre, Feu, Eau, Air. Un autre totem remplace celui de son élément ; le même est renforcé (+50 %, 2 fois au plus). Il agit à chacun de tes tours.' },
   { name: 'Résonance', words: ['Résonance', 'Résonances'], text: 'Un effet en plus si tu as un totem de l\'élément indiqué en jeu.' },
   { name: 'Arme élémentaire', words: ['Arme de flammes', 'Arme élémentaire', 'Armes élémentaires'], text: 'Un Pouvoir du Chaman. Une seule Arme élémentaire à la fois (deux avec Double arme) : une nouvelle remplace l\'ancienne.' },
   // Druide

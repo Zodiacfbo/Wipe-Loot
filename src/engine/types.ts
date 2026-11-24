@@ -73,6 +73,8 @@ export interface Totem {
   value2?: number;
   /** Tours restants pour un totem temporaire (Totem de mana, Totem de glèbe). */
   turns?: number;
+  /** Renforts : le même totem reposé (0 à 2), +50 % de ses valeurs par renfort. */
+  stacks?: number;
 }
 
 /** Druide : les quatre formes. */

@@ -16,17 +16,17 @@ export const TOTEMS: Record<string, { name: string; short: string; element: Elem
   braise: { name: 'Totem de braise', short: 'Braise', element: 'feu', text: (t) => `Début de ton tour : ${t.value} dégâts à un ennemi au hasard.` },
   lave: { name: 'Totem de lave', short: 'Lave', element: 'feu', text: (t) => `Début de ton tour : ${t.value} dégâts à tous les ennemis.` },
   guerisseur: { name: 'Totem guérisseur', short: 'Soin', element: 'eau', text: (t) => `Début de ton tour : soigne ${t.value} PV.` },
-  purification: { name: 'Totem de purification', short: 'Purif.', element: 'eau', text: () => 'Début de ton tour : Dissipation d\'un Poison ou d\'une Maladie.' },
+  purification: { name: 'Totem de purification', short: 'Purif.', element: 'eau', text: (t) => (t.stacks ? `Début de ton tour : Dissipation de ${1 + t.stacks} Poisons ou Maladies.` : 'Début de ton tour : Dissipation d\'un Poison ou d\'une Maladie.') },
   source: { name: 'Totem de source', short: 'Source', element: 'eau', text: (t) => `Début de ton tour : soigne ${t.value} PV, ${t.value2} blocage.` },
   marees: { name: 'Totem des marées', short: 'Marées', element: 'eau', text: (t) => `Début de ton tour : +1 énergie. Tes soins +${t.value}.` },
   vents: { name: 'Totem des vents', short: 'Vents', element: 'air', text: (t) => `Tes Attaques +${t.value} dégâts.` },
   orage: { name: 'Totem de l\'orage', short: 'Orage', element: 'air', text: (t) => `Début de ton tour : ${t.value} dégâts au hasard. Tes Sorts +${t.value2}.` },
 };
 
-export const IMBUES: Record<string, { name: string; short: string }> = {
-  flammes: { name: 'Arme de flammes', short: 'Flammes' },
-  givre: { name: 'Arme de givre', short: 'Givre' },
-  vents: { name: 'Arme des vents', short: 'Vents' },
+export const IMBUES: Record<string, { name: string; short: string; text: (w: { value: number; up: boolean }) => string }> = {
+  flammes: { name: 'Arme de flammes', short: 'Flammes', text: (w) => `tes Attaques infligent +${w.value} dégâts.` },
+  givre: { name: 'Arme de givre', short: 'Givre', text: (w) => `tes Attaques appliquent Ralenti 1 tour${w.up ? ' et Démoralisé 1 tour' : ''}.` },
+  vents: { name: 'Arme des vents', short: 'Vents', text: () => 'ta première Attaque de chaque tour frappe une fois de plus.' },
 };
 
 /** Un combat de Chaman. */
@@ -61,15 +61,31 @@ function removeTotem(c: CombatState, el: ElementId): void {
   c.totems[el] = null;
 }
 
-/** Pose un totem dans l'emplacement de son élément (l'ancien est remplacé). */
+/** Renforts d'un même totem : 2 au plus, +50 % de ses valeurs chacun. */
+export const TOTEM_MAX_STACKS = 2;
+export const TOTEM_STACK_BONUS = 0.5;
+
+/**
+ * Pose un totem dans l'emplacement de son élément. Un autre totem est remplacé ;
+ * le même totem est renforcé (+50 % de ses valeurs, 2 fois au plus) et sa durée repart.
+ */
 export function placeTotem(c: CombatState, id: string, value: number, value2?: number, turns?: number): void {
   const def = TOTEMS[id];
   const el = def.element;
+  const old = totemAt(c, el);
+  const stacks = old?.id === id ? Math.min(TOTEM_MAX_STACKS, (old.stacks ?? 0) + 1) : 0;
+  const mult = 1 + TOTEM_STACK_BONUS * stacks;
   removeTotem(c, el);
-  const t: Totem = { id, value: value + (id === 'pierre' || id === 'glebe' ? totemBonus(c, el) : 0), value2, turns };
+  const t: Totem = {
+    id,
+    value: Math.round(value * mult) + (id === 'pierre' || id === 'glebe' ? totemBonus(c, el) : 0),
+    value2: value2 === undefined ? undefined : Math.round(value2 * mult),
+    turns,
+  };
+  if (stacks) t.stacks = stacks;
   (c.totems ??= {})[el] = t;
   if (id === 'force') c.player.puissance += t.value;
-  fx(c, { kind: 'buff', who: 'player', label: def.name });
+  fx(c, { kind: 'buff', who: 'player', label: stacks ? `${def.name} renforcé` : def.name });
   // Esprit combatif : poser un totem renforce la prochaine Attaque.
   if (power(c, 'esprit_combatif')) c.nextAttackBonus = (c.nextAttackBonus ?? 0) + power(c, 'esprit_combatif');
 }
@@ -89,6 +105,25 @@ export function clearTotems(c: CombatState): number {
 function randomTarget(c: CombatState): EnemyState | null {
   const pool = livingEnemies(c).filter((e) => !e.submerged);
   return pool.length ? pool[Math.floor(random(c) * pool.length)] : null;
+}
+
+/**
+ * Ce que fait un totem en jeu, avec les valeurs réelles (talents, objets, renforts) : la bulle de sa tuile.
+ */
+export function totemDescription(c: CombatState, el: ElementId): string | null {
+  const t = totemAt(c, el);
+  if (!t) return null;
+  const bonus = totemBonus(c, el);
+  const ally = c.gear?.allyBonus ?? 0;
+  const shown: Totem = { ...t };
+  if (t.id === 'braise' || t.id === 'lave') shown.value = t.value + bonus + ally;
+  if (t.id === 'orage') shown.value = t.value + ally;
+  if (t.id === 'guerisseur' || t.id === 'source') shown.value = t.value + bonus;
+  if (t.id === 'source') shown.value2 = (t.value2 ?? 1) + bonus;
+  const parts = [`${t.stacks ? `Renforcé ${t.stacks} fois. ` : ''}${TOTEMS[t.id].text(shown)}`];
+  if ((c.gear?.marteauAncetres ?? 0) > 0 && !['force', 'vents'].includes(t.id)) parts.push('Il agit deux fois (Marteau des ancêtres).');
+  parts.push(t.stacks === TOTEM_MAX_STACKS ? 'Renfort au maximum.' : 'Reposer le même totem le renforce (+50 %).');
+  return parts.join(' ');
 }
 
 /** Un totem agit (au début de ton tour). */
@@ -124,7 +159,7 @@ function totemAct(c: CombatState, el: ElementId, t: Totem): void {
       gainBlock(c, (t.value2 ?? 1) + bonus, false);
       break;
     case 'purification':
-      dispelPoison(c);
+      for (let i = 0; i <= (t.stacks ?? 0); i++) dispelPoison(c);
       break;
     case 'marees':
       c.player.energy += 1;
