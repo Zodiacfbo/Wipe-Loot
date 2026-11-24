@@ -12,6 +12,7 @@ import { BAR_SLOTS, lootSpells } from './spells';
 import { EPIC_CARDS, TALENTS, treesFor } from './talents';
 import { difficultyMods } from './difficulty';
 import { random } from './rng';
+import { logChoice, stepOf } from './choices';
 import type { CardInstance, CompanionId, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
@@ -38,8 +39,8 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 26, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
-    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null, retreated: false,
+    version: 27, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null, retreated: false, choix: [],
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
     rewardChoices: [], rewardTitle: '', eventId: null, nextUid: uid,
@@ -213,6 +214,7 @@ export function chooseNode(run: RunState, nodeId: number): boolean {
   run.position = nodeId;
   run.path.push(nodeId);
   const node = run.map.nodes[nodeId];
+  logChoice(run, { t: 'noeud', e: stepOf(run), n: node.type });
   // La rivière de lave : le détour mène droit dans un pack difficile.
   const act = actDef(run.act);
   if (run.detour && node.type !== 'boss') {
@@ -357,6 +359,9 @@ export function afterCombatAction(run: RunState): void {
     c.maxHpGain = 0;
   }
   if (c.phase === 'victory' || c.phase === 'defeat') {
+    // Le journal des choix : le résumé du combat.
+    const kind = run.encounter?.kind ?? (currentNode(run)?.type ?? 'combat');
+    logChoice(run, { t: 'combat', e: stepOf(run), n: run.encounter?.name ?? '?', k: String(kind), tours: c.turn, pv: Math.max(0, (run.entry?.hp ?? run.hp) - Math.max(0, c.player.hp)), fin: c.phase === 'victory' ? 'victoire' : 'chute' });
     // Le Gobelin mimique a avalé de l'or.
     run.gold = Math.max(0, run.gold - (c.goldStolen ?? 0));
     c.goldStolen = 0;
@@ -510,6 +515,7 @@ function offerCards(run: RunState, title: string, min: Rarity): void {
 
 export function chooseReward(run: RunState, cardId: string | null): void {
   if (run.screen !== 'reward') return;
+  if (run.rewardChoices.length) logChoice(run, { t: 'cartes', e: stepOf(run), o: [...run.rewardChoices], p: cardId && run.rewardChoices.includes(cardId) ? cardId : null });
   if (cardId && run.rewardChoices.includes(cardId)) {
     run.deck.push({ uid: run.nextUid++, id: cardId, upgraded: false });
   }
@@ -568,6 +574,7 @@ export function buyCard(run: RunState, index: number): boolean {
   run.gold -= item.price;
   item.sold = true;
   run.deck.push({ uid: run.nextUid++, id: item.id, upgraded: false });
+  logChoice(run, { t: 'achat', e: stepOf(run), k: 'carte', id: item.id, prix: item.price });
   return true;
 }
 
@@ -576,6 +583,7 @@ export function buyRemoval(run: RunState, uid: number): boolean {
   if (run.screen !== 'shop' || !run.shop || run.shop.removeUsed || run.gold < price) return false;
   const i = run.deck.findIndex((c) => c.uid === uid);
   if (i < 0) return false;
+  logChoice(run, { t: 'achat', e: stepOf(run), k: 'retrait', id: run.deck[i].id, prix: price });
   run.deck.splice(i, 1);
   run.gold -= price;
   run.removals += 1;
@@ -591,6 +599,7 @@ export function buyUpgrade(run: RunState, uid: number): boolean {
   card.upgraded = true;
   run.gold -= price;
   run.upgradesBought += 1;
+  logChoice(run, { t: 'achat', e: stepOf(run), k: 'amelio', id: card.id, prix: price });
   run.shop.upgradeUsed = true;
   return true;
 }
@@ -606,6 +615,7 @@ export function buyItem(run: RunState, index: number, slot: SlotKey): boolean {
   run.gold -= item.price;
   item.sold = true;
   putOn(run, item.id, slot);
+  logChoice(run, { t: 'achat', e: stepOf(run), k: 'objet', id: item.id, prix: item.price });
   return true;
 }
 
@@ -664,6 +674,7 @@ function putOn(run: RunState, itemId: string, slot: SlotKey): void {
 export function equipPending(run: RunState, slot: SlotKey, alt?: number): boolean {
   const id = alt === undefined ? run.pendingItem : run.pendingAlts[alt];
   if (!id || !slotsFor(id).includes(slot)) return false;
+  logChoice(run, { t: 'objet', e: stepOf(run), o: [run.pendingItem, ...run.pendingAlts].filter((x): x is string => !!x), p: id });
   putOn(run, id, slot);
   run.pendingItem = null;
   run.pendingAlts = [];
@@ -672,6 +683,7 @@ export function equipPending(run: RunState, slot: SlotKey, alt?: number): boolea
 
 /** Laisse l'objet trouvé. */
 export function leavePending(run: RunState): void {
+  if (run.pendingItem) logChoice(run, { t: 'objet', e: stepOf(run), o: [run.pendingItem, ...run.pendingAlts], p: null });
   run.pendingItem = null;
   run.pendingAlts = [];
 }
@@ -682,6 +694,7 @@ export function repairItem(run: RunState, slot: SlotKey): boolean {
   if (run.screen !== 'shop' || !id || !run.broken.includes(slot)) return false;
   const price = REPAIR_PRICE[ITEMS[id].rarity];
   if (run.gold < price) return false;
+  logChoice(run, { t: 'achat', e: stepOf(run), k: 'reparation', id, prix: price });
   run.gold -= price;
   run.broken = run.broken.filter((k) => k !== slot);
   const gained = ITEMS[id].fx.maxHp ?? 0;
@@ -765,6 +778,7 @@ export function buyPotion(run: RunState, index: number): boolean {
   run.gold -= item.price;
   item.sold = true;
   run.potions[slot] = item.id;
+  logChoice(run, { t: 'achat', e: stepOf(run), k: 'potion', id: item.id, prix: item.price });
   return true;
 }
 
@@ -829,6 +843,7 @@ export function resolveEvent(run: RunState, choice: number): void {
   if (run.screen !== 'event' || !run.eventId || run.eventOutcome) return;
   const ev = EVENTS[run.eventId];
   if (!ev?.choices[choice] || eventChoiceLock(run, choice)) return;
+  logChoice(run, { t: 'evt', e: stepOf(run), id: ev.id, c: choice });
   const heal = (n: number) => { const before = run.hp; run.hp = Math.min(run.maxHp, run.hp + n); return run.hp - before; };
   const hurt = (n: number) => { run.hp = Math.max(1, run.hp - n); };
 
@@ -1215,6 +1230,7 @@ export function chooseBlessing(run: RunState, id: string, uid?: number): boolean
   if (id === 'allegement' && !run.deck.some((c) => c.uid === uid)) return false;
   run.blessings = [];
   run.screen = 'map';
+  logChoice(run, { t: 'benediction', id });
   switch (id) {
     case 'provisions':
       run.maxHp += 8;
@@ -1457,6 +1473,7 @@ export function canRest(run: RunState): boolean {
 
 export function campfireRest(run: RunState): void {
   if (!canRest(run)) return;
+  logChoice(run, { t: 'feu', e: stepOf(run), k: 'repos' });
   run.hp = Math.min(run.maxHp, run.hp + campfireHealAmount(run));
   backToMap(run);
 }
@@ -1466,6 +1483,7 @@ export function campfireUpgrade(run: RunState, uid: number): void {
   const card = run.deck.find((c) => c.uid === uid);
   if (!card || card.upgraded) return;
   card.upgraded = true;
+  logChoice(run, { t: 'feu', e: stepOf(run), k: 'amelio', id: card.id });
   backToMap(run);
 }
 /** Pour les tests. */

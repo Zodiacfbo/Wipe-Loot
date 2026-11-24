@@ -8,10 +8,13 @@ import { collection, connectFirestoreEmulator, deleteDoc, doc, getDoc, getDocs, 
 import { MESSAGE_STATES, MESSAGE_TYPES, REPLY_MAX, authErrorText, pseudoError, pseudoToEmail, todayIso, type CloudDoc, type MessageDoc, type MessageState, type NewsItem } from '../cloud_logic';
 import type { RunJournal } from '../journal';
 import { CARDS } from '../engine/cards';
+import { ITEMS } from '../engine/items';
+import { EVENTS } from '../engine/events';
+import type { Choice } from '../engine/choices';
 import { CLASSES, CLASS_BY_ID } from '../engine/classes';
 import { classLevel } from '../engine/progression';
 import { convertOldXp } from '../engine/xp';
-import { DAY_MS, LIMITE_ECRITURES, LIMITE_LECTURES, cardPickRates, dailyActivity, droppingOut, estimateUsage, stopsByEncounter, suspicious, usageLevel, winsByClass, winsByDifficulty, winsByTree, winsByVersion, type Rate } from './stats';
+import { DAY_MS, LIMITE_ECRITURES, LIMITE_LECTURES, cardOfferRates, cardPickRates, costlyFights, dailyActivity, droppingOut, estimateUsage, stopsByEncounter, suspicious, usageLevel, winsByClass, winsByDifficulty, winsByTree, winsByVersion, type Rate } from './stats';
 
 /** L'organisateur (même liste que admin() dans firestore.rules). */
 const ADMIN_UIDS = ['PUomfoQPqgX5FYny6rz1Z2pVgry1'];
@@ -56,6 +59,8 @@ const state = {
   loading: false,
   error: null as string | null,
   playerSel: null as string | null,
+  /** La run dont on lit le journal des choix (son heure de fin). */
+  runSel: null as number | null,
   classSel: 'guerrier',
   msgType: 'tous',
   msgState: 'tous',
@@ -236,7 +241,8 @@ function playerSheet(d: Data, uid: string): string {
         <p class="a-note">UID : <code>${esc(uid)}</code></p>`)}
       ${card('Runs jour par jour (14 jours)', `<div class="a-courbe">${perDay}</div>`)}
     </div>
-    ${card('Ses runs (période)', mine.length ? `<div class="a-defile"><table><tr><th>Fin</th><th>Classe</th><th>Arbre</th><th>Diff.</th><th>Résultat</th><th>Étapes</th><th>Durée</th><th>Score</th></tr>${mine.map((r) => `<tr><td>${fmtDateHeure(r.finMs)}</td><td>${className(r.classe)}</td><td>${esc(r.talents.length)} talents</td><td>${r.difficulte}</td><td>${r.victoire ? '<span class="a-pill v">Victoire</span>' : `<span class="a-pill r">${esc(r.cause ?? '?')}</span>`}</td><td>${r.etapes}</td><td>${r.dureeMin ?? '?'} min</td><td>${r.score}</td></tr>`).join('')}</table></div>` : '<p class="a-note">Aucune run sur la période.</p>')}
+    ${card('Ses runs (période)', mine.length ? `<div class="a-defile"><table><tr><th>Fin</th><th>Classe</th><th>Arbre</th><th>Diff.</th><th>Résultat</th><th>Étapes</th><th>Durée</th><th>Score</th></tr>${mine.map((r) => `<tr class="a-cliquable ${state.runSel === r.finMs ? 'choisie' : ''}" data-act="run-voir" data-v="${r.finMs}"><td>${fmtDateHeure(r.finMs)}</td><td>${className(r.classe)}</td><td>${esc(r.talents.length)} talents</td><td>${r.difficulte}</td><td>${r.victoire ? '<span class="a-pill v">Victoire</span>' : `<span class="a-pill r">${esc(r.cause ?? '?')}</span>`}</td><td>${r.etapes}</td><td>${r.dureeMin ?? '?'} min</td><td>${r.score}</td></tr>`).join('')}</table></div><p class="a-note">Touche une run pour lire son journal des choix.</p>` : '<p class="a-note">Aucune run sur la période.</p>')}
+    ${(() => { const r = mine.find((x) => x.finMs === state.runSel); return r ? card(`Journal de la run du ${fmtDateHeure(r.finMs)}`, choicesHtml(r)) : ''; })()}
     ${card('🛡️ Actions', `<div class="a-actions">
       <button class="a-bouton" data-act="renommer" data-v="${esc(uid)}">Renommer</button>
       <button class="a-bouton danger" data-act="remise" data-v="${esc(uid)}">Remettre sa progression à zéro</button>
@@ -244,6 +250,32 @@ function playerSheet(d: Data, uid: string): string {
       <p class="a-note">Mot de passe oublié : le joueur crée un nouveau compte, puis ici, sur la fiche du nouveau compte, « Récupérer la progression de » son ancien compte.</p>
       <div class="a-actions"><select data-role="source"><option value="">Récupérer la progression de…</option>${others.map((o) => `<option value="${esc(o.uid)}">${esc(o.pseudo)}</option>`).join('')}</select>
       <button class="a-bouton" data-act="transfert" data-v="${esc(uid)}">Récupérer</button></div>`)}`;
+}
+
+const cardName = (id: string) => esc(CARDS[id]?.name ?? id);
+const itemName = (id: string) => esc(ITEMS[id]?.name ?? id);
+const NODE_LABEL: Record<string, string> = { combat: 'Combat', elite: 'Gardien', boss: 'Seigneur', event: '« ? »', shop: 'Vendeur', campfire: 'Feu de camp', chest: 'Coffre' };
+const BUY_LABEL: Record<string, string> = { carte: 'carte', objet: 'objet', potion: 'potion', retrait: 'retrait de', amelio: 'amélioration de', reparation: 'réparation de' };
+
+/** Une ligne du journal des choix, en clair. */
+function choiceLine(c: Choice): string {
+  switch (c.t) {
+    case 'noeud': return `🗺️ ${NODE_LABEL[c.n] ?? esc(c.n)}`;
+    case 'benediction': return `✨ Bénédiction : ${esc(c.id)}`;
+    case 'cartes': return `🃏 Cartes : ${c.o.map((id) => (id === c.p ? `<b>${cardName(id)}</b>` : cardName(id))).join(' · ')}${c.p ? '' : ' · <i>aucune prise</i>'}`;
+    case 'objet': return `🎁 Objet : ${c.o.map((id) => (id === c.p ? `<b>${itemName(id)}</b>` : itemName(id))).join(' · ')}${c.p ? '' : ' · <i>laissé</i>'}`;
+    case 'evt': return `❓ ${esc(EVENTS[c.id]?.title ?? c.id)} : ${esc(EVENTS[c.id]?.choices[c.c]?.label ?? `choix ${c.c + 1}`)}`;
+    case 'achat': return `🪙 Achat (${c.prix} or) : ${BUY_LABEL[c.k] ?? c.k} ${c.k === 'objet' || c.k === 'reparation' ? itemName(c.id) : c.k === 'potion' ? esc(c.id) : cardName(c.id)}`;
+    case 'feu': return c.k === 'repos' ? '🔥 Repos' : `🔥 Amélioration : ${cardName(c.id ?? '')}`;
+    case 'combat': return `⚔️ ${esc(c.n)} : ${c.fin === 'victoire' ? 'gagné' : '<b class="a-rouge">chute</b>'} en ${c.tours} tour${c.tours > 1 ? 's' : ''}, ${c.pv} PV perdus`;
+  }
+}
+
+/** Le journal des choix d'une run, étape par étape. */
+function choicesHtml(r: RunJournal): string {
+  const list = r.choix ?? [];
+  if (!list.length) return '<p class="a-note">Pas de journal des choix pour cette run (elle date d\'avant le 24 novembre 2026, ou elle a été commencée avant).</p>';
+  return `<ol class="a-journal">${list.map((c) => `<li>${'e' in c ? `<span class="a-etape">${c.e}</span>` : ''}${choiceLine(c)}</li>`).join('')}</ol>`;
 }
 
 function rateTable(rows: Rate[], label: (k: string) => string): string {
@@ -254,6 +286,8 @@ function rateTable(rows: Rate[], label: (k: string) => string): string {
 function balance(d: Data): string {
   const cls = state.classSel;
   const picks = cardPickRates(d.runs, cls);
+  const offers = cardOfferRates(d.runs, cls);
+  const fights = costlyFights(d.runs);
   const chapters = [1, 2, 3].map((n) => ({ n, c: d.runs.filter((r) => !r.victoire && r.chapitre === n).length }));
   return `<div class="a-grille2">
       ${card('Taux de victoire par classe', rateTable(winsByClass(d.runs), className))}
@@ -264,7 +298,11 @@ function balance(d: Data): string {
       ${card('Par version du jeu', rateTable(winsByVersion(d.runs), (k) => k) + `<p class="a-note">Défaites par chapitre : ${chapters.map((x) => `chap. ${x.n} : ${x.c}`).join(' · ')}</p>`)}
     </div>
     ${card('Cartes les moins prises', `<label>Classe <select data-act="classe">${CLASSES.filter((c) => c.playable).map((c) => `<option value="${c.id}" ${c.id === cls ? 'selected' : ''}>${c.name}</option>`).join('')}</select></label>
-      ${picks.length ? `<p class="a-note">Part des runs de cette classe dont le paquet final contient la carte. En rouge : moins de 15 %.</p><div class="a-cartes">${picks.map((p) => `<span class="${p.pct < 15 ? 'rouge' : ''}">${esc(CARDS[p.id]?.name ?? p.id)} <b>${p.pct} %</b></span>`).join('')}</div>` : '<p class="a-note">Pas encore de runs avec cette classe.</p>'}`)}`;
+      ${picks.length ? `<p class="a-note">Part des runs de cette classe dont le paquet final contient la carte. En rouge : moins de 15 %.</p><div class="a-cartes">${picks.map((p) => `<span class="${p.pct < 15 ? 'rouge' : ''}">${esc(CARDS[p.id]?.name ?? p.id)} <b>${p.pct} %</b></span>`).join('')}</div>` : '<p class="a-note">Pas encore de runs avec cette classe.</p>'}`)}
+    <div class="a-grille2">
+      ${card('Cartes proposées et prises', offers.length ? `<p class="a-note">Classe choisie ci-dessus. Quand la carte est proposée en récompense, combien de fois elle est prise (3 propositions au moins). Les moins prises d'abord.</p><div class="a-defile"><table><tr><th>Carte</th><th>Proposée</th><th>Prise</th><th class="a-large">Taux</th></tr>${offers.map((o) => `<tr><td>${cardName(o.id)}</td><td>${o.offered}</td><td>${o.taken}</td><td>${o.pct} % ${bar(o.pct)}</td></tr>`).join('')}</table></div>` : '<p class="a-note">Pas encore assez de journaux des choix pour cette classe.</p>')}
+      ${card('Combats qui coûtent le plus de PV', fights.length ? `<p class="a-note">Toutes classes, d'après le journal des choix (3 combats au moins).</p><div class="a-defile"><table><tr><th>Combat</th><th>Joués</th><th>PV perdus (moy.)</th><th>Chutes</th></tr>${fights.map((f) => `<tr><td>${esc(f.name)}</td><td>${f.count}</td><td>${f.pv}</td><td>${f.falls} %</td></tr>`).join('')}</table></div>` : '<p class="a-note">Pas encore assez de journaux des choix.</p>')}
+    </div>`;
 }
 
 function messagesTab(d: Data): string {
@@ -318,7 +356,8 @@ root.addEventListener('click', (ev) => {
     case 'site': state.site = v as Site; store.set('site', v); state.playerSel = null; void load(); return;
     case 'onglet': state.tab = v as Tab; state.playerSel = null; state.flash = null; render(); return;
     case 'rafraichir': state.flash = null; void load(); return;
-    case 'joueur': state.playerSel = v || null; render(); return;
+    case 'joueur': state.playerSel = v || null; state.runSel = null; render(); return;
+    case 'run-voir': state.runSel = state.runSel === Number(v) ? null : Number(v); render(); return;
     case 'renommer': {
       const p = d?.players.find((x) => x.uid === v);
       const name = prompt('Nouveau pseudo affiché (le joueur se connecte toujours avec l\'ancien) :', p?.pseudo ?? '');

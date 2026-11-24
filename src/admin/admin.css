@@ -70,3 +70,11 @@ th { color: var(--texte-2); font-weight: 600; white-space: nowrap; }
   .a-main { padding: 12px; }
   .a-tuile b { font-size: 21px; }
 }
+
+/* Le journal des choix d'une run (fiche d'un joueur). */
+.a-cliquable { cursor: pointer; }
+.a-cliquable:hover, .a-cliquable.choisie { background: rgba(255, 211, 106, 0.08); }
+.a-journal { margin: 0; padding-left: 0; list-style: none; max-height: 420px; overflow-y: auto; font-size: 13px; }
+.a-journal li { padding: 3px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.a-etape { display: inline-block; min-width: 26px; margin-right: 6px; color: #a89a86; font-size: 11px; }
+.a-rouge { color: #ff7a6a; }

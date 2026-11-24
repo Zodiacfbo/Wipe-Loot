@@ -160,7 +160,12 @@ export function migrate(raw: unknown): RunState | null {
     run.retreated = false;
     run.version = 26;
   }
-  return run.version === 26 ? (run as unknown as RunState) : null;
+  if (run.version === 26) {
+    // Le journal des choix (commencé en cours d'expédition : vide).
+    run.choix = [];
+    run.version = 27;
+  }
+  return run.version === 27 ? (run as unknown as RunState) : null;
 }
 
 /** Prévenu à chaque écriture locale (run ou profil) : sert à la sauvegarde en ligne. */

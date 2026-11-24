@@ -1,6 +1,7 @@
 // Le journal d'une expédition, envoyé en ligne à la fin (victoire, défaite ou abandon) pour la page admin.
 // Rien de tout ça n'est montré aux autres joueurs. Testé dans tests/journal.test.ts.
 import { MAX_WIPES } from './engine/run';
+import type { Choice } from './engine/choices';
 import type { RunSummary } from './engine/progression';
 import type { RunState } from './engine/types';
 
@@ -30,6 +31,8 @@ export interface RunJournal {
   dureeMin: number | null;
   /** Le code de la version du jeu (commit), pour comparer avant et après un changement. */
   version: string;
+  /** Le journal des choix de l'expédition (src/engine/choices.ts ; absent dans les journaux d'avant le 24 novembre 2026). */
+  choix?: Choice[];
   finMs: number;
 }
 
@@ -54,6 +57,7 @@ export function runJournal(run: RunState, summary: RunSummary | undefined, who: 
     equipement: Object.values(run.equipment).filter((x): x is string => !!x),
     dureeMin: startMs ? Math.max(0, Math.round((now - startMs) / 60000)) : null,
     version,
+    choix: [...(run.choix ?? [])],
     finMs: now,
   };
 }

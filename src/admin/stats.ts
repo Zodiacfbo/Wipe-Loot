@@ -137,6 +137,49 @@ export function cardPickRates(runs: RunJournal[], classId: string): { id: string
   }).sort((a, b) => a.pct - b.pct);
 }
 
+// ---------- Le journal des choix ----------
+
+/**
+ * Les cartes proposées en récompense et la part prise quand elles sont proposées (journal des choix).
+ * Les moins prises d'abord ; seulement les cartes proposées au moins `min` fois.
+ */
+export function cardOfferRates(runs: RunJournal[], classId: string, min = 3): { id: string; offered: number; taken: number; pct: number }[] {
+  const stats = new Map<string, { offered: number; taken: number }>();
+  for (const r of runs) {
+    if (r.classe !== classId) continue;
+    for (const c of r.choix ?? []) {
+      if (c.t !== 'cartes') continue;
+      for (const id of c.o) {
+        const s = stats.get(id) ?? { offered: 0, taken: 0 };
+        s.offered += 1;
+        if (c.p === id) s.taken += 1;
+        stats.set(id, s);
+      }
+    }
+  }
+  return [...stats.entries()].filter(([, s]) => s.offered >= min)
+    .map(([id, s]) => ({ id, ...s, pct: Math.round((100 * s.taken) / s.offered) }))
+    .sort((a, b) => a.pct - b.pct || b.offered - a.offered);
+}
+
+/** Les combats qui coûtent le plus de PV en moyenne (journal des choix), avec leur part de chutes. */
+export function costlyFights(runs: RunJournal[], min = 3): { name: string; count: number; pv: number; falls: number }[] {
+  const stats = new Map<string, { count: number; pv: number; falls: number }>();
+  for (const r of runs) {
+    for (const c of r.choix ?? []) {
+      if (c.t !== 'combat') continue;
+      const s = stats.get(c.n) ?? { count: 0, pv: 0, falls: 0 };
+      s.count += 1;
+      s.pv += c.pv;
+      if (c.fin === 'chute') s.falls += 1;
+      stats.set(c.n, s);
+    }
+  }
+  return [...stats.entries()].filter(([, s]) => s.count >= min)
+    .map(([name, s]) => ({ name, count: s.count, pv: Math.round(s.pv / s.count), falls: Math.round((100 * s.falls) / s.count) }))
+    .sort((a, b) => b.pv - a.pv);
+}
+
 // ---------- Scores suspects ----------
 
 /** Règles simples : victoire en moins de 10 minutes, ou score plus de 2 fois la médiane du joueur. */
