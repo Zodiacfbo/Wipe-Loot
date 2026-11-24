@@ -2737,7 +2737,7 @@ export function render(): void {
       const profile = loadProfile();
       if (profile.startClass && !profile.tuto?.hall) startHallTuto();
     }
-    stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null)) + (hall ? tutoHtml() : '');
+    stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen()) + overlayHtml(null) + (hall ? tutoHtml() : '');
     afterRender();
     syncLoginMode();
     placeTuto(stage);
