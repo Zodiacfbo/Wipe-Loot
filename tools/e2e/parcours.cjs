@@ -99,7 +99,9 @@ async function parcours(navigateur, url, nomEcran) {
 
   await etape('classes', `[data-action="classe-voir"][data-id="${CLASSE}"]`);
   await page.click(`[data-action="classe-voir"][data-id="${CLASSE}"]`);
-  await etape('fiche-classe', `[data-action="classe-depart"][data-id="${CLASSE}"]`);
+  await etape('fiche-classe', `[data-action="classe-depart-voir"][data-id="${CLASSE}"]`);
+  await page.click(`[data-action="classe-depart-voir"][data-id="${CLASSE}"]`);
+  await etape('confirmation-classe', `[data-action="classe-depart"][data-id="${CLASSE}"]`);
   await page.click(`[data-action="classe-depart"][data-id="${CLASSE}"]`);
 
   await etape('hall', '.tuto-voile');

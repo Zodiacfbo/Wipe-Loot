@@ -29,7 +29,7 @@ async function login(p, tab, pseudo, mdp) {
   await p.press('input[name="mdp"]', 'Enter');
   await p.waitForSelector('[data-action="classe-voir"]', { timeout: 15000 });
   check(true, 'compte créé, écran des classes');
-  await p.click('[data-action="classe-voir"][data-id="mage"]'); await p.click('[data-action="classe-depart"]');
+  await p.click('[data-action="classe-voir"][data-id="mage"]'); await p.click('[data-action="classe-depart-voir"]'); await p.click('[data-action="classe-depart"]');
   await p.waitForSelector('.hall'); const s = await p.$('text=Passer'); if (s) await s.click();
   check((await p.textContent('.hall-pseudo')).includes('Aldric'), 'pseudo affiché dans le hall');
   await p.click('[data-action="roue"]'); await p.waitForTimeout(200);
@@ -80,7 +80,7 @@ async function login(p, tab, pseudo, mdp) {
   const ADMIN_UID = 'PUomfoQPqgX5FYny6rz1Z2pVgry1';
   await fetch('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/projects/demo-wipe/accounts', { method: 'POST', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify({ localId: ADMIN_UID, email: 'organisateur@joueurs.wipe-loot.invalid', password: 'admin123' }) });
   t.on('dialog', (d) => d.accept());
-  await t.click('[data-action="classe-voir"][data-id="guerrier"]'); await t.click('[data-action="classe-depart"]');
+  await t.click('[data-action="classe-voir"][data-id="guerrier"]'); await t.click('[data-action="classe-depart-voir"]'); await t.click('[data-action="classe-depart"]');
   await t.waitForSelector('.hall'); const passer = await t.$('text=Passer'); if (passer) await passer.click();
   await t.click('.hall-expedition [data-action="nouvelle"]'); await t.waitForSelector('[data-action="menu"]');
   await t.click('[data-action="menu"]'); await t.click('[data-action="titre"]'); await t.waitForSelector('.hall');

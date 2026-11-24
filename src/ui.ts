@@ -212,6 +212,8 @@ interface UiState {
   classScreen: boolean;
   /** Classe regardée sur l'écran des classes. */
   classSel: string | null;
+  /** Premier lancement : la classe de départ dont on confirme le choix (fenêtre), ou null. */
+  startConfirm?: string | null;
   /** Archives de la guilde : écran ouvert et onglet. */
   archivesScreen: boolean;
   archiveTab: 'cartes' | 'objets' | 'potions' | 'monstres' | 'mots';
@@ -2099,7 +2101,7 @@ function classScreen(): string {
   const next = nextUnlockLevel(profile);
   const n = unlocksAvailable(profile);
   const [button, note] = {
-    libre: [`<button type="button" class="gros-bouton" data-action="classe-depart" data-id="${c.id}">Choisir le ${c.name}</button>`, 'Tu arriveras ensuite au hall de la guilde, d\'où partent les expéditions. Les autres classes se débloqueront en montant de niveau.'],
+    libre: [`<button type="button" class="gros-bouton" data-action="classe-depart-voir" data-id="${c.id}">Choisir le ${c.name}</button>`, 'Tu arriveras ensuite au hall de la guilde, d\'où partent les expéditions. Les autres classes se débloqueront en montant de niveau.'],
     jouee: ['<button type="button" class="gros-bouton" disabled>Classe jouée</button>', 'C\'est la classe de tes prochaines expéditions.'],
     debloquee: [`<button type="button" class="gros-bouton" data-action="classe-active" data-id="${c.id}">Jouer le ${c.name}</button>`, ''],
     'a-debloquer': [`<button type="button" class="gros-bouton" data-action="debloquer" data-id="${c.id}">Débloquer le ${c.name}</button>`, `Tu peux débloquer ${n} classe${n > 1 ? 's' : ''} : c'est toi qui choisis.`],
@@ -2107,7 +2109,7 @@ function classScreen(): string {
     bientot: ['<button type="button" class="gros-bouton" disabled>En préparation</button>', 'Cette classe arrive dans une prochaine version.'],
   }[st];
   const sub = first
-    ? 'Choisis ta classe de départ. Touche une classe pour la découvrir.'
+    ? 'Choisis <b>une seule</b> classe pour commencer. Les autres se débloquent en montant de niveau.'
     : `Meilleur niveau : ${bestLevel(profile)}${next ? ` · prochaine classe au niveau ${next}` : ''}`;
   return `<div class="ecran ecran-classes">
     <div class="tete-talents">
@@ -2130,7 +2132,21 @@ function classScreen(): string {
         <div class="bas-fiche">${note ? `<p class="note">${note}</p>` : ''}${button}</div>
       </aside>
     </div>
+    ${first && ui.startConfirm && CLASS_BY_ID[ui.startConfirm] ? confirmStartClassHtml(CLASS_BY_ID[ui.startConfirm]) : ''}
   </div>`;
+}
+
+/** Premier lancement : confirmer la classe de départ (le choix est définitif) et dire comment viennent les autres. */
+function confirmStartClassHtml(c: (typeof CLASSES)[number]): string {
+  return `<div class="overlay"><div class="ecran confirmation-depart" style="gap:12px">
+    <h2>Commencer avec le ${c.name} ?</h2>
+    <p>Tu ne choisis qu'<b>une classe</b> au départ.</p>
+    <p>La première fois qu'une de tes classes atteint le <b>niveau 2</b>, tu en débloques une 2<sup>e</sup> au choix ; au <b>niveau 3</b>, une 3<sup>e</sup>… jusqu'aux 9.</p>
+    <div class="actions">
+      <button type="button" class="gros-bouton" data-action="classe-depart" data-id="${c.id}">Choisir le ${c.name}</button>
+      <button type="button" class="gros-bouton secondaire" data-action="classe-depart-annuler">Changer</button>
+    </div>
+  </div></div>`;
 }
 
 /** La classe jouée depuis le hall : celle choisie, si elle est débloquée, sinon la classe de départ. */
@@ -2963,7 +2979,10 @@ function handleClick(ev: MouseEvent): void {
     case 'archives-voir': ui.archiveSel = el.dataset.id ?? null; render(); return;
     case 'classes': ui.run = null; ui.overlay = null; ui.classScreen = true; ui.classSel = null; render(); return;
     case 'classe-voir': ui.classSel = el.dataset.id!; render(); return;
+    case 'classe-depart-voir': ui.startConfirm = el.dataset.id!; render(); return;
+    case 'classe-depart-annuler': ui.startConfirm = null; render(); return;
     case 'classe-depart': {
+      ui.startConfirm = null;
       const profile = loadProfile();
       if (chooseStartClass(profile, el.dataset.id!)) saveProfile(profile);
       // Premier lancement : la classe choisie, on arrive au hall de la guilde (l'expédition se lance de là).
