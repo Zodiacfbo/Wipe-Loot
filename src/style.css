@@ -1005,3 +1005,10 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 /* Écran de chute : le choix de l'objet brisé. */
 .choix-brise { max-width: 720px; margin: 4px auto 0; }
 .choix-brise .article-coffre.choisie { outline: 3px solid #ff6a3a; outline-offset: 2px; border-radius: 10px; }
+
+/* La connexion à la taille réelle de l'écran (téléphone en portrait ou en paysage, clavier ouvert). */
+body.connexion-libre #rotate { display: none !important; }
+body.connexion-libre .boite-connexion { font-size: 15px; }
+#rotate-connexion, #rotate-connexion-note { display: none; }
+body.connexion-proposee #rotate-connexion { display: block; margin-top: 18px; padding: 0 28px; }
+body.connexion-proposee #rotate-connexion-note { display: block; max-width: 300px; font-size: 13px; }

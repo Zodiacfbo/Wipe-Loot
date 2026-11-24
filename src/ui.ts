@@ -2697,6 +2697,7 @@ export function render(): void {
     }
     stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null)) + (hall ? tutoHtml() : '');
     afterRender();
+    syncLoginMode();
     placeTuto(stage);
     return;
   }
@@ -2721,6 +2722,7 @@ export function render(): void {
   stage.innerHTML = html + overlayHtml(run) + tuto;
   verifierTenue();
   afterRender();
+  syncLoginMode();
   placeTuto(stage);
 }
 
@@ -3179,10 +3181,31 @@ function handleClick(ev: MouseEvent): void {
   }
 }
 
+/**
+ * La fenêtre de connexion s'affiche à la taille réelle de l'écran, en paysage comme en portrait
+ * (sur téléphone, le jeu réduit à 1280 × 720 la rendait minuscule une fois le clavier ouvert).
+ */
+function syncLoginMode(): void {
+  // Pas encore connecté : l'écran « Tourne ton téléphone » propose aussi de se connecter en portrait.
+  document.body.classList.toggle('connexion-proposee', cloud.enabled && cloud.ready && !cloud.user && !ui.run);
+  const on = !!stage.querySelector('.boite-connexion');
+  if (document.body.classList.contains('connexion-libre') === on) return;
+  document.body.classList.toggle('connexion-libre', on);
+  fit();
+}
+
 function fit(): void {
-  // La zone de jeu fait 1280 × 720 ; on l'agrandit ou la réduit pour qu'elle tienne dans l'écran.
   const w = window.visualViewport?.width ?? document.documentElement.clientWidth;
   const h = window.visualViewport?.height ?? document.documentElement.clientHeight;
+  if (document.body.classList.contains('connexion-libre')) {
+    stage.style.transform = `translate(${window.visualViewport?.offsetLeft ?? 0}px, ${window.visualViewport?.offsetTop ?? 0}px)`;
+    stage.style.width = `${w}px`;
+    stage.style.height = `${h}px`;
+    return;
+  }
+  stage.style.width = '';
+  stage.style.height = '';
+  // La zone de jeu fait 1280 × 720 ; on l'agrandit ou la réduit pour qu'elle tienne dans l'écran.
   const scale = Math.min(w / 1280, h / 720);
   const x = (w - 1280 * scale) / 2;
   const y = (h - 720 * scale) / 2;
@@ -3221,6 +3244,11 @@ export function mount(root: HTMLElement): void {
     if (!ui.login?.busy) void submitLogin(form);
   });
   initCloud(cloudChanged);
+  document.getElementById('rotate-connexion')?.addEventListener('click', () => {
+    ui.overlay = 'connexion';
+    ui.login ??= { tab: 'connexion', pseudo: '', error: null, busy: false };
+    render();
+  });
   window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', () => {
     fit();
