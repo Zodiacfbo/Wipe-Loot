@@ -421,7 +421,7 @@ Le jeu proposera **9 classes**, chacune avec une **mécanique principale** qui l
 ### 9.1 Les points de talent
 - Chaque classe a un **niveau de classe, de 1 à 10**, qui monte avec l'expérience gagnée à la fin de chaque run (voir §15.2).
 - **Chaque niveau donne 1 point de talent**. Une classe de niveau 1 a 1 point, une classe de niveau 10 en a **10, le maximum**.
-- On atteint le niveau 10 en environ **10 à 15 runs** avec cette classe.
+- On atteint le niveau 10 en environ **50 runs** avec cette classe (l'équivalent de 30 victoires, voir §15.3).
 - **10 points, et un arbre complet en coûte 7** (paliers 1 à 4 : 1 point chacun ; palier 5 : 3 points, voir §9.2). On ne peut donc **compléter qu'un seul arbre**. Une fois au maximum, les répartitions naturelles sont :
   - **7 + 3** : une spécialisation complète et une touche d'un autre arbre ;
   - **7 + 2 + 1** : la même chose, en piochant dans les deux autres arbres ;
@@ -699,8 +699,8 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
   - **1 point de talent permanent** (voir §9) ;
   - ~~un lot de nouvelles cartes ou de nouveaux objets~~ *(abandonné en novembre 2026 : tout le contenu est disponible dès le départ ; des objets nouveaux par niveau sont une piste pour plus tard)*.
 - **Après le niveau 10**, l'expérience continue de débloquer du contenu cosmétique et des entrées dans les archives, mais plus de points de talent.
-- **Déblocage des classes** : au **tout premier lancement**, le joueur **choisit sa classe de départ** parmi les 9, chacune avec une fiche de présentation (rôle, ressource, style de jeu, difficulté). Les 8 autres sont ensuite à débloquer : à chaque palier d'expérience totale (toutes classes confondues : 300, 700, 1 200, 1 800, 2 500, 3 300, 4 200 et 5 200), le joueur **choisit lui-même** la prochaine classe débloquée. La 2e classe arrive donc après 2 ou 3 runs, et les 9 sont débloquées après environ 35 runs.
-- **Le rattrapage** : une nouvelle classe ne doit pas donner l'impression de tout recommencer. Tant qu'une classe est en dessous du **meilleur niveau atteint** par une autre classe, elle gagne **le double d'expérience**. Le bonus s'arrête tout seul quand elle a rattrapé. Il ne touche que l'expérience : les talents restent à gagner, et la difficulté se débloque toujours classe par classe.
+- **Déblocage des classes** : au **tout premier lancement**, le joueur **choisit sa classe de départ** parmi les 9, chacune avec une fiche de présentation (rôle, ressource, style de jeu, difficulté). Les 8 autres sont ensuite à débloquer : **la première fois qu'une classe (n'importe laquelle) atteint le niveau N, le joueur peut avoir N classes** (niveau 2 → 2e classe, niveau 3 → 3e… niveau 9 → la 9e), et il **choisit lui-même** laquelle. Décidé le 24 novembre 2026 (avant : des paliers d'expérience totale). Mesuré avec le bot : la 2e classe vers la 3e run, la 3e vers la 7e, la 5e vers la 16e, la 9e vers la 41e.
+- **Le rattrapage** : une nouvelle classe ne doit pas donner l'impression de tout recommencer. Tant qu'une classe est en dessous du **meilleur niveau atteint** par une autre classe, elle gagne **50 % d'expérience en plus** (×1,5 ; ×2 avant le 24 novembre 2026). Le bonus s'arrête tout seul quand elle a rattrapé. Il ne touche que l'expérience : les talents restent à gagner, et la difficulté se débloque toujours classe par classe.
 - **Niveaux de difficulté** (l'équivalent de l'Ascension de StS) : un défi optionnel pour les joueurs qui ont déjà gagné.
   - Au départ, on joue en **difficulté 0** (normale).
   - **Gagner une run** (battre le boss de l'acte 3 ; dans le prototype, Vulkhar) avec une classe débloque la **difficulté 1** pour cette classe. Gagner en difficulté 1 débloque la 2, et ainsi de suite jusqu'à **20**.
@@ -757,7 +757,7 @@ Le score détermine l'expérience gagnée. Il servira aussi de base au futur **m
 | Aucun wipe (victoire seulement) | +30 |
 | Wipe | −15 chacun |
 
-Le score minimum est de 10. **Expérience = score** (doublée pendant le rattrapage). Il faut **1 440 points d'expérience** pour passer du niveau 1 au niveau 10 (80, puis 100, 120… jusqu'à 240 par niveau) : environ 10 à 15 runs, une défaite moyenne rapportant 60 à 100 points et une victoire autour de 300.
+Le score minimum est de 10. **Expérience = score** (×1,5 pendant le rattrapage). Il faut **26 700 points d'expérience** pour passer du niveau 1 au niveau 10 (600, 900, 1 300, 1 800, 2 400, 3 200, 4 300, 5 400, 6 800) : **l'équivalent de 30 victoires en difficulté 0** (une victoire complète rapporte environ 890 points), moins en difficulté (+5 % de score par niveau : environ 20 victoires en difficulté 10). La courbe est douce au début pour qu'un débutant sente vite un progrès. Mesuré avec le bot (24 novembre 2026, 2 700 runs ; une défaite rapporte en moyenne 200 au niveau 1, 380 au niveau 5, 470 au niveau 10) : niveau 2 vers la 3e run, niveau 5 vers la 16e, niveau 10 vers la 50e run réelle. Avant le 24 novembre 2026, la courbe était de 1 440 points (80 à 240 par niveau) : avec les 3 chapitres, le niveau 10 arrivait en 4 runs. Les anciens profils ont été convertis en gardant le niveau et l'avancée de chaque classe (`convertOldXp`).
 
 
 ### 15.4 Récapitulatif des progressions

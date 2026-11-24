@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { CLASSES, CLASS_UNLOCK_XP, chooseStartClass, nextUnlockAt, totalXp, unlockClass, unlocksAvailable, type ClassProfile } from '../src/engine/classes';
+import { CLASSES, bestLevel, chooseStartClass, nextUnlockLevel, unlockClass, unlocksAvailable, type ClassProfile } from '../src/engine/classes';
+import { xpForLevel } from '../src/engine/xp';
 
 const fresh = (): ClassProfile => ({ classes: {}, startClass: null, unlockedClasses: [] });
 
@@ -17,18 +18,26 @@ describe('les classes', () => {
     expect(chooseStartClass(p, 'guerrier')).toBe(false);
   });
 
-  it('les paliers d\'expérience totale ouvrent des déblocages au choix', () => {
+  it('le premier niveau N atteint (par n\'importe quelle classe) ouvre la N-ième classe, au choix', () => {
     const p = fresh();
     chooseStartClass(p, 'guerrier');
     expect(unlocksAvailable(p)).toBe(0);
-    expect(nextUnlockAt(p)).toBe(CLASS_UNLOCK_XP[0]);
-    p.classes.guerrier = { xp: 750 };
-    expect(totalXp(p)).toBe(750);
+    expect(nextUnlockLevel(p)).toBe(2);
+    p.classes.guerrier = { xp: xpForLevel(3) };
+    expect(bestLevel(p)).toBe(3);
     expect(unlocksAvailable(p)).toBe(2);
-    expect(nextUnlockAt(p)).toBe(1200);
+    expect(nextUnlockLevel(p)).toBe(4);
     expect(unlockClass(p, 'inconnue')).toBe(false); // pas une classe jouable : le déblocage attend
     expect(unlocksAvailable(p)).toBe(2);
     expect(unlockClass(p, 'mage')).toBe(true);
+    expect(unlockClass(p, 'voleur')).toBe(true);
+    expect(unlocksAvailable(p)).toBe(0);
+    // Le Mage atteint le niveau 4 : c'est le meilleur niveau qui compte, pas la classe.
+    p.classes.mage = { xp: xpForLevel(4) };
     expect(unlocksAvailable(p)).toBe(1);
+    // Au niveau 9, les 9 classes ; au niveau 10, plus rien à débloquer.
+    p.classes.mage = { xp: xpForLevel(10) };
+    expect(unlocksAvailable(p)).toBe(6);
+    expect(nextUnlockLevel(p)).toBe(null);
   });
 });

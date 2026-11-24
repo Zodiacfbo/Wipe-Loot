@@ -1,5 +1,6 @@
 // Les 9 classes du jeu : la fiche de présentation affichée au choix de la classe.
 // Référence : docs/classes/ (une fiche par classe). Le Guerrier, le Mage, le Démoniste, le Prêtre, le Voleur, le Paladin, le Chasseur, le Chaman et le Druide sont jouables : les 9 classes dans le prototype.
+import { MAX_LEVEL, levelFromXp } from './xp';
 
 export interface ClassInfo {
   id: string;
@@ -104,9 +105,6 @@ export function classInfo(id: string | undefined): ClassInfo {
   return CLASS_BY_ID[id ?? 'guerrier'] ?? CLASS_BY_ID.guerrier;
 }
 
-/** Expérience totale (toutes classes) qu'il faut pour débloquer la 2e, la 3e… la 9e classe. */
-export const CLASS_UNLOCK_XP = [300, 700, 1200, 1800, 2500, 3300, 4200, 5200];
-
 export interface ClassProfile {
   classes: Record<string, { xp: number }>;
   /** La classe choisie au premier lancement (null : pas encore choisie). */
@@ -114,20 +112,25 @@ export interface ClassProfile {
   unlockedClasses: string[];
 }
 
-export function totalXp(profile: ClassProfile): number {
-  return Object.values(profile.classes).reduce((a, c) => a + c.xp, 0);
+/** Le meilleur niveau atteint par l'une des classes du joueur (1 au départ). */
+export function bestLevel(profile: ClassProfile): number {
+  return Math.max(1, ...Object.values(profile.classes).map((c) => levelFromXp(c.xp).level));
 }
 
-/** Combien de classes le joueur a le droit de débloquer en plus de celles qu'il a déjà. */
+/**
+ * Combien de classes le joueur a le droit de débloquer en plus de celles qu'il a déjà.
+ * La première fois qu'une classe (n'importe laquelle) atteint le niveau N, on peut avoir N classes (9 au plus).
+ */
 export function unlocksAvailable(profile: ClassProfile): number {
   if (!profile.startClass) return 0;
-  const earned = 1 + CLASS_UNLOCK_XP.filter((x) => totalXp(profile) >= x).length;
+  const earned = Math.min(CLASSES.length, bestLevel(profile));
   return Math.max(0, earned - profile.unlockedClasses.length);
 }
 
-/** Le prochain palier d'expérience totale qui débloque une classe (null s'il n'y en a plus). */
-export function nextUnlockAt(profile: ClassProfile): number | null {
-  return CLASS_UNLOCK_XP.find((x) => totalXp(profile) < x) ?? null;
+/** Le niveau qui débloquera la prochaine classe (null s'il n'y en a plus à débloquer). */
+export function nextUnlockLevel(profile: ClassProfile): number | null {
+  const next = Math.max(bestLevel(profile), profile.unlockedClasses.length) + 1;
+  return next <= Math.min(CLASSES.length, MAX_LEVEL) ? next : null;
 }
 
 /** Choisit la classe de départ (premier lancement). */
@@ -138,7 +141,7 @@ export function chooseStartClass(profile: ClassProfile, id: string): boolean {
   return true;
 }
 
-/** Débloque une classe au choix, si un palier d'expérience le permet. */
+/** Débloque une classe au choix, si le meilleur niveau atteint le permet. */
 export function unlockClass(profile: ClassProfile, id: string): boolean {
   if (unlocksAvailable(profile) <= 0 || profile.unlockedClasses.includes(id) || !CLASS_BY_ID[id]?.playable) return false;
   profile.unlockedClasses.push(id);

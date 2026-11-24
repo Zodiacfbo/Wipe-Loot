@@ -10,6 +10,7 @@ import type { RunJournal } from '../journal';
 import { CARDS } from '../engine/cards';
 import { CLASSES, CLASS_BY_ID } from '../engine/classes';
 import { classLevel } from '../engine/progression';
+import { convertOldXp } from '../engine/xp';
 import { DAY_MS, LIMITE_ECRITURES, LIMITE_LECTURES, cardPickRates, dailyActivity, droppingOut, estimateUsage, stopsByEncounter, suspicious, usageLevel, winsByClass, winsByDifficulty, winsByTree, winsByVersion, type Rate } from './stats';
 
 /** L'organisateur (même liste que admin() dans firestore.rules). */
@@ -219,6 +220,8 @@ function playerSheet(d: Data, uid: string): string {
   if (!p) return '<p>Joueur introuvable.</p><button class="a-bouton" data-act="joueur" data-v="">Retour</button>';
   let profile: Parameters<typeof classLevel>[0] & { stats?: { runs: number; wins: number } } | null = null;
   try { profile = p.profil ? JSON.parse(p.profil) : null; } catch { profile = null; }
+  // Un profil d'avant la nouvelle courbe d'expérience (version 7) : on le convertit pour l'affichage.
+  if (profile && (profile as { version?: number }).version === 7) for (const c of Object.values(profile.classes ?? {})) c.xp = convertOldXp(c.xp ?? 0);
   const mine = d.runs.filter((r) => r.uid === uid);
   const levels = profile ? CLASSES.filter((c) => profile!.classes?.[c.id]).map((c) => `<span class="a-pill">${c.name} niv. ${classLevel(profile!, c.id).level}</span>`).join(' ') : '<span class="a-note">Pas encore de profil.</span>';
   const best = mine.reduce((a, r) => Math.max(a, r.score), 0);

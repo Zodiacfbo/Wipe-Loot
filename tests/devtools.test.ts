@@ -12,7 +12,7 @@ describe('l\'outil de test', () => {
     const p = emptyProfile();
     devSetLevel(p, 'paladin', 10);
     expect(classLevel(p, 'paladin').level).toBe(10);
-    expect(xpForLevel(10)).toBe(1440);
+    expect(xpForLevel(10)).toBe(26700);
     p.talents.paladin = { sacre_pal: ['A', 'A', 'A', 'A', 'A'], protection_pal: ['A', 'A'], vindicte: [] };
     devSetLevel(p, 'paladin', 3);
     expect(classLevel(p, 'paladin').level).toBe(3);

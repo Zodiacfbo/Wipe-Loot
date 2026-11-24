@@ -19,7 +19,7 @@ export interface TutoStep {
 export const HALL_STEPS: TutoStep[] = [
   { cible: ['.hall-heros > img', '.hall-heros'], texte: 'Bienvenue dans le **hall de la guilde** ! Voici ton héros. Chaque expédition lui rapporte de l\'expérience, gagnée ou non.' },
   { cible: ['[data-action="talents"]'], texte: '**Talents** : à chaque niveau, tu gagnes un point de talent. Dépense-les ici avant de partir : 3 arbres par classe, et tu peux tout redistribuer gratuitement.' },
-  { cible: ['[data-action="classes"]'], texte: 'Les autres **classes** se débloquent avec l\'expérience. Chacune a sa propre façon de jouer.' },
+  { cible: ['[data-action="classes"]'], texte: 'Les autres **classes** se débloquent en montant de niveau : au niveau 2, une 2e classe ; au niveau 3, une 3e…' },
   { cible: ['.choix-difficulte'], texte: 'Gagne une expédition pour débloquer la **difficulté** suivante. Plus c\'est dur, plus le score monte.' },
   { cible: ['.hall-coffre'], texte: 'Après une victoire, mets un objet à l\'abri dans le **coffre** : tu pourras l\'emporter la fois suivante. Les **Archives** gardent tout ce que tu as découvert.' },
   { cible: ['.hall-expedition [data-action="nouvelle"]', '[data-action="nouvelle"]'], texte: '3 chapitres de 10 étapes, un seigneur au bout de chacun. Pendant les combats, touche **?** en haut pour te faire expliquer l\'écran. Bonne chasse !' },

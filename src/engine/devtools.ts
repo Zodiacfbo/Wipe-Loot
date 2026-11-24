@@ -2,7 +2,7 @@
 // À retirer avant la version 1.0 : supprimer ce fichier, devtools.test.ts, et les lignes « Outil de test » de ui.ts.
 import { CLASSES } from './classes';
 import { MAX_DIFFICULTY } from './difficulty';
-import { MAX_LEVEL, XP_PER_LEVEL } from './progression';
+import { MAX_LEVEL, xpForLevel } from './xp';
 import { LAST_ACT } from './acts';
 import { BOSS_ENCOUNTER_3, ELITE_ENCOUNTERS_3 } from './enemies_acte3';
 import { startEncounter, startNextAct } from './run';
@@ -10,11 +10,7 @@ import { clampAlloc, emptyAlloc } from './talents';
 import type { Profile } from './save';
 import type { RunState } from './types';
 
-/** L'expérience qu'il faut pour être pile au début d'un niveau. */
-export function xpForLevel(level: number): number {
-  const n = Math.max(1, Math.min(MAX_LEVEL, level));
-  return XP_PER_LEVEL.slice(0, n - 1).reduce((a, b) => a + b, 0);
-}
+export { xpForLevel };
 
 /** Met une classe au niveau voulu (les talents en trop sont retirés si on descend). */
 export function devSetLevel(profile: Profile, classId: string, level: number): void {

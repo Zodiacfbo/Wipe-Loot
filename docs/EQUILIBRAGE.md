@@ -602,3 +602,17 @@ Run complète (trois actes), difficulté 0, 200 runs par profil (± 5 à 7 point
 - **Démonologie (87 %)** reste l'arbre le plus fort du jeu. Ni Démon robuste, ni Pierre d'âme, ni un Seigneur infernal à 10 dégâts n'y changent rien. La force vient du familier et de la combinaison avec Destruction : c'est le prochain arbre à regarder si les joueurs le trouvent trop facile.
 - **Le niveau 5** reste un peu au-dessus de la cible pour le Guerrier (48 %) et plusieurs classes (32-34 %). Le nouveau bot choisit bien ses cartes : un joueur moyen fera moins.
 - **Le Chasseur** a un niveau 10 un peu bas (41-64 %) pour un niveau 5 normal (32 %).
+
+## 22. L'expérience et le déblocage des classes (24 novembre 2026)
+
+Mesure du bot (sonde jetable, non gardée) : 9 classes × niveaux 1, 5 et 10 × 100 runs, difficulté 0, avec les profils de talents du banc. Expérience = score.
+
+| Niveau | Victoires | Score moyen par run | Défaite moyenne | Victoire |
+|---|---|---|---|---|
+| 1 | 6 % | 243 | 198 | ≈ 890 |
+| 5 | 28 % | 526 | 378 | ≈ 890 |
+| 10 | 57 % | 715 | 470 | ≈ 890 |
+
+Avec l'ancienne courbe (1 440 points), le niveau 10 arrivait en **4 runs** (3 avec le rattrapage ×2) : beaucoup trop vite depuis les 3 chapitres (la fiche disait « une victoire autour de 300 », chiffre de l'époque d'un seul chapitre).
+
+Retenu : 26 700 points (600, 900, 1 300, 1 800, 2 400, 3 200, 4 300, 5 400, 6 800), soit l'équivalent de 30 victoires ; rattrapage ×1,5 ; la classe N se débloque au premier niveau N atteint. Simulation (une seule classe, sans rattrapage, médianes) : niveau 2 à la 3e run, niveau 3 à la 7e, niveau 5 à la 16e, niveau 7 à la 26e, niveau 10 à la 51e. La 9e classe arrive donc vers la 41e run. Écartée : l'ancienne courbe × 18,5 (niveau 2 seulement à la 7e run, trop long pour un débutant).

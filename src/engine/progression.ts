@@ -4,10 +4,9 @@ import { MAX_DIFFICULTY } from './difficulty';
 import { ITEMS } from './items';
 import { MAX_WIPES } from './run';
 import type { RunState } from './types';
+import { CATCHUP, levelFromXp, type LevelInfo } from './xp';
 
-export const MAX_LEVEL = 10;
-/** Expérience pour passer du niveau N au niveau N+1 (N = 1 à 9). Total : 1 440, soit 10 à 15 runs. */
-export const XP_PER_LEVEL = [80, 100, 120, 140, 160, 180, 200, 220, 240];
+export { MAX_LEVEL, XP_PER_LEVEL, levelFromXp, type LevelInfo } from './xp';
 
 export interface ClassProgress {
   xp: number;
@@ -23,23 +22,6 @@ export interface ProgressProfile {
   stats: { runs: number; wins: number };
   /** Le plus haut niveau de difficulté débloqué, par classe (0 au départ). */
   difficulty?: Record<string, number>;
-}
-
-export interface LevelInfo {
-  level: number;
-  /** Expérience déjà gagnée dans le niveau en cours, et ce qu'il faut pour le suivant (0 au niveau max). */
-  into: number;
-  needed: number;
-}
-
-export function levelFromXp(xp: number): LevelInfo {
-  let level = 1;
-  let rest = xp;
-  while (level < MAX_LEVEL && rest >= XP_PER_LEVEL[level - 1]) {
-    rest -= XP_PER_LEVEL[level - 1];
-    level += 1;
-  }
-  return { level, into: level === MAX_LEVEL ? 0 : rest, needed: level === MAX_LEVEL ? 0 : XP_PER_LEVEL[level - 1] };
 }
 
 /** Le légendaire forgé de la classe, gardé au râtelier de la guilde (null s'il n'a jamais été forgé). */
@@ -67,7 +49,7 @@ export interface RunSummary {
   lines: ScoreLine[];
   score: number;
   xp: number;
-  /** Rattrapage : expérience doublée. */
+  /** Rattrapage : expérience ×1,5. */
   catchup: boolean;
   levelBefore: number;
   levelAfter: number;
@@ -108,7 +90,7 @@ export function awardRun(profile: ProgressProfile, run: RunState, classId = 'gue
   const score = Math.max(10, lines.reduce((a, l) => a + l.points, 0));
   const before = classLevel(profile, classId);
   const catchup = before.level < bestOtherLevel(profile, classId);
-  const xp = catchup ? score * 2 : score;
+  const xp = catchup ? Math.round(score * CATCHUP) : score;
   const entry = (profile.classes[classId] ??= { xp: 0 });
   entry.xp += xp;
   const after = classLevel(profile, classId);

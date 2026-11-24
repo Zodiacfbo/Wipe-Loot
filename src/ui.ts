@@ -89,7 +89,7 @@ import { MESSAGE_MAX, MESSAGE_STATES, MESSAGE_TYPES, PASSWORD_MIN, PSEUDO_MAX, P
 import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost, toggleTalent, treePoints, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
 import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
-import { CLASSES, CLASS_BY_ID, chooseStartClass, classInfo, nextUnlockAt, totalXp, unlockClass, unlocksAvailable } from './engine/classes';
+import { CLASSES, CLASS_BY_ID, bestLevel, chooseStartClass, classInfo, nextUnlockLevel, unlockClass, unlocksAvailable } from './engine/classes';
 import { DIFFICULTY_TEXT } from './engine/difficulty';
 import { LORE, recordKills, recordSeen } from './engine/archives';
 import { COMMON_POOL } from './engine/items';
@@ -2056,7 +2056,7 @@ function summaryHtml(sum: RunSummary, classId = 'guerrier'): string {
     <div class="bilan-score">${rows}<div class="ligne-score total"><span>Score</span><b>${sum.score}</b></div></div>
     <div class="bilan-xp">
       <span class="butin-titre">${classInfo(classId).name}</span>
-      <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×2 : rattrapage)</em>' : ''}</b>
+      <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×1,5 : rattrapage)</em>' : ''}</b>
       <div class="niveau">Niveau ${sum.levelAfter}${sum.levelAfter === MAX_LEVEL ? ' (maximum)' : ''}</div>
       <div class="barre-xp"><div style="width:${pct}%"></div><span>${sum.needed ? `${sum.into} / ${sum.needed}` : 'Niveau maximum'}</span></div>
       ${up ? `<p class="niveau-gagne">Niveau supérieur ! +${sum.levelAfter - sum.levelBefore} point${sum.levelAfter - sum.levelBefore > 1 ? 's' : ''} de talent</p>` : ''}
@@ -2096,19 +2096,19 @@ function classScreen(): string {
   }).join('');
   const c = CLASS_BY_ID[selId];
   const st = status(selId);
-  const next = nextUnlockAt(profile);
+  const next = nextUnlockLevel(profile);
   const n = unlocksAvailable(profile);
   const [button, note] = {
-    libre: [`<button type="button" class="gros-bouton" data-action="classe-depart" data-id="${c.id}">Choisir le ${c.name}</button>`, 'Tu arriveras ensuite au hall de la guilde, d\'où partent les expéditions. Les autres classes se débloqueront avec l\'expérience.'],
+    libre: [`<button type="button" class="gros-bouton" data-action="classe-depart" data-id="${c.id}">Choisir le ${c.name}</button>`, 'Tu arriveras ensuite au hall de la guilde, d\'où partent les expéditions. Les autres classes se débloqueront en montant de niveau.'],
     jouee: ['<button type="button" class="gros-bouton" disabled>Classe jouée</button>', 'C\'est la classe de tes prochaines expéditions.'],
     debloquee: [`<button type="button" class="gros-bouton" data-action="classe-active" data-id="${c.id}">Jouer le ${c.name}</button>`, ''],
     'a-debloquer': [`<button type="button" class="gros-bouton" data-action="debloquer" data-id="${c.id}">Débloquer le ${c.name}</button>`, `Tu peux débloquer ${n} classe${n > 1 ? 's' : ''} : c'est toi qui choisis.`],
-    verrouillee: ['<button type="button" class="gros-bouton" disabled>À débloquer</button>', next ? `Prochaine classe à ${next} d\'expérience (tu en as ${totalXp(profile)}).` : ''],
+    verrouillee: ['<button type="button" class="gros-bouton" disabled>À débloquer</button>', next ? `Prochaine classe quand l\'une de tes classes atteint le niveau ${next}.` : ''],
     bientot: ['<button type="button" class="gros-bouton" disabled>En préparation</button>', 'Cette classe arrive dans une prochaine version.'],
   }[st];
   const sub = first
     ? 'Choisis ta classe de départ. Touche une classe pour la découvrir.'
-    : `Expérience totale : ${totalXp(profile)}${next ? ` · prochaine classe à ${next}` : ''}`;
+    : `Meilleur niveau : ${bestLevel(profile)}${next ? ` · prochaine classe au niveau ${next}` : ''}`;
   return `<div class="ecran ecran-classes">
     <div class="tete-talents">
       <h2>${first ? 'Choisis ta classe' : 'Les classes'}</h2>

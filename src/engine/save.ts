@@ -3,6 +3,7 @@
 // par `onLocalSave`, et passe par exportLocal / importLocal / clearLocal.
 import type { ArchiveProfile } from './archives';
 import type { ProgressProfile } from './progression';
+import { convertOldXp } from './xp';
 import type { TalentAlloc } from './talents';
 import type { CompanionId, RunState } from './types';
 
@@ -230,7 +231,7 @@ export const localSave: SaveBackend = {
 const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
 
 export interface Profile extends ProgressProfile, ArchiveProfile {
-  version: 7;
+  version: 8;
   /** Le dernier niveau de difficulté choisi dans le hall. */
   lastDifficulty: number;
   /** La classe choisie au premier lancement, et les classes débloquées. */
@@ -287,7 +288,12 @@ export function loadProfile(): Profile {
         p.kills = {};
         p.version = 7;
       }
-      if (p.version === 7 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
+      if (p.version === 7) {
+        // Nouvelle courbe d'expérience (24 novembre 2026) : chaque classe garde son niveau et son avancée.
+        for (const c of Object.values((p.classes ?? {}) as Record<string, { xp: number }>)) c.xp = convertOldXp(c.xp ?? 0);
+        p.version = 8;
+      }
+      if (p.version === 8 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
     }
   } catch {
     // profil illisible : on repart d'un profil vide
@@ -297,7 +303,7 @@ export function loadProfile(): Profile {
 
 /** Un profil tout neuf (premier lancement). */
 export function emptyProfile(): Profile {
-  return { version: 7, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0, seenCards: [], seenEnemies: [], seenPotions: [], kills: {} };
+  return { version: 8, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0, seenCards: [], seenEnemies: [], seenPotions: [], kills: {} };
 }
 
 export function saveProfile(profile: Profile): void {
