@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CHEST_SIZE, depositableSlots, settleChest, takeHeirloom } from '../src/engine/guild';
-import { isFullVictory, newRun, returnToGuild } from '../src/engine/run';
+import { allowedSlots, equipPending, isFullVictory, newRun, returnToGuild, rollTableForTest } from '../src/engine/run';
 import { awardRun, scoreRun } from '../src/engine/progression';
 import { runJournal } from '../src/journal';
 import { migrate } from '../src/engine/save';
@@ -118,5 +118,28 @@ describe('rentrer à la guilde après un seigneur', () => {
     run.version = 25;
     delete run.retreated;
     expect(migrate(run)?.retreated).toBe(false);
+  });
+});
+
+describe('objet unique : un seul exemplaire porté', () => {
+  it('un objet déjà porté ne peut que remplacer son propre exemplaire', () => {
+    const run = newRun(9);
+    run.equipment.bague1 = 'anneau_force';
+    expect(allowedSlots(run, 'anneau_force')).toEqual(['bague1']);
+    expect(allowedSlots(run, 'anneau_soldat')).toEqual(['bague1', 'bague2']);
+    run.pendingItem = 'anneau_force';
+    expect(equipPending(run, 'bague2')).toBe(false);
+    expect(run.equipment.bague2).toBeNull();
+  });
+
+  it('les tables de butin ne proposent pas un objet déjà porté', () => {
+    const run = newRun(9);
+    run.equipment.bague1 = 'anneau_force';
+    for (let i = 0; i < 30; i++) {
+      run.pendingItem = null;
+      run.pendingSpell = null;
+      rollTableForTest(run, ['anneau_force', 'anneau_soldat']);
+      if (run.pendingItem) expect(run.pendingItem).toBe('anneau_soldat');
+    }
   });
 });

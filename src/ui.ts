@@ -69,6 +69,8 @@ import {
   returnToGuild,
   LEGENDARY_MIN_ACT,
   retryAfterWipe,
+  allowedSlots,
+  wornSlot,
   defaultBreakSlot,
   retryHp,
   wipeBreaks,
@@ -515,17 +517,19 @@ function itemGridOverlay(title: string, intro: string, groups: { title: string; 
 /** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
 function equipChoices(run: RunState, id: string, action: string, leave: string): string {
   const carried = heirloomSlot(run);
-  const buttons = slotsFor(id).map((k) => {
+  const slots = allowedSlots(run, id);
+  const buttons = slots.map((k) => {
     const current = run.equipment[k];
     const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}${k === carried ? ' <span class="mention-coffre">· Coffre</span>' : ''}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
     return `<button type="button" class="bouton-objet" ${action} data-slot="${k}">${label}</button>`;
   }).join('');
   // L'effet des objets qui seraient remplacés, pour comparer.
-  const worn = slotsFor(id).map((k) => run.equipment[k]).filter((x, i, a): x is string => !!x && a.indexOf(x) === i);
+  const worn = slots.map((k) => run.equipment[k]).filter((x, i, a): x is string => !!x && a.indexOf(x) === i);
   const compare = worn.length ? `<p class="comparaison">${worn.map((w) => `Tu portes <b>${ITEMS[w].name}</b> : ${ITEMS[w].text}`).join('<br>')}</p>` : '';
   // L'objet emporté du coffre serait remplacé : il serait perdu pour de bon.
-  const warn = carried && slotsFor(id).includes(carried) ? `<p class="mention-brise alerte-coffre">⚠ ${ITEMS[run.equipment[carried]!].name} vient du coffre de la guilde : le remplacer, c'est le perdre pour de bon.</p>` : '';
-  return `<div class="choix-objet">${buttons}${leave}</div>${warn}${compare}`;
+  const twin = wornSlot(run, id) ? '<p class="note">Tu portes déjà cet objet : un seul exemplaire à la fois.</p>' : '';
+  const warn = carried && slots.includes(carried) ? `<p class="mention-brise alerte-coffre">⚠ ${ITEMS[run.equipment[carried]!].name} vient du coffre de la guilde : le remplacer, c'est le perdre pour de bon.</p>` : '';
+  return `<div class="choix-objet">${buttons}${leave}</div>${twin}${warn}${compare}`;
 }
 
 /** Une fiole, teintée de la couleur de la potion. */

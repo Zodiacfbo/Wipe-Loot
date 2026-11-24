@@ -89,8 +89,25 @@ function bossDefeated(run: RunState): void {
 
 /** Un objet d'une table de boss, ou un sort de barre de ta classe. Les armes viennent dans la version de ta famille,
  * et un objet qui ne te sert à rien (bague du familier pour un Guerrier…) n'est pas tiré. */
+/** L'emplacement où l'objet est déjà porté (null s'il ne l'est pas). Un objet ne se porte qu'en un exemplaire. */
+export function wornSlot(run: RunState, id: string): SlotKey | null {
+  return SLOT_KEYS.find((k) => run.equipment[k] === id) ?? null;
+}
+
+/** Où l'objet peut aller : un objet déjà porté ne peut que remplacer son propre exemplaire (objet unique). */
+export function allowedSlots(run: RunState, id: string): SlotKey[] {
+  const worn = wornSlot(run, id);
+  return worn ? [worn] : slotsFor(id);
+}
+
+/** Retire d'une liste les objets déjà portés (sauf si tout y passe). */
+function notWorn(run: RunState, ids: string[]): string[] {
+  const left = ids.filter((id) => !wornSlot(run, id));
+  return left.length ? left : ids;
+}
+
 function rollTable(run: RunState, table: string[]): void {
-  const useful = table.map((id) => itemFor(id, run.classId, () => random(run))).filter((id) => !uselessFor(id, run.classId));
+  const useful = notWorn(run, table.map((id) => itemFor(id, run.classId, () => random(run))).filter((id) => !uselessFor(id, run.classId)));
   const roll = Math.floor(random(run) * (useful.length + 1));
   const spells = lootSpells(run.classId).filter((id) => !run.spells.includes(id));
   if ((roll === useful.length || useful.length === 0) && spells.length > 0) run.pendingSpell = spells[Math.floor(random(run) * spells.length)];
@@ -99,7 +116,7 @@ function rollTable(run: RunState, table: string[]): void {
 
 /** Le butin du seigneur : un objet épique au choix parmi 3 (utile à ta classe). */
 function offerEpics(run: RunState): void {
-  const pool = [...new Set(BOSS_LOOT[run.act].epics.map((id) => itemFor(id, run.classId, () => random(run))))].filter((id) => !uselessFor(id, run.classId));
+  const pool = notWorn(run, [...new Set(BOSS_LOOT[run.act].epics.map((id) => itemFor(id, run.classId, () => random(run))))].filter((id) => !uselessFor(id, run.classId)));
   const picks: string[] = [];
   while (picks.length < 3 && picks.length < pool.length) {
     const id = pool[Math.floor(random(run) * pool.length)];
@@ -611,7 +628,7 @@ export function leaveShop(run: RunState): void {
 export function buyItem(run: RunState, index: number, slot: SlotKey): boolean {
   const item = run.shop?.items[index];
   if (run.screen !== 'shop' || !item || item.sold || run.gold < item.price) return false;
-  if (!slotsFor(item.id).includes(slot)) return false;
+  if (!allowedSlots(run, item.id).includes(slot)) return false;
   run.gold -= item.price;
   item.sold = true;
   putOn(run, item.id, slot);
@@ -624,12 +641,12 @@ export function buyItem(run: RunState, index: number, slot: SlotKey): boolean {
 /** Un objet au hasard parmi ceux des coffres et du vendeur (70 % communs, 30 % rares), ou un épique de boss. */
 function rollItem(run: RunState, forced?: 'commun' | 'rare' | 'epique'): string {
   if (forced === 'epique') {
-    const epics = Object.values(BOSS_LOOT).flatMap((l) => l.epics).map((id) => itemFor(id, run.classId)).filter((id) => !uselessFor(id, run.classId));
+    const epics = notWorn(run, Object.values(BOSS_LOOT).flatMap((l) => l.epics).map((id) => itemFor(id, run.classId)).filter((id) => !uselessFor(id, run.classId)));
     return epics[Math.floor(random(run) * epics.length)];
   }
   const rarity = forced ?? (random(run) < 0.7 ? 'commun' : 'rare');
   // Les coffres et le vendeur ne proposent que des objets utiles à la classe.
-  const pool = COMMON_POOL.filter((id) => ITEMS[id].rarity === rarity && !uselessFor(id, run.classId));
+  const pool = notWorn(run, COMMON_POOL.filter((id) => ITEMS[id].rarity === rarity && !uselessFor(id, run.classId)));
   return pool[Math.floor(random(run) * pool.length)];
 }
 
@@ -673,7 +690,7 @@ function putOn(run: RunState, itemId: string, slot: SlotKey): void {
 /** `alt` : l'index de l'objet choisi parmi les autres propositions (Trousseau, Pari risqué). */
 export function equipPending(run: RunState, slot: SlotKey, alt?: number): boolean {
   const id = alt === undefined ? run.pendingItem : run.pendingAlts[alt];
-  if (!id || !slotsFor(id).includes(slot)) return false;
+  if (!id || !allowedSlots(run, id).includes(slot)) return false;
   logChoice(run, { t: 'objet', e: stepOf(run), o: [run.pendingItem, ...run.pendingAlts].filter((x): x is string => !!x), p: id });
   putOn(run, id, slot);
   run.pendingItem = null;
