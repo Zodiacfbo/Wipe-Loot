@@ -758,7 +758,9 @@ export function buyPotion(run: RunState, index: number): boolean {
 /** Un choix d'événement est-il possible ? (null : oui ; sinon la raison) */
 export function eventChoiceLock(run: RunState, choice: number): string | null {
   const ev = run.eventId ? EVENTS[run.eventId] : null;
-  return ev?.choices[choice]?.locked?.(run) ?? null;
+  const ch = ev?.choices[choice];
+  if (ch?.others && !ch.others.owner(run)) return null; // les autres classes ont leur petit gain
+  return ch?.locked?.(run) ?? null;
 }
 
 function addCurse(run: RunState): void {
@@ -815,7 +817,33 @@ export function resolveEvent(run: RunState, choice: number): void {
   const heal = (n: number) => { const before = run.hp; run.hp = Math.min(run.maxHp, run.hp + n); return run.hp - before; };
   const hurt = (n: number) => { run.hp = Math.max(1, run.hp - n); };
 
-  switch (`${ev.id}:${choice}`) {
+  const ch = ev.choices[choice];
+  const other = !!ch.others && !ch.others.owner(run);
+  switch (`${ev.id}:${choice}${other ? ':autre' : ''}`) {
+    // Les choix de quête vus par les autres classes : un petit gain.
+    case 'forge:0:autre':
+      run.gold += 40;
+      return outcome(run, 'Un vieux nain de passage reconnaît les runes et t\'achète la lame brisée : 40 or.');
+    case 'trappeur:2:autre':
+      return outcome(run, `Le vieux trappeur partage son ragoût de lézard. Tu récupères ${heal(12)} PV.`);
+    case 'cercle:2:autre':
+      run.maxHp += 4;
+      run.hp += 4;
+      return outcome(run, 'Les esprits acceptent ta prière et posent sur toi un souffle de vigueur. +4 PV max.');
+    case 'chapelle:2:autre':
+      run.gold += 40;
+      return outcome(run, 'Sous les pierres de l\'autel, quelques pièces épargnées par la fonte : 40 or.');
+    case 'fantome:1:autre':
+      return outcome(run, `Tu salues le vieux forgeron. Son dernier souffle t'apaise : tu récupères ${heal(8)} PV.`);
+    case 'fantome:1':
+      return itemReward(run, 'Le fantôme du forgeron', rollItem(run, 'rare'), 'Ta prière libère le forgeron. En s\'effaçant, il laisse sur l\'enclume son dernier ouvrage.');
+    case 'observatoire:0:autre':
+      return outcome(run, `Le Veilleur te raconte les étoiles d'avant le feu. Tu récupères ${heal(15)} PV.`);
+    case 'reliquaire:2:autre':
+      run.gold += 60;
+      return outcome(run, 'Au fond de la crypte, une relique oubliée par les pillards. Un marchand t\'en donnera 60 or.');
+    case 'veilleurs:0:autre':
+      return outcome(run, `Tu chasses avec les Veilleurs jusqu'à l'aube. Ils partagent leurs vivres : tu récupères ${heal(20)} PV.`);
     case 'sources:0':
       run.sourcesQuest = 'active';
       return outcome(run, 'Les Gardiens tracent une rune d\'eau sur ta lame. Le prochain gardien que tu affronteras portera la rune qui les enchaîne.');

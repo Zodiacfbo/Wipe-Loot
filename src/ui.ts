@@ -27,7 +27,7 @@ import { closeMini, combatTutoDone, howToPlayHtml, miniHtml, placeTuto, startCom
 import { cardReady } from './engine/hints';
 import { GLOSSARY_EXTRA, KEYWORDS, markKeywords } from './keywords';
 import { ACTS, LAST_ACT, actDef } from './engine/acts';
-import { BLESSINGS, EVENTS } from './engine/events';
+import { BLESSINGS, EVENTS, choiceView } from './engine/events';
 import { FLOORS, reachable, type MapNode, type NodeType } from './engine/map';
 import {
   MAX_WIPES,
@@ -698,9 +698,12 @@ function eventScreen(run: RunState): string {
   }
   const choices = ev.choices.map((ch, i) => {
     const lock = eventChoiceLock(run, i);
+    // Une quête d'une autre classe : son petit gain, avec un clin d'œil à la quête.
+    const v = choiceView(run, ch);
+    const hint = v.hint ? `<i class="indice-classe">${v.hint}</i>` : '';
     return lock
-      ? `<button type="button" class="choix-evenement verrouille" disabled><b>${ch.label}</b><span>${ch.detail}</span><em>${lock}</em></button>`
-      : `<button type="button" class="choix-evenement" data-action="choix" data-index="${i}"><b>${ch.label}</b><span>${ch.detail}</span></button>`;
+      ? `<button type="button" class="choix-evenement verrouille" disabled><b>${v.label}</b><span>${v.detail}</span><em>${lock}</em></button>`
+      : `<button type="button" class="choix-evenement" data-action="choix" data-index="${i}"><b>${v.label}</b><span>${v.detail}</span>${hint}</button>`;
   }).join('');
   return `${topbar(run, run.hp)}<div class="ecran">
     <h2>${ev.title}</h2>

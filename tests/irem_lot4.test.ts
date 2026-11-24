@@ -119,9 +119,13 @@ describe('l\'Aurore ardente : l\'étape des Veilleurs', () => {
     expect(run.equipment.arme).toBe('aurore_ardente');
   });
 
-  it('les autres classes ne peuvent pas demander la purification', () => {
+  it('les autres classes ont un petit gain à la place de la purification', () => {
     const run = atEvent(act3('guerrier'), 'veilleurs');
-    expect(eventChoiceLock(run, 0)).toBe('Réservé au Paladin');
+    expect(eventChoiceLock(run, 0)).toBeNull();
+    run.hp = 30;
+    resolveEvent(run, 0);
+    expect(run.hp).toBe(50);
+    expect(run.aurore).toBeFalsy();
   });
 });
 

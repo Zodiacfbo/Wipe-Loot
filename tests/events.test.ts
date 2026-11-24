@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCombat, endTurn } from '../src/engine/combat';
 import { BOSS_ENCOUNTER, ELITE_ENCOUNTERS } from '../src/engine/enemies';
-import { EVENTS, HIDDEN_FIGHTS } from '../src/engine/events';
+import { EVENTS, HIDDEN_FIGHTS, choiceView } from '../src/engine/events';
 import {
   afterCombatAction, campfireReforge, chooseBlessing, chooseNode, eventChoiceLock, newRun, offerBlessing, resolveEvent,
 } from '../src/engine/run';
@@ -95,6 +95,34 @@ describe('les événements de l\'acte 1', () => {
     run.eventOutcome = null;
     resolveEvent(run, 0);
     expect(run.deck.some((c) => c.id === 'malediction')).toBe(false);
+  });
+
+  it('un choix de quête d\'une autre classe devient un petit gain (jamais grisé)', () => {
+    for (const [id, i] of [['forge', 0], ['trappeur', 2], ['cercle', 2], ['chapelle', 2], ['fantome', 1]] as const) {
+      const run = atEvent(id); // un Guerrier, sauf pour la forge
+      if (id === 'forge') run.classId = 'mage';
+      expect(eventChoiceLock(run, i), id).toBeNull();
+      expect(choiceView(run, EVENTS[id].choices[i]).other, id).toBe(true);
+      const before = { gold: run.gold, maxHp: run.maxHp };
+      run.hp = 40;
+      resolveEvent(run, i);
+      expect(run.eventOutcome, id).toBeTruthy();
+      expect(run.gold > before.gold || run.maxHp > before.maxHp || run.hp > 40, id).toBe(true);
+    }
+    // La bonne classe garde sa quête.
+    const hunter = atEvent('trappeur');
+    hunter.classId = 'chasseur';
+    expect(choiceView(hunter, EVENTS.trappeur.choices[2]).other).toBe(false);
+    resolveEvent(hunter, 2);
+    expect(hunter.corde).toBe('bois');
+  });
+
+  it('le fantôme du forgeron offre un objet rare au Paladin et au Prêtre', () => {
+    const run = atEvent('fantome');
+    run.classId = 'pretre';
+    resolveEvent(run, 1);
+    expect(run.screen).toBe('reward');
+    expect(run.pendingItem).toBeTruthy();
   });
 
   it('le fantôme du forgeron renforce l\'arme équipée', () => {

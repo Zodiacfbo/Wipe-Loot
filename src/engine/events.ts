@@ -10,6 +10,11 @@ export interface EventChoice {
   detail: string;
   /** Si le choix n'est pas possible : la raison, affichée sur le bouton grisé. */
   locked?: (run: RunState) => string | null;
+  /**
+   * Un choix réservé à certaines classes (une quête légendaire) : les autres classes voient à la place
+   * un petit gain, pour que l'événement ne soit jamais vide. Le clin d'œil reste dans `hint`.
+   */
+  others?: { owner: (run: RunState) => boolean; label: string; detail: string; hint: string };
 }
 
 export interface EventDef {
@@ -28,6 +33,12 @@ export interface EventDef {
 }
 
 const hasCurse = (run: RunState) => run.deck.some((c) => c.id === 'malediction');
+
+/** Ce que voit le joueur pour un choix : le gain des autres classes à la place d'une quête qui n'est pas la sienne. */
+export function choiceView(run: RunState, choice: EventChoice): { label: string; detail: string; hint: string | null; other: boolean } {
+  if (choice.others && !choice.others.owner(run)) return { label: choice.others.label, detail: choice.others.detail, hint: choice.others.hint, other: true };
+  return { label: choice.label, detail: choice.detail, hint: null, other: false };
+}
 
 export const EVENTS: Record<string, EventDef> = {
   sources: {
@@ -55,7 +66,7 @@ export const EVENTS: Record<string, EventDef> = {
     text: 'Une forge naine abandonnée, à moitié noyée sous la roche. L\'enclume porte encore les runes des rois du mont Durgal.',
     warriorText: 'Sous l\'enclume, enveloppée dans un tissu calciné, tu trouves une lame brisée. Les runes de la garde ne laissent aucun doute : c\'est Brisemonts, l\'épée des anciens rois nains.',
     choices: [
-      { label: 'Prendre la Lame brisée', detail: 'Quête légendaire Brisemonts, étape 1 sur 3.', locked: (run) => ((run.classId ?? 'guerrier') !== 'guerrier' ? 'Réservé au Guerrier' : run.brisemonts ? 'Tu l\'as déjà' : null) },
+      { label: 'Prendre la Lame brisée', detail: 'Quête légendaire Brisemonts, étape 1 sur 3.', locked: (run) => ((run.classId ?? 'guerrier') !== 'guerrier' ? 'Réservé au Guerrier' : run.brisemonts ? 'Tu l\'as déjà' : null), others: { owner: (run) => (run.classId ?? 'guerrier') === 'guerrier', label: 'Revendre la lame brisée', detail: "Un vieux nain t'en donne 40 or.", hint: 'Pour un Guerrier : la quête de Brisemonts.' } },
       { label: 'Rallumer la forge', detail: 'Perds 6 PV. Améliore 2 cartes au hasard.' },
       { label: 'Fouiller les décombres', detail: 'Gagne 40 or.' },
     ],
@@ -69,7 +80,7 @@ export const EVENTS: Record<string, EventDef> = {
     choices: [
       { label: 'Le soigner', detail: 'Perds 1 potion. En échange, il t\'apprend ses astuces de vieux chasseur : +6 PV max.', locked: (run) => (run.potions.some((p) => p) ? null : 'Il te faut une potion') },
       { label: 'L\'ignorer', detail: 'Rien ne se passe.' },
-      { label: 'Parler chasse avec lui', detail: 'Il te confie le Bois ancien : quête légendaire Corde-des-anciens, étape 1 sur 3.', locked: (run) => (run.classId !== 'chasseur' ? 'Réservé au Chasseur' : run.corde ? 'Tu l\'as déjà' : null) },
+      { label: 'Parler chasse avec lui', detail: 'Il te confie le Bois ancien : quête légendaire Corde-des-anciens, étape 1 sur 3.', locked: (run) => (run.classId !== 'chasseur' ? 'Réservé au Chasseur' : run.corde ? 'Tu l\'as déjà' : null), others: { owner: (run) => run.classId === 'chasseur', label: 'Partager son repas', detail: 'Soigne 12 PV.', hint: 'Pour un Chasseur : la quête de Corde-des-anciens.' } },
     ],
   },
   cercle: {
@@ -81,7 +92,7 @@ export const EVENTS: Record<string, EventDef> = {
     choices: [
       { label: 'Écouter leur sagesse', detail: 'Retire une Malédiction de ton paquet.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
       { label: 'Te recueillir', detail: 'Soigne 10 PV.' },
-      { label: 'Appeler les esprits des chamans', detail: 'Ils te confient la Tête du marteau : quête légendaire le Marteau des ancêtres, étape 1 sur 3.', locked: (run) => (run.classId !== 'chaman' ? 'Réservé au Chaman' : run.marteau ? 'Tu l\'as déjà' : null) },
+      { label: 'Appeler les esprits des chamans', detail: 'Ils te confient la Tête du marteau : quête légendaire le Marteau des ancêtres, étape 1 sur 3.', locked: (run) => (run.classId !== 'chaman' ? 'Réservé au Chaman' : run.marteau ? 'Tu l\'as déjà' : null), others: { owner: (run) => run.classId === 'chaman', label: 'Offrir une prière aux esprits', detail: '+4 PV max.', hint: 'Pour un Chaman : la quête du Marteau des ancêtres.' } },
     ],
   },
   chapelle: {
@@ -91,7 +102,7 @@ export const EVENTS: Record<string, EventDef> = {
     choices: [
       { label: 'Prier', detail: '+5 PV max.' },
       { label: 'Piller l\'autel', detail: 'Gagne 80 or, mais une Malédiction rejoint ton paquet.' },
-      { label: 'Fouiller sous les décombres', detail: 'Tu trouves le Bâton nu : quête légendaire Équinoxe, étape 1 sur 3.', locked: (run) => (run.classId !== 'pretre' ? 'Réservé au Prêtre' : run.equinoxe ? 'Tu l\'as déjà' : null) },
+      { label: 'Fouiller sous les décombres', detail: 'Tu trouves le Bâton nu : quête légendaire Équinoxe, étape 1 sur 3.', locked: (run) => (run.classId !== 'pretre' ? 'Réservé au Prêtre' : run.equinoxe ? 'Tu l\'as déjà' : null), others: { owner: (run) => run.classId === 'pretre', label: 'Fouiller sous les décombres', detail: 'Gagne 40 or.', hint: "Pour un Prêtre : la quête d'Équinoxe." } },
     ],
   },
   fantome: {
@@ -100,7 +111,7 @@ export const EVENTS: Record<string, EventDef> = {
     text: 'Un forgeron spectral martèle une enclume invisible. Il voudrait finir son dernier ouvrage, mais ses mains passent à travers le métal.',
     choices: [
       { label: 'L\'aider', detail: 'Perds 10 PV. Ton arme gagne +2 dégâts pour l\'expédition.', locked: (run) => (run.equipment.arme ? null : 'Il te faut une arme équipée') },
-      { label: 'Le libérer', detail: 'Il t\'offre un objet d\'équipement rare.', locked: () => 'Réservé au Paladin et au Prêtre' },
+      { label: 'Le libérer', detail: 'Il t\'offre un objet d\'équipement rare.', locked: () => null, others: { owner: (run) => ['paladin', 'pretre'].includes(run.classId), label: 'Lui dire adieu', detail: "Son dernier souffle t'apaise : soigne 8 PV.", hint: 'Pour un Paladin ou un Prêtre : il offre un objet rare.' } },
       { label: 'Partir', detail: 'Rien ne se passe.' },
     ],
   },
@@ -156,7 +167,7 @@ export const EVENTS: Record<string, EventDef> = {
     title: 'L\'observatoire en ruine',
     text: 'Une tour d\'astronome à moitié effondrée, ouverte sur le ciel. Au centre, l\'esprit d\'un vieil homme flotte au-dessus d\'un télescope brisé : le Veilleur.',
     choices: [
-      { label: 'Prouver ta sagesse au Veilleur', detail: 'Perds 8 PV max. Obtiens la Tête du bâton (quête du Bâton du Veilleur, étape 2).', locked: (run) => (!['mage', 'demoniste', 'druide'].includes(run.classId) ? 'Réservé au Mage, au Démoniste et au Druide' : run.veilleur !== 'fragment' ? 'Il te faut le Fragment du Veilleur (Zhaal)' : null) },
+      { label: 'Prouver ta sagesse au Veilleur', detail: 'Perds 8 PV max. Obtiens la Tête du bâton (quête du Bâton du Veilleur, étape 2).', locked: (run) => (!['mage', 'demoniste', 'druide'].includes(run.classId) ? 'Réservé au Mage, au Démoniste et au Druide' : run.veilleur !== 'fragment' ? 'Il te faut le Fragment du Veilleur (Zhaal)' : null), others: { owner: (run) => ['mage', 'demoniste', 'druide'].includes(run.classId), label: 'Écouter le Veilleur', detail: "Ses récits t'apaisent : soigne 15 PV.", hint: 'Pour un Mage, un Démoniste ou un Druide : la quête du Bâton du Veilleur.' } },
       { label: 'Regarder les étoiles', detail: 'Pendant les 3 prochains combats, tu vois les deux prochaines intentions des ennemis.' },
       { label: 'Fouiller la tour', detail: 'Gagne 60 or.' },
     ],
@@ -190,7 +201,7 @@ export const EVENTS: Record<string, EventDef> = {
     choices: [
       { label: 'Purifier le reliquaire', detail: 'Retire une Malédiction de ton paquet.', locked: (run) => (hasCurse(run) ? null : 'Tu n\'as pas de Malédiction') },
       { label: 'Le piller', detail: 'Gagne 100 or, mais une Malédiction rejoint ton paquet.' },
-      { label: 'Descendre au fond de la crypte', detail: 'Tu trouves la Lame ternie : quête légendaire l\'Aurore ardente, étape 1 sur 3.', locked: (run) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore ? 'Tu l\'as déjà' : null) },
+      { label: 'Descendre au fond de la crypte', detail: 'Tu trouves la Lame ternie : quête légendaire l\'Aurore ardente, étape 1 sur 3.', locked: (run) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore ? 'Tu l\'as déjà' : null), others: { owner: (run) => run.classId === 'paladin', label: 'Descendre au fond de la crypte', detail: 'Une relique oubliée : gagne 60 or.', hint: "Pour un Paladin : la quête de l'Aurore ardente." } },
     ],
   },
   laboratoire: {
@@ -273,7 +284,7 @@ Object.assign(EVENTS, {
     title: 'Les Veilleurs de l\'Aurore',
     text: 'Un campement de croisés, entre deux dunes. Leurs tabards portent un soleil levant. Ils chassent les morts-vivants qui sortent des tombeaux d\'Irem.',
     choices: [
-      { label: 'Leur demander de purifier la lame', detail: 'Ils bénissent la Lame ternie. Vaincs un gardien d\'Irem : la lame s\'embrasera (l\'Aurore ardente, étape 2 sur 3).', locked: (run: RunState) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore !== 'lame' ? 'Il te faut la Lame ternie' : null) },
+      { label: 'Leur demander de purifier la lame', detail: 'Ils bénissent la Lame ternie. Vaincs un gardien d\'Irem : la lame s\'embrasera (l\'Aurore ardente, étape 2 sur 3).', locked: (run: RunState) => (run.classId !== 'paladin' ? 'Réservé au Paladin' : run.aurore !== 'lame' ? 'Il te faut la Lame ternie' : null), others: { owner: (run: RunState) => run.classId === 'paladin', label: 'Te joindre à leur chasse', detail: 'Ils partagent leurs vivres : soigne 20 PV.', hint: "Pour un Paladin : la quête de l'Aurore ardente." } },
       { label: 'Recevoir leur bénédiction', detail: 'Tes Attaques infligent +3 dégâts aux Morts-vivants, jusqu\'à la fin de l\'expédition.' },
       { label: 'Leur demander un indice', detail: 'Un « ? » de la carte est révélé : tu sauras s\'il cache un combat ou un événement.' },
     ],
