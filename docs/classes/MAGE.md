@@ -156,7 +156,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 | **Tempête de neige** | 2 | Sort | R | Inflige 4 dégâts à tous les ennemis, 3 fois. Chaque fois, applique Gel 1. | 5 × 3 |
 | **Prison de glace** | 1 | Compétence | R | La cible (sauf boss) devient immédiatement **Gelée**. **Épuisé.** | Fonctionne aussi sur un boss (attaque réduite de moitié) |
 | **Fragmentation** | 2 | Pouvoir | R | **Fracasser** inflige **triple** dégâts au lieu de double. | Coûte 1 |
-| **Cœur de glace** | 1 | Pouvoir | R | Applique **Gel 2** à tous les ennemis tout de suite, puis à nouveau au début de chaque tour (26 novembre 2026 : avant, Gel 1 au début du tour seulement, annulé par la baisse du Gel à chaque tour ennemi). | Inné |
+| **Cœur de glace** | 1 | Pouvoir | R | Applique **Gel 1** à tous les ennemis tout de suite, puis à nouveau au début de chaque tour (26 novembre 2026 : avant, seulement au début du tour ; Gel 2 essayé puis écarté, à mon choix). Sans Givre durable ni Hiver précoce, le Gel reste à 1 (il baisse de 1 à chaque tour ennemi). | Inné |
 | **Fracas glaciaire** | 2 | Sort | É | Applique **Gel 3** à la cible, puis inflige 8 dégâts **à tous les ennemis**. **Fracasser** (chaque ennemi fracassable subit double dégâts). | 11 dégâts |
 
 ---

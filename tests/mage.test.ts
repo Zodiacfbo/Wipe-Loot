@@ -270,12 +270,12 @@ describe('le Mage : paquet de départ selon l\'arbre principal', () => {
 });
 
 describe('le Mage : Cœur de glace', () => {
-  it('Gel 2 à tous tout de suite, puis Gel 2 au début de chaque tour', () => {
+  it('Gel 1 à tous tout de suite, puis Gel 1 au début de chaque tour', () => {
     const c = fight(['lieutenant', 'lieutenant'], ['coeur_de_glace']);
     play(c, 'coeur_de_glace');
-    expect(c.enemies.map((e) => e.buffs.gel)).toEqual([2, 2]);
+    expect(c.enemies.map((e) => e.buffs.gel)).toEqual([1, 1]);
     endTurn(c);
-    // −1 à la fin du tour ennemi, +2 au début du tour suivant.
-    expect(c.enemies.filter((e) => !e.dead).map((e) => e.buffs.gel)).toEqual([3, 3]);
+    // −1 à la fin du tour ennemi, +1 au début du tour suivant.
+    expect(c.enemies.filter((e) => !e.dead).map((e) => e.buffs.gel)).toEqual([1, 1]);
   });
 });
