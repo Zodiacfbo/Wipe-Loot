@@ -75,24 +75,39 @@ export function droppingOut(players: PlayerRow[], now = Date.now(), days = 3): P
 
 // ---------- Équilibrage ----------
 
+/** Rentrée à la guilde après un seigneur (ni victoire ni chute). */
+export const isRetreat = (r: RunJournal): boolean => !r.victoire && r.cause === 'Retour à la guilde';
+/** Le seigneur vaincu avant un retour : Vulkhar à la fin du chapitre 1, Vhaeryx à la fin du 2. */
+export const retreatLord = (chapitre: number): string => (chapitre >= 2 ? 'Vhaeryx' : 'Vulkhar');
+
+/** Les retours à la guilde, comptés par seigneur vaincu. */
+export function retreatsByLord(runs: RunJournal[]): { lord: string; count: number }[] {
+  const map = new Map<string, number>();
+  for (const r of runs) if (isRetreat(r)) map.set(retreatLord(r.chapitre), (map.get(retreatLord(r.chapitre)) ?? 0) + 1);
+  return ['Vulkhar', 'Vhaeryx'].filter((l) => map.has(l)).map((lord) => ({ lord, count: map.get(lord)! }));
+}
+
 export interface Rate {
   key: string;
   runs: number;
   wins: number;
+  /** Retours à la guilde (pas comptés dans le taux). */
+  retreats: number;
   pct: number;
 }
 
 function rates(runs: RunJournal[], keyOf: (r: RunJournal) => string | null): Rate[] {
-  const map = new Map<string, { runs: number; wins: number }>();
+  const map = new Map<string, { runs: number; wins: number; retreats: number }>();
   for (const r of runs) {
     const k = keyOf(r);
     if (k === null) continue;
-    const e = map.get(k) ?? { runs: 0, wins: 0 };
+    const e = map.get(k) ?? { runs: 0, wins: 0, retreats: 0 };
     e.runs++;
     if (r.victoire) e.wins++;
+    if (isRetreat(r)) e.retreats++;
     map.set(k, e);
   }
-  return [...map.entries()].map(([key, e]) => ({ key, runs: e.runs, wins: e.wins, pct: Math.round((100 * e.wins) / e.runs) })).sort((a, b) => b.runs - a.runs);
+  return [...map.entries()].map(([key, e]) => ({ key, runs: e.runs, wins: e.wins, retreats: e.retreats, pct: Math.round((100 * e.wins) / e.runs) })).sort((a, b) => b.runs - a.runs);
 }
 
 export const winsByClass = (runs: RunJournal[]) => rates(runs, (r) => r.classe);
@@ -112,11 +127,11 @@ export function mainTree(r: RunJournal): string {
 }
 export const winsByTree = (runs: RunJournal[]) => rates(runs, (r) => `${r.classe} · ${mainTree(r)}`);
 
-/** Où les expéditions s'arrêtent : nombre de défaites par combat, du plus meurtrier au moins. */
+/** Où les expéditions s'arrêtent : nombre de défaites par combat, du plus meurtrier au moins (sans les retours à la guilde). */
 export function stopsByEncounter(runs: RunJournal[]): { cause: string; count: number; chapitre: number }[] {
   const map = new Map<string, { count: number; chapitre: number }>();
   for (const r of runs) {
-    if (r.victoire || !r.cause) continue;
+    if (r.victoire || !r.cause || isRetreat(r)) continue;
     const e = map.get(r.cause) ?? { count: 0, chapitre: r.chapitre };
     e.count++;
     map.set(r.cause, e);

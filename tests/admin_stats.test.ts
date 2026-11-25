@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { RunJournal } from '../src/journal';
-import { DAY_MS, cardPickRates, dailyActivity, droppingOut, estimateUsage, mainTree, stopsByEncounter, suspicious, usageLevel, winsByClass } from '../src/admin/stats';
+import { DAY_MS, cardPickRates, dailyActivity, droppingOut, estimateUsage, isRetreat, mainTree, retreatsByLord, stopsByEncounter, suspicious, usageLevel, winsByClass } from '../src/admin/stats';
 import { rewardPool } from '../src/engine/cards';
 import { treesFor } from '../src/engine/talents';
 
@@ -30,8 +30,18 @@ describe('page admin : les calculs', () => {
 
   it('calcule les taux de victoire et les arrêts', () => {
     const runs = [run({ victoire: true, cause: null }), run({}), run({ classe: 'guerrier', cause: 'Vulkhar' }), run({})];
-    expect(winsByClass(runs)[0]).toEqual({ key: 'mage', runs: 3, wins: 1, pct: 33 });
+    expect(winsByClass(runs)[0]).toEqual({ key: 'mage', runs: 3, wins: 1, retreats: 0, pct: 33 });
     expect(stopsByEncounter(runs)[0]).toMatchObject({ cause: 'Krâgg', count: 2 });
+  });
+
+  it('compte les retours à la guilde à part : ni victoire, ni défaite', () => {
+    const back = (chapitre: number) => run({ classe: 'voleur', cause: 'Retour à la guilde', chapitre });
+    const runs = [back(1), back(1), back(2), run({ classe: 'voleur', cause: 'Saldris' })];
+    expect(isRetreat(runs[0])).toBe(true);
+    expect(isRetreat(runs[3])).toBe(false);
+    expect(winsByClass(runs)[0]).toEqual({ key: 'voleur', runs: 4, wins: 0, retreats: 3, pct: 0 });
+    expect(stopsByEncounter(runs)).toEqual([{ cause: 'Saldris', count: 1, chapitre: 1 }]);
+    expect(retreatsByLord(runs)).toEqual([{ lord: 'Vulkhar', count: 2 }, { lord: 'Vhaeryx', count: 1 }]);
   });
 
   it('trouve l\'arbre principal d\'une run', () => {
