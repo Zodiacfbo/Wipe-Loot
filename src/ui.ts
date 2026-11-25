@@ -514,7 +514,7 @@ function itemGridOverlay(title: string, intro: string, groups: { title: string; 
       <div class="texte-fiche">${sel.seen ? `<p>${it.text}</p>${note ? `<p class="note">${note}</p>` : ''}` : '<p class="note">Pas encore découvert.</p>'}</div></aside>`;
   }
   return `<div class="overlay"><div class="ecran ecran-archives">
-    <div class="archives-gauche"><div class="tete-talents"><h2>${title}</h2></div><div class="contenu-archives">${body}</div></div>
+    <div class="archives-gauche"><div class="tete-talents"><h2>${title}</h2></div><div class="contenu-archives" data-scroll="table:${title}">${body}</div></div>
     <div class="archives-droite">${sheet}<button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button></div>
   </div></div>`;
 }
@@ -1763,7 +1763,7 @@ function archivesScreen(): string {
   return `<div class="ecran ecran-archives">
     <div class="archives-gauche">
       <div class="tete-talents"><h2>Archives</h2><div class="onglets">${tabs}</div><span class="points-talent">${seen} / ${total}</span></div>
-      <div class="contenu-archives">${body}</div>
+      <div class="contenu-archives" data-scroll="archives:${tab}">${body}</div>
     </div>
     <div class="archives-droite">
       <button type="button" class="bouton bouton-retour" data-action="titre">Retour</button>
@@ -1779,7 +1779,7 @@ function glossaryScreen(tabs: string): string {
   return `<div class="ecran ecran-archives">
     <div class="archives-gauche">
       <div class="tete-talents"><h2>Archives</h2><div class="onglets">${tabs}</div><span class="points-talent">${words.length} mots</span></div>
-      <div class="contenu-archives glossaire">${list}</div>
+      <div class="contenu-archives glossaire" data-scroll="archives:mots">${list}</div>
     </div>
     <div class="archives-droite">
       <button type="button" class="bouton bouton-retour" data-action="titre">Retour</button>
@@ -2757,7 +2757,22 @@ function devAction(action: string, el: HTMLElement): boolean {
 
 // ---------- Boucle de rendu ----------
 
+/** Les listes marquées `data-scroll` gardent leur position quand l'écran est redessiné (même clé = même liste). */
+function saveScroll(): Map<string, number> {
+  const saved = new Map<string, number>();
+  stage.querySelectorAll<HTMLElement>('[data-scroll]').forEach((el) => saved.set(el.dataset.scroll!, el.scrollTop));
+  return saved;
+}
+
+function restoreScroll(saved: Map<string, number>): void {
+  stage.querySelectorAll<HTMLElement>('[data-scroll]').forEach((el) => {
+    const top = saved.get(el.dataset.scroll!);
+    if (top) el.scrollTop = top;
+  });
+}
+
 export function render(): void {
+  const scroll = saveScroll();
   const run = ui.run;
   if (!run) {
     stage.dataset.acte = '1';
@@ -2772,6 +2787,7 @@ export function render(): void {
       if (profile.startClass && !profile.tuto?.hall) startHallTuto();
     }
     stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen()) + overlayHtml(null) + (hall ? tutoHtml() : '') + (hall ? updateHtml() : '');
+    restoreScroll(scroll);
     afterRender();
     syncLoginMode();
     placeTuto(stage);
@@ -2797,6 +2813,7 @@ export function render(): void {
   if (tutoActive() && (tutoActive()!.kind !== 'combat' || run.screen !== 'combat' || ui.overlay)) tutoStop();
   const tuto = run.screen === 'combat' && !ui.overlay ? tutoHtml() + miniHtml(loadProfile(), run.classId) : '';
   stage.innerHTML = html + overlayHtml(run) + tuto;
+  restoreScroll(scroll);
   verifierTenue();
   afterRender();
   syncLoginMode();
