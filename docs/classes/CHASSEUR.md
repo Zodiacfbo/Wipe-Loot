@@ -221,7 +221,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 |---|---|
 | **Arme** (légendaire) | Au début de chacun de tes tours, une **Flèche des anciens** arrive en main (sauf si tu en gardes déjà une). |
 
-**La Flèche des anciens** (Attaque, 0 énergie, s'épuise quand on la joue) : inflige **5 dégâts** et pose une **Marque +2** (sans remplacer une Marque plus forte). **Bander l'arc** : gardée en main, elle reste d'un tour à l'autre et gagne **+5 dégâts par tour, 15 au plus**. Tirer tout de suite ou attendre le bon moment (achever un gardien, frapper avant que le seigneur se déchaîne) : la force moyenne ne change pas, seulement le moment.
+**La Flèche des anciens** (Attaque, 0 énergie, s'épuise quand on la joue) : inflige **5 dégâts** (une Marque +2 a été essayée puis retirée le 25 novembre 2026 : elle renforçait aussi le compagnon et rendait la Corde trop forte). **Bander l'arc** : gardée en main, elle reste d'un tour à l'autre et gagne **+5 dégâts par tour, 15 au plus**. Tirer tout de suite ou attendre le bon moment (achever un gardien, frapper avant que le seigneur se déchaîne) : la force moyenne ne change pas, seulement le moment.
 
 *Changé le 25 novembre 2026* : avant, le compagnon agissait une fois de plus à la fin de chaque tour. Avec Fureur primitive, il agissait 3 fois, et l'arbre des Bêtes gagnait tout sans perdre de PV (playtest : difficulté 9, 0 PV perdu contre Vulkhar). La Flèche est neutre : elle sert aux trois arbres et ne fait plus agir le compagnon.
 

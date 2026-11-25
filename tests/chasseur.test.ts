@@ -134,23 +134,17 @@ describe('le compagnon', () => {
     const before = e.hp;
     play(c, 'fleche_anciens', e.uid);
     expect(before - e.hp).toBe(15);
-    expect(c.mark).toEqual({ uid: e.uid, value: 2 });
     expect(c.exhaust.some((k) => k.id === 'fleche_anciens')).toBe(true);
     flecheStartTurn(c);
     expect(flecheDamage(c)).toBe(5); // la suivante repart de 5
   });
 
-  it('la Flèche des anciens reste en main à la fin du tour, et ne remplace pas une Marque plus forte', () => {
-    const c = fight(['lieutenant'], ['marque_proie'], { cordeAnciens: 1 });
+  it('la Flèche des anciens reste en main à la fin du tour', () => {
+    const c = fight(['lieutenant'], ['repli'], { cordeAnciens: 1 });
     flecheStartTurn(c);
     endTurn(c);
     expect(c.hand.some((k) => k.id === 'fleche_anciens')).toBe(true);
     expect(c.flecheCharge).toBe(1);
-    c.player.energy = 10;
-    c.hand.push({ uid: 7777, id: 'marque_proie', upgraded: true });
-    play(c, 'marque_proie', c.enemies[0].uid);
-    play(c, 'fleche_anciens', c.enemies[0].uid);
-    expect(c.mark?.value).toBe(4);
   });
 
   it('Dressage : les Ordres coûtent 1 de moins', () => {

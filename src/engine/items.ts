@@ -417,7 +417,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Jugements infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
   item('baton_veilleur_druide', 'Bâton du Veilleur (Druide)', 'arme', 'legendaire', 'Changer de forme avec le bouton ne coûte plus d\'énergie.', { freeShiftAll: 1 }),
   item('marteau_ancetres', 'Le Marteau des ancêtres', 'arme', 'legendaire', 'Tes totems agissent deux fois au début de chacun de tes tours.', { marteauAncetres: 1 }),
-  item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Début de ton tour : une Flèche des anciens en main (5 dégâts, Marque +2). Gardée, elle se tend : +5 par tour, 15 au plus.', { cordeAnciens: 1 }),
+  item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Début de ton tour : une Flèche des anciens en main (5 dégâts). Gardée, elle se tend : +5 par tour, 15 au plus.', { cordeAnciens: 1 }),
   item('sillon_orage', 'Sillon d\'orage', 'arme', 'legendaire', 'Toutes les 3 Attaques que tu joues, un éclair inflige 6 dégâts à tous les ennemis.', { stormblade: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));

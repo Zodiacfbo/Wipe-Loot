@@ -157,7 +157,7 @@ export function hunterStartTurn(c: CombatState): number {
 // --- Corde-des-anciens : la Flèche des anciens (Bander l'arc) ---
 
 /** Dégâts de base de la Flèche des anciens, +5 par tour gardée en main, 15 au plus. */
-export const FLECHE = { base: 5, parTour: 5, max: 15, marque: 2 };
+export const FLECHE = { base: 5, parTour: 5, max: 15 };
 
 /** Les dégâts de la Flèche des anciens ce tour-ci. */
 export function flecheDamage(c: CombatState): number {
@@ -176,13 +176,6 @@ export function flecheStartTurn(c: CombatState): void {
   }
   c.flecheCharge = 0;
   addStatusToHand(c, 'fleche_anciens', 1);
-}
-
-/** La Flèche marque sa cible (+2), sans remplacer une Marque plus forte. */
-export function flecheMark(c: CombatState, t: EnemyState | null): void {
-  if (!t || t.dead) return;
-  if (c.mark && c.mark.uid === t.uid && c.mark.value >= FLECHE.marque) return;
-  markTarget(c, t, FLECHE.marque);
 }
 
 /** Au début du combat : Esprit animal (le compagnon agit), Piégeur né (un Piège explosif posé). */
