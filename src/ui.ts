@@ -522,7 +522,7 @@ function itemGridOverlay(title: string, intro: string, groups: { title: string; 
   </div></div>`;
 }
 
-/** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». */
+/** Les boutons pour équiper un objet : un par emplacement possible, plus « Laisser ». L'objet porté s'affiche avant, pour comparer. */
 function equipChoices(run: RunState, id: string, action: string, leave: string): string {
   const carried = heirloomSlot(run);
   const slots = allowedSlots(run, id);
@@ -537,7 +537,7 @@ function equipChoices(run: RunState, id: string, action: string, leave: string):
   // L'objet emporté du coffre serait remplacé : il serait perdu pour de bon.
   const twin = wornSlot(run, id) ? '<p class="note">Tu portes déjà cet objet : un seul exemplaire à la fois.</p>' : '';
   const warn = carried && slots.includes(carried) ? `<p class="mention-brise alerte-coffre">⚠ ${ITEMS[run.equipment[carried]!].name} vient du coffre de la guilde : le remplacer, c'est le perdre pour de bon.</p>` : '';
-  return `<div class="choix-objet">${buttons}${leave}</div>${twin}${warn}${compare}`;
+  return `${compare}<div class="choix-objet">${buttons}${leave}</div>${twin}${warn}`;
 }
 
 /** Une fiole, teintée de la couleur de la potion. */
@@ -1206,8 +1206,8 @@ function playerChips(c: CombatState): string {
   if (d?.demoralise) chips.push(`<span class="chip debuff" title="Tes Attaques infligent 25 % de dégâts en moins">Démoralisé ${d.demoralise}</span>`);
   if (d?.impie) chips.push(`<span class="chip debuff" title="Ta première carte de chaque tour coûte 1 de plus">Impie ${d.impie}</span>`);
   if (d?.arcane) chips.push(`<span class="chip debuff" title="Tes Sorts coûtent 1 de plus">Malédiction arcanique ${d.arcane}</span>`);
-  if (d?.manaBurn) chips.push(`<span class="chip debuff">Mana brûlé : −${d.manaBurn} énergie au prochain tour</span>`);
-  if (d?.panic) chips.push(`<span class="chip debuff">Terreur : ${d.panic} cartes Paniquées au prochain tour</span>`);
+  if (d?.manaBurn) chips.push(`<span class="chip debuff" title="−${d.manaBurn} énergie au prochain tour">Mana brûlé −${d.manaBurn}</span>`);
+  if (d?.panic) chips.push(`<span class="chip debuff" title="${d.panic} cartes Paniquées au prochain tour">Terreur ${d.panic}</span>`);
   if (c.fireProof) chips.push('<span class="chip">Protégé du feu</span>');
   if (d?.toxine) chips.push(`<span class="chip debuff" title="2 dégâts au début de tes prochains tours">Toxine ${d.toxine}</span>`);
   if (d?.peste) chips.push(`<span class="chip debuff" title="Tes soins sont réduits de moitié">Peste ${d.peste}</span>`);
@@ -1215,42 +1215,42 @@ function playerChips(c: CombatState): string {
   if (d?.fracasse) chips.push(`<span class="chip debuff" title="Tu subis 50 % de dégâts en plus">Armure fracassée ${d.fracasse}</span>`);
   if (d?.ombre) chips.push(`<span class="chip debuff" title="+2 dégâts par attaque reçue et par cumul, jusqu'à la fin du combat">Ombre rongeuse ${d.ombre}</span>`);
   if (d?.lignee) chips.push(`<span class="chip debuff" title="Vhaeryx vise ta classe">Malédiction de lignée ${d.lignee}</span>`);
-  if (d?.discard) chips.push(`<span class="chip debuff">${d.discard} carte${d.discard > 1 ? 's' : ''} défaussée${d.discard > 1 ? 's' : ''} au prochain tour</span>`);
+  if (d?.discard) chips.push(`<span class="chip debuff" title="${d.discard} carte${d.discard > 1 ? 's' : ''} défaussée${d.discard > 1 ? 's' : ''} au prochain tour">Défausse ${d.discard}</span>`);
   for (const a of d?.afflictions ?? []) chips.push(`<span class="chip debuff affliction-${a}" title="${AFFLICTIONS[a]}">Sang ${a}</span>`);
-  if (c.adrenaline && c.enemies.some((e) => e.defId === 'ysolde' && !e.dead)) chips.push(`<span class="chip brule" title="+3 énergie par tour">Adrénaline : −${c.adrenaline} PV en fin de tour</span>`);
-  if (p.temerite) chips.push('<span class="chip">Témérité : +50 % / subis +25 %</span>');
+  if (c.adrenaline && c.enemies.some((e) => e.defId === 'ysolde' && !e.dead)) chips.push(`<span class="chip brule" title="+3 énergie par tour, −${c.adrenaline} PV en fin de tour">Adrénaline −${c.adrenaline} PV</span>`);
+  if (p.temerite) chips.push('<span class="chip" title="Tes Attaques +50 %, dégâts subis +25 %">Témérité</span>');
   if (p.rempart) chips.push('<span class="chip">Rempart : dégâts ÷ 2</span>');
   if (p.fearless) chips.push('<span class="chip">Sans peur</span>');
-  if (p.fureur) chips.push(`<span class="chip">Fureur ${p.fureur} : +50 % / subis +25 %</span>`);
+  if (p.fureur) chips.push(`<span class="chip" title="Tes Attaques +50 %, dégâts subis +25 %">Fureur ${p.fureur}</span>`);
   if (p.riposte) chips.push(`<span class="chip">Riposte ${p.riposte}</span>`);
-  if (p.enrageReady) chips.push(`<span class="chip">Enragé : +${p.enrageReady} à la prochaine Attaque</span>`);
+  if (p.enrageReady) chips.push(`<span class="chip" title="+${p.enrageReady} à la prochaine Attaque">Enragé +${p.enrageReady}</span>`);
   if (c.cleave) chips.push(`<span class="chip">Balayage : ${c.cleave} Attaque${c.cleave > 1 ? 's' : ''}</span>`);
-  if (p.arcanePower) chips.push('<span class="chip">Pouvoir des arcanes : Sorts +50 %</span>');
-  if (p.iceBlock) chips.push('<span class="chip gel">Carapace de glace : immunisé</span>');
+  if (p.arcanePower) chips.push('<span class="chip" title="Tes Sorts +50 %">Pouvoir des arcanes</span>');
+  if (p.iceBlock) chips.push('<span class="chip gel" title="Immunisé">Carapace de glace</span>');
   if (p.manaShield) chips.push('<span class="chip" title="S\'il te reste du blocage au début de ton tour : pioche 1 carte">Bouclier de mana</span>');
-  if (p.distortion) chips.push('<span class="chip">Distorsion : +1 énergie et +2 cartes au prochain tour</span>');
+  if (p.distortion) chips.push('<span class="chip" title="+1 énergie et +2 cartes au prochain tour">Distorsion</span>');
   if (p.spellReflect) chips.push('<span class="chip">Réflexion des sorts</span>');
-  if (p.fireShield) chips.push(`<span class="chip brule">Bouclier de feu : Brûlure ${p.fireShield} aux attaquants</span>`);
-  if (c.freeNext) chips.push('<span class="chip">Inspiration : prochaine carte gratuite</span>');
-  if (c.renew?.turns) chips.push(`<span class="chip">Grâce : +${c.renew.amount} PV (${c.renew.turns} tours)</span>`);
+  if (p.fireShield) chips.push(`<span class="chip brule" title="Brûlure ${p.fireShield} aux attaquants">Bouclier de feu ${p.fireShield}</span>`);
+  if (c.freeNext) chips.push('<span class="chip" title="Ta prochaine carte est gratuite">Inspiration</span>');
+  if (c.renew?.turns) chips.push(`<span class="chip" title="+${c.renew.amount} PV, encore ${c.renew.turns} tour${c.renew.turns > 1 ? 's' : ''}">Grâce +${c.renew.amount} PV · ${c.renew.turns}t</span>`);
   if (c.aegisThorns) chips.push(`<span class="chip" title="Chaque coup absorbé par ton Égide renvoie ${c.aegisThorns} dégâts à l'attaquant.">Égide des anciens : renvoi ${c.aegisThorns}</span>`);
   if (c.costDown) chips.push('<span class="chip">Transfusion : cartes −1</span>');
   if (c.shadowForm) chips.push('<span class="chip ombre">Forme d\'Ombre</span>');
   // Chaman
-  if (c.stormstrike) chips.push(`<span class="chip">Frappe d'orage : Sorts +4 (${c.stormstrike}t)</span>`);
+  if (c.stormstrike) chips.push(`<span class="chip" title="Tes Sorts +4">Frappe d'orage · ${c.stormstrike}t</span>`);
   if (c.earthShield) chips.push(`<span class="chip" title="Chaque attaque reçue : soigne 3 PV, 2 blocage">Bouclier de terre ${c.earthShield}</span>`);
   if (c.maelstrom) chips.push(`<span class="chip" title="À 5 : ton prochain Sort coûte 0">Tourbillon ${c.maelstrom}/5</span>`);
   if (c.clearcast) chips.push('<span class="chip">Prochain Sort −1</span>');
   if (c.freeNextSpell) chips.push('<span class="chip">Prochain Sort gratuit</span>');
   if (c.nextAttackBonus) chips.push(`<span class="chip">Esprit combatif : +${c.nextAttackBonus}</span>`);
-  if (c.manaTide) chips.push(`<span class="chip">Totem de mana : +1 énergie (${c.manaTide}t)</span>`);
-  if (c.ancestorsNext) chips.push('<span class="chip">Cri des ancêtres : +1 énergie, +1 carte au prochain tour</span>');
-  if (c.orbs?.length) chips.push(`<span class="chip">Orbe de foudre : ${c.orbs.reduce((a, o) => a + o.dmg, 0)} au prochain tour</span>`);
+  if (c.manaTide) chips.push(`<span class="chip" title="+1 énergie par tour">Totem de mana · ${c.manaTide}t</span>`);
+  if (c.ancestorsNext) chips.push('<span class="chip" title="+1 énergie, +1 carte au prochain tour">Cri des ancêtres</span>');
+  if (c.orbs?.length) chips.push(`<span class="chip" title="${c.orbs.reduce((a, o) => a + o.dmg, 0)} dégâts au prochain tour">Orbe de foudre ${c.orbs.reduce((a, o) => a + o.dmg, 0)}</span>`);
   // Druide
-  if (c.prowl) chips.push('<span class="chip">Rôder : prochaine Attaque ×2</span>');
+  if (c.prowl) chips.push('<span class="chip" title="Prochaine Attaque ×2">Rôder</span>');
   if (c.tigerFury) chips.push(`<span class="chip">Fureur du tigre : +${c.tigerFury}</span>`);
-  if (c.eclipseLunar) chips.push('<span class="chip">Éclipse : prochain Sort lunaire ×2</span>');
-  if (c.eclipseSolar) chips.push('<span class="chip">Éclipse : Feu stellaire −1</span>');
+  if (c.eclipseLunar) chips.push('<span class="chip" title="Prochain Sort lunaire ×2">Éclipse lunaire</span>');
+  if (c.eclipseSolar) chips.push('<span class="chip" title="Feu stellaire coûte 1 de moins">Éclipse solaire</span>');
   if (c.treants?.turns) chips.push(`<span class="chip" title="${c.treants.count} × ${c.treants.dmg} dégâts à ta cible à la fin de tes tours">Sylvains (${c.treants.turns}t)</span>`);
   if (c.tranquility) chips.push(`<span class="chip">Tranquillité (${c.tranquility}t)</span>`);
   if (c.rebirth) chips.push('<span class="chip">Renaissance prête</span>');
@@ -1260,27 +1260,27 @@ function playerChips(c: CombatState): string {
   if (c.feign) chips.push('<span class="chip" title="Les attaques ennemies t\'infligent 50 % de dégâts en moins jusqu\'à ton prochain tour">Feindre la mort</span>');
   if (c.rapidFire) chips.push('<span class="chip">Tir rapide : Attaques −1</span>');
   if (c.huntTurnBonus) chips.push(`<span class="chip">Bête intérieure : +${c.huntTurnBonus}</span>`);
-  if (c.focusNext) chips.push(`<span class="chip">Concentration : +${c.focusNext} à la prochaine Attaque</span>`);
-  if (c.breathNow) chips.push(`<span class="chip">Respiration : +${c.breathNow} à la 1re Attaque</span>`);
-  if (c.breathNext) chips.push(`<span class="chip">Respiration : +${c.breathNext} au prochain tour</span>`);
+  if (c.focusNext) chips.push(`<span class="chip" title="+${c.focusNext} à la prochaine Attaque">Concentration +${c.focusNext}</span>`);
+  if (c.breathNow) chips.push(`<span class="chip" title="+${c.breathNow} à la 1re Attaque">Respiration +${c.breathNow}</span>`);
+  if (c.breathNext) chips.push(`<span class="chip" title="+${c.breathNext} à la 1re Attaque du prochain tour">Respiration +${c.breathNext} · tour suivant</span>`);
   if (c.counterStun) chips.push('<span class="chip" title="Le prochain ennemi qui t\'attaque est Contrôlé 1 tour">Contre-attaque</span>');
   if (c.spectral) chips.push(`<span class="chip" title="${c.spectral} dégâts à ta cible à la fin de tes tours">Loup spectral ${c.spectral}</span>`);
   if (c.compNextBonus) chips.push(`<span class="chip">Rage du compagnon : +${c.compNextBonus}</span>`);
   // Paladin
-  if (p.divineShield) chips.push('<span class="chip sacre">Bouclier divin : immunisé, Attaques ÷ 2</span>');
-  if (c.favor) chips.push('<span class="chip sacre">Faveur divine : prochain soin ou Sort ×2</span>');
-  if (c.consecration?.turns) chips.push(`<span class="chip sacre">Consécration : ${c.consecration.dmg} à tous (${c.consecration.turns}t)</span>`);
-  if (c.pavois) chips.push(`<span class="chip sacre">Pavois : ${c.pavois} aux attaquants bloqués</span>`);
+  if (p.divineShield) chips.push('<span class="chip sacre" title="Immunisé, tes Attaques ÷ 2">Bouclier divin</span>');
+  if (c.favor) chips.push('<span class="chip sacre" title="Prochain soin ou Sort ×2">Faveur divine</span>');
+  if (c.consecration?.turns) chips.push(`<span class="chip sacre" title="${c.consecration.dmg} dégâts à tous les ennemis">Consécration ${c.consecration.dmg} · ${c.consecration.turns}t</span>`);
+  if (c.pavois) chips.push(`<span class="chip sacre" title="${c.pavois} dégâts aux attaquants bloqués">Pavois ${c.pavois}</span>`);
   if (c.crusaderShield) chips.push('<span class="chip sacre">Bouclier du croisé</span>');
-  if (c.wings) chips.push(`<span class="chip sacre">Ailes de justice : +2 Puissance (${c.wings}t)</span>`);
-  if (c.judgeBonus) chips.push(`<span class="chip sacre">Vengeance divine : +${c.judgeBonus} à la prochaine Attaque</span>`);
-  if (c.healFree) chips.push('<span class="chip sacre">Prochaine carte de soin gratuite</span>');
+  if (c.wings) chips.push(`<span class="chip sacre" title="+2 Puissance">Ailes de justice · ${c.wings}t</span>`);
+  if (c.judgeBonus) chips.push(`<span class="chip sacre" title="+${c.judgeBonus} à la prochaine Attaque">Vengeance divine +${c.judgeBonus}</span>`);
+  if (c.healFree) chips.push('<span class="chip sacre" title="Ta prochaine carte de soin est gratuite">Soin gratuit</span>');
   if (c.weaponPoison) chips.push(`<span class="chip poison" title="Tes Attaques appliquent ce Poison">Poison ${c.weaponPoison.id} ${c.weaponPoison.amount}</span>`);
   if (c.bladeDance?.turns) chips.push(`<span class="chip">Danse des lames : +${c.bladeDance.bonus} (${c.bladeDance.turns}t)</span>`);
-  if (c.coldBlood) chips.push('<span class="chip">Sang-froid : prochaine Attaque ×2</span>');
+  if (c.coldBlood) chips.push('<span class="chip" title="Prochaine Attaque ×2">Sang-froid</span>');
   if (c.shadowStep) chips.push('<span class="chip ombre">Bond de l\'ombre</span>');
   if (c.stealthNext) chips.push('<span class="chip ombre">Camouflé au prochain tour</span>');
-  if (c.openersFree) chips.push('<span class="chip">Plan parfait : Ouvertures gratuites</span>');
+  if (c.openersFree) chips.push('<span class="chip" title="Tes Ouvertures sont gratuites">Plan parfait</span>');
   if (p.evasion) chips.push('<span class="chip">Évasion : dégâts ÷ 2</span>');
   if (c.tenebres || c.gear?.longStealth) chips.push('<span class="chip ombre" title="Ton Camouflage de début de combat dure 2 tours">Ombres profondes</span>');
   if (c.soulstone) chips.push('<span class="chip ombre" title="Si tu tombes à 0 PV, tu reviens à 30 %">Pierre d\'âme</span>');
@@ -1289,8 +1289,8 @@ function playerChips(c: CombatState): string {
   if (c.shadowFree) chips.push('<span class="chip ombre">Trait de l\'ombre gratuit</span>');
   if (c.petDouble) chips.push('<span class="chip ombre">Familier : action doublée</span>');
   if (c.petBonus) chips.push(`<span class="chip ombre">Familier +${c.petBonus} dégâts</span>`);
-  if (c.freeNextSpell) chips.push('<span class="chip">Présence d\'esprit : prochain Sort gratuit</span>');
-  if (c.shatterReady) chips.push('<span class="chip gel">Toucher glacial : prochain Fracasser</span>');
+  if (c.freeNextSpell) chips.push('<span class="chip" title="Prochain Sort gratuit">Présence d\'esprit</span>');
+  if (c.shatterReady) chips.push('<span class="chip gel" title="Ton prochain Fracasser compte comme si la cible avait 3 Gel">Toucher glacial</span>');
   for (const [id, v] of Object.entries(c.powers ?? {})) {
     if (POWER_LABEL[id]) chips.push(`<span class="chip pouvoir" title="${POWER_LABEL[id][1]}">${POWER_LABEL[id][0]}${v > 1 ? ` ${v}` : ''}</span>`);
   }
@@ -1916,19 +1916,23 @@ function spellReward(run: RunState, id: string): string {
 function rewardScreen(run: RunState): string {
   const cards = run.rewardChoices.map((id) => cardHtml({ uid: 0, id, upgraded: false }, { action: `data-action="recompense" data-id="${id}"` })).join('');
   const crowded = (run.pendingItem || run.pendingPotion || run.pendingSpell) && run.rewardChoices.length > 0;
+  // Un objet seul (coffre) : pas de bouton « Laisser », le bouton du bas suffit.
+  const itemAlone = !!run.pendingItem && !run.pendingAlts.length && !run.pendingPotion && !run.pendingSpell && !run.rewardChoices.length;
   return `${topbar(run, run.hp)}<div class="ecran ${crowded ? 'serre' : ''}">
     <h2>${run.rewardTitle}</h2>
     ${run.rewardGold > 0 ? `<div class="gain-or">${ICON.piece}<span>+${run.rewardGold} or</span></div>` : ''}
     ${run.questNote ? `<div class="note-quete"><span class="butin-titre">Objet de quête</span><p>${run.questNote}</p></div>` : ''}
     ${run.pendingSpell ? spellReward(run, run.pendingSpell) : ''}
     ${run.pendingItem || run.pendingPotion ? `<div class="butins">
-      ${run.pendingItem ? `<div class="butin"><span class="butin-titre">${run.pendingAlts.length ? 'Butin · au choix' : 'Butin'}</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', run.pendingAlts.length ? '' : '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
+      ${run.pendingItem ? `<div class="butin"><span class="butin-titre">${run.pendingAlts.length ? 'Butin · au choix' : 'Butin'}</span>${itemHtml(run.pendingItem)}${equipChoices(run, run.pendingItem, 'data-action="equiper"', run.pendingAlts.length || itemAlone ? '' : '<button type="button" class="bouton-objet secondaire" data-action="laisser">Laisser</button>')}</div>` : ''}
       ${run.pendingItem ? run.pendingAlts.map((alt, i) => `<div class="butin"><span class="butin-titre">ou</span>${itemHtml(alt)}${equipChoices(run, alt, `data-action="equiper" data-alt="${i}"`, i === run.pendingAlts.length - 1 ? '<button type="button" class="bouton-objet secondaire" data-action="laisser">Aucun</button>' : '')}</div>`).join('') : ''}
       ${run.pendingPotion ? potionReward(run, run.pendingPotion) : ''}
     </div>` : ''}
     ${run.rewardChoices.length > 0 ? '<p>Choisis une carte à ajouter à ton paquet.</p>' : ''}
     ${run.rewardChoices.length > 0 ? `<div class="choix-cartes ${crowded ? 'compact' : ''}">${cards}</div>` : ''}
-    <button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">${run.rewardChoices.length > 0 ? 'Passer' : 'Continuer'}</button>
+    ${itemAlone
+      ? '<button type="button" class="gros-bouton secondaire" data-action="laisser-continuer">Laisser et continuer</button>'
+      : `<button type="button" class="gros-bouton secondaire" data-action="recompense" data-id="">${run.rewardChoices.length > 0 ? 'Passer' : 'Continuer'}</button>`}
   </div>`;
 }
 
@@ -3258,6 +3262,7 @@ function handleClick(ev: MouseEvent): void {
     case 'partir': ui.shopMode = null; ui.shopItem = null; ui.shopPotion = null; ui.shopCard = null; leaveShop(run); commit(); break;
     case 'equiper': equipPending(run, el.dataset.slot as SlotKey, el.dataset.alt === undefined ? undefined : Number(el.dataset.alt)); commit(); break;
     case 'laisser': leavePending(run); commit(); break;
+    case 'laisser-continuer': leavePending(run); chooseReward(run, null); commit(); break;
     case 'boire': drinkPotion(run, Number(el.dataset.slot)); ui.overlay = null; ui.selection = null; commit(); break;
     case 'jeter': discardPotion(run, Number(el.dataset.slot)); ui.overlay = null; commit(); break;
     case 'prendre-potion': takePotion(run, el.dataset.slot === undefined ? undefined : Number(el.dataset.slot)); commit(); break;
