@@ -27,7 +27,8 @@ describe('le Chaman : la run', () => {
     const run = newRun(1, null, [], 0, 'chaman');
     expect(run.maxHp).toBe(75);
     expect(run.spells).toEqual(['choc_tellurique']);
-    expect(run.deck.filter((k) => k.id === 'eclair')).toHaveLength(4);
+    expect(run.deck.filter((k) => k.id === 'eclair')).toHaveLength(2);
+    expect(run.deck.filter((k) => k.id === 'frappe_primitive')).toHaveLength(2);
     expect(run.deck.some((k) => k.id === 'totem_braise')).toBe(true);
   });
 

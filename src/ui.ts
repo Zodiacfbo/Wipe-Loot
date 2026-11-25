@@ -514,7 +514,7 @@ function itemGridOverlay(title: string, intro: string, groups: { title: string; 
       <div class="texte-fiche">${sel.seen ? `<p>${it.text}</p>${note ? `<p class="note">${note}</p>` : ''}` : '<p class="note">Pas encore découvert.</p>'}</div></aside>`;
   }
   return `<div class="overlay"><div class="ecran ecran-archives">
-    <div class="archives-gauche"><div class="tete-talents"><h2>${title}</h2></div><div class="contenu-archives">${body}</div></div>
+    <div class="archives-gauche"><div class="tete-talents"><h2>${title}</h2></div><div class="contenu-archives" data-scroll="table:${title}">${body}</div></div>
     <div class="archives-droite">${sheet}<button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button></div>
   </div></div>`;
 }
@@ -1578,8 +1578,7 @@ function titleScreen(): string {
   if (cloud.enabled && (!cloud.user || !ui.entered)) return firstLaunchScreen();
   if (!profile.startClass) return firstLaunchScreen();
   const saved = localSave.load();
-  // Une victoire dont le passage au coffre n'est pas fait peut encore être reprise.
-  const canContinue = saved && saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
+  const canContinue = saved && resumable(saved);
   const cls = activeClass(profile);
   const hero = classInfo(cls);
   const lvl = classLevel(profile, cls);
@@ -1764,7 +1763,7 @@ function archivesScreen(): string {
   return `<div class="ecran ecran-archives">
     <div class="archives-gauche">
       <div class="tete-talents"><h2>Archives</h2><div class="onglets">${tabs}</div><span class="points-talent">${seen} / ${total}</span></div>
-      <div class="contenu-archives">${body}</div>
+      <div class="contenu-archives" data-scroll="archives:${tab}">${body}</div>
     </div>
     <div class="archives-droite">
       <button type="button" class="bouton bouton-retour" data-action="titre">Retour</button>
@@ -1780,7 +1779,7 @@ function glossaryScreen(tabs: string): string {
   return `<div class="ecran ecran-archives">
     <div class="archives-gauche">
       <div class="tete-talents"><h2>Archives</h2><div class="onglets">${tabs}</div><span class="points-talent">${words.length} mots</span></div>
-      <div class="contenu-archives glossaire">${list}</div>
+      <div class="contenu-archives glossaire" data-scroll="archives:mots">${list}</div>
     </div>
     <div class="archives-droite">
       <button type="button" class="bouton bouton-retour" data-action="titre">Retour</button>
@@ -2242,6 +2241,21 @@ const TALENT_KIND_LABEL: Record<TalentKind, string> = { passif: 'Passif', sort: 
 const talentKind = (d: { card?: string; spell?: string }): TalentKind => (d.card ? 'epique' : d.spell ? 'sort' : 'passif');
 
 /** L'écran des talents : 3 arbres de 5 paliers en icônes ; la fiche du talent touché s'affiche à droite. */
+/** Une run sauvegardée qu'on peut reprendre (une victoire dont le passage au coffre n'est pas fait aussi). */
+function resumable(saved: RunState): boolean {
+  return saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
+}
+
+/**
+ * L'encart de l'écran des talents quand une expédition de cette classe est en cours :
+ * la run a gardé les talents de son départ, les changements comptent à la prochaine.
+ */
+function talentRunNotice(cls: string): string {
+  const saved = localSave.load();
+  if (!saved || !resumable(saved) || (saved.classId ?? 'guerrier') !== cls) return '';
+  return `<div class="encart-expedition"><b>⚔ Expédition en cours</b><p>Ton ${classInfo(cls).name} est déjà parti avec ses talents. Ce que tu changes ici comptera à la <b>prochaine</b> expédition.</p></div>`;
+}
+
 function talentScreen(): string {
   const profile = loadProfile();
   const cls = activeClass(profile);
@@ -2288,6 +2302,7 @@ function talentRefs(id: string): string {
 function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: TreeId; tier: number; choice: Choice } | null): string {
   if (!sel) {
     return `<aside class="fiche-talent vide">
+      ${talentRunNotice(cls)}
       <b class="titre-fiche">Touche un talent</b>
       <p>pour voir ce qu'il fait, puis le prendre.</p>
       <div class="legende-talents">
@@ -2352,6 +2367,7 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
   }
   return `<aside class="fiche-talent">
     <button type="button" class="fermer-fiche" data-action="talent-fermer" aria-label="Fermer">✕</button>
+    ${talentRunNotice(cls)}
     <div class="haut-fiche"><span class="icone-talent grande k-${kind} ${taken ? 'pris' : ''}"><img class="px" src="${A(talentIcon(d))}" alt=""></span>
       <div><b class="titre-fiche">${d.name}</b><div class="etiquettes">${chips.join('')}</div></div></div>
     <div class="texte-fiche">${body}</div>
@@ -2742,7 +2758,22 @@ function devAction(action: string, el: HTMLElement): boolean {
 
 // ---------- Boucle de rendu ----------
 
+/** Les listes marquées `data-scroll` gardent leur position quand l'écran est redessiné (même clé = même liste). */
+function saveScroll(): Map<string, number> {
+  const saved = new Map<string, number>();
+  stage.querySelectorAll<HTMLElement>('[data-scroll]').forEach((el) => saved.set(el.dataset.scroll!, el.scrollTop));
+  return saved;
+}
+
+function restoreScroll(saved: Map<string, number>): void {
+  stage.querySelectorAll<HTMLElement>('[data-scroll]').forEach((el) => {
+    const top = saved.get(el.dataset.scroll!);
+    if (top) el.scrollTop = top;
+  });
+}
+
 export function render(): void {
+  const scroll = saveScroll();
   const run = ui.run;
   if (!run) {
     stage.dataset.acte = '1';
@@ -2757,6 +2788,7 @@ export function render(): void {
       if (profile.startClass && !profile.tuto?.hall) startHallTuto();
     }
     stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen()) + overlayHtml(null) + (hall ? tutoHtml() : '') + (hall ? updateHtml() : '');
+    restoreScroll(scroll);
     afterRender();
     syncLoginMode();
     placeTuto(stage);
@@ -2782,6 +2814,7 @@ export function render(): void {
   if (tutoActive() && (tutoActive()!.kind !== 'combat' || run.screen !== 'combat' || ui.overlay)) tutoStop();
   const tuto = run.screen === 'combat' && !ui.overlay ? tutoHtml() + miniHtml(loadProfile(), run.classId) : '';
   stage.innerHTML = html + overlayHtml(run) + tuto;
+  restoreScroll(scroll);
   verifierTenue();
   afterRender();
   syncLoginMode();
