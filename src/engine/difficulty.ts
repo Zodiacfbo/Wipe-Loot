@@ -6,7 +6,7 @@
 export const MAX_DIFFICULTY = 20;
 
 /** Chaque niveau : les seigneurs (Vulkhar, Vhaeryx, Yzhar) gagnent ce pourcentage de PV et de dégâts (25 novembre 2026). */
-export const LORD_SCALING = { perLevel: 0.02 };
+export const LORD_SCALING = { perLevel: 0.01 };
 /** La ligne affichée en haut de la liste des niveaux. */
 export function lordScalingText(): string {
   return `Chaque niveau : les seigneurs ont +${Math.round(LORD_SCALING.perLevel * 100)} % de PV et de dégâts.`;

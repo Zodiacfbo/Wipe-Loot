@@ -15,8 +15,8 @@ describe('les niveaux de difficulté', () => {
     expect(difficultyMods(12).wipes).toBe(1);
     expect(difficultyMods(20).wipes).toBe(1);
     expect(difficultyMods(0).bossHp).toBe(1);
-    expect(difficultyMods(9).bossHp).toBeCloseTo(1.18); // +2 % par niveau pour les seigneurs
-    expect(difficultyMods(20).bossDmg).toBeCloseTo(1.4);
+    expect(difficultyMods(9).bossHp).toBeCloseTo(1.09); // +1 % par niveau pour les seigneurs
+    expect(difficultyMods(20).bossDmg).toBeCloseTo(1.2);
     expect(difficultyMods(15).rewardCards).toBe(3);
     expect(difficultyMods(16).rewardCards).toBe(2);
     expect(difficultyMods(16).lordAddHp).toBe(1);
@@ -48,7 +48,7 @@ describe('les niveaux de difficulté', () => {
     const m = difficultyMods(20);
     const boss = createCombat(BOSS_ENCOUNTER, deck, 80, 80, 5, 100, {}, ['charge'], m);
     const v = boss.enemies[0];
-    expect(v.maxHp).toBe(Math.round(225 * 1.4));
+    expect(v.maxHp).toBe(Math.round(225 * 1.2));
     expect(v.buffs.puissance).toBe(2);
     expect(boss.enrageTurn).toBe(14 - 2 - 2);
     const elite = createCombat(ELITE_ENCOUNTERS[0], deck, 80, 80, 5, 100, {}, ['charge'], m);
@@ -79,7 +79,7 @@ describe('« Ce qui t\'attend » : les contraintes regroupées', () => {
     const { difficultySummary } = await import('../src/engine/difficulty');
     expect(difficultySummary(0)).toEqual([]);
     const d9 = difficultySummary(9);
-    expect(d9[0]).toEqual({ icon: '⚔️', label: 'Seigneurs', text: '+18 % de PV et de dégâts, se déchaînent 2 tours plus tôt' });
+    expect(d9[0]).toEqual({ icon: '⚔️', label: 'Seigneurs', text: '+9 % de PV et de dégâts, se déchaînent 2 tours plus tôt' });
     expect(d9.map((x) => x.label)).toEqual(['Seigneurs', 'Gardiens', 'Ennemis', 'Toi']);
     const d20 = difficultySummary(20);
     expect(d20.map((x) => x.label)).toEqual(['Seigneurs', 'Gardiens', 'Ennemis', 'Toi', 'Or et vendeur']);
