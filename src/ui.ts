@@ -313,7 +313,9 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
   // « Finisher : », « Sceau : », « Aura : »… : le mot passe dans le bandeau, le texte commence par l'effet (place sur téléphone).
   const fullText = def.text(card.upgraded, gear);
   const { ribbon, text } = splitRibbon(fullText);
-  const classes = ['carte', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : '', opts.ready && !opts.disabled ? 'prete' : ''].join(' ');
+  // Chaman : une carte Totem montre l'élément de son emplacement (bandeau coloré et pastille).
+  const totemEl = def.id.startsWith('totem_') ? TOTEMS[def.id.slice(6)]?.element : undefined;
+  const classes = ['carte', totemEl ? `totem-${totemEl}` : '', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : '', opts.ready && !opts.disabled ? 'prete' : ''].join(' ');
   return `<button type="button" class="${classes}" ${opts.action ?? ''} ${opts.disabled && opts.reason ? `data-raison="${opts.reason.replace(/"/g, '&quot;')}"` : ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${fullText}">
     <img class="cadre px" src="${A(frame)}" alt="">
     <img class="icone px" src="${A(`carte_${card.id}.png`)}" alt="">
@@ -324,7 +326,8 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
     ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
-    <span class="type" ${ribbon ? `data-type="${def.type}"` : ''}>${ribbon ?? `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
+    ${totemEl ? `<span class="pastille-element" title="Totem de ${ELEMENT_NAME[totemEl]}">${ICON_ELEMENT[totemEl]}</span>` : ''}
+    <span class="type" ${ribbon ? `data-type="${def.type}"` : ''}>${totemEl ? `Totem · ${ELEMENT_NAME[totemEl]}` : ribbon ?? `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
     <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${opts.diffFrom !== undefined ? diffText(opts.diffFrom, text) : cardText(text, opts.hit)}</span></span>
   </button>`;
 }
