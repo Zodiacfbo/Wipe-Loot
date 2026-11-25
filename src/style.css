@@ -1040,3 +1040,8 @@ body.connexion-libre .types-message { flex-wrap: wrap; }
 @media (prefers-reduced-motion: reduce) { .enrage-haut.imminent { animation: none; } }
 /* La règle d'un seigneur seul ou presque : plus large, donc moins haute. */
 .ennemis:not(.nombreux) .passif-ennemi { max-width: 250px; }
+
+/* Nouvelle version (src/update.ts) : fenêtre au centre du hall. */
+.fenetre-maj .boite-connexion { border: 2px solid var(--or); }
+.fenetre-maj .petit-texte { font-size: 13px; color: var(--texte-2); }
+.fenetre-maj .lien { align-self: center; color: var(--texte-2); font-weight: 400; }

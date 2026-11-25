@@ -90,6 +90,7 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { siteOf, versionLabel } from './version';
+import { CHECK_EVERY_MS, checkUpdate, update } from './update';
 import { cloud, initCloud, logRun, markMessagesSeen, markNewsRead, messagesUnread, newsLastRead, newsUnread, refreshNews, sendMessage, shownNews, signIn, signOut, signUp } from './cloud';
 import { MESSAGE_MAX, MESSAGE_STATES, MESSAGE_TYPES, PASSWORD_MIN, PSEUDO_MAX, PSEUDO_MIN, type MessageType } from './cloud_logic';
 import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost, toggleTalent, treePoints, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
@@ -181,6 +182,8 @@ interface UiState {
   /** Chasseur : le compagnon sélectionné sur l'écran du choix (avant de partir). */
   companion?: CompanionId | null;
   selection: Selection;
+  /** « Plus tard » sur la fenêtre de nouvelle version : cachée jusqu'au prochain retour au hall. */
+  updateLater?: boolean;
   overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | 'connexion' | 'roue' | 'saison' | 'news' | 'messages' | 'avis' | null;
   /** Fenêtre des messages : l'onglet, le type choisi, le texte tapé, le message d'erreur, l'envoi en cours. */
   /** News : le dernier numéro lu avant d'ouvrir la fenêtre (pour marquer « Nouveau »). Messages : ceux qui avaient du nouveau. */
@@ -2488,6 +2491,19 @@ function noticeHtml(): string {
     <button type="button" class="gros-bouton" data-action="avis-ok">Compris</button></div></div>`;
 }
 
+/** Nouvelle version en ligne : seulement dans le hall (jamais en expédition), sans fenêtre ni bulle de tuto ouverte. */
+function updateHtml(): string {
+  if (!update.available || ui.updateLater || ui.overlay || tutoActive()) return '';
+  if (!loadProfile().startClass || (cloud.enabled && (!cloud.user || !ui.entered))) return '';
+  return `<div class="overlay fenetre-centree fenetre-maj"><div class="boite-connexion">
+    <h2>✨ Nouvelle version</h2>
+    <p>Le jeu a été mis à jour. Recharge pour profiter des dernières corrections.</p>
+    <p class="petit-texte">Ta progression et ton expédition en cours sont gardées.</p>
+    <button type="button" class="gros-bouton" data-action="maj-recharger">Recharger maintenant</button>
+    <button type="button" class="lien" data-action="maj-plus-tard">Plus tard</button>
+  </div></div>`;
+}
+
 /** Une nouvelle saison a remis la sauvegarde à zéro. */
 function seasonHtml(): string {
   return `<div class="overlay fenetre-centree"><div class="boite-connexion">
@@ -2731,18 +2747,21 @@ export function render(): void {
     stage.dataset.acte = '1';
     const hall = !ui.archivesScreen && !ui.classScreen && !ui.talentScreen;
     if (hall) refreshNews(); // au plus une lecture toutes les 10 minutes
+    if (hall) void checkUpdate(render); // au plus une lecture par minute
+    else ui.updateLater = false;
     if (tutoActive()?.kind === 'combat' || (!hall && tutoActive())) tutoStop();
     // La visite du hall se lance toute seule la première fois qu'on y arrive (après le choix de la classe).
     if (hall && !ui.overlay && !tutoActive()) {
       const profile = loadProfile();
       if (profile.startClass && !profile.tuto?.hall) startHallTuto();
     }
-    stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen()) + overlayHtml(null) + (hall ? tutoHtml() : '');
+    stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen()) + overlayHtml(null) + (hall ? tutoHtml() : '') + (hall ? updateHtml() : '');
     afterRender();
     syncLoginMode();
     placeTuto(stage);
     return;
   }
+  ui.updateLater = false;
   stage.dataset.acte = String(run.act ?? 1);
   let html = '';
   switch (run.screen) {
@@ -2985,6 +3004,13 @@ function handleClick(ev: MouseEvent): void {
       return;
     }
     case 'avis-ok': cloud.notice = null; ui.overlay = null; render(); return;
+    case 'maj-recharger':
+      location.reload();
+      return;
+    case 'maj-plus-tard':
+      ui.updateLater = true;
+      render();
+      return;
     case 'saison-ok':
       cloud.newSeason = null;
       ui.overlay = null;
@@ -3302,6 +3328,9 @@ export function mount(root: HTMLElement): void {
     if (!ui.login?.busy) void submitLogin(form);
   });
   initCloud(cloudChanged);
+  // Nouvelle version : vérifiée au retour dans l'application et toutes les 10 minutes (le hall vérifie aussi à chaque affichage).
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void checkUpdate(render); });
+  setInterval(() => void checkUpdate(render), CHECK_EVERY_MS);
   // Les boutons de l'écran « Tourne ton téléphone » (portrait) passent par les mêmes actions que le jeu.
   document.getElementById('rotate-menu')?.addEventListener('click', handleClick);
   document.getElementById('rotate-connexion')?.addEventListener('click', () => {

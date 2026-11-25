@@ -12,6 +12,8 @@ function git(cmd: string, fallback: string): string {
   }
 }
 
+const commit = git('rev-parse --short HEAD', 'local');
+
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as { version: string };
 
 // base relative : le jeu fonctionne aussi bien à la racine qu'en sous-dossier (GitHub Pages).
@@ -20,9 +22,16 @@ export default defineConfig({
   // Numéro de version, calculé à la construction (affiché dans le hall, voir src/version.ts).
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
-    __BUILD_COMMIT__: JSON.stringify(git('rev-parse --short HEAD', 'local')),
+    __BUILD_COMMIT__: JSON.stringify(commit),
     __BUILD_DATE__: JSON.stringify(git('log -1 --format=%cs', '')),
   },
+  // version.json : le commit de cette construction, relu par le jeu pour proposer la nouvelle version (src/update.ts).
+  plugins: [{
+    name: 'version-json',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ commit }) });
+    },
+  }],
   // Deux pages : le jeu et la page admin (/admin/, réservée à l'organisateur).
   build: {
     rollupOptions: {
