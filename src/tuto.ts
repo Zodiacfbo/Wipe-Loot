@@ -87,7 +87,7 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
     { cible: ['.chs-tuiles'], icone: 'totem_pierre', texte: '4 emplacements de **totem** : Terre, Feu, Eau, Air. Un totem agit au début de chacun de tes tours, jusqu\'à la fin du combat.' },
     { cible: ['.main'], icone: 'eclair', texte: '**Résonance** : un effet en plus si tu as le bon totem en jeu.' },
     { cible: ['.chs-tuiles .chs-tuile:last-child', '.chs-tuiles'], icone: 'arme_flammes', texte: 'Une **Arme élémentaire** renforce tes coups tout le combat. Une seule à la fois.' },
-    { cible: ['.jauges > .ligne'], icone: 'vigueur_ancestrale', texte: 'Une fois par expédition, au lieu de tomber, tu te **réincarnes** avec 30 % de tes PV.' },
+    { cible: ['.jauges > .ligne'], icone: 'vigueur_ancestrale', texte: 'Une fois par expédition, au lieu de tomber, tu te **réincarnes** avec 40 % de tes PV.' },
   ],
   druide: [
     { cible: ['.formes'], icone: 'instinct_sauvage', texte: 'Change de **forme** : 1 énergie, le premier changement du combat est gratuit.' },
