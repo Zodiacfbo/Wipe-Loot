@@ -96,7 +96,7 @@
 - [x] Le profil du joueur (sauvegardé à part de la run) : objets découverts, coffre de la guilde, expérience des classes, statistiques
 - [x] L'expérience et le niveau de classe (1 à 10) : bilan de fin de run (score ligne par ligne), 26 700 exp. pour le niveau 10 depuis le 24 novembre 2026 (≈ 30 victoires ; avant : 1 440), niveau affiché sur l'écran titre
 - [x] Premier lancement : choix libre de la classe de départ parmi les 9, avec une fiche de présentation (seul le Guerrier est jouable pour l'instant)
-- [x] Déblocage des autres classes au choix du joueur : depuis le 24 novembre 2026, le premier niveau N atteint (par n'importe quelle classe) ouvre la N-ième classe (avant : paliers d'expérience totale). Rattrapage ×1,5.
+- [x] Déblocage des autres classes au choix du joueur : depuis le 24 novembre 2026, le premier niveau N atteint (par n'importe quelle classe) ouvre la N-ième classe (avant : paliers d'expérience totale). Rattrapage ×2 (×1,5 du 24 au 25 novembre 2026).
 - [x] Le rattrapage : expérience doublée pour une classe tant qu'elle est en dessous du meilleur niveau atteint (prêt, il servira avec la 2e classe)
 - [x] Les talents permanents du Guerrier : écran des 3 arbres (27 talents), choix avant la run, respec gratuit, récompenses orientées vers les arbres investis
 - [x] Le palier 5 (carte épique) coûte 3 points : un seul arbre complet (novembre 2026). Cartes épiques et arbres faibles revus pour que les 3 arbres de chaque classe se valent à peu près : voir [l'équilibrage](EQUILIBRAGE.md), §14

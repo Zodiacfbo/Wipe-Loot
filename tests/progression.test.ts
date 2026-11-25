@@ -75,12 +75,12 @@ describe('score et expérience', () => {
     expect(levelFromXp(convertOldXp(3000)).level).toBe(MAX_LEVEL);
   });
 
-  it('rattrapage : expérience ×1,5 tant que la classe est en retard sur une autre', () => {
+  it('rattrapage : expérience ×2 tant que la classe est en retard sur une autre', () => {
     const profile = fresh();
     profile.classes.mage = { xp: 1000 };
     const sum = awardRun(profile, finished(false));
     expect(sum.catchup).toBe(true);
-    expect(sum.xp).toBe(Math.round(sum.score * 1.5));
+    expect(sum.xp).toBe(Math.round(sum.score * 2));
     profile.classes.guerrier.xp = 1000;
     expect(awardRun(profile, finished(false)).catchup).toBe(false);
   });

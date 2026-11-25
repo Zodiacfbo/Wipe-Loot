@@ -2109,7 +2109,7 @@ function summaryHtml(sum: RunSummary, classId = 'guerrier'): string {
     <div class="bilan-score">${rows}<div class="ligne-score total"><span>Score</span><b>${sum.score}</b></div></div>
     <div class="bilan-xp">
       <span class="butin-titre">${classInfo(classId).name}</span>
-      <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×1,5 : rattrapage)</em>' : ''}</b>
+      <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×2 : rattrapage)</em>' : ''}</b>
       <div class="niveau">Niveau ${sum.levelAfter}${sum.levelAfter === MAX_LEVEL ? ' (maximum)' : ''}</div>
       <div class="barre-xp"><div style="width:${pct}%"></div><span>${sum.needed ? `${sum.into} / ${sum.needed}` : 'Niveau maximum'}</span></div>
       ${up ? `<p class="niveau-gagne">Niveau supérieur ! +${sum.levelAfter - sum.levelBefore} point${sum.levelAfter - sum.levelBefore > 1 ? 's' : ''} de talent</p>` : ''}

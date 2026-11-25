@@ -10,8 +10,8 @@ export const MAX_LEVEL = 10;
 export const XP_PER_LEVEL = [600, 900, 1300, 1800, 2400, 3200, 4300, 5400, 6800];
 /** L'ancienne courbe (avant le 24 novembre 2026), pour convertir les profils. */
 export const OLD_XP_PER_LEVEL = [80, 100, 120, 140, 160, 180, 200, 220, 240];
-/** Rattrapage : expérience ×1,5 tant que la classe est en dessous du meilleur niveau d'une autre. */
-export const CATCHUP = 1.5;
+/** Rattrapage : expérience ×2 tant que la classe est en dessous du meilleur niveau d'une autre. */
+export const CATCHUP = 2;
 
 export interface LevelInfo {
   level: number;
