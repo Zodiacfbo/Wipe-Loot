@@ -55,7 +55,8 @@ Le Chaman est l'intermédiaire entre les mortels et les **esprits des éléments
 
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Éclair** | 4 | 1 | Sort | Inflige 6 dégâts. **Résonance (Air)** : +2 dégâts. | 8 / +3 |
+| **Éclair** | 2 | 1 | Sort | Inflige 6 dégâts. **Résonance (Air)** : +2 dégâts. | 8 / +3 |
+| **Frappe primitive** | 2 | 1 | Attaque | Inflige 7 dégâts. | 10 dégâts |
 | **Garde de pierre** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
 | **Choc de flammes** | 1 | 1 | Sort | Inflige 4 dégâts. Applique DoT 2 pendant 3 tours. | 6 / DoT 3 |
 | **Totem de braise** | 1 | 1 | Compétence (Totem de Feu) | **Totem :** au début de ton tour, inflige 4 dégâts à un ennemi au hasard. | 6 dégâts |
@@ -262,6 +263,7 @@ Le Chaman est l'intermédiaire entre les mortels et les **esprits des éléments
 | Élément | Fiche | En jeu |
 |---|---|---|
 | Éclair | 6 dégâts (8) | **7 dégâts (10)**, Résonance (Air) +2 (+3) |
+| Paquet de départ | 4 Éclairs | **2 Éclairs et 2 Frappes primitives** (25 novembre 2026) : sans Attaque au départ, les Armes élémentaires ne servaient à rien en début de run. **Pas encore mesuré par le bot.** |
 | Garde de pierre (départ) | 5 blocage (8) | **6 blocage (9)** : le renfort de départ des autres classes |
 | Totem de pierre | 3 blocage (5) | **4 blocage (6)** |
 | Totem de braise | 4 dégâts (6) | **5 dégâts (7)** |

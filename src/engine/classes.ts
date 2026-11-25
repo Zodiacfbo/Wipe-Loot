@@ -82,7 +82,7 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'chaman', name: 'Chaman', color: '#3A8EC8', playable: true, difficulty: 3, hp: 75,
-    starterDeck: ['eclair', 'eclair', 'eclair', 'eclair', 'garde_de_pierre', 'garde_de_pierre', 'garde_de_pierre', 'garde_de_pierre', 'choc_flammes', 'totem_braise'],
+    starterDeck: ['eclair', 'eclair', 'frappe_primitive', 'frappe_primitive', 'garde_de_pierre', 'garde_de_pierre', 'garde_de_pierre', 'garde_de_pierre', 'choc_flammes', 'totem_braise'],
     startSpell: 'choc_tellurique', sprite: 'chaman.png',
     quote: 'La terre me porte, le feu me sert, l\'eau me guérit, l\'air me guide.',
     role: 'Appelle la terre, le feu, l\'eau et l\'air', resource: 'Totems (Terre, Feu, Eau, Air)',
