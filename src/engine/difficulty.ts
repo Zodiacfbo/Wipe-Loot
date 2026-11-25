@@ -17,9 +17,9 @@ export const DIFFICULTY_TEXT: string[] = [
   'Les gardiens sont plus fréquents sur la carte.',
   'Les ennemis normaux ont 10 % de PV en plus.',
   'Les gardiens ont 15 % de PV en plus.',
-  'Les boss se déchaînent 2 tours plus tôt.',
+  'Les gardiens et les seigneurs se déchaînent 2 tours plus tôt.',
   'Le feu de camp soigne 25 % des PV max au lieu de 30 %.',
-  'Tu commences la run avec 80 % de tes PV.',
+  'Tu commences l\'expédition avec 80 % de tes PV.',
   'Une relève de moins (2).',
   'Les ennemis normaux infligent 10 % de dégâts en plus.',
   'Les gardiens infligent 10 % de dégâts en plus.',
@@ -62,6 +62,47 @@ export interface DifficultyMods {
   normalPuissance: number;
   elitePuissance: number;
   bossPuissance: number;
+}
+
+/** « Ce qui t'attend » (hall, maquette C du 25 novembre 2026) : les contraintes d'un niveau, regroupées par cible. */
+export function difficultySummary(level: number): { icon: string; label: string; text: string }[] {
+  if (level <= 0) return [];
+  const m = difficultyMods(level);
+  const pct = (x: number) => `+${Math.round((x - 1) * 100)} %`;
+  const at = (n: number) => level >= n;
+  const out: { icon: string; label: string; text: string }[] = [];
+  const add = (icon: string, label: string, parts: (string | false)[]) => {
+    const kept = parts.filter((p): p is string => !!p);
+    if (kept.length) out.push({ icon, label, text: kept.join(', ') });
+  };
+  add('⚔️', 'Seigneurs', [
+    `${pct(m.bossHp)} de PV et de dégâts`,
+    (m.enrageEarlier + m.bossEnrageEarlier) > 0 && `se déchaînent ${m.enrageEarlier + m.bossEnrageEarlier} tours plus tôt`,
+    m.bossPuissance > 0 && `${m.bossPuissance} Puissance au départ`,
+    m.lordAddHp > 1 && `leurs sbires ${pct(m.lordAddHp)} de PV`,
+  ]);
+  add('🛡', 'Gardiens', [
+    at(1) && 'plus fréquents',
+    m.eliteHp > 1 && `${pct(m.eliteHp)} de PV`,
+    m.eliteDmg > 1 && `${pct(m.eliteDmg)} de dégâts`,
+    m.enrageEarlier > 0 && 'se déchaînent plus tôt',
+    m.elitePuissance > 0 && `${m.elitePuissance} Puissance au départ`,
+  ]);
+  add('👹', 'Ennemis', [m.normalHp > 1 && `${pct(m.normalHp)} de PV`, m.normalDmg > 1 && `${pct(m.normalDmg)} de dégâts`]);
+  add('❤', 'Toi', [
+    m.startHpRatio < 1 && `${Math.round(m.startHpRatio * 100)} % de PV au départ`,
+    m.campfireHeal < 0.3 && `feu de camp ${Math.round(m.campfireHeal * 100)} %`,
+    m.wipes < 3 && `${m.wipes} relève${m.wipes > 1 ? 's' : ''}`,
+    m.startCurse && 'une Malédiction dans ton paquet',
+    m.rewardCards < 3 && `${m.rewardCards} cartes en récompense`,
+  ]);
+  add('💰', 'Or et vendeur', [
+    m.goldMult < 1 && `${Math.round((1 - m.goldMult) * 100)} % d'or en moins`,
+    m.shopMult > 1 && `vendeur ${pct(m.shopMult)}`,
+    m.repairMult > 1 && `réparations ${pct(m.repairMult)}`,
+    m.potionChance < 0.4 && 'moins de potions',
+  ]);
+  return out;
 }
 
 export function difficultyMods(level: number): DifficultyMods {

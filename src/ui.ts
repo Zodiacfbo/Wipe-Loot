@@ -97,7 +97,7 @@ import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost
 import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
 import { CLASSES, CLASS_BY_ID, bestLevel, chooseStartClass, classInfo, nextUnlockLevel, unlockClass, unlocksAvailable } from './engine/classes';
-import { lordScalingText, DIFFICULTY_TEXT } from './engine/difficulty';
+import { difficultySummary, lordScalingText, DIFFICULTY_TEXT } from './engine/difficulty';
 import { LORE, recordKills, recordSeen } from './engine/archives';
 import { COMMON_POOL } from './engine/items';
 import { POTION_IDS } from './engine/potions';
@@ -1849,7 +1849,7 @@ function difficultyPicker(): string {
       <button type="button" class="bouton" data-action="difficulte" data-delta="1" ${d >= max ? 'disabled' : ''} aria-label="Difficulté plus haute">▶</button>
       <button type="button" class="bouton" data-action="voir-difficultes">Les 20 niveaux</button>
     </div>
-    <p>${text}</p>
+    ${d === 0 ? `<p>${text}</p>` : `<div class="attente-difficulte"><b>Ce qui t'attend en difficulté ${d}</b><ul>${difficultySummary(d).map((x) => `<li>${x.icon} <b>${x.label}</b> : ${x.text}</li>`).join('')}</ul></div>`}
   </div>`;
 }
 

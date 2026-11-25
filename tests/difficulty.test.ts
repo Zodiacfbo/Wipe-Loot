@@ -73,3 +73,17 @@ describe('les niveaux de difficulté', () => {
     expect(awardRun(profile, run).newDifficulty).toBeNull();
   });
 });
+
+describe('« Ce qui t\'attend » : les contraintes regroupées', () => {
+  it('rien au niveau 0, les seigneurs d\'abord, tout au niveau 20', async () => {
+    const { difficultySummary } = await import('../src/engine/difficulty');
+    expect(difficultySummary(0)).toEqual([]);
+    const d9 = difficultySummary(9);
+    expect(d9[0]).toEqual({ icon: '⚔️', label: 'Seigneurs', text: '+18 % de PV et de dégâts, se déchaînent 2 tours plus tôt' });
+    expect(d9.map((x) => x.label)).toEqual(['Seigneurs', 'Gardiens', 'Ennemis', 'Toi']);
+    const d20 = difficultySummary(20);
+    expect(d20.map((x) => x.label)).toEqual(['Seigneurs', 'Gardiens', 'Ennemis', 'Toi', 'Or et vendeur']);
+    expect(d20[0].text).toContain('leurs sbires +25 % de PV');
+    expect(d20[3].text).toContain('2 cartes en récompense');
+  });
+});
