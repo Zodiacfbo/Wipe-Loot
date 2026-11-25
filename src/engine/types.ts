@@ -548,6 +548,8 @@ export interface CombatState {
   compNextBonus?: number;
   /** Frénésie : dégâts gagnés par le compagnon pendant ce combat. */
   frenzyStacks?: number;
+  /** Corde-des-anciens : tours où la Flèche des anciens est restée en main (+5 dégâts chacun, 15 au plus). */
+  flecheCharge?: number;
   aspect?: AspectId | null;
   /** Les Pièges posés (3 au plus), dans l'ordre où ils se déclencheront. */
   traps?: Trap[];
