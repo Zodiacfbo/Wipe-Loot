@@ -20,6 +20,8 @@ export interface ClassInfo {
   playable: boolean;
   /** Le kit de départ (classes jouables) : deck, sort de barre, sprite. */
   starterDeck?: string[];
+  /** Le paquet de départ suit l'arbre principal (celui qui a strictement le plus de points) : cartes remplacées, par arbre. */
+  starterSwaps?: Record<string, { from: string; to: string; count: number }>;
   startSpell?: string;
   sprite?: string;
 }
@@ -36,6 +38,8 @@ export const CLASSES: ClassInfo[] = [
   {
     id: 'mage', name: 'Mage', color: '#4C8FE0', playable: true, difficulty: 2, hp: 72,
     starterDeck: ['trait_de_magie', 'trait_de_magie', 'trait_de_magie', 'trait_de_magie', 'barriere', 'barriere', 'barriere', 'barriere', 'boule_de_feu', 'eclair_de_givre'],
+    // 26 novembre 2026 : le paquet était un paquet Arcane, le Feu et le Givre démarraient en retard.
+    starterSwaps: { feu: { from: 'trait_de_magie', to: 'roussir', count: 2 }, givre: { from: 'trait_de_magie', to: 'eclair_de_givre', count: 2 } },
     startSpell: 'contresort', sprite: 'mage.png',
     quote: 'Le feu consume, la glace emprisonne, l\'arcane plie le monde. Choisis ta perte.',
     role: 'Commande au feu, à la glace et aux arcanes', resource: 'Gel, Brûlure et charges arcaniques',

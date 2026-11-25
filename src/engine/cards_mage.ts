@@ -442,8 +442,11 @@ const MAGE_LIST: MageCard[] = [
   },
   {
     id: 'coeur_de_glace', name: 'Cœur de glace', type: 'Pouvoir', rarity: 'rare', cost: 1, needsTarget: false, innateUp: true, icon: 'pouvoir',
-    text: (up) => `Au début de ton tour : Gel 1 à tous les ennemis.${up ? ' Inné.' : ''}`,
-    play: (ctx) => powerCard(ctx, 'coeur_de_glace', 1, 'Cœur de glace'),
+    text: (up) => `Gel 2 à tous, puis à nouveau au début de chaque tour.${up ? ' Inné.' : ''}`,
+    play: (ctx) => {
+      for (const e of livingEnemies(ctx.c)) applyGel(ctx.c, e, 2);
+      powerCard(ctx, 'coeur_de_glace', 2, 'Cœur de glace');
+    },
   },
   {
     id: 'fracas_glaciaire', name: 'Fracas glaciaire', type: 'Sort', school: 'givre', rarity: 'epique', cost: 2, needsTarget: true, icon: 'bouclier',

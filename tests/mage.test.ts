@@ -244,3 +244,38 @@ describe('le Mage : l\'Arcane', () => {
     expect(SPELLS.contresort.cost).toBe(0);
   });
 });
+
+describe('le Mage : paquet de départ selon l\'arbre principal', () => {
+  const ids = (talents: string[]) => newRun(1, null, talents, 0, 'mage').deck.map((c) => c.id);
+  const count = (deck: string[], id: string) => deck.filter((x) => x === id).length;
+
+  it('Feu : 2 Roussir à la place de 2 Traits de magie', () => {
+    const d = ids(['feu_intense', 'souffle_du_dragon', 't_combustion']);
+    expect(count(d, 'trait_de_magie')).toBe(2);
+    expect(count(d, 'roussir')).toBe(2);
+    expect(d).toHaveLength(10);
+  });
+
+  it('Givre : 2 Éclairs de givre de plus, 2 Traits de magie de moins', () => {
+    const d = ids(['givre_durable', 'froid_glacial']);
+    expect(count(d, 'trait_de_magie')).toBe(2);
+    expect(count(d, 'eclair_de_givre')).toBe(3);
+  });
+
+  it('Arcane, sans talent ou à égalité : le paquet habituel', () => {
+    expect(count(ids(['subtilite_arcanique']), 'trait_de_magie')).toBe(4);
+    expect(count(ids([]), 'trait_de_magie')).toBe(4);
+    expect(count(ids(['feu_intense', 'hiver_precoce']), 'trait_de_magie')).toBe(4);
+  });
+});
+
+describe('le Mage : Cœur de glace', () => {
+  it('Gel 2 à tous tout de suite, puis Gel 2 au début de chaque tour', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['coeur_de_glace']);
+    play(c, 'coeur_de_glace');
+    expect(c.enemies.map((e) => e.buffs.gel)).toEqual([2, 2]);
+    endTurn(c);
+    // −1 à la fin du tour ennemi, +2 au début du tour suivant.
+    expect(c.enemies.filter((e) => !e.dead).map((e) => e.buffs.gel)).toEqual([3, 3]);
+  });
+});

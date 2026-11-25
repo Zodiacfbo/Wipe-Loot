@@ -1111,7 +1111,7 @@ const POWER_LABEL: Record<string, [string, string]> = {
   armure_de_givre: ['Armure de givre', 'Tes attaquants reçoivent du Gel'],
   morsure_du_froid: ['Morsure du froid', 'Un ennemi Gelé subit des dégâts'],
   fragmentation: ['Fragmentation', 'Fracasser : triple dégâts'],
-  coeur_de_glace: ['Cœur de glace', 'Gel 1 à tous au début de ton tour'],
+  coeur_de_glace: ['Cœur de glace', 'Gel 2 à tous au début de ton tour'],
   armure_demoniaque: ['Armure démoniaque', 'Soigne 1 PV au début de ton tour'],
   etreinte: ['Étreinte de l\'ombre', 'Tes DoT : +dégâts'],
   tourment: ['Tourment', 'Chaque tick de DoT te soigne'],

@@ -73,6 +73,8 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 | **Boule de feu** | 1 | 2 | Sort (Feu) | Inflige 14 dégâts. Applique Brûlure 4. | 18 dégâts, Brûlure 5 |
 | **Éclair de givre** | 1 | 1 | Sort (Givre) | Inflige 7 dégâts. Applique Gel 2. | 9 dégâts, Gel 3 |
 
+**Le paquet suit l'arbre principal (26 novembre 2026, retour de playtest)** : l'arbre qui a strictement le plus de points change 2 Traits de magie. **Feu** : 2 **Roussir** à la place. **Givre** : 2 **Éclairs de givre** de plus. **Arcane**, sans talent ou à égalité : le paquet ci-dessus. Raison : les 4 Traits de magie profitent tout de suite des talents Arcane (Subtilité arcanique), alors que le Feu et le Givre démarraient sans moteur (3 parties du même joueur : Arcane gagne avec 1 talent, Feu et Givre perdent au chapitre I avec 3). Réglage : `starterSwaps` dans `classes.ts`, `starterDeckFor` dans `run.ts`.
+
 ### 4.2 Sort de barre de départ
 
 | Sort | Coût | Recharge | Effet |
@@ -154,7 +156,7 @@ Le Mage a **peu de PV** et peu de blocage classique. Pour survivre, il compte su
 | **Tempête de neige** | 2 | Sort | R | Inflige 4 dégâts à tous les ennemis, 3 fois. Chaque fois, applique Gel 1. | 5 × 3 |
 | **Prison de glace** | 1 | Compétence | R | La cible (sauf boss) devient immédiatement **Gelée**. **Épuisé.** | Fonctionne aussi sur un boss (attaque réduite de moitié) |
 | **Fragmentation** | 2 | Pouvoir | R | **Fracasser** inflige **triple** dégâts au lieu de double. | Coûte 1 |
-| **Cœur de glace** | 1 | Pouvoir | R | Au début de ton tour, applique Gel 1 à tous les ennemis. | Inné |
+| **Cœur de glace** | 1 | Pouvoir | R | Applique **Gel 2** à tous les ennemis tout de suite, puis à nouveau au début de chaque tour (26 novembre 2026 : avant, Gel 1 au début du tour seulement, annulé par la baisse du Gel à chaque tour ennemi). | Inné |
 | **Fracas glaciaire** | 2 | Sort | É | Applique **Gel 3** à la cible, puis inflige 8 dégâts **à tous les ennemis**. **Fracasser** (chaque ennemi fracassable subit double dégâts). | 11 dégâts |
 
 ---

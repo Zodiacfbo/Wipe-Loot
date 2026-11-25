@@ -37,7 +37,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   const mods = difficultyMods(difficulty);
   const info = classInfo(classId);
   let uid = 1;
-  const deck: CardInstance[] = (info.starterDeck ?? []).map((id) => ({ uid: uid++, id, upgraded: false }));
+  const deck: CardInstance[] = starterDeckFor(classId, talents).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
     version: 27, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null, retreated: false, choix: [],
@@ -161,6 +161,31 @@ export function startNextAct(run: RunState): boolean {
   run.bossStage = null;
   run.screen = 'map';
   return true;
+}
+
+/** L'arbre principal : celui qui a strictement le plus de points (null sans talent ou à égalité). */
+export function mainTree(classId: string, talents: string[]): string | null {
+  const counts = treesFor(classId).map((t) => ({ id: t.id, n: talents.filter((id) => t.tiers.flat().some((d) => d.id === id)).length }));
+  const best = Math.max(0, ...counts.map((c) => c.n));
+  const top = counts.filter((c) => c.n === best);
+  return best > 0 && top.length === 1 ? top[0].id : null;
+}
+
+/** Le paquet de départ, adapté à l'arbre principal (`starterSwaps` de la classe). */
+export function starterDeckFor(classId: string, talents: string[]): string[] {
+  const info = classInfo(classId);
+  const deck = [...(info.starterDeck ?? [])];
+  const tree = mainTree(classId, talents);
+  const swap = tree ? info.starterSwaps?.[tree] : undefined;
+  if (swap) {
+    for (let i = 0, n = 0; i < deck.length && n < swap.count; i++) {
+      if (deck[i] === swap.from) {
+        deck[i] = swap.to;
+        n++;
+      }
+    }
+  }
+  return deck;
 }
 
 /** Les talents au début de la run : PV max, sorts de barre, carte épique dans le deck. */
