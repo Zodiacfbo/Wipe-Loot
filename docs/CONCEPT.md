@@ -711,7 +711,9 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
   - Chaque niveau **ajoute une contrainte, qui s'ajoute à toutes celles des niveaux précédents**. La difficulté 5 contient donc les contraintes des niveaux 1 à 5.
   - Ce n'est jamais obligatoire : c'est la façon de garder le jeu difficile une fois la classe maîtrisée et ses talents au maximum.
   - Chaque niveau donne **+5 % de score**.
-  - **Les 20 contraintes** (prototype, acte 1) :
+  - **Chaque niveau** (25 novembre 2026) : les seigneurs (Vulkhar, Vhaeryx, Yzhar) ont **+1 % de PV et de dégâts** (+20 % au niveau 20). Avant, ils ne changeaient presque pas entre les niveaux 4 et 16.
+  - Dans le hall, l'encadré « Ce qui t'attend en difficulté N » regroupe les contraintes par cible (seigneurs, gardiens, ennemis, toi, or et vendeur).
+  - **Les 20 contraintes** :
 
 | Niveau | Contrainte ajoutée |
 |---|---|
@@ -730,8 +732,8 @@ La structure d'une run reprend celle de StS. Entre les runs, le joueur débloque
 | 13 | Le vendeur gobelin est 20 % plus cher. |
 | 14 | Les factures de réparation coûtent 50 % de plus. |
 | 15 | Tu trouves moins de potions après les combats. |
-| 16 | Les boss de fin d'acte (Vulkhar, Vhaeryx) ont 15 % de PV en plus. |
-| 17 | Les boss de fin d'acte infligent 10 % de dégâts en plus. |
+| 16 | Les récompenses de combat proposent 2 cartes au lieu de 3 (avant le 25 novembre 2026 : seigneurs +15 % de PV). |
+| 17 | Les sbires des seigneurs ont 25 % de PV en plus (avant : seigneurs +10 % de dégâts). |
 | 18 | Les boss secondaires commencent chaque combat avec 1 Puissance. |
 | 19 | Les ennemis normaux ont encore 10 % de PV en plus (20 % au total). |
 | 20 | Les Souverains enragés : les boss de fin d'acte commencent avec 2 Puissance, et leur enrage arrive 2 tours plus tôt. |
