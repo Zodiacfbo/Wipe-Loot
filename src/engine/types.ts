@@ -194,6 +194,8 @@ export interface CombatMods {
   normalPuissance: number;
   elitePuissance: number;
   bossPuissance: number;
+  /** Niveau 17 : PV des sbires dans le combat d'un seigneur (absent dans les anciennes sauvegardes). */
+  lordAddHp?: number;
 }
 
 export interface EnemyState {

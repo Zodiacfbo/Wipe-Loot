@@ -20,7 +20,9 @@ export function emptyDebuffs(): PlayerDebuffs {
 /** Crée un ennemi (au début du combat, ou quand un boss appelle des renforts). */
 export function makeEnemy(c: CombatState, id: string, hp?: number): EnemyState {
   const def = ENEMIES[id];
-  const max = hp ?? def.hpMin + Math.floor(random(c) * (def.hpMax - def.hpMin + 1));
+  let max = hp ?? def.hpMin + Math.floor(random(c) * (def.hpMax - def.hpMin + 1));
+  // Niveau 17 : un sbire appelé pendant le combat d'un seigneur a 25 % de PV en plus.
+  if (c.mods && !def.boss && c.enemies.some((e) => !e.dead && ENEMIES[e.defId].boss)) max = Math.round(max * (c.mods.lordAddHp ?? 1));
   return {
     uid: c.nextUid++, defId: id, name: def.name, hp: max, maxHp: max, block: 0,
     buffs: { puissance: 0, demoralise: 0, ralenti: 0, armureFracassee: 0, saignement: 0, saignementTours: 0 },

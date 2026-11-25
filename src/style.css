@@ -1049,3 +1049,9 @@ body.connexion-libre .types-message { flex-wrap: wrap; }
 .fenetre-maj .boite-connexion { border: 2px solid var(--or); }
 .fenetre-maj .petit-texte { font-size: 13px; color: var(--texte-2); }
 .fenetre-maj .lien { align-self: center; color: var(--texte-2); font-weight: 400; }
+.ligne-seigneurs { margin: 0; color: var(--or); font-weight: 700; }
+/* « Ce qui t'attend » sous le choix de difficulté (maquette C, 25 novembre 2026). */
+.attente-difficulte { margin: 6px auto 0; max-width: 560px; padding: 7px 12px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--panneau-sombre, #221913); text-align: left; font-size: 12.5px; }
+.attente-difficulte > b { color: var(--or); }
+.attente-difficulte ul { margin: 3px 0 0; padding-left: 4px; list-style: none; }
+.attente-difficulte li { margin: 1px 0; }

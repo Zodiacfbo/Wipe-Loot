@@ -14,7 +14,13 @@ describe('les niveaux de difficulté', () => {
     expect(difficultyMods(7).wipes).toBe(2);
     expect(difficultyMods(12).wipes).toBe(1);
     expect(difficultyMods(20).wipes).toBe(1);
-    expect(difficultyMods(17).bossDmg).toBe(1.1);
+    expect(difficultyMods(0).bossHp).toBe(1);
+    expect(difficultyMods(9).bossHp).toBeCloseTo(1.09); // +1 % par niveau pour les seigneurs
+    expect(difficultyMods(20).bossDmg).toBeCloseTo(1.2);
+    expect(difficultyMods(15).rewardCards).toBe(3);
+    expect(difficultyMods(16).rewardCards).toBe(2);
+    expect(difficultyMods(16).lordAddHp).toBe(1);
+    expect(difficultyMods(17).lordAddHp).toBe(1.25);
     expect(difficultyMods(20).normalHp).toBe(1.2); // niveaux 2 et 19
     expect(difficultyMods(18).normalHp).toBe(1.1);
   });
@@ -42,7 +48,7 @@ describe('les niveaux de difficulté', () => {
     const m = difficultyMods(20);
     const boss = createCombat(BOSS_ENCOUNTER, deck, 80, 80, 5, 100, {}, ['charge'], m);
     const v = boss.enemies[0];
-    expect(v.maxHp).toBe(Math.round(225 * 1.15));
+    expect(v.maxHp).toBe(Math.round(225 * 1.2));
     expect(v.buffs.puissance).toBe(2);
     expect(boss.enrageTurn).toBe(14 - 2 - 2);
     const elite = createCombat(ELITE_ENCOUNTERS[0], deck, 80, 80, 5, 100, {}, ['charge'], m);
@@ -65,5 +71,19 @@ describe('les niveaux de difficulté', () => {
     expect(profile.difficulty.guerrier).toBe(2);
     // Gagner à un niveau plus bas ne débloque rien.
     expect(awardRun(profile, run).newDifficulty).toBeNull();
+  });
+});
+
+describe('« Ce qui t\'attend » : les contraintes regroupées', () => {
+  it('rien au niveau 0, les seigneurs d\'abord, tout au niveau 20', async () => {
+    const { difficultySummary } = await import('../src/engine/difficulty');
+    expect(difficultySummary(0)).toEqual([]);
+    const d9 = difficultySummary(9);
+    expect(d9[0]).toEqual({ icon: '⚔️', label: 'Seigneurs', text: '+9 % de PV et de dégâts, se déchaînent 2 tours plus tôt' });
+    expect(d9.map((x) => x.label)).toEqual(['Seigneurs', 'Gardiens', 'Ennemis', 'Toi']);
+    const d20 = difficultySummary(20);
+    expect(d20.map((x) => x.label)).toEqual(['Seigneurs', 'Gardiens', 'Ennemis', 'Toi', 'Or et vendeur']);
+    expect(d20[0].text).toContain('leurs sbires +25 % de PV');
+    expect(d20[3].text).toContain('2 cartes en récompense');
   });
 });

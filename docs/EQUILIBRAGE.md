@@ -616,3 +616,19 @@ Mesure du bot (sonde jetable, non gardée) : 9 classes × niveaux 1, 5 et 10 × 
 Avec l'ancienne courbe (1 440 points), le niveau 10 arrivait en **4 runs** (3 avec le rattrapage ×2) : beaucoup trop vite depuis les 3 chapitres (la fiche disait « une victoire autour de 300 », chiffre de l'époque d'un seul chapitre).
 
 Retenu : 26 700 points (600, 900, 1 300, 1 800, 2 400, 3 200, 4 300, 5 400, 6 800), soit l'équivalent de 30 victoires ; rattrapage ×1,5 ; la classe N se débloque au premier niveau N atteint. Simulation (une seule classe, sans rattrapage, médianes) : niveau 2 à la 3e run, niveau 3 à la 7e, niveau 5 à la 16e, niveau 7 à la 26e, niveau 10 à la 51e. La 9e classe arrive donc vers la 41e run. Écartée : l'ancienne courbe × 18,5 (niveau 2 seulement à la 7e run, trop long pour un débutant).
+
+## 23. Les seigneurs grandissent avec la difficulté (25 novembre 2026)
+
+**Le constat (export playtest)** : un Chasseur gagnait en difficulté 9 sans perdre de PV contre Vulkhar. Entre les niveaux 4 et 16, aucune contrainte ne touchait les seigneurs.
+
+**Ce qui a changé :** chaque niveau donne aux seigneurs +X % de PV et de dégâts ; les niveaux 16 (seigneurs +15 % de PV) et 17 (+10 % de dégâts) sont remplacés par « 2 cartes en récompense au lieu de 3 » et « les sbires des seigneurs ont 25 % de PV en plus ».
+
+**Taux de victoire du bot** (niveau 10, 80 runs par case) :
+
+| Difficulté | Guerrier Prot/Fur | Guerrier Armes/Fur | Mage Givre/Feu | Mage Arcane/Feu | Chasseur Bêtes/Survie |
+|---|---|---|---|---|---|
+| Avant : 0 / 5 / 10 / 15 / 20 | 53 / 51 / 40 / 26 / 3 % | 64 / 59 / 41 / 28 / 5 % | 81 / 68 / 54 / 39 / 14 % | 71 / 68 / 54 / 31 / 10 % | 36 / 43 / 34 / 21 / 3 % |
+| **+1 %** (retenu) | 53 / 40 / 21 / 10 / 0 % | 64 / 56 / 28 / 14 / 3 % | 81 / 68 / 51 / 33 / 6 % | 71 / 60 / 34 / 18 / 3 % | 39 / 26 / 24 / 5 / 0 % |
+| +2 % (écarté) | 53 / 28 / 9 / 0 / 0 % | 64 / 46 / 16 / 1 / 0 % | 81 / 61 / 33 / 16 / 1 % | 71 / 55 / 25 / 5 / 0 % | 39 / 29 / 6 / 1 / 0 % |
+
+Le bot est un plancher : les joueurs humains font mieux (le Chasseur du playtest gagnait en difficulté 9 sans perte). Option plus douce si le milieu de l'échelle paraît trop dur : +1 % de PV seulement. Mesure : `difficulte.sim.ts` avec `LORD_SCALING.perLevel` (`difficulty.ts`).

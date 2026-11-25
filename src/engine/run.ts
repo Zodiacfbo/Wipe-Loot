@@ -515,7 +515,8 @@ function offerCards(run: RunState, title: string, min: Rarity): void {
   const choices: string[] = [];
   let guard = 0;
   // Couronne de cendres : une carte de moins.
-  const count = 3 - (runGear(run).fewerCards ?? 0);
+  // Niveau 16 de difficulté : 2 cartes au lieu de 3 (une au moins).
+  const count = Math.max(1, (difficultyMods(run.difficulty ?? 0).rewardCards ?? 3) - (runGear(run).fewerCards ?? 0));
   while (choices.length < count && guard++ < 100) {
     const rarity = rollRarity(run, min);
     const pool = rewardPool(run.classId).filter((id) => CARDS[id].rarity === rarity && !choices.includes(id) && cardUnlocked(run, id));

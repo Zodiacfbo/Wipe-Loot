@@ -97,7 +97,7 @@ import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost
 import { TALENT_REFS, talentIcon } from './engine/talent_icons';
 import { freezeThreshold } from './engine/actions';
 import { CLASSES, CLASS_BY_ID, bestLevel, chooseStartClass, classInfo, nextUnlockLevel, unlockClass, unlocksAvailable } from './engine/classes';
-import { DIFFICULTY_TEXT } from './engine/difficulty';
+import { difficultySummary, lordScalingText, DIFFICULTY_TEXT } from './engine/difficulty';
 import { LORE, recordKills, recordSeen } from './engine/archives';
 import { COMMON_POOL } from './engine/items';
 import { POTION_IDS } from './engine/potions';
@@ -1848,7 +1848,7 @@ function difficultyPicker(): string {
       <button type="button" class="bouton" data-action="difficulte" data-delta="1" ${d >= max ? 'disabled' : ''} aria-label="Difficulté plus haute">▶</button>
       <button type="button" class="bouton" data-action="voir-difficultes">Les 20 niveaux</button>
     </div>
-    <p>${text}</p>
+    ${d === 0 ? `<p>${text}</p>` : `<div class="attente-difficulte"><b>Ce qui t'attend en difficulté ${d}</b><ul>${difficultySummary(d).map((x) => `<li>${x.icon} <b>${x.label}</b> : ${x.text}</li>`).join('')}</ul></div>`}
   </div>`;
 }
 
@@ -2572,6 +2572,7 @@ function overlayHtml(run: RunState | null): string {
     return `<div class="overlay"><div class="ecran" style="justify-content:flex-start;padding-top:28px;gap:10px">
       <h2>Les niveaux de difficulté</h2>
       <p>Chaque niveau ajoute une contrainte à toutes celles des niveaux précédents. Gagner une expédition débloque le niveau suivant. Chaque niveau donne +5 % de score.</p>
+      <p class="ligne-seigneurs">⚔️ ${lordScalingText()}</p>
       <ol class="liste-difficultes">${rows}</ol>
       <button type="button" class="gros-bouton secondaire" data-action="fermer">Fermer</button>
     </div></div>`;
