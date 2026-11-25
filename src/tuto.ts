@@ -57,7 +57,7 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
     { cible: ['.barre-sorts'], icone: 'barriere_de_glace', texte: 'Tu as peu de PV : lis les intentions et garde **Carapace de glace** pour le gros coup.' },
   ],
   paladin: [
-    { cible: ['.pal-tuile:not(.aura)', '.pal-tuiles'], icone: 'sceau_croise', texte: 'Un **Sceau** à la fois : un nouveau remplace l\'ancien.' },
+    { cible: ['.pal-tuile:not(.aura)', '.pal-tuiles'], icone: 'sceau_croise', texte: 'Un **Sceau** à la fois : un nouveau remplace l\'ancien. Rejoue un Sceau déjà actif : il est jugé.' },
     { cible: ['.pal-jugement', '.barre-sorts'], icone: 'verdict_cieux', texte: 'Le sort **Jugement** consomme ton Sceau pour déclencher son effet. Pose, juge, recommence.' },
     { cible: ['.pal-tuile.aura', '.pal-tuiles'], icone: 'aura_devotion', texte: 'Les **Auras** sont des pouvoirs qui durent tout le combat. Une seule à la fois.' },
   ],

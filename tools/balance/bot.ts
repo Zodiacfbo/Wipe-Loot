@@ -2,7 +2,7 @@
 // En combat, il essaie chaque action possible sur une copie de l'état et garde la meilleure
 // (une évaluation simple : dégâts infligés, dégâts qu'il va encaisser, ressources, ennemis vaincus).
 import { CARDS, energyCost } from '../../src/engine/cards';
-import { canPlayCard, canUseSpell, changeForm, choosePet, endTurn, playCard, useSpell } from '../../src/engine/combat';
+import { canPlayCard, canUseSpell, cardNeedsTarget, changeForm, choosePet, endTurn, playCard, useSpell } from '../../src/engine/combat';
 import { FORM_IDS, canShift } from '../../src/engine/druide';
 import type { FormId } from '../../src/engine/types';
 import { ENEMIES } from '../../src/engine/enemies';
@@ -199,7 +199,7 @@ function candidates(c: CombatState): Action[] {
   const targets = c.enemies.filter((e) => !e.dead && !e.submerged && !e.untargetable).map((e) => e.uid);
   c.hand.forEach((card, i) => {
     if (!canPlayCard(c, i)) return;
-    if (CARDS[card.id].needsTarget) targets.forEach((t) => list.push({ kind: 'card', index: i, target: t }));
+    if (cardNeedsTarget(c, card.id)) targets.forEach((t) => list.push({ kind: 'card', index: i, target: t }));
     else list.push({ kind: 'card', index: i });
   });
   c.spells.forEach((s, i) => {

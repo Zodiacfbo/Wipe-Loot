@@ -29,7 +29,7 @@ import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStr
 import { addHallucination, folieStartTurn, gainFolie } from './folie';
 import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
 import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
-import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
+import { afterPaladinCard, censureTick, hasSeal, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn, SEAL_JUDGE_TARGET } from './paladin';
 import { afterHunterCard, flecheStartTurn, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
 import { afterDruidCard, druidDamageTaken, druidEndTurn, druidOnAttacked, druidStartCombat, druidStartTurn, enterForm, isDruid, setForm } from './druide';
 import { afterShamanCard, clearTotems, isShaman, shamanOnAttacked, shamanStartCombat, shamanStartTurn, totemsAct, windfuryExtra } from './chaman';
@@ -515,11 +515,21 @@ export function cardBlockReason(c: CombatState, handIndex: number): string | nul
   return 'Cette carte ne peut pas être jouée maintenant.';
 }
 
+/**
+ * La carte demande-t-elle une cible ? Une carte Sceau rejouée alors que son Sceau est actif le juge :
+ * elle vise alors un ennemi si ce Jugement en a besoin (Droiture, Croisé, Vengeance).
+ */
+export function cardNeedsTarget(c: CombatState, cardId: string): boolean {
+  const def = CARDS[cardId];
+  if (def.needsTarget) return true;
+  return !!def.sealId && hasSeal(c, def.sealId) && SEAL_JUDGE_TARGET.includes(def.sealId);
+}
+
 export function playCard(c: CombatState, handIndex: number, targetUid?: number): boolean {
   if (!canPlayCard(c, handIndex)) return false;
   const card = c.hand[handIndex];
   const def = CARDS[card.id];
-  const target = resolveTarget(c, def.needsTarget, targetUid, def.type === 'Attaque');
+  const target = resolveTarget(c, cardNeedsTarget(c, card.id), targetUid, def.type === 'Attaque');
   if (target === 'invalid') return false;
 
   const p = c.player;

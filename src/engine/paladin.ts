@@ -85,9 +85,15 @@ export function onPaladinHit(c: CombatState, t: EnemyState): void {
   t.buffs.censure = (t.buffs.censure ?? 0) + 1;
 }
 
-/** Le Jugement d'un Sceau. `consume` : le Sceau est consommé (Verdict des cieux le garde). */
-export function judge(c: CombatState, target: EnemyState | null, consume = true): void {
-  const seals = [...(c.seals ?? [])];
+/** Les Sceaux dont le Jugement vise un ennemi (dégâts, Armure fracassée, Censure). */
+export const SEAL_JUDGE_TARGET: SealId[] = ['droiture', 'croise', 'vengeance'];
+
+/**
+ * Le Jugement d'un Sceau. `consume` : le Sceau est consommé (Verdict des cieux le garde).
+ * `only` : juge seulement ce Sceau (une carte Sceau rejouée alors qu'il est déjà actif).
+ */
+export function judge(c: CombatState, target: EnemyState | null, consume = true, only?: SealId): void {
+  const seals = only ? (c.seals ?? []).filter((s) => s === only) : [...(c.seals ?? [])];
   const g = c.gear ?? {};
   // L'Aurore ardente : double dégâts contre les Morts-vivants et les Démons.
   const mult = g.aurore && target && isUnholy(target) ? 2 : 1;
@@ -129,7 +135,7 @@ export function judge(c: CombatState, target: EnemyState | null, consume = true)
   if (g.aurore) palHeal(c, 5);
   if (consume && seals.length > 0) {
     c.lastJudged = seals[seals.length - 1];
-    c.seals = [];
+    c.seals = (c.seals ?? []).filter((s) => !seals.includes(s));
   }
   // Vengeance divine : la prochaine Attaque après un Jugement frappe plus fort.
   if (g.vengeanceDivine) c.judgeBonus = g.vengeanceDivine;

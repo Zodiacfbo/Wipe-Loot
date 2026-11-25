@@ -7,6 +7,7 @@ import {
   canUseSpell,
   cardBlockReason,
   changePosture,
+  cardNeedsTarget,
   changeForm,
   choosePet,
   endTurn,
@@ -1077,7 +1078,7 @@ function needsEnemyTarget(c: CombatState): boolean {
   if (!sel) return false;
   if (sel.kind === 'card') {
     const card = c.hand[sel.index];
-    return !!card && CARDS[card.id].needsTarget;
+    return !!card && cardNeedsTarget(c, card.id);
   }
   return SPELLS[c.spells[sel.index].id].needsTarget;
 }
@@ -2913,9 +2914,8 @@ function onCard(index: number): void {
     render();
     return;
   }
-  const def = CARDS[c.hand[index].id];
   const alive = c.enemies.filter((e) => !e.dead);
-  if (def.needsTarget && alive.length > 1) {
+  if (cardNeedsTarget(c, c.hand[index].id) && alive.length > 1) {
     ui.selection = { kind: 'card', index };
     render();
     return;

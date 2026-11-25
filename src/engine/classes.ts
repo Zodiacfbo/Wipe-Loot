@@ -43,7 +43,7 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'paladin', name: 'Paladin', color: '#E6B84A', playable: true, difficulty: 1, hp: 80,
-    starterDeck: ['frappe_pal', 'frappe_pal', 'frappe_pal', 'frappe_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'sceau_droiture', 'lumiere_bienfaisante'],
+    starterDeck: ['frappe_pal', 'frappe_pal', 'frappe_pal', 'frappe_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'sceau_droiture', 'sceau_droiture', 'lumiere_bienfaisante'],
     startSpell: 'jugement', sprite: 'paladin.png',
     quote: 'Par la lumière, je juge. Par l\'acier, j\'exécute la sentence.',
     role: 'Bouclier, marteau et lumière sacrée', resource: 'Sceaux, Jugements et auras',

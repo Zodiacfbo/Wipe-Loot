@@ -2,7 +2,7 @@
 // - les infobulles des mots-clés : appui long (téléphone) ou survol (PC) sur un mot souligné ou une pastille ;
 //   l'appui long sur une carte explique tous ses mots-clés, sans la jouer ;
 // - l'aperçu des dégâts sur les ennemis : survol d'une carte (PC) ou carte choisie (téléphone).
-import { CARDS } from './engine/cards';
+import { cardNeedsTarget } from './engine/combat';
 import { previewCard, type EnemyPreview } from './engine/preview';
 import type { CombatState } from './engine/types';
 import { keywordByName, keywordOfLabel, keywordsIn } from './keywords';
@@ -118,8 +118,7 @@ function clearPreview(): void {
 function previewFor(c: CombatState, index: number): EnemyPreview[] {
   const card = c.hand[index];
   if (!card) return [];
-  const def = CARDS[card.id];
-  if (!def.needsTarget) return previewCard(c, index)?.enemies ?? [];
+  if (!cardNeedsTarget(c, card.id)) return previewCard(c, index)?.enemies ?? [];
   // Une carte à cible : chaque ennemi montre ce que la carte lui ferait s'il était visé.
   const out: EnemyPreview[] = [];
   for (const e of c.enemies) {

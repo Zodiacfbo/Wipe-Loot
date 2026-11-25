@@ -21,7 +21,7 @@ import { ENEMIES, isInterruptible } from './enemies';
 import { random } from './rng';
 import { basicAttack } from './spells';
 import type { ItemEffects } from './items';
-import type { CardInstance, CardType, CombatState, EnemyState, FormId, Rarity, School } from './types';
+import type { CardInstance, CardType, CombatState, EnemyState, FormId, Rarity, School, SealId } from './types';
 import { druidCostDelta } from './druide';
 import { shamanCostDelta } from './chaman';
 import { MAGE_CARDS } from './cards_mage';
@@ -75,6 +75,8 @@ export interface CardDef {
   finisher?: boolean;
   /** Paladin : une carte Sceau, une carte de soin (Science du combat). */
   seal?: boolean;
+  /** Le Sceau qu'active la carte (une carte Sceau rejouée alors qu'il est actif le juge). */
+  sealId?: SealId;
   healCard?: boolean;
   /** Chasseur : une carte Ordre (Dressage), une carte Piège. */
   order?: boolean;
