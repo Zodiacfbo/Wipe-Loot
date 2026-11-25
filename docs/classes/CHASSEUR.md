@@ -219,7 +219,11 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 | Emplacement | Effet |
 |---|---|
-| **Arme** (légendaire) | Ton compagnon **agit une fois de plus** à la fin de chacun de tes tours. |
+| **Arme** (légendaire) | Au début de chacun de tes tours, une **Flèche des anciens** arrive en main (sauf si tu en gardes déjà une). |
+
+**La Flèche des anciens** (Attaque, 0 énergie, s'épuise quand on la joue) : inflige **5 dégâts** et pose une **Marque +2** (sans remplacer une Marque plus forte). **Bander l'arc** : gardée en main, elle reste d'un tour à l'autre et gagne **+5 dégâts par tour, 15 au plus**. Tirer tout de suite ou attendre le bon moment (achever un gardien, frapper avant que le seigneur se déchaîne) : la force moyenne ne change pas, seulement le moment.
+
+*Changé le 25 novembre 2026* : avant, le compagnon agissait une fois de plus à la fin de chaque tour. Avec Fureur primitive, il agissait 3 fois, et l'arbre des Bêtes gagnait tout sans perdre de PV (playtest : difficulté 9, 0 PV perdu contre Vulkhar). La Flèche est neutre : elle sert aux trois arbres et ne fait plus agir le compagnon.
 
 **La quête (actes 1 et 2, 3 étapes) :**
 1. **Événement « Le campement du vieux trappeur »** (acte 1) : un vieux chasseur confie au joueur un morceau de **Bois ancien**.
@@ -256,7 +260,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 - **Le compagnon choisi en début de run** est une décision forte, proche du choix de classe. Il faudra que les 3 compagnons soient équilibrés.
 - **À surveiller à l'équilibrage :**
-  - Fureur primitive combinée à Corde-des-anciens donne 3 actions du compagnon par tour.
+  - Fureur primitive combinée à l'ancienne Corde-des-anciens donnait 3 actions du compagnon par tour (corrigé le 25 novembre 2026 : la Corde donne maintenant la Flèche des anciens).
   - Maître des pièges combiné à Champ de pièges : 6 explosions de 8 dégâts à tous les ennemis.
   - Feindre la mort annule entièrement un tour d'attaques : la recharge de 5 tours doit rester stricte.
 - **Lisibilité des Pièges :** l'interface devra montrer clairement les Pièges posés et quel ennemi les déclenchera.

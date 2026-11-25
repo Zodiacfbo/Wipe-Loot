@@ -539,7 +539,7 @@ Chaque classe a **son arme légendaire**, qui amplifie sa mécanique principale.
 |---|---|---|
 | **Guerrier** | **Brisemonts**, l'épée des rois nains | Chaque fois que tu prends des dégâts, gagne +1 rage supplémentaire. Exécution inflige toujours son bonus de dégâts. |
 | **Paladin** | **L'Aurore ardente** | Tes Jugements infligent des dégâts doublés aux morts-vivants et aux démons, et te soignent. |
-| **Chasseur** | **Corde-des-anciens**, l'arc du premier chasseur | Ton compagnon attaque une fois de plus chaque tour. |
+| **Chasseur** | **Corde-des-anciens**, l'arc du premier chasseur | Chaque tour, une Flèche des anciens en main (5 dégâts, Marque +2) ; gardée, elle se tend : +5 par tour, 15 au plus. |
 | **Voleur** | **Sillon d'orage** | Toutes les 3 Attaques, un éclair inflige 6 dégâts à tous les ennemis. |
 | **Prêtre** | **Équinoxe**, le bâton de lumière et d'ombre | Une arme double : elle change d'effet selon que tu es en forme Sacrée ou en forme d'Ombre. |
 | **Chaman** | **Le Marteau des ancêtres** | Tes totems agissent deux fois par tour. |

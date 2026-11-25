@@ -4,7 +4,7 @@ import { addPower, applySaignement, drawCards, fx, gainBlock, livingEnemies, log
 import { isInterruptible } from './enemies';
 import { applyDot } from './demoniste';
 import { delayCast, stun } from './voleur';
-import { companionAct, companionGuard, fatalThreshold, markTarget, placeTrap, setAspect } from './chasseur';
+import { companionAct, companionGuard, fatalThreshold, flecheDamage, flecheMark, markTarget, placeTrap, setAspect } from './chasseur';
 import type { CardDef, PlayContext } from './cards';
 import type { EnemyState } from './types';
 
@@ -56,6 +56,16 @@ function aspectCard(id: string, aspect: 'aigle' | 'tortue' | 'guepard', name: st
 }
 
 const LIST: HunterCard[] = [
+  // --- Corde-des-anciens (légendaire) : la Flèche des anciens, ajoutée en main à chaque tour ---
+  {
+    id: 'fleche_anciens', name: 'Flèche des anciens', type: 'Attaque', rarity: 'statut', cost: 0, needsTarget: true, exhaust: true, icon: 'epee',
+    text: () => 'Inflige 5 dégâts, Marque +2. Gardée en main : +5 par tour (15 au plus).',
+    play: (ctx) => {
+      hit(ctx, flecheDamage(ctx.c));
+      ctx.c.flecheCharge = 0;
+      flecheMark(ctx.c, ctx.target ?? null);
+    },
+  },
   // --- Deck de départ ---
   {
     id: 'tir', name: 'Tir', type: 'Attaque', rarity: 'depart', cost: 1, needsTarget: true, icon: 'epee',

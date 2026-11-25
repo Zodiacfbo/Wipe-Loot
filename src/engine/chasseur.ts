@@ -1,6 +1,6 @@
 // Les mécaniques du Chasseur : le compagnon animal, les Esprits animaux, les Pièges et la Marque de la proie.
 // Référence : docs/classes/CHASSEUR.md (§2 et §3)
-import { applySaignement, damageEnemy, drawCards, fx, gainBlock, isBossEnemy, livingEnemies, log, power } from './actions';
+import { addStatusToHand, applySaignement, damageEnemy, drawCards, fx, gainBlock, isBossEnemy, livingEnemies, log, power } from './actions';
 import { applyDot } from './demoniste';
 import { stun } from './voleur';
 import type { AspectId, CombatState, CompanionId, EnemyState, Trap, TrapId } from './types';
@@ -113,10 +113,10 @@ export function companionGuard(c: CombatState, n: number): void {
   if (power(c, 'lien_sauvage')) gainBlock(c, power(c, 'lien_sauvage'), false);
 }
 
-/** À la fin de ton tour : le compagnon (deux fois avec Fureur primitive, une de plus avec Corde-des-anciens), puis le Loup spectral. */
+/** À la fin de ton tour : le compagnon (deux fois avec Fureur primitive), puis le Loup spectral. */
 export function hunterEndTurn(c: CombatState): void {
   if (!isHunter(c)) return;
-  const times = 1 + (power(c, 'fureur_primitive') ? 1 : 0) + (c.gear?.cordeAnciens ?? 0);
+  const times = 1 + (power(c, 'fureur_primitive') ? 1 : 0);
   companionAct(c, times);
   if (c.petStunned) c.petStunned -= 1;
   if (c.spectral && c.phase === 'player') {
@@ -152,6 +152,37 @@ export function hunterStartTurn(c: CombatState): number {
     draw = 1;
   }
   return (c.aspect === 'guepard' ? 1 : 0) + draw;
+}
+
+// --- Corde-des-anciens : la Flèche des anciens (Bander l'arc) ---
+
+/** Dégâts de base de la Flèche des anciens, +5 par tour gardée en main, 15 au plus. */
+export const FLECHE = { base: 5, parTour: 5, max: 15, marque: 2 };
+
+/** Les dégâts de la Flèche des anciens ce tour-ci. */
+export function flecheDamage(c: CombatState): number {
+  return Math.min(FLECHE.max, FLECHE.base + FLECHE.parTour * (c.flecheCharge ?? 0));
+}
+
+/** Début de ton tour, avec Corde-des-anciens : une Flèche en main, ou celle qu'on garde se tend un peu plus. */
+export function flecheStartTurn(c: CombatState): void {
+  if (!c.gear?.cordeAnciens) return;
+  if (c.hand.some((k) => k.id === 'fleche_anciens')) {
+    if (flecheDamage(c) < FLECHE.max) {
+      c.flecheCharge = (c.flecheCharge ?? 0) + 1;
+      fx(c, { kind: 'buff', who: 'player', label: `Arc bandé : ${flecheDamage(c)}` });
+    }
+    return;
+  }
+  c.flecheCharge = 0;
+  addStatusToHand(c, 'fleche_anciens', 1);
+}
+
+/** La Flèche marque sa cible (+2), sans remplacer une Marque plus forte. */
+export function flecheMark(c: CombatState, t: EnemyState | null): void {
+  if (!t || t.dead) return;
+  if (c.mark && c.mark.uid === t.uid && c.mark.value >= FLECHE.marque) return;
+  markTarget(c, t, FLECHE.marque);
 }
 
 /** Au début du combat : Esprit animal (le compagnon agit), Piégeur né (un Piège explosif posé). */
