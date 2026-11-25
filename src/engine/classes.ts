@@ -8,6 +8,7 @@ export interface ClassInfo {
   quote: string;
   role: string;
   /** 1 = facile, 3 = difficile. */
+  /** Les étoiles : la richesse du jeu (1 simple, 2 intermédiaire, 3 riche), pas les chances de gagner. */
   difficulty: 1 | 2 | 3;
   hp: number;
   resource: string;
@@ -57,7 +58,7 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Un premier tour parfait depuis l\'ombre, cinq points de combo, et une Éviscération qui achève le seigneur.',
   },
   {
-    id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: true, difficulty: 2, hp: 70,
+    id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: true, difficulty: 3, hp: 70,
     starterDeck: ['tir', 'tir', 'tir', 'tir', 'repli', 'repli', 'repli', 'repli', 'tir_ajuste', 'ordre_attaque'],
     startSpell: 'tir_arcanique', sprite: 'chasseur.png',
     quote: 'Mon arc vise, ma bête mord. Toi, tu cours.',

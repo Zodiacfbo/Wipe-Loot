@@ -1630,7 +1630,7 @@ function titleScreen(): string {
       <img class="px" ${spriteAttrs(hero.sprite ?? 'guerrier.png')} alt="Le ${hero.name}" width="160" height="160">
       <h3>${hero.name} · niveau ${lvl.level}</h3>
       <div class="description-hall">
-        <div><span class="etoiles">${'★'.repeat(hero.difficulty)}<i>${'★'.repeat(3 - hero.difficulty)}</i></span> <em>Difficulté ${DIFFICULTY_WORD[hero.difficulty]}</em></div>
+        <div><span class="etoiles">${'★'.repeat(hero.difficulty)}<i>${'★'.repeat(3 - hero.difficulty)}</i></span> <em>Jeu ${COMPLEXITY_WORD[hero.difficulty]}</em></div>
         <span><img class="px" src="${A('icone_epee.png')}" alt="">${hero.role}</span>
         <span><img class="px" src="${A('icone_pouvoir.png')}" alt="">${hero.resource}</span>
       </div>
@@ -2123,7 +2123,8 @@ function summaryHtml(sum: RunSummary, classId = 'guerrier'): string {
 /** L'état d'une classe sur l'écran des classes. */
 type ClassStatus = 'libre' | 'jouee' | 'debloquee' | 'a-debloquer' | 'verrouillee' | 'bientot';
 const CLASS_BADGE: Record<ClassStatus, string> = { libre: '', jouee: 'Jouée', debloquee: 'Débloquée', 'a-debloquer': 'À débloquer', verrouillee: '🔒 À débloquer', bientot: 'Bientôt' };
-const DIFFICULTY_WORD = ['', 'facile', 'moyenne', 'difficile'];
+/** La richesse du jeu d'une classe (les étoiles) : le nombre de mécaniques à apprendre, pas les chances de gagner. */
+const COMPLEXITY_WORD = ['', 'simple', 'intermédiaire', 'riche'];
 
 /** L'écran des classes : une grille de sprites, et la fiche de la classe touchée à droite.
  *  Au premier lancement, on y choisit sa classe de départ ; ensuite, on y joue ou débloque une classe. */
@@ -2171,10 +2172,13 @@ function classScreen(): string {
       <button type="button" class="bouton" data-action="titre">Retour</button>
     </div>
     <div class="corps-classes">
-      <div class="grille-classes">${cards}</div>
+      <div class="colonne-classes">
+        <div class="grille-classes">${cards}</div>
+        <p class="legende-etoiles"><span>★</span> simple · <span>★★</span> intermédiaire · <span>★★★</span> riche : le nombre de mécaniques à apprendre. Chaque classe peut gagner.</p>
+      </div>
       <aside class="fiche-classe-detail ${st === 'jouee' || st === 'debloquee' ? 'avec-progression' : ''}" style="--couleur:${c.color}">
         <div class="portrait-classe ${st === 'bientot' || st === 'verrouillee' ? 'silhouette' : ''}">${sprite(c)}</div>
-        <div class="nom-classe"><b>${c.name}</b><span class="etoiles">${'★'.repeat(c.difficulty)}<i>${'★'.repeat(3 - c.difficulty)}</i></span><em>Difficulté ${DIFFICULTY_WORD[c.difficulty]}</em></div>
+        <div class="nom-classe"><b>${c.name}</b><span class="etoiles">${'★'.repeat(c.difficulty)}<i>${'★'.repeat(3 - c.difficulty)}</i></span><em>Jeu ${COMPLEXITY_WORD[c.difficulty]}</em></div>
         <div class="infos-classe">
           <span class="info"><img class="px" src="${A('icone_epee.png')}" alt="">${c.role}</span>
           <span class="info"><img class="px" src="${A('icone_pouvoir.png')}" alt="">${c.resource}</span>
