@@ -12,7 +12,7 @@
 Le Voleur frappe vite, frappe juste, et disparaît. Il **enchaîne de petites attaques** pour accumuler des points de combo, puis les libère dans un **coup de grâce**. Il ouvre chaque combat depuis l'**ombre**, avec des attaques d'ouverture dévastatrices, et enduit ses lames de **poisons**.
 
 - **Rôle :** dégâts physiques rapides, contrôle.
-- **Difficulté :** ⭐⭐ Moyenne.
+- **Richesse du jeu :** ⭐⭐ Intermédiaire.
 - **Déblocage :** par l'expérience.
 - **Fantasme de jeu :** un premier tour parfait depuis le camouflage, cinq points de combo, et une Éviscération qui achève le boss.
 

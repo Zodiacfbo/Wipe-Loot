@@ -12,7 +12,7 @@
 Le Druide est le gardien de la nature. Il **change de forme** au cours du combat : il devient un **ours** pour encaisser, un **félin** pour déchiqueter, ou prend sa **forme astrale** pour invoquer la puissance de la lune et des étoiles. Sous sa forme normale, il **guérit**. C'est la classe la plus polyvalente du jeu.
 
 - **Rôle :** tout à la fois : tank, dégâts physiques, dégâts de sorts ou survie, selon la forme.
-- **Difficulté :** ⭐⭐⭐ Difficile.
+- **Richesse du jeu :** ⭐⭐⭐ Riche.
 - **Déblocage :** par l'expérience (dernière classe débloquée).
 - **Fantasme de jeu :** encaisser le gros coup du boss en ours, puis passer en félin au tour suivant pour l'achever.
 

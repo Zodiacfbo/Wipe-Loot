@@ -12,7 +12,7 @@
 Le Guerrier est un combattant au corps à corps qui **se nourrit du combat**. Il commence chaque affrontement sans ressource et la construit en frappant et en encaissant, jusqu'à libérer des coups dévastateurs.
 
 - **Rôle :** dégâts physiques ou tank, selon les talents.
-- **Difficulté :** ⭐ Facile. C'est la **classe de départ**, débloquée dès le début.
+- **Richesse du jeu :** ⭐ Simple. C'est la **classe de départ**, débloquée dès le début.
 - **Fantasme de jeu :** démarrer lentement, monter en puissance, puis tout raser avec une Exécution à pleine rage.
 
 | Statistique | Valeur |

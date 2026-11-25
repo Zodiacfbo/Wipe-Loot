@@ -12,7 +12,7 @@
 Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes de **Sceaux** de lumière, puis les libère dans un **Jugement**. Il est solide, se soigne lui-même, retire les maux qui l'affligent, et il est le pire ennemi des **morts-vivants** et des **démons**.
 
 - **Rôle :** hybride : dégâts, tank ou survie selon les talents.
-- **Difficulté :** ⭐ Facile.
+- **Richesse du jeu :** ⭐ Simple.
 - **Déblocage :** par l'expérience.
 - **Fantasme de jeu :** un chevalier presque indestructible qui marche sur la Nécropole en frappant les morts-vivants à coups de Jugements.
 
@@ -45,6 +45,8 @@ Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes d
 
 **L'intérêt :** un cycle simple et satisfaisant : poser un Sceau, frapper avec, puis le juger au meilleur moment.
 
+**Rejouer un Sceau déjà actif (25 novembre 2026) :** la carte lance son Jugement (le sort Jugement n'est pas touché), puis le Sceau disparaît. Avant, elle ne faisait rien. Elle demande une cible si ce Jugement en a besoin (Droiture, Croisé, Vengeance). Avec Double sceau, seul le Sceau rejoué est jugé.
+
 ---
 
 ## 3. Mécanique 2 : les Auras
@@ -69,8 +71,8 @@ Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes d
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
 | **Frappe** | 4 | 1 | Attaque | Inflige 6 dégâts. | 9 dégâts |
-| **Parade** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
-| **Sceau de droiture** | 1 | 1 | Compétence (Sceau) | Active le Sceau de droiture. | Coûte 0 |
+| **Parade** | 3 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
+| **Sceau de droiture** | 2 | 1 | Compétence (Sceau) | Active le Sceau de droiture. | Coûte 0 |
 | **Lumière bienfaisante** | 1 | 1 | Compétence | Soigne 5 PV. | 8 PV |
 
 ### 4.2 Sort de barre de départ
@@ -284,9 +286,11 @@ La quête se termine tard dans la run, mais l'Aurore ardente est faite pour la *
 | Bouclier amélioré | +2 blocage | **+1 blocage** (comme le Guerrier) |
 | Vengeance divine | +6 | **+4** |
 
+**Paquet de départ (25 novembre 2026)** : 4 Frappes, **3 Parades, 2 Sceaux de droiture**, 1 Lumière bienfaisante (avant : 4 Parades et 1 Sceau). Mesures : `EQUILIBRAGE.md` §24.
+
 **Les règles précisées :**
 - **Les Sceaux** : une carte Sceau coûte 1 (0 améliorée). Un seul Sceau à la fois (deux avec Double sceau : le plus ancien est remplacé). Les bonus « tes Attaques » ne valent que pour les cartes Attaque (pas les Sorts, ni le Jugement).
-- **Le Jugement** est un sort de barre gratuit, qui demande une cible. Il consomme le(s) Sceau(x) actif(s). Verdict des cieux déclenche le même Jugement sans consommer le Sceau.
+- **Le Jugement** est un sort de barre gratuit, qui demande une cible. Il consomme le(s) Sceau(x) actif(s). **Une carte Sceau rejouée alors que son Sceau est actif le juge aussi** (seulement lui ; cible si besoin : `cardNeedsTarget` dans `combat.ts`). Verdict des cieux déclenche le même Jugement sans consommer le Sceau.
 - **La Censure** (Sceau de vengeance) : chaque Attaque qui touche ajoute 1 cumul ; au début de son tour, l'ennemi subit autant de dégâts que de cumuls (ils ne diminuent pas). Le Jugement du Sceau de vengeance inflige 5 dégâts par cumul et les consomme.
 - **Les Auras** sont des Pouvoirs : une seule à la fois. Changer d'Aura retire la Robustesse de l'Aura de dévotion. L'Aura de résistance réduit de moitié les Zones de feu, la Toxine et l'Affliction rouge.
 - **Onde sacrée** : au lieu d'un choix, elle soigne si tu es sous la moitié de tes PV, et frappe sinon.

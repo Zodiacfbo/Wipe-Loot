@@ -4,17 +4,19 @@
 
 Ce document explique **ce que toutes les classes ont en commun**. Le détail de chaque classe est dans sa fiche.
 
-| Classe | Fiche | Difficulté | Déblocage |
+| Classe | Fiche | Richesse du jeu (étoiles) | Déblocage |
 |---|---|---|---|
 | Guerrier | [GUERRIER.md](GUERRIER.md) | ⭐ | Expérience (ou classe de départ) |
 | Mage | [MAGE.md](MAGE.md) | ⭐⭐ | Expérience |
 | Paladin | [PALADIN.md](PALADIN.md) | ⭐ | Expérience |
 | Voleur | [VOLEUR.md](VOLEUR.md) | ⭐⭐ | Expérience |
-| Chasseur | [CHASSEUR.md](CHASSEUR.md) | ⭐⭐ | Expérience |
+| Chasseur | [CHASSEUR.md](CHASSEUR.md) | ⭐⭐⭐ | Expérience |
 | Prêtre | [PRETRE.md](PRETRE.md) | ⭐⭐ | Expérience |
 | Démoniste | [DEMONISTE.md](DEMONISTE.md) | ⭐⭐⭐ | Expérience |
 | Chaman | [CHAMAN.md](CHAMAN.md) | ⭐⭐⭐ | Expérience |
 | Druide | [DRUIDE.md](DRUIDE.md) | ⭐⭐⭐ | Expérience (dernière classe) |
+
+**Les étoiles (25 novembre 2026)** disent la richesse du jeu de la classe, c'est-à-dire le nombre de mécaniques à apprendre (★ simple, ★★ intermédiaire, ★★★ riche), pas ses chances de gagner : toutes les classes doivent avoir les mêmes chances.
 
 **Le déblocage :** au premier lancement, le joueur choisit librement sa **classe de départ** parmi les 9. Les autres se débloquent par paliers d'**expérience totale**, et c'est le joueur qui choisit laquelle (voir le concept, §15.2). Les étoiles indiquent la difficulté conseillée.
 

@@ -12,7 +12,7 @@
 Le Démoniste manipule les ombres et les flammes de l'abîme. Il **paie de sa propre vie** pour gagner en puissance, **asservit des démons** qui combattent à ses côtés et **ronge** ses ennemis avec des malédictions et des maux qui durent.
 
 - **Rôle :** dégâts dans la durée, invocations, contrôle.
-- **Difficulté :** ⭐⭐⭐ Difficile.
+- **Richesse du jeu :** ⭐⭐⭐ Riche.
 - **Déblocage :** par l'expérience.
 - **Fantasme de jeu :** couvrir un boss de malédictions, puis regarder ses PV fondre pendant que son démon le harcèle.
 

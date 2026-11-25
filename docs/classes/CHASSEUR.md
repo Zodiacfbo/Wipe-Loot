@@ -12,7 +12,7 @@
 Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèle. Il marque sa proie, la crible de flèches, pose des **pièges** sur son chemin et adapte son style en invoquant l'**esprit** d'un animal.
 
 - **Rôle :** dégâts physiques à distance, contrôle, gestion des adds.
-- **Difficulté :** ⭐⭐ Moyenne.
+- **Richesse du jeu :** ⭐⭐⭐ Riche (compagnon, Esprits, Pièges, Marque ; ⭐⭐ jusqu'au 25 novembre 2026).
 - **Déblocage :** par l'expérience.
 - **Fantasme de jeu :** un duo inséparable, le chasseur et sa bête, qui abat un boss pendant que les pièges s'occupent des adds.
 

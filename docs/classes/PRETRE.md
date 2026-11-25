@@ -12,7 +12,7 @@
 Le Prêtre puise dans la **foi** pour protéger, soigner et punir. Seul face aux raids, il ne soigne pas un groupe : il **se rend presque intouchable**, transforme ses soins en boucliers et sa foi en colère divine. Il peut aussi basculer vers l'**Ombre** et ronger ses ennemis de l'intérieur.
 
 - **Rôle :** survie, dégâts sacrés ou dégâts d'ombre dans la durée.
-- **Difficulté :** ⭐⭐ Moyenne.
+- **Richesse du jeu :** ⭐⭐ Intermédiaire.
 - **Déblocage :** par l'expérience.
 - **Fantasme de jeu :** encaisser tout ce que le boss envoie derrière une Égide, puis le foudroyer d'un Courroux céleste à pleine Foi.
 

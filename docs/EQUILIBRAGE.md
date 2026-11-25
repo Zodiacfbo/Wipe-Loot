@@ -632,3 +632,29 @@ Retenu : 26 700 points (600, 900, 1 300, 1 800, 2 400, 3 200, 4 300, 5 400, 6 80
 | +2 % (écarté) | 53 / 28 / 9 / 0 / 0 % | 64 / 46 / 16 / 1 / 0 % | 81 / 61 / 33 / 16 / 1 % | 71 / 55 / 25 / 5 / 0 % | 39 / 29 / 6 / 1 / 0 % |
 
 Le bot est un plancher : les joueurs humains font mieux (le Chasseur du playtest gagnait en difficulté 9 sans perte). Option plus douce si le milieu de l'échelle paraît trop dur : +1 % de PV seulement. Mesure : `difficulte.sim.ts` avec `LORD_SCALING.perLevel` (`difficulty.ts`).
+
+## 24. Le Paladin : rejouer un Sceau le juge (25 novembre 2026)
+
+**Le constat (export playtest)** : un nouveau joueur Paladin perd 7 fois sur 7 contre Vulkhar, en 13 à 18 tours (Vulkhar se déchaîne au tour 14). Bot de niveau 1, Vulkhar vaincu : Chasseur 40 %, Guerrier 34 %, Prêtre 31 %, Mage 26 %, **Paladin 23 %**, Voleur 14 %. Le Paladin tient mais ne tape pas assez ; un Sceau rejoué alors qu'il est actif ne faisait rien (carte morte), et la boucle Sceau puis Jugement se sentait peu au début.
+
+**Sondes (100 runs, avant la nouvelle règle)** :
+
+| Version | Niv. 1 | Vulkhar vaincu (niv. 1) | Niv. 10 Vindicte |
+|---|---|---|---|
+| Base | 5 % | 23 % | 42 % |
+| 2e Sceau de droiture (une Parade de moins) | 4 % | 25 % | 57 % |
+| Jugement recharge 2 | 8 % | 30 % | 69 % |
+| Les deux | 7 % | 27 % | 82 % |
+
+**Retenu : rejouer un Sceau actif lance son Jugement + 2 Sceaux de droiture au départ** (sans toucher à la recharge). 200 runs par profil :
+
+| Profil | Avant (§21 et base) | Après |
+|---|---|---|
+| Niveau 1 | 5-6 % (Vulkhar 23 %) | 4 % (Vulkhar 27 %) |
+| Niveau 5 (Vindicte 3, Sacré 2) | 27 % | 38 % |
+| Niveau 10 Vindicte 7 + Sacré 3 | 42-47 % | 63 % |
+| Niveau 10 Sacré 7 + Vindicte 3 | 52 % | 66 % |
+| Niveau 10 Protection 7 + Sacré 3 | 60 % | 55 % |
+
+Le niveau 1 bouge peu au bot (il joue mal la boucle) ; les trois arbres du niveau 10 se rapprochent (55 à 66 %). **En réserve** si un débutant bloque encore : le Sceau de droiture actif au début de chaque combat.
+

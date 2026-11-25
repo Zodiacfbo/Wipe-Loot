@@ -12,7 +12,7 @@
 Le Chaman est l'intermédiaire entre les mortels et les **esprits des éléments**. Il plante des **totems** qui agissent seuls à chaque tour, lance la foudre, imprègne ses armes de la force des éléments, et peut même **revenir d'entre les morts**.
 
 - **Rôle :** hybride : dégâts de sorts, mêlée ou survie selon les talents.
-- **Difficulté :** ⭐⭐⭐ Difficile.
+- **Richesse du jeu :** ⭐⭐⭐ Riche.
 - **Déblocage :** par l'expérience.
 - **Fantasme de jeu :** quatre totems plantés autour de soi qui travaillent en continu, pendant que la foudre s'abat sur le boss.
 

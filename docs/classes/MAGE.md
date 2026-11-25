@@ -12,7 +12,7 @@
 Le Mage est un lanceur de sorts fragile mais redoutable. Il maîtrise **trois écoles de magie** qui jouent chacune différemment : le **Feu** fait fondre les ennemis dans la durée, le **Givre** les ralentit puis les brise, l'**Arcane** accumule une puissance brute qui finit par déborder.
 
 - **Rôle :** dégâts magiques à distance, contrôle.
-- **Difficulté :** ⭐⭐ Moyenne.
+- **Richesse du jeu :** ⭐⭐ Intermédiaire.
 - **Déblocage :** par l'expérience (ou comme classe de départ).
 - **Fantasme de jeu :** geler un boss sur place, ou le regarder brûler pendant qu'on se protège derrière une Carapace de glace.
 
