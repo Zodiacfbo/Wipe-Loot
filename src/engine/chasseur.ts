@@ -71,7 +71,7 @@ function companionStrike(c: CombatState, t: EnemyState, base?: number): void {
     if (def.block) gainBlock(c, def.block + (c.gear?.petBonus ?? 0), false);
   }
   if (c.gear?.compBleed && !t.dead) applySaignement(t, c.gear.compBleed, c); // Férocité
-  lienSauvage(c);
+  if (power(c, 'lien_sauvage')) gainBlock(c, power(c, 'lien_sauvage'), false);
   if (c.gear?.petBlock) gainBlock(c, c.gear.petBlock, false);
   if (power(c, 'frenesie_chasseur')) c.frenzyStacks = (c.frenzyStacks ?? 0) + power(c, 'frenesie_chasseur');
   // Instinct de tueur : le compagnon achève sa cible.
@@ -107,18 +107,10 @@ export function companionAct(c: CombatState, times = 1, base?: number): boolean 
   return acted;
 }
 
-/** Lien sauvage : au plus 3 fois par tour, toutes copies confondues. */
-export const LIEN_MAX_PAR_TOUR = 3;
-function lienSauvage(c: CombatState): void {
-  if (!power(c, 'lien_sauvage') || (c.lienCount ?? 0) >= LIEN_MAX_PAR_TOUR) return;
-  c.lienCount = (c.lienCount ?? 0) + 1;
-  gainBlock(c, power(c, 'lien_sauvage'), false);
-}
-
 /** Le compagnon te protège (Ordre : Protège-moi). */
 export function companionGuard(c: CombatState, n: number): void {
   gainBlock(c, n + (c.gear?.petBonus ?? 0), false);
-  lienSauvage(c);
+  if (power(c, 'lien_sauvage')) gainBlock(c, power(c, 'lien_sauvage'), false);
 }
 
 /** À la fin de ton tour : le compagnon (deux fois avec Fureur primitive, une de plus avec Corde-des-anciens), puis le Loup spectral. */
@@ -136,7 +128,6 @@ export function hunterEndTurn(c: CombatState): void {
   }
   c.compTurnBonus = 0;
   c.frenzyStacks = 0; // Frénésie : le bonus repart de zéro à chaque tour.
-  c.lienCount = 0;
   c.huntTurnBonus = 0;
   c.focusNext = 0;
   c.breathNow = 0;

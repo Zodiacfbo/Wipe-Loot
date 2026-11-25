@@ -359,7 +359,7 @@ export const CHASSEUR_TREES: TreeDef[] = [
         t('esprit_animal', 'Esprit animal', 'Ton compagnon agit une fois au tout début de chaque combat.', { fx: { compOpening: 1 } })],
       [t('t_fureur_bestiale', 'Fureur bestiale', 'Ajoute ce sort à ta barre : ton compagnon agit 3 fois.', { spell: 'fureur_bestiale' }),
         t('t_feindre_mort', 'Feindre la mort', 'Ajoute ce sort à ta barre : les attaques ennemies t\'infligent 50 % de dégâts en moins jusqu\'à ton prochain tour.', { spell: 'feindre_mort' })],
-      [t('maitre_meute', 'Maître de meute', 'Ta première copie d\'Esprit de meute du combat coûte 0.', { fx: { packFree: 1 } }),
+      [t('maitre_meute', 'Maître de meute', 'Esprit de meute coûte 0.', { fx: { packFree: 1 } }),
         t('h_quatrieme_emplacement_b', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
       [t('t_fureur_primitive', 'Fureur primitive', 'Carte épique : un exemplaire dans ton paquet de départ.', { card: 'fureur_primitive' })],
     ],

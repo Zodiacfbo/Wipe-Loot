@@ -278,23 +278,3 @@ describe('Corde-des-anciens', () => {
     expect(run.corde).toBeNull();
   });
 });
-
-describe('le Chasseur : réglages du 25 novembre 2026', () => {
-  it('Lien sauvage : au plus 3 blocages par tour, toutes copies confondues', () => {
-    const c = fight(['lieutenant'], ['lien_sauvage', 'lien_sauvage', 'ordre_attaque', 'ordre_attaque', 'ordre_attaque', 'ordre_attaque', 'ordre_attaque']);
-    play(c, 'lien_sauvage');
-    play(c, 'lien_sauvage');
-    const before = c.player.block;
-    for (let i = 0; i < 5; i++) play(c, 'ordre_attaque');
-    expect(c.player.block - before).toBe(3 * 4); // 3 actions comptées, 2 + 2 de blocage chacune
-    expect(c.lienCount).toBe(3);
-  });
-
-  it('Maître de meute : seule la première copie d\'Esprit de meute est gratuite', () => {
-    const c = fight(['lieutenant'], ['esprit_meute', 'esprit_meute'], { packFree: 1 });
-    const card = c.hand[0];
-    expect(energyCost(c, card.id, false)).toBe(0);
-    play(c, 'esprit_meute');
-    expect(energyCost(c, 'esprit_meute', false)).toBe(2);
-  });
-});

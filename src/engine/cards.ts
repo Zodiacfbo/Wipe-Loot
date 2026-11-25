@@ -799,7 +799,7 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   const g = c.gear ?? {};
   if ((def.seal && g.sealsFree) || (def.healCard && c.healFree) || (id === 'lumiere_purificatrice' && g.purifyFree) || (id === 'juste_chatiment' && g.retributionFree)) return 0;
   // Chasseur : Maître de meute, Sang-froid, Riposte sauvage.
-  if (id === 'esprit_meute' && g.packFree && !c.packUsed) return 0;
+  if (id === 'esprit_meute' && g.packFree) return 0;
   if (def.type === 'Attaque' && g.hunterFirstFree && !c.firstAttackDone && c.companion) return 0;
   if (id === 'riposte_sauvage' && c.hunterBlocked) return 0;
   let cost = up && def.costUp !== undefined ? def.costUp : def.cost;
