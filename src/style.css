@@ -510,6 +510,10 @@ img[data-anime] {
 .fiche-talent, .fiche-classe-detail { width: 360px; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 16px; border: 2px solid #6a4f3a; background: var(--panneau); }
 .fiche-talent p, .fiche-classe-detail p { margin: 0; color: var(--texte); max-width: none; line-height: 1.35; }
 .fiche-talent { position: relative; }
+.encart-expedition { border: 2px solid #E8742C; background: rgba(232, 116, 44, .15); border-radius: 10px; padding: 8px 10px; }
+.encart-expedition b:first-child { color: #F4C08A; }
+.fiche-talent .encart-expedition p { margin-top: 4px; font-size: 15px; }
+.fiche-talent:not(.vide) .encart-expedition { margin-right: 36px; } /* la croix de fermeture */
 .fermer-fiche { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #5a4433; background: var(--panneau-sombre); color: var(--texte-2); font-size: 15px; font-weight: 800; }
 .fermer-fiche:hover { border-color: var(--or); color: var(--texte); }
 .titre-fiche { font-size: 24px; font-weight: 800; }
