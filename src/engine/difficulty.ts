@@ -5,6 +5,13 @@
 
 export const MAX_DIFFICULTY = 20;
 
+/** Chaque niveau : les seigneurs (Vulkhar, Vhaeryx, Yzhar) gagnent ce pourcentage de PV et de dégâts (25 novembre 2026). */
+export const LORD_SCALING = { perLevel: 0.02 };
+/** La ligne affichée en haut de la liste des niveaux. */
+export function lordScalingText(): string {
+  return `Chaque niveau : les seigneurs ont +${Math.round(LORD_SCALING.perLevel * 100)} % de PV et de dégâts.`;
+}
+
 export const DIFFICULTY_TEXT: string[] = [
   'Difficulté normale.',
   'Les gardiens sont plus fréquents sur la carte.',
@@ -22,8 +29,8 @@ export const DIFFICULTY_TEXT: string[] = [
   'Le vendeur gobelin est 20 % plus cher.',
   'Les factures de réparation coûtent 50 % de plus.',
   'Tu trouves moins de potions après les combats.',
-  'Les seigneurs (Vulkhar, Vhaeryx, Yzhar) ont 15 % de PV en plus.',
-  'Les seigneurs infligent 10 % de dégâts en plus.',
+  'Les récompenses de combat proposent 2 cartes au lieu de 3.',
+  'Les sbires des seigneurs ont 25 % de PV en plus.',
   'Les gardiens commencent chaque combat avec 1 Puissance.',
   'Les ennemis normaux ont encore 10 % de PV en plus (20 % au total).',
   'Les Souverains enragés : les seigneurs commencent avec 2 Puissance, et se déchaînent 2 tours plus tôt.',
@@ -48,6 +55,10 @@ export interface DifficultyMods {
   shopMult: number;
   repairMult: number;
   potionChance: number;
+  /** Cartes proposées en récompense de combat (3, ou 2 à partir du niveau 16). */
+  rewardCards: number;
+  /** PV des sbires dans le combat d'un seigneur (niveau 17). */
+  lordAddHp: number;
   normalPuissance: number;
   elitePuissance: number;
   bossPuissance: number;
@@ -55,11 +66,12 @@ export interface DifficultyMods {
 
 export function difficultyMods(level: number): DifficultyMods {
   const at = (n: number) => level >= n;
+  const lord = 1 + LORD_SCALING.perLevel * Math.max(0, level);
   return {
     eliteWeight: at(1) ? 34 : 22,
     normalHp: at(19) ? 1.2 : at(2) ? 1.1 : 1,
     eliteHp: at(3) ? 1.15 : 1,
-    bossHp: at(16) ? 1.15 : 1,
+    bossHp: lord,
     enrageEarlier: at(4) ? 2 : 0,
     bossEnrageEarlier: at(20) ? 2 : 0,
     campfireHeal: at(5) ? 0.25 : 0.3,
@@ -68,7 +80,9 @@ export function difficultyMods(level: number): DifficultyMods {
     wipes: at(12) ? 1 : at(7) ? 2 : 3,
     normalDmg: at(8) ? 1.1 : 1,
     eliteDmg: at(9) ? 1.1 : 1,
-    bossDmg: at(17) ? 1.1 : 1,
+    bossDmg: lord,
+    rewardCards: at(16) ? 2 : 3,
+    lordAddHp: at(17) ? 1.25 : 1,
     startCurse: at(10),
     goldMult: at(11) ? 0.75 : 1,
     shopMult: at(13) ? 1.2 : 1,

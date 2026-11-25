@@ -113,6 +113,8 @@ export function createCombat(
       e.maxHp = e.hp = Math.round(e.maxHp * hp);
       e.buffs.puissance += pu;
     }
+    // Niveau 17 : les sbires présents dès le début du combat d'un seigneur.
+    if (c.enemies.some((e) => ENEMIES[e.defId].boss)) for (const e of c.enemies) if (!ENEMIES[e.defId].boss) e.maxHp = e.hp = Math.round(e.maxHp * (mods.lordAddHp ?? 1));
     if (c.enrageTurn !== null) {
       const boss = c.enemies.some((e) => ENEMIES[e.defId].boss);
       c.enrageTurn = Math.max(3, c.enrageTurn - mods.enrageEarlier - (boss ? mods.bossEnrageEarlier : 0));

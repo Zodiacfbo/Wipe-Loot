@@ -14,7 +14,13 @@ describe('les niveaux de difficulté', () => {
     expect(difficultyMods(7).wipes).toBe(2);
     expect(difficultyMods(12).wipes).toBe(1);
     expect(difficultyMods(20).wipes).toBe(1);
-    expect(difficultyMods(17).bossDmg).toBe(1.1);
+    expect(difficultyMods(0).bossHp).toBe(1);
+    expect(difficultyMods(9).bossHp).toBeCloseTo(1.18); // +2 % par niveau pour les seigneurs
+    expect(difficultyMods(20).bossDmg).toBeCloseTo(1.4);
+    expect(difficultyMods(15).rewardCards).toBe(3);
+    expect(difficultyMods(16).rewardCards).toBe(2);
+    expect(difficultyMods(16).lordAddHp).toBe(1);
+    expect(difficultyMods(17).lordAddHp).toBe(1.25);
     expect(difficultyMods(20).normalHp).toBe(1.2); // niveaux 2 et 19
     expect(difficultyMods(18).normalHp).toBe(1.1);
   });
@@ -42,7 +48,7 @@ describe('les niveaux de difficulté', () => {
     const m = difficultyMods(20);
     const boss = createCombat(BOSS_ENCOUNTER, deck, 80, 80, 5, 100, {}, ['charge'], m);
     const v = boss.enemies[0];
-    expect(v.maxHp).toBe(Math.round(225 * 1.15));
+    expect(v.maxHp).toBe(Math.round(225 * 1.4));
     expect(v.buffs.puissance).toBe(2);
     expect(boss.enrageTurn).toBe(14 - 2 - 2);
     const elite = createCombat(ELITE_ENCOUNTERS[0], deck, 80, 80, 5, 100, {}, ['charge'], m);
