@@ -199,7 +199,7 @@ Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes d
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Jugements rapides** : la recharge de Jugement passe à 1 tour. | **Précision** : commence chaque combat avec 1 Puissance. |
+| **1** | **Jugements rapides** : la recharge de Jugement passe à 2 tours (au lieu de 3). | **Précision** : commence chaque combat avec 1 Puissance. |
 | **2** | **Sceaux bénis** : tous les Sceaux coûtent 0. | **Conviction** : tes Attaques infligent +3 dégâts aux Morts-vivants et aux Démons. |
 | **3** | **Ailes de justice** : ajoute ce sort à ta barre. | **Marteau du jugement** : ajoute ce sort à ta barre. |
 | **4** | **Vengeance divine** : après un Jugement, ta prochaine Attaque inflige +6 dégâts. | **Double sceau** : tu peux avoir **2 Sceaux actifs** en même temps. Jugement les consomme tous les deux. |

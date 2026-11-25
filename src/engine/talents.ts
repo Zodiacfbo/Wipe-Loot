@@ -333,7 +333,7 @@ export const PALADIN_TREES: TreeDef[] = [
   {
     id: 'vindicte', name: 'Vindicte', theme: 'La croisade',
     tiers: [
-      [t('jugements_rapides', 'Jugements rapides', 'La recharge de Jugement passe à 1 tour.', { fx: { judgeCd: 1 } }),
+      [t('jugements_rapides', 'Jugements rapides', 'La recharge de Jugement passe à 2 tours (au lieu de 3).', { fx: { judgeCd: 1 } }),
         t('pa_precision', 'Précision', 'Commence chaque combat avec 1 Puissance.', { fx: { startPuissance: 1 } })],
       [t('sceaux_benis', 'Sceaux bénis', 'Tous les Sceaux coûtent 0.', { fx: { sealsFree: 1 } }),
         t('conviction', 'Conviction', 'Tes Attaques infligent +3 dégâts aux Morts-vivants et aux Démons.', { fx: { holyBonus: 3 } })],
