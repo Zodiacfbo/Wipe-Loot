@@ -114,7 +114,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | **Rage du compagnon** | 0 | Compétence | C | La prochaine attaque de ton compagnon inflige +4 dégâts. | +6 dégâts |
 | **Morsure partagée** | 0 | Attaque | C | Inflige 3 dégâts. Ton compagnon agit immédiatement. **Éphémère.** | 5 dégâts |
 | **Lien sauvage** | 1 | Pouvoir | PC | Chaque fois que ton compagnon agit, gagne 2 blocage. | 3 blocage |
-| **Frénésie** | 1 | Pouvoir | PC | Ton compagnon inflige +1 dégât de plus chaque fois qu'il agit (cumulatif pour le combat). | Inné |
+| **Frénésie** | 1 | Pouvoir | PC | Chaque attaque du compagnon donne +1 dégât aux suivantes, jusqu'à la fin du tour (depuis le 24 novembre 2026 : avant, le bonus durait tout le combat et s'emballait avec plusieurs copies). | Inné |
 | **Intimidation** | 1 | Compétence (Ordre) | PC | Ton compagnon effraie la cible : un ennemi normal est Contrôlé 1 tour. Contre un boss : **Interruption**. | Coûte 0 |
 | **Dressage** | 1 | Pouvoir | PC | Tes cartes Ordre coûtent 1 de moins (minimum 0). | Coûte 0 |
 | **Esprit de meute** | 2 | Pouvoir | R | Un **Loup spectral** se joint à toi pour ce combat : il inflige 3 dégâts à la fin de chacun de tes tours. | 5 dégâts |
@@ -219,7 +219,11 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 | Emplacement | Effet |
 |---|---|
-| **Arme** (légendaire) | Ton compagnon **agit une fois de plus** à la fin de chacun de tes tours. |
+| **Arme** (légendaire) | Au début de chacun de tes tours, une **Flèche des anciens** arrive en main (sauf si tu en gardes déjà une). |
+
+**La Flèche des anciens** (Attaque, 0 énergie, s'épuise quand on la joue) : inflige **5 dégâts** (une Marque +2 a été essayée puis retirée le 25 novembre 2026 : elle renforçait aussi le compagnon et rendait la Corde trop forte). **Bander l'arc** : gardée en main, elle reste d'un tour à l'autre et gagne **+5 dégâts par tour, 15 au plus**. Tirer tout de suite ou attendre le bon moment (achever un gardien, frapper avant que le seigneur se déchaîne) : la force moyenne ne change pas, seulement le moment.
+
+*Changé le 25 novembre 2026* : avant, le compagnon agissait une fois de plus à la fin de chaque tour. Avec Fureur primitive, il agissait 3 fois, et l'arbre des Bêtes gagnait tout sans perdre de PV (playtest : difficulté 9, 0 PV perdu contre Vulkhar). La Flèche est neutre : elle sert aux trois arbres et ne fait plus agir le compagnon.
 
 **La quête (actes 1 et 2, 3 étapes) :**
 1. **Événement « Le campement du vieux trappeur »** (acte 1) : un vieux chasseur confie au joueur un morceau de **Bois ancien**.
@@ -256,7 +260,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 - **Le compagnon choisi en début de run** est une décision forte, proche du choix de classe. Il faudra que les 3 compagnons soient équilibrés.
 - **À surveiller à l'équilibrage :**
-  - Fureur primitive combinée à Corde-des-anciens donne 3 actions du compagnon par tour.
+  - Fureur primitive combinée à l'ancienne Corde-des-anciens donnait 3 actions du compagnon par tour (corrigé le 25 novembre 2026 : la Corde donne maintenant la Flèche des anciens).
   - Maître des pièges combiné à Champ de pièges : 6 explosions de 8 dégâts à tous les ennemis.
   - Feindre la mort annule entièrement un tour d'attaques : la recharge de 5 tours doit rester stricte.
 - **Lisibilité des Pièges :** l'interface devra montrer clairement les Pièges posés et quel ennemi les déclenchera.

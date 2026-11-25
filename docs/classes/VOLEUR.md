@@ -61,9 +61,9 @@ Le Voleur frappe vite, frappe juste, et disparaît. Il **enchaîne de petites at
 
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Attaque sinistre** | 4 | 1 | Attaque | Inflige 6 dégâts. +1 combo. | 9 dégâts |
+| **Attaque sinistre** | 3 | 1 | Attaque | Inflige 6 dégâts. +1 combo. | 9 dégâts |
 | **Esquive** | 4 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
-| **Éviscération** | 1 | 1 | Attaque (finisher) | Inflige 4 dégâts + 6 par point de combo. | 4 + 8 par point |
+| **Éviscération** | 2 | 1 | Attaque (finisher) | Inflige 5 dégâts + 6 par point de combo. | 5 + 8 par point |
 | **Embuscade** | 1 | 0 | Attaque (Ouverture) | Inflige 10 dégâts. +2 combo. | 14 dégâts |
 
 ### 4.2 Sort de barre de départ
@@ -255,6 +255,7 @@ Il faut affronter deux boss secondaires précis dans l'acte 1 : c'est un objecti
   - **Fait (novembre 2026) :** retour à **coût 1 (0 améliorée)**, toujours Épuisée : la carte vaut **+17** (Assassinat 7 + Combat 3 : 33 → 45 %). Sans Épuisé, c'était moins bien (41 %).
   - **Seigneur des ombres : +4 points** (contre +32 pour 3 talents ; +8 sans les copies). Pouvoir à 2 énergie, posé au tour 2,9 en moyenne. Le Camouflé ne sert qu'aux **5 Ouvertures** du Voleur (et à Coup dans le dos, qui double ses dégâts) : sans Ouvertures en main, le tour de Camouflé est perdu. **C'est la carte :** elle dépend d'une densité d'Ouvertures que le deck a rarement. L'arbre Finesse est faible lui aussi (Finesse 7 + Combat 3 : 22 %).
   - **Fait (novembre 2026) :** **tant que tu es Camouflé, tes Attaques infligent +50 %** (donc la première Attaque normale de chaque tour, et toutes les Ouvertures). Coût 2 (1) inchangé. La carte vaut **+20** (Finesse 7 + Combat 3 : 22 → 43 %). Écartés : coût 1 seul (+6), +1 ou +2 combo par tour (+2 à +7), ×2 (trop fort à coût 1 : 74 %).
+  - **Retours du playtest (24 novembre 2026) :** le Voleur gagnait du combo sans pouvoir le dépenser (une seule Éviscération). Le deck de départ passe à 3 Attaque sinistre et **2 Éviscération**, et Éviscération inflige **5** dégâts de base (avant 4). Pas de passe au bot.
   - **Paliers, fait (novembre 2026) :** Finesse meurtrière passe à **+3 par point de combo pour tous les finishers qui frappent** (Éviscération, Envenimer, Coup au cœur, Embrocher ; avant : +2 sur Éviscération seule) ; Maître de la discrétion compte aussi pour **Coup dans le dos**. Réflexes, Préparation et Voile de l'ombre restent : le bot ne sait pas évaluer ce qu'ils apportent. Disparition reste aussi : la ralentir fait chuter Finesse sans calmer Combat.
   - **Résultat (100 runs) :** Assassinat 7 + Combat 3 : **55 %** ; Finesse 7 + Combat 3 : **49 %** ; Combat 7 + Finesse 3 : environ 80 %, un peu au-dessus de la cible, accepté.
 

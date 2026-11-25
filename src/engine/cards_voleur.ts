@@ -63,8 +63,8 @@ const LIST: RogueCard[] = [
   },
   {
     id: 'evisceration', name: 'Éviscération', type: 'Attaque', finisher: true, rarity: 'commune', cost: 1, needsTarget: true, icon: 'epee',
-    text: (up, g) => `Coup final : inflige 4 dégâts + ${(up ? 8 : 6) + fb(g)} par combo.`,
-    play: (ctx) => hit(ctx, 4 + ((ctx.up ? 8 : 6) + fb(ctx.c.gear)) * pts(ctx)),
+    text: (up, g) => `Coup final : inflige 5 dégâts + ${(up ? 8 : 6) + fb(g)} par combo.`,
+    play: (ctx) => hit(ctx, 5 + ((ctx.up ? 8 : 6) + fb(ctx.c.gear)) * pts(ctx)),
   },
   {
     id: 'embuscade', name: 'Embuscade', type: 'Attaque', opener: true, rarity: 'commune', cost: 0, needsTarget: true, icon: 'epee',

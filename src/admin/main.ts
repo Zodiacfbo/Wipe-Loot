@@ -7,6 +7,7 @@ import { connectAuthEmulator, getAuth, onAuthStateChanged, signInWithEmailAndPas
 import { collection, connectFirestoreEmulator, deleteDoc, doc, getDoc, getDocs, getFirestore, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { MESSAGE_STATES, MESSAGE_TYPES, REPLY_MAX, authErrorText, pseudoError, pseudoToEmail, todayIso, type CloudDoc, type MessageDoc, type MessageState, type NewsItem } from '../cloud_logic';
 import type { RunJournal } from '../journal';
+import { buildExport } from '../../tools/export/anonymise.mjs';
 import { CARDS } from '../engine/cards';
 import { ITEMS } from '../engine/items';
 import { EVENTS } from '../engine/events';
@@ -14,7 +15,7 @@ import type { Choice } from '../engine/choices';
 import { CLASSES, CLASS_BY_ID } from '../engine/classes';
 import { classLevel } from '../engine/progression';
 import { convertOldXp } from '../engine/xp';
-import { DAY_MS, LIMITE_ECRITURES, LIMITE_LECTURES, cardOfferRates, cardPickRates, costlyFights, dailyActivity, droppingOut, estimateUsage, stopsByEncounter, suspicious, usageLevel, winsByClass, winsByDifficulty, winsByTree, winsByVersion, type Rate } from './stats';
+import { DAY_MS, LIMITE_ECRITURES, LIMITE_LECTURES, cardOfferRates, cardPickRates, costlyFights, dailyActivity, droppingOut, estimateUsage, isRetreat, retreatLord, retreatsByLord, stopsByEncounter, suspicious, usageLevel, winsByClass, winsByDifficulty, winsByTree, winsByVersion, type Rate } from './stats';
 
 /** L'organisateur (même liste que admin() dans firestore.rules). */
 const ADMIN_UIDS = ['PUomfoQPqgX5FYny6rz1Z2pVgry1'];
@@ -145,7 +146,7 @@ function render(): void {
     <nav class="a-onglets">${TABS.map(([id, label]) => `<button class="${id === state.tab ? 'on' : ''}" data-act="onglet" data-v="${id}">${label}${id === 'messages' && nouveaux > 0 ? `<span class="a-badge">${nouveaux}</span>` : ''}</button>`).join('')}</nav>
     <main class="a-main">
       <div class="a-barre"><label>Période <select data-act="periode">${[1, 7, 14, 30, 90].map((n) => `<option value="${n}" ${n === state.days ? 'selected' : ''}>${n === 1 ? 'aujourd\'hui' : `${n} jours`}</option>`).join('')}</select></label>
-        <button class="a-bouton" data-act="rafraichir">↻ Rafraîchir</button>${state.loading ? '<span class="a-note">Chargement…</span>' : ''}${state.flash ? `<span class="a-flash">${esc(state.flash)}</span>` : ''}</div>
+        <button class="a-bouton" data-act="rafraichir">↻ Rafraîchir</button>${d ? '<button class="a-bouton" data-act="exporter" title="Un fichier anonymisé (Joueur 1, 2…) de la période, à envoyer à Claude pour une analyse">📦 Exporter pour analyse</button>' : ''}${state.loading ? '<span class="a-note">Chargement…</span>' : ''}${state.flash ? `<span class="a-flash">${esc(state.flash)}</span>` : ''}</div>
       ${state.error ? `<p class="a-erreur">${esc(state.error)}</p>` : ''}
       ${d ? tabHtml(d) : ''}
     </main>`;
@@ -187,9 +188,10 @@ function dashboard(d: Data): string {
   const lw = usageLevel(use.writes, LIMITE_ECRITURES);
   const max = Math.max(1, ...days.map((x) => x.players));
   const courbe = `<div class="a-courbe">${days.map((x) => `<div title="${x.day} : ${x.players} joueur(s), ${x.runs} run(s)"><i style="height:${(100 * x.players) / max}%"></i><span>${x.day === today ? 'auj.' : x.day.slice(8)}</span></div>`).join('')}</div>`;
-  const recent = d.runs.slice(0, 10).map((r) => `<tr><td>${esc(r.pseudo)}</td><td>${className(r.classe)}</td><td>${r.victoire ? '<span class="a-pill v">Victoire</span>' : r.cause === 'Abandon' ? '<span class="a-pill">Abandon</span>' : `<span class="a-pill r">Chute · ${esc(r.cause ?? '?')}</span>`}</td><td>${fmtDateHeure(r.finMs)}</td><td><code>${esc(r.version)}</code></td></tr>`).join('');
+  const recent = d.runs.slice(0, 10).map((r) => `<tr><td>${esc(r.pseudo)}</td><td>${className(r.classe)}</td><td>${resultPill(r, true)}</td><td>${fmtDateHeure(r.finMs)}</td><td><code>${esc(r.version)}</code></td></tr>`).join('');
   const stops = stopsByEncounter(d.runs).slice(0, 8);
   const smax = Math.max(1, ...stops.map((s) => s.count));
+  const retreats = retreatsByLord(d.runs);
   const sus = suspicious(d.runs);
   return `<div class="a-tuiles">
       ${tile('Joueurs aujourd\'hui', String(todayStats.players), `${todayStats.runs} run${todayStats.runs > 1 ? 's' : ''} finie${todayStats.runs > 1 ? 's' : ''}`)}
@@ -202,7 +204,7 @@ function dashboard(d: Data): string {
       ${card('Joueurs actifs, jour par jour (14 jours)', courbe)}
       ${card('Dernières runs', recent ? `<div class="a-defile"><table><tr><th>Joueur</th><th>Classe</th><th>Résultat</th><th>Fin</th><th>Version</th></tr>${recent}</table></div>` : '<p class="a-note">Aucune run sur la période.</p>')}
     </div>
-    ${card('Où les expéditions s\'arrêtent', stops.length ? `<table>${stops.map((s) => `<tr><td>${esc(s.cause)} <small>(chap. ${s.chapitre})</small></td><td>${s.count}</td><td class="a-large">${bar((100 * s.count) / smax)}</td></tr>`).join('')}</table>` : '<p class="a-note">Aucune défaite sur la période.</p>')}
+    ${card('Où les expéditions s\'arrêtent', (stops.length ? `<table>${stops.map((s) => `<tr><td>${esc(s.cause)} <small>(chap. ${s.chapitre})</small></td><td>${s.count}</td><td class="a-large">${bar((100 * s.count) / smax)}</td></tr>`).join('')}</table>` : '<p class="a-note">Aucune défaite sur la période.</p>') + (retreats.length ? `<p class="a-orange">🏠 Retours à la guilde : ${retreats.map((x) => `${x.count} après ${x.lord}`).join(', ')}</p>` : ''))}
     ${card('Joueurs qui décrochent', drop.length ? `<p>${drop.map((p) => `${esc(p.pseudo)} <small>(vu le ${fmtDate(p.majMs)})</small>`).join(' · ')}</p>` : '<p class="a-note">Personne.</p>')}
     ${card('Scores suspects', sus.length ? `<table>${sus.map((s) => `<tr><td>${esc(s.run.pseudo)}</td><td>${className(s.run.classe)}</td><td>${esc(s.why)}</td><td>${fmtDateHeure(s.run.finMs)}</td></tr>`).join('')}</table>` : '<p class="a-note">Rien de suspect.</p>')}`;
 }
@@ -241,7 +243,7 @@ function playerSheet(d: Data, uid: string): string {
         <p class="a-note">UID : <code>${esc(uid)}</code></p>`)}
       ${card('Runs jour par jour (14 jours)', `<div class="a-courbe">${perDay}</div>`)}
     </div>
-    ${card('Ses runs (période)', mine.length ? `<div class="a-defile"><table><tr><th>Fin</th><th>Classe</th><th>Arbre</th><th>Diff.</th><th>Résultat</th><th>Étapes</th><th>Durée</th><th>Score</th></tr>${mine.map((r) => `<tr class="a-cliquable ${state.runSel === r.finMs ? 'choisie' : ''}" data-act="run-voir" data-v="${r.finMs}"><td>${fmtDateHeure(r.finMs)}</td><td>${className(r.classe)}</td><td>${esc(r.talents.length)} talents</td><td>${r.difficulte}</td><td>${r.victoire ? '<span class="a-pill v">Victoire</span>' : `<span class="a-pill r">${esc(r.cause ?? '?')}</span>`}</td><td>${r.etapes}</td><td>${r.dureeMin ?? '?'} min</td><td>${r.score}</td></tr>`).join('')}</table></div><p class="a-note">Touche une run pour lire son journal des choix.</p>` : '<p class="a-note">Aucune run sur la période.</p>')}
+    ${card('Ses runs (période)', mine.length ? `<div class="a-defile"><table><tr><th>Fin</th><th>Classe</th><th>Arbre</th><th>Diff.</th><th>Résultat</th><th>Étapes</th><th>Durée</th><th>Score</th></tr>${mine.map((r) => `<tr class="a-cliquable ${state.runSel === r.finMs ? 'choisie' : ''}" data-act="run-voir" data-v="${r.finMs}"><td>${fmtDateHeure(r.finMs)}</td><td>${className(r.classe)}</td><td>${esc(r.talents.length)} talents</td><td>${r.difficulte}</td><td>${resultPill(r, false)}</td><td>${r.etapes}</td><td>${r.dureeMin ?? '?'} min</td><td>${r.score}</td></tr>`).join('')}</table></div><p class="a-note">Touche une run pour lire son journal des choix.</p>` : '<p class="a-note">Aucune run sur la période.</p>')}
     ${(() => { const r = mine.find((x) => x.finMs === state.runSel); return r ? card(`Journal de la run du ${fmtDateHeure(r.finMs)}`, choicesHtml(r)) : ''; })()}
     ${card('🛡️ Actions', `<div class="a-actions">
       <button class="a-bouton" data-act="renommer" data-v="${esc(uid)}">Renommer</button>
@@ -278,9 +280,17 @@ function choicesHtml(r: RunJournal): string {
   return `<ol class="a-journal">${list.map((c) => `<li>${'e' in c ? `<span class="a-etape">${c.e}</span>` : ''}${choiceLine(c)}</li>`).join('')}</ol>`;
 }
 
+/** Pastille du résultat d'une run : victoire (vert), retour à la guilde (orange), abandon, chute (rouge). */
+function resultPill(r: RunJournal, chutePrefix: boolean): string {
+  if (r.victoire) return '<span class="a-pill v">Victoire</span>';
+  if (isRetreat(r)) return `<span class="a-pill o">🏠 Retour · après ${retreatLord(r.chapitre)}</span>`;
+  if (r.cause === 'Abandon') return '<span class="a-pill">Abandon</span>';
+  return `<span class="a-pill r">${chutePrefix ? 'Chute · ' : ''}${esc(r.cause ?? '?')}</span>`;
+}
+
 function rateTable(rows: Rate[], label: (k: string) => string): string {
   if (!rows.length) return '<p class="a-note">Pas encore de runs.</p>';
-  return `<table><tr><th></th><th>Runs</th><th>Victoires</th><th class="a-large">Taux</th></tr>${rows.map((r) => `<tr><td>${esc(label(r.key))}</td><td>${r.runs}</td><td>${r.wins}</td><td>${r.pct} % ${bar(r.pct)}</td></tr>`).join('')}</table>`;
+  return `<table><tr><th></th><th>Runs</th><th>Victoires</th><th>Retours</th><th class="a-large">Taux</th></tr>${rows.map((r) => `<tr><td>${esc(label(r.key))}</td><td>${r.runs}</td><td>${r.wins}</td><td>${r.retreats ? `<span class="a-orange">${r.retreats}</span>` : '0'}</td><td>${r.pct} % ${bar(r.pct)}</td></tr>`).join('')}</table>`;
 }
 
 function balance(d: Data): string {
@@ -288,7 +298,7 @@ function balance(d: Data): string {
   const picks = cardPickRates(d.runs, cls);
   const offers = cardOfferRates(d.runs, cls);
   const fights = costlyFights(d.runs);
-  const chapters = [1, 2, 3].map((n) => ({ n, c: d.runs.filter((r) => !r.victoire && r.chapitre === n).length }));
+  const chapters = [1, 2, 3].map((n) => ({ n, c: d.runs.filter((r) => !r.victoire && !isRetreat(r) && r.chapitre === n).length }));
   return `<div class="a-grille2">
       ${card('Taux de victoire par classe', rateTable(winsByClass(d.runs), className))}
       ${card('Par difficulté', rateTable(winsByDifficulty(d.runs), (k) => `Difficulté ${k}`))}
@@ -356,6 +366,20 @@ root.addEventListener('click', (ev) => {
     case 'site': state.site = v as Site; store.set('site', v); state.playerSel = null; void load(); return;
     case 'onglet': state.tab = v as Tab; state.playerSel = null; state.flash = null; render(); return;
     case 'rafraichir': state.flash = null; void load(); return;
+    case 'exporter': {
+      if (!d) return;
+      // Le fichier pour l'analyse : runs et progression de la période, pseudos remplacés par « Joueur N ».
+      const file = buildExport({ site: state.site, days: state.days, now: Date.now(), runs: d.runs.map(({ id: _id, ...r }: RunJournal & { id: string }) => r), players: d.players });
+      const url = URL.createObjectURL(new Blob([JSON.stringify(file)], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `wipe-loot-${state.site}-${todayIso()}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      state.flash = `Export téléchargé : ${file.runs.length} runs, ${file.joueurs.length} joueurs.`;
+      render();
+      return;
+    }
     case 'joueur': state.playerSel = v || null; state.runSel = null; render(); return;
     case 'run-voir': state.runSel = state.runSel === Number(v) ? null : Number(v); render(); return;
     case 'renommer': {

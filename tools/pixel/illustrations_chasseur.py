@@ -170,6 +170,15 @@ def marque_proie():
     return s.render()
 
 
+def fleche_anciens():
+    # La flèche que la corde tire toute seule : une flèche dorée, une lueur verte d'ancien bois.
+    s = nouveau()
+    viseur(s, 22, 10, 7)
+    trait(s, 4, 28, 22, 10, pointe=JAUNE, plumes=VERT_C, bois=BOIS)
+    s.dots([(22, 10)], ROUGE, glow=True)
+    return s.render()
+
+
 def piege_givrant():
     s = nouveau()
     machoires(s, 16, 16, 11, couleur=GIVRE, dents=GIVRE_C)
@@ -531,7 +540,7 @@ def champ_pieges():
 
 
 ILLUSTRATIONS_CHASSEUR = {name: fn for name, fn in list(globals().items()) if callable(fn) and name in {
-    'tir', 'repli',
+    'tir', 'repli', 'fleche_anciens',
     'fleches_multiples', 'fleche_venimeuse', 'rappel', 'esprit_aigle', 'esprit_tortue', 'esprit_guepard', 'marque_proie',
     'piege_givrant', 'tir_recul',
     'ordre_attaque', 'ordre_protege', 'ordre_hurlement', 'ordre_egorge', 'bete_interieure', 'rage_compagnon', 'morsure_partagee',

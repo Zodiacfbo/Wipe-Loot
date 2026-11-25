@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CARDS, energyCost, rewardPool, starterCards } from '../src/engine/cards';
 import { createCombat, endTurn, isEnraged, playCard, useSpell } from '../src/engine/combat';
+import { flecheDamage, flecheStartTurn } from '../src/engine/chasseur';
 import type { Encounter } from '../src/engine/enemies';
 import { afterCombatAction, campfireCorde, canForgeCorde, chooseCompanion, newRun, offerCompanion, resolveEvent } from '../src/engine/run';
 import { lootSpells } from '../src/engine/spells';
@@ -104,15 +105,46 @@ describe('le compagnon', () => {
     play(c, 'ordre_attaque');
     expect(lost(c)).toBe(19 + 5);
     expect(c.frenzyStacks).toBe(1);
+    // Le bonus de Frénésie repart de zéro au tour suivant.
+    endTurn(c);
+    expect(c.frenzyStacks).toBe(0);
   });
 
-  it('Fureur primitive et Corde-des-anciens : le compagnon agit 3 fois', () => {
+  it('Fureur primitive : le compagnon agit 2 fois ; Corde-des-anciens ne le fait plus agir en plus', () => {
     const c = fight(['lieutenant'], ['fureur_primitive'], { cordeAnciens: 1 });
     play(c, 'fureur_primitive');
     const e = c.enemies[0];
     const before = e.hp;
     endTurn(c);
+    expect(before - e.hp).toBe(10);
+  });
+
+  it('Corde-des-anciens : une Flèche des anciens par tour, qui se tend si on la garde (5, 10, 15)', () => {
+    const c = fight(['lieutenant'], ['repli'], { cordeAnciens: 1 });
+    c.hand = [];
+    flecheStartTurn(c);
+    expect(c.hand.filter((k) => k.id === 'fleche_anciens')).toHaveLength(1);
+    expect(flecheDamage(c)).toBe(5);
+    for (const want of [10, 15, 15]) {
+      flecheStartTurn(c); // gardée en main : pas de deuxième flèche, elle se tend
+      expect(c.hand.filter((k) => k.id === 'fleche_anciens')).toHaveLength(1);
+      expect(flecheDamage(c)).toBe(want);
+    }
+    const e = c.enemies[0];
+    const before = e.hp;
+    play(c, 'fleche_anciens', e.uid);
     expect(before - e.hp).toBe(15);
+    expect(c.exhaust.some((k) => k.id === 'fleche_anciens')).toBe(true);
+    flecheStartTurn(c);
+    expect(flecheDamage(c)).toBe(5); // la suivante repart de 5
+  });
+
+  it('la Flèche des anciens reste en main à la fin du tour', () => {
+    const c = fight(['lieutenant'], ['repli'], { cordeAnciens: 1 });
+    flecheStartTurn(c);
+    endTurn(c);
+    expect(c.hand.some((k) => k.id === 'fleche_anciens')).toBe(true);
+    expect(c.flecheCharge).toBe(1);
   });
 
   it('Dressage : les Ordres coûtent 1 de moins', () => {

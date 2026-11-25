@@ -49,7 +49,7 @@ export interface RunSummary {
   lines: ScoreLine[];
   score: number;
   xp: number;
-  /** Rattrapage : expérience ×1,5. */
+  /** Rattrapage : expérience ×2. */
   catchup: boolean;
   levelBefore: number;
   levelAfter: number;

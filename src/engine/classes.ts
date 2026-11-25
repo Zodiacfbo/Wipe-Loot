@@ -50,7 +50,7 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'voleur', name: 'Voleur', color: '#E8D84A', playable: true, difficulty: 2, hp: 70,
-    starterDeck: ['attaque_sinistre', 'attaque_sinistre', 'attaque_sinistre', 'attaque_sinistre', 'esquive', 'esquive', 'esquive', 'esquive', 'evisceration', 'embuscade'],
+    starterDeck: ['attaque_sinistre', 'attaque_sinistre', 'attaque_sinistre', 'esquive', 'esquive', 'esquive', 'esquive', 'evisceration', 'evisceration', 'embuscade'],
     startSpell: 'sprint', sprite: 'voleur.png',
     quote: 'Tu ne m\'as pas vu arriver. Tu ne me verras pas repartir.',
     role: 'Frappe vite, depuis l\'ombre', resource: 'Points de combo (0 à 5) et Camouflage',

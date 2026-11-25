@@ -38,7 +38,7 @@ th { color: var(--texte-2); font-weight: 600; white-space: nowrap; }
 .a-large { width: 40%; }
 .a-clic { cursor: pointer; } .a-clic:hover { background: #33271f; }
 .a-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: #3a2a1f; }
-.a-pill.r { background: rgba(200, 65, 58, 0.25); color: #ffb3ad; } .a-pill.v { background: rgba(143, 212, 154, 0.18); color: var(--vert); }
+.a-pill.r { background: rgba(200, 65, 58, 0.25); color: #ffb3ad; } .a-pill.o { background: rgba(232, 116, 42, 0.22); color: #ffc08f; } .a-orange { color: #ffc08f; } .a-pill.v { background: rgba(143, 212, 154, 0.18); color: var(--vert); }
 .a-jauge { height: 8px; border-radius: 4px; background: #3a2a1f; overflow: hidden; min-width: 60px; }
 .a-jauge i { display: block; height: 100%; background: var(--accent); }
 .a-courbe { height: 130px; display: flex; align-items: stretch; gap: 4px; }

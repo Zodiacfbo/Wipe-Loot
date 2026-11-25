@@ -30,7 +30,7 @@ import { addHallucination, folieStartTurn, gainFolie } from './folie';
 import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
 import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
 import { afterPaladinCard, censureTick, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn } from './paladin';
-import { afterHunterCard, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
+import { afterHunterCard, flecheStartTurn, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
 import { afterDruidCard, druidDamageTaken, druidEndTurn, druidOnAttacked, druidStartCombat, druidStartTurn, enterForm, isDruid, setForm } from './druide';
 import { afterShamanCard, clearTotems, isShaman, shamanOnAttacked, shamanStartCombat, shamanStartTurn, totemsAct, windfuryExtra } from './chaman';
 import { SPELLS, spellCooldown } from './spells';
@@ -371,6 +371,7 @@ export function startPlayerTurn(c: CombatState): void {
   }
   if (power(c, 'tenacite')) gainBlock(c, power(c, 'tenacite'), false);
   if (power(c, 'ambidextrie')) addStatusToHand(c, 'main_gauche', power(c, 'ambidextrie'));
+  flecheStartTurn(c); // Corde-des-anciens
   // Pouvoirs du Mage
   if (power(c, 'esprit_vif')) gainCharges(c, power(c, 'esprit_vif'));
   if (power(c, 'coeur_de_glace')) for (const e of livingEnemies(c)) applyGel(c, e, power(c, 'coeur_de_glace'));
@@ -756,10 +757,13 @@ export function endTurn(c: CombatState): void {
     }
   }
   // Les cartes Éphémères restées en main disparaissent.
-  const gone = c.hand.filter((card) => isEthereal(card));
+  // La Flèche des anciens (Corde-des-anciens) reste en main : l'arc se tend.
+  const kept = c.hand.filter((card) => card.id === 'fleche_anciens');
+  const rest = c.hand.filter((card) => card.id !== 'fleche_anciens');
+  const gone = rest.filter((card) => isEthereal(card));
   c.exhaust.push(...gone);
-  c.discard.push(...c.hand.filter((card) => !isEthereal(card)));
-  c.hand = [];
+  c.discard.push(...rest.filter((card) => !isEthereal(card)));
+  c.hand = kept;
   c.panicked = [];
   // La Domination mentale ne dure que le tour qui la suit.
   c.dominated = false;

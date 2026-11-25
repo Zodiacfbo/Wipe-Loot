@@ -162,7 +162,7 @@ export interface ItemEffects {
   disengageBonus?: number; // Désengagement +X blocage
   startTrap?: number; // un Piège explosif posé au début de chaque combat
   trapEnergy?: number; // un Piège se déclenche : +X énergie au prochain tour
-  cordeAnciens?: number; // le légendaire du Chasseur : le compagnon agit X fois de plus
+  cordeAnciens?: number; // le légendaire du Chasseur : une Flèche des anciens en main à chaque tour (chasseur.ts)
   // Talents du Druide
   wrathDruidBonus?: number; // Colère +X dégâts
   moonfireBonus?: number; // Feu de lune +X dégâts par tour
@@ -417,7 +417,7 @@ Object.assign(ITEMS, Object.fromEntries([
   item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Jugements infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
   item('baton_veilleur_druide', 'Bâton du Veilleur (Druide)', 'arme', 'legendaire', 'Changer de forme avec le bouton ne coûte plus d\'énergie.', { freeShiftAll: 1 }),
   item('marteau_ancetres', 'Le Marteau des ancêtres', 'arme', 'legendaire', 'Tes totems agissent deux fois au début de chacun de tes tours.', { marteauAncetres: 1 }),
-  item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Ton compagnon agit une fois de plus à la fin de chacun de tes tours.', { cordeAnciens: 1 }),
+  item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Début de ton tour : une Flèche des anciens en main (5 dégâts). Gardée, elle se tend : +5 par tour, 15 au plus.', { cordeAnciens: 1 }),
   item('sillon_orage', 'Sillon d\'orage', 'arme', 'legendaire', 'Toutes les 3 Attaques que tu joues, un éclair inflige 6 dégâts à tous les ennemis.', { stormblade: 1 }),
   item('baton_veilleur_demo', 'Bâton du Veilleur (Démoniste)', 'arme', 'legendaire', 'Une fois par tour, Pacte de sang ne coûte pas de PV. Tes DoT durent 1 tour de plus.', { freePact: 1, dotDuration: 1 }),
 ].map((d) => [d.id, d])));

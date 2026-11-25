@@ -90,6 +90,7 @@ import {
 } from './engine/run';
 import { POTIONS } from './engine/potions';
 import { siteOf, versionLabel } from './version';
+import { CHECK_EVERY_MS, checkUpdate, update } from './update';
 import { cloud, initCloud, logRun, markMessagesSeen, markNewsRead, messagesUnread, newsLastRead, newsUnread, refreshNews, sendMessage, shownNews, signIn, signOut, signUp } from './cloud';
 import { MESSAGE_MAX, MESSAGE_STATES, MESSAGE_TYPES, PASSWORD_MIN, PSEUDO_MAX, PSEUDO_MIN, type MessageType } from './cloud_logic';
 import { EPIC_TIER_COST, clampAlloc, emptyAlloc, pointsUsed, talentIds, tierCost, toggleTalent, treePoints, treesFor, type Choice, type TalentAlloc, type TreeId } from './engine/talents';
@@ -181,6 +182,8 @@ interface UiState {
   /** Chasseur : le compagnon sélectionné sur l'écran du choix (avant de partir). */
   companion?: CompanionId | null;
   selection: Selection;
+  /** « Plus tard » sur la fenêtre de nouvelle version : cachée jusqu'au prochain retour au hall. */
+  updateLater?: boolean;
   overlay: 'deck' | 'menu' | 'equipement' | 'loot' | 'potion' | 'coffre' | 'pile' | 'abandon' | 'difficultes' | 'test' | 'connexion' | 'roue' | 'saison' | 'news' | 'messages' | 'avis' | null;
   /** Fenêtre des messages : l'onglet, le type choisi, le texte tapé, le message d'erreur, l'envoi en cours. */
   /** News : le dernier numéro lu avant d'ouvrir la fenêtre (pour marquer « Nouveau »). Messages : ceux qui avaient du nouveau. */
@@ -218,6 +221,8 @@ interface UiState {
   classScreen: boolean;
   /** Classe regardée sur l'écran des classes. */
   classSel: string | null;
+  /** Comptes en ligne : le joueur a passé l'écran d'accueil pendant cette visite (« Entrer dans la guilde »). */
+  entered?: boolean;
   /** Écran de chute : l'objet choisi pour être brisé (le moins précieux par défaut). */
   wipeBreak?: SlotKey | null;
   /** Premier lancement : la classe de départ dont on confirme le choix (fenêtre), ou null. */
@@ -565,6 +570,15 @@ function rememberItems(run: RunState): void {
 
 // ---------- Barre du haut ----------
 
+/** Le compte à rebours avant que le boss se déchaîne, dans la barre du haut (il clignote au dernier tour). */
+function enrageChip(run: RunState): string {
+  const c = run.combat;
+  if (!c || run.screen !== 'combat' || c.enrageTurn === null) return '';
+  if (isEnraged(c)) return `<b class="enrage-haut actif" title="Ses coups sont doublés">${ICON.sablier}Déchaîné : coups doublés</b>`;
+  const n = c.enrageTurn - c.turn;
+  return `<b class="enrage-haut ${n <= 1 ? 'imminent' : ''}" title="Quand il se déchaîne, ses coups doublent">${ICON.sablier}Se déchaîne dans ${n} tour${n > 1 ? 's' : ''}</b>`;
+}
+
 function topbar(run: RunState, hp: number): string {
   const pips = Array.from({ length: run.maxWipes ?? MAX_WIPES }, (_, i) => `<i class="pip ${i < run.wipesLeft ? '' : 'vide'}"></i>`).join('');
   return `<div class="topbar">
@@ -577,7 +591,7 @@ function topbar(run: RunState, hp: number): string {
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
       <span class="etape">${chapitre(run.act)} · ${actDef(run.act).name} · ${etageLabel(run)}</span>
-      <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Relèves ${pips} <span>${run.wipesLeft} restante${run.wipesLeft > 1 ? 's' : ''}</span></span>
+      <span class="pips">${run.difficulty ? `<b class="badge-difficulte">Difficulté ${run.difficulty}</b>` : ''}Relèves ${pips} <span>${run.wipesLeft} restante${run.wipesLeft > 1 ? 's' : ''}</span>${enrageChip(run)}</span>
     </div>
     <div class="groupe">
       ${fullscreenButton('bouton')}
@@ -1019,7 +1033,8 @@ function intentNow(c: CombatState, e: EnemyState): string {
         : i.kind === 'curse' ? curseText(i)
         : 'Prend effet à la fin de ce tour';
     const locked = !isInterruptible(i);
-    return `<div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
+    // Au-dessus de l'ennemi, une étiquette ; le cadre complet (jauge, effet) passe sous sa barre de vie.
+    return `<div class="intention ${locked ? '' : 'soutien'} incante">${ICON.sablier}<span>${i.cast}</span></div><!--detail--><div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
   }
   switch (i.kind) {
     case 'attack': {
@@ -1138,7 +1153,7 @@ const POWER_LABEL: Record<string, [string, string]> = {
   vengeance_pal: ['Vengeance', 'Ennemi tué : +1 Puissance'],
   croisade: ['Croisade', 'Attaques +2, +4 contre Morts-vivants et Démons'],
   lien_sauvage: ['Lien sauvage', 'Ton compagnon agit : blocage'],
-  frenesie_chasseur: ['Frénésie', 'Ton compagnon gagne +1 dégât à chaque attaque'],
+  frenesie_chasseur: ['Frénésie', 'Chaque attaque du compagnon donne +1 dégât aux suivantes, jusqu\'à la fin du tour'],
   dressage: ['Dressage', 'Les Ordres coûtent 1 de moins'],
   instinct_tueur: ['Instinct de tueur', 'Ton compagnon tue : +1 énergie, pioche 1'],
   fureur_primitive: ['Fureur primitive', 'Ton compagnon agit deux fois'],
@@ -1460,13 +1475,23 @@ function combatScreen(run: RunState, c: CombatState): string {
     const pct = masked ? 100 : Math.max(0, (e.hp / e.maxHp) * 100);
     const canTarget = targeting && !e.untargetable;
     const tag = canTarget ? 'button' : 'div';
+    // Au-dessus du sprite, seulement le nom de l'intention ; son explication passe sous la barre de vie.
+    const intentAll = intentHtml(c, e);
+    const split = intentAll.indexOf('<!--detail-->');
+    const detailMatch = split < 0 ? intentAll.match(/<div class="effet-intention">[\s\S]*?<\/div>/) : null;
+    const intent = split >= 0
+      ? { badge: intentAll.slice(0, split), detail: intentAll.slice(split + '<!--detail-->'.length) }
+      : { badge: detailMatch ? intentAll.replace(detailMatch[0], '') : intentAll, detail: detailMatch?.[0] ?? '' };
+    // Un très grand seigneur avec une explication sous sa barre de vie : un peu plus petit, pour que tout tienne.
+    const shown = intent.detail && size >= 192 ? size - 40 : size;
     return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
-      ${intentHtml(c, e)}
+      ${intent.badge}
       ${e === compTarget ? `<span class="chs-cible" title="Ton ${COMPANIONS[c.companion!].name} attaquera cet ennemi à la fin de ton tour">${ICON_HUNT.patte}cible</span>` : ''}
       ${e === trapTarget ? `<span class="chs-ici" title="Il agit en premier : tes Pièges se déclencheront sur lui">${c.traps!.map((t) => ICON_HUNT[t.id]).join('')}ici</span>` : ''}
-      <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${size}" height="${size}">
+      <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${shown}" height="${shown}">
       <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Gardien · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
+      ${intent.detail}
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}${c.mark?.uid === e.uid ? `<span class="chip marque" title="Tes Attaques et ton compagnon lui infligent +${markBonus(c, e)} dégâts">Marqué +${markBonus(c, e)}</span>` : ''}</div>
       ${def.passive ? `<div class="passif-ennemi">${(e.phase ?? 1) >= 2 && def.passive2 ? def.passive2 : def.passive}</div>` : ''}
     </${tag}>`;
@@ -1496,13 +1521,6 @@ function combatScreen(run: RunState, c: CombatState): string {
     disguise: true,
   })).join('');
 
-  let enrage = '';
-  if (c.enrageTurn !== null) {
-    enrage = isEnraged(c)
-      ? `<div class="enrage actif">${ICON.sablier}<span>Il se déchaîne : ses coups sont doublés</span></div>`
-      : `<div class="enrage">${ICON.sablier}<span>Il se déchaîne dans ${c.enrageTurn - c.turn} tour${c.enrageTurn - c.turn > 1 ? 's' : ''} : ses coups doubleront</span></div>`;
-  }
-
   const journal = c.log.slice(-9).map((l) => `<p>${l}</p>`).join('');
   const underLava = c.enemies.find((e) => !e.dead && e.submerged && !e.outside);
   const reviving = c.enemies.filter((e) => e.dead && e.reviveIn);
@@ -1524,7 +1542,6 @@ function combatScreen(run: RunState, c: CombatState): string {
 
   return `<div class="sol"></div>
     ${topbar(run, p.hp)}
-    ${enrage}
     <div class="heros">
       <div class="buffs">${playerChips(c)}</div>
       <img class="px ${c.stealth ? 'camoufle-sprite' : ''}" data-fx="player" data-tenue="${heroSprite(hero.sprite, c)}" ${spriteAttrs(heroSprite(hero.sprite, c))} alt="Le ${hero.name}" width="192" height="192">
@@ -1557,12 +1574,11 @@ function combatScreen(run: RunState, c: CombatState): string {
 /** Le hall de la guilde : l'écran principal du jeu. */
 function titleScreen(): string {
   const profile = loadProfile();
-  // Avec les comptes en ligne, on ne passe pas l'accueil sans être connecté.
-  if (cloud.enabled && !cloud.user) return firstLaunchScreen();
+  // Avec les comptes en ligne, l'accueil s'affiche à chaque visite : « Se connecter », ou « Entrer dans la guilde ».
+  if (cloud.enabled && (!cloud.user || !ui.entered)) return firstLaunchScreen();
   if (!profile.startClass) return firstLaunchScreen();
   const saved = localSave.load();
-  // Une victoire dont le passage au coffre n'est pas fait peut encore être reprise.
-  const canContinue = saved && saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
+  const canContinue = saved && resumable(saved);
   const cls = activeClass(profile);
   const hero = classInfo(cls);
   const lvl = classLevel(profile, cls);
@@ -1851,7 +1867,10 @@ function firstLaunchScreen(): string {
     <q class="accroche">Tomber, se relever, et rapporter le butin.</q>
     <div class="tuiles-accueil">${tiles.map(([icon, title, text]) => `<div class="tuile-accueil"><img class="px" src="${A(icon)}" alt=""><b>${title}</b><span>${text}</span></div>`).join('')}</div>
     <div class="actions">
-      ${cloud.enabled && !cloud.ready ? '<button type="button" class="gros-bouton" disabled>Connexion…</button>' : '<button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>'}
+      ${!cloud.enabled ? '<button type="button" class="gros-bouton" data-action="nouvelle">Commencer</button>'
+        : !cloud.ready ? '<button type="button" class="gros-bouton" disabled>Connexion…</button>'
+        : cloud.user ? '<button type="button" class="gros-bouton" data-action="entrer">Entrer dans la guilde</button>'
+        : '<button type="button" class="gros-bouton" data-action="nouvelle">Se connecter</button>'}
       ${fullscreenButton('gros-bouton secondaire')}
     </div>
   </div>`;
@@ -1937,9 +1956,8 @@ function actScreen(run: RunState): string {
     <span class="butin-titre">${chapitre(run.act)} terminé</span>
     <h1>${next.name}</h1>
     <p class="texte-evenement">${next.intro}</p>
-    <p>Avant de repartir, la guilde panse tes blessures : <b>tes PV remontent au maximum</b>.</p>
     <div class="choix-fin-chapitre">
-      <button type="button" class="choix-evenement" data-action="acte-suivant"><b>⚔ Entrer dans le ${chapitre(run.act + 1).replace('Chapitre', 'chapitre')}</b><span>Plus d'expérience et un meilleur butin.</span><span><b class="risque">Risque :</b> si tu tombes pour de bon, tu perds le butin de l'expédition${carried ? `, et l'objet emporté du coffre (${carried})` : ''}.</span></button>
+      <button type="button" class="choix-evenement" data-action="acte-suivant"><b>⚔ Entrer dans le ${chapitre(run.act + 1).replace('Chapitre', 'chapitre')}</b><span class="soin-acte">${run.hp < run.maxHp ? `❤ Tes PV remontent au maximum : ${run.hp} → ${run.maxHp}` : `❤ Tes PV sont au maximum (${run.maxHp})`}</span><span>Plus d'expérience et un meilleur butin.</span><span><b class="risque">Risque :</b> si tu tombes pour de bon, tu perds le butin de l'expédition${carried ? `, et l'objet emporté du coffre (${carried})` : ''}.</span></button>
       <button type="button" class="choix-evenement" data-action="rentrer-guilde"><b>🏰 Rentrer à la guilde</b><span>Dépose 1 objet au coffre.${carried ? ` L'objet emporté (${carried}) y retourne.` : ''}</span><span>L'expédition s'arrête là : pas de nouveau niveau de difficulté.</span></button>
     </div>
   </div>`;
@@ -2093,7 +2111,7 @@ function summaryHtml(sum: RunSummary, classId = 'guerrier'): string {
     <div class="bilan-score">${rows}<div class="ligne-score total"><span>Score</span><b>${sum.score}</b></div></div>
     <div class="bilan-xp">
       <span class="butin-titre">${classInfo(classId).name}</span>
-      <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×1,5 : rattrapage)</em>' : ''}</b>
+      <b class="gain-xp">+${sum.xp} expérience${sum.catchup ? ' <em>(×2 : rattrapage)</em>' : ''}</b>
       <div class="niveau">Niveau ${sum.levelAfter}${sum.levelAfter === MAX_LEVEL ? ' (maximum)' : ''}</div>
       <div class="barre-xp"><div style="width:${pct}%"></div><span>${sum.needed ? `${sum.into} / ${sum.needed}` : 'Niveau maximum'}</span></div>
       ${up ? `<p class="niveau-gagne">Niveau supérieur ! +${sum.levelAfter - sum.levelBefore} point${sum.levelAfter - sum.levelBefore > 1 ? 's' : ''} de talent</p>` : ''}
@@ -2223,6 +2241,21 @@ const TALENT_KIND_LABEL: Record<TalentKind, string> = { passif: 'Passif', sort: 
 const talentKind = (d: { card?: string; spell?: string }): TalentKind => (d.card ? 'epique' : d.spell ? 'sort' : 'passif');
 
 /** L'écran des talents : 3 arbres de 5 paliers en icônes ; la fiche du talent touché s'affiche à droite. */
+/** Une run sauvegardée qu'on peut reprendre (une victoire dont le passage au coffre n'est pas fait aussi). */
+function resumable(saved: RunState): boolean {
+  return saved.screen !== 'gameover' && (saved.screen !== 'victory' || !saved.chestDone);
+}
+
+/**
+ * L'encart de l'écran des talents quand une expédition de cette classe est en cours :
+ * la run a gardé les talents de son départ, les changements comptent à la prochaine.
+ */
+function talentRunNotice(cls: string): string {
+  const saved = localSave.load();
+  if (!saved || !resumable(saved) || (saved.classId ?? 'guerrier') !== cls) return '';
+  return `<div class="encart-expedition"><b>⚔ Expédition en cours</b><p>Ton ${classInfo(cls).name} est déjà parti avec ses talents. Ce que tu changes ici comptera à la <b>prochaine</b> expédition.</p></div>`;
+}
+
 function talentScreen(): string {
   const profile = loadProfile();
   const cls = activeClass(profile);
@@ -2269,6 +2302,7 @@ function talentRefs(id: string): string {
 function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: TreeId; tier: number; choice: Choice } | null): string {
   if (!sel) {
     return `<aside class="fiche-talent vide">
+      ${talentRunNotice(cls)}
       <b class="titre-fiche">Touche un talent</b>
       <p>pour voir ce qu'il fait, puis le prendre.</p>
       <div class="legende-talents">
@@ -2333,6 +2367,7 @@ function talentCard(cls: string, alloc: TalentAlloc, left: number, sel: { tree: 
   }
   return `<aside class="fiche-talent">
     <button type="button" class="fermer-fiche" data-action="talent-fermer" aria-label="Fermer">✕</button>
+    ${talentRunNotice(cls)}
     <div class="haut-fiche"><span class="icone-talent grande k-${kind} ${taken ? 'pris' : ''}"><img class="px" src="${A(talentIcon(d))}" alt=""></span>
       <div><b class="titre-fiche">${d.name}</b><div class="etiquettes">${chips.join('')}</div></div></div>
     <div class="texte-fiche">${body}</div>
@@ -2472,6 +2507,19 @@ function noticeHtml(): string {
     <button type="button" class="gros-bouton" data-action="avis-ok">Compris</button></div></div>`;
 }
 
+/** Nouvelle version en ligne : seulement dans le hall (jamais en expédition), sans fenêtre ni bulle de tuto ouverte. */
+function updateHtml(): string {
+  if (!update.available || ui.updateLater || ui.overlay || tutoActive()) return '';
+  if (!loadProfile().startClass || (cloud.enabled && (!cloud.user || !ui.entered))) return '';
+  return `<div class="overlay fenetre-centree fenetre-maj"><div class="boite-connexion">
+    <h2>✨ Nouvelle version</h2>
+    <p>Le jeu a été mis à jour. Recharge pour profiter des dernières corrections.</p>
+    <p class="petit-texte">Ta progression et ton expédition en cours sont gardées.</p>
+    <button type="button" class="gros-bouton" data-action="maj-recharger">Recharger maintenant</button>
+    <button type="button" class="lien" data-action="maj-plus-tard">Plus tard</button>
+  </div></div>`;
+}
+
 /** Une nouvelle saison a remis la sauvegarde à zéro. */
 function seasonHtml(): string {
   return `<div class="overlay fenetre-centree"><div class="boite-connexion">
@@ -2486,6 +2534,7 @@ function cloudChanged(): void {
   if (cloud.user && ui.overlay === 'connexion') {
     ui.overlay = null;
     ui.login = undefined; // la prochaine fois (après une déconnexion), on rouvre sur « Se connecter »
+    ui.entered = true; // il vient de se connecter depuis l'accueil : on entre directement
     // Le joueur venait de toucher « Commencer » : un nouveau compte part au choix de la classe.
     if (!loadProfile().startClass) ui.classScreen = true;
   }
@@ -2714,18 +2763,21 @@ export function render(): void {
     stage.dataset.acte = '1';
     const hall = !ui.archivesScreen && !ui.classScreen && !ui.talentScreen;
     if (hall) refreshNews(); // au plus une lecture toutes les 10 minutes
+    if (hall) void checkUpdate(render); // au plus une lecture par minute
+    else ui.updateLater = false;
     if (tutoActive()?.kind === 'combat' || (!hall && tutoActive())) tutoStop();
     // La visite du hall se lance toute seule la première fois qu'on y arrive (après le choix de la classe).
     if (hall && !ui.overlay && !tutoActive()) {
       const profile = loadProfile();
       if (profile.startClass && !profile.tuto?.hall) startHallTuto();
     }
-    stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen() + overlayHtml(null)) + (hall ? tutoHtml() : '');
+    stage.innerHTML = (ui.archivesScreen ? archivesScreen() : ui.classScreen ? classScreen() : ui.talentScreen ? talentScreen() : titleScreen()) + overlayHtml(null) + (hall ? tutoHtml() : '') + (hall ? updateHtml() : '');
     afterRender();
     syncLoginMode();
     placeTuto(stage);
     return;
   }
+  ui.updateLater = false;
   stage.dataset.acte = String(run.act ?? 1);
   let html = '';
   switch (run.screen) {
@@ -2968,16 +3020,32 @@ function handleClick(ev: MouseEvent): void {
       return;
     }
     case 'avis-ok': cloud.notice = null; ui.overlay = null; render(); return;
+    case 'maj-recharger':
+      location.reload();
+      return;
+    case 'maj-plus-tard':
+      ui.updateLater = true;
+      render();
+      return;
     case 'saison-ok':
       cloud.newSeason = null;
       ui.overlay = null;
+      ui.entered = true;
       ui.classScreen = !loadProfile().startClass;
       render();
       return;
     case 'roue': ui.overlay = ui.overlay === 'roue' ? null : 'roue'; render(); return;
+    case 'entrer':
+      // Connecté : on passe l'accueil (au choix de la classe la première fois).
+      ui.entered = true;
+      ui.overlay = null;
+      if (!loadProfile().startClass) ui.classScreen = true;
+      render();
+      return;
     case 'deconnexion':
       ui.overlay = null;
       ui.run = null;
+      ui.entered = false;
       void signOut().then(render);
       return;
     case 'nouvelle': {
@@ -3032,6 +3100,7 @@ function handleClick(ev: MouseEvent): void {
     case 'classe-depart-annuler': ui.startConfirm = null; render(); return;
     case 'classe-depart': {
       ui.startConfirm = null;
+      ui.entered = true;
       const profile = loadProfile();
       if (chooseStartClass(profile, el.dataset.id!)) saveProfile(profile);
       // Premier lancement : la classe choisie, on arrive au hall de la guilde (l'expédition se lance de là).
@@ -3214,7 +3283,12 @@ function handleClick(ev: MouseEvent): void {
 function syncLoginMode(): void {
   // Pas encore connecté : l'écran « Tourne ton téléphone » propose aussi de se connecter en portrait.
   document.body.classList.toggle('connexion-proposee', cloud.enabled && cloud.ready && !cloud.user && !ui.run);
-  const on = !!stage.querySelector('.boite-connexion');
+  // Connecté : l'écran « Tourne ton téléphone » propose les messages (et le signalement d'un bug en expédition) et les news.
+  document.body.classList.toggle('menu-propose', !!cloud.user);
+  const rotMsg = document.getElementById('rotate-messages');
+  if (rotMsg) rotMsg.textContent = ui.run ? '💡 Signaler un bug' : '💡 Bugs, idées, messages';
+  // Les fenêtres de texte (connexion, messages, news, compte) et la roue ⚙ s'affichent à la taille réelle de l'écran.
+  const on = !!stage.querySelector('.boite-connexion, .menu-roue');
   if (document.body.classList.contains('connexion-libre') === on) return;
   document.body.classList.toggle('connexion-libre', on);
   fit();
@@ -3270,6 +3344,11 @@ export function mount(root: HTMLElement): void {
     if (!ui.login?.busy) void submitLogin(form);
   });
   initCloud(cloudChanged);
+  // Nouvelle version : vérifiée au retour dans l'application et toutes les 10 minutes (le hall vérifie aussi à chaque affichage).
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void checkUpdate(render); });
+  setInterval(() => void checkUpdate(render), CHECK_EVERY_MS);
+  // Les boutons de l'écran « Tourne ton téléphone » (portrait) passent par les mêmes actions que le jeu.
+  document.getElementById('rotate-menu')?.addEventListener('click', handleClick);
   document.getElementById('rotate-connexion')?.addEventListener('click', () => {
     ui.overlay = 'connexion';
     ui.login ??= { tab: 'connexion', pseudo: '', error: null, busy: false };
