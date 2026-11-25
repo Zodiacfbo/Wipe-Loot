@@ -91,7 +91,7 @@ export const KEYWORDS: Keyword[] = [
   // Démoniste
   { name: 'Éclats d\'âme', words: ['éclats d\'âme', 'éclat d\'âme', 'Éclats d\'âme'], text: 'De 0 à 5, gardés d\'un combat à l\'autre. +1 quand un ennemi meurt avec un de tes DoT ou une de tes Malédictions. Certaines cartes les dépensent.' },
   // Paladin
-  { name: 'Sceau', words: ['Sceau', 'Sceaux'], text: 'Un seul Sceau actif à la fois : un nouveau remplace l\'ancien. Le sort Jugement le consomme pour déclencher son effet.' },
+  { name: 'Sceau', words: ['Sceau', 'Sceaux'], text: 'Un seul Sceau actif à la fois : un nouveau remplace l\'ancien. Le sort Jugement le consomme pour déclencher son effet. Rejoue un Sceau déjà actif : il est jugé.' },
   { name: 'Jugement', words: ['Jugement'], text: 'Sort de barre du Paladin : consomme le Sceau actif pour déclencher son effet de Jugement.' },
   { name: 'Mouton', words: ['mouton'], text: 'Ne fait rien pendant le nombre de tours indiqué, et reprend sa forme dès qu\'il est blessé.' },
   { name: 'Invocation', words: ['Invoque'], text: 'Ton familier est remplacé par celui-ci pour le reste du combat, et il agit tout de suite.' },

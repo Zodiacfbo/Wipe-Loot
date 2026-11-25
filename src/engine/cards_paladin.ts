@@ -4,7 +4,7 @@ import { addPower, drawCards, fx, gainBlock, isBossEnemy, livingEnemies, log, pl
 import { isInterruptible } from './enemies';
 import { dispelMagic } from './pretre';
 import { stun } from './voleur';
-import { activateSeal, dispelAll, isUnholy, judge, palHeal, SEAL_TEXT, setAura } from './paladin';
+import { activateSeal, dispelAll, hasSeal, isUnholy, judge, palHeal, SEAL_TEXT, setAura } from './paladin';
 import type { CardDef, PlayContext } from './cards';
 import type { EnemyState, SealId } from './types';
 
@@ -28,12 +28,12 @@ function powerCard(ctx: PlayContext, id: string, value: number, label: string): 
   fx(ctx.c, { kind: 'buff', who: 'player', label });
 }
 
-/** Une carte Sceau : coûte 1 (0 une fois améliorée). */
+/** Une carte Sceau : coûte 1 (0 une fois améliorée). Rejouée alors que son Sceau est actif, elle le juge. */
 function sealCard(id: string, seal: SealId, name: string, rarity: PaladinCard['rarity']): PaladinCard {
   return {
-    id, name, type: 'Compétence', seal: true, rarity, cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
+    id, name, type: 'Compétence', seal: true, sealId: seal, rarity, cost: 1, costUp: 0, needsTarget: false, icon: 'pouvoir',
     text: () => `Sceau : ${SEAL_TEXT[seal].bonus}. Jugement : ${SEAL_TEXT[seal].judge}.`,
-    play: (ctx) => activateSeal(ctx.c, seal),
+    play: (ctx) => (hasSeal(ctx.c, seal) ? judge(ctx.c, ctx.target, true, seal) : activateSeal(ctx.c, seal)),
   };
 }
 

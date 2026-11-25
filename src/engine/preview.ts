@@ -2,7 +2,7 @@
 // Le moteur étant pur et sérialisable, la copie suit exactement les mêmes règles que le vrai coup
 // (Puissance, posture, Armure fracassée, objets, talents…), sans rien toucher au vrai combat.
 import { CARDS } from './cards';
-import { canPlayCard, playCard, resolveTarget } from './combat';
+import { canPlayCard, cardNeedsTarget, playCard, resolveTarget } from './combat';
 import { ENEMIES } from './enemies';
 import type { CombatState } from './types';
 
@@ -85,7 +85,7 @@ export function cardHitValue(c: CombatState, index: number): number | null {
     }
   }
   let target: number | undefined;
-  if (def.needsTarget) {
+  if (cardNeedsTarget(c, card.id)) {
     const t = resolveTarget(state, true, alone ? undefined : firstTarget(state, def.type === 'Attaque'), def.type === 'Attaque');
     if (t === 'invalid' || t === null) return null;
     target = t.uid;

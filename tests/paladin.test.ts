@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CARDS, energyCost, rewardPool, starterCards } from '../src/engine/cards';
-import { createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
+import { cardNeedsTarget, createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
 import { afterCombatAction, campfireAurore, canForgeAurore, newRun, resolveEvent } from '../src/engine/run';
 import { EVENTS } from '../src/engine/events';
@@ -27,7 +27,7 @@ describe('le Paladin : la run', () => {
     expect(run.maxHp).toBe(80);
     expect(run.spells).toEqual(['jugement']);
     expect(run.deck.filter((k) => k.id === 'frappe_pal')).toHaveLength(4);
-    expect(run.deck.some((k) => k.id === 'sceau_droiture')).toBe(true);
+    expect(run.deck.filter((k) => k.id === 'sceau_droiture')).toHaveLength(2);
   });
 
   it('51 cartes en récompense (+ Frappe et Parade), 14 par arbre', () => {
@@ -134,11 +134,48 @@ describe('les Sceaux et le Jugement', () => {
   });
 
   it('Sceaux bénis : les Sceaux coûtent 0 ; Zèle donne de la Puissance (5 au maximum)', () => {
-    const c = fight(['lieutenant'], ['zele', ...Array(6).fill('sceau_croise')], { sealsFree: 1 });
+    const c = fight(['lieutenant'], ['zele', ...Array(3).fill('sceau_croise'), ...Array(3).fill('sceau_rempart')], { sealsFree: 1 });
     expect(energyCost(c, 'sceau_croise', false)).toBe(0);
     play(c, 'zele');
-    for (let i = 0; i < 6; i++) play(c, 'sceau_croise');
+    // Deux Sceaux différents en alternance : chaque carte en active un (un Sceau rejoué serait jugé).
+    for (let i = 0; i < 6; i++) play(c, i % 2 ? 'sceau_rempart' : 'sceau_croise');
     expect(c.player.puissance).toBe(5);
+  });
+
+  it('rejouer un Sceau déjà actif le juge (sans toucher au sort Jugement)', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['sceau_droiture', 'sceau_droiture']);
+    play(c, 'sceau_droiture');
+    expect(c.seals).toEqual(['droiture']);
+    // Son Jugement fait des dégâts : avec deux ennemis, la carte demande une cible.
+    expect(cardNeedsTarget(c, 'sceau_droiture')).toBe(true);
+    expect(play(c, 'sceau_droiture')).toBe(false);
+    const e = c.enemies[1];
+    const hp = e.hp;
+    expect(play(c, 'sceau_droiture', e.uid)).toBe(true);
+    expect(hp - e.hp).toBe(12);
+    expect(c.seals).toEqual([]);
+    expect(c.lastJudged).toBe('droiture');
+    expect(c.spells[0].cooldown).toBe(0);
+  });
+
+  it('un Sceau rejoué dont le Jugement ne vise personne se joue sans cible', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['sceau_lumiere', 'sceau_lumiere']);
+    c.player.hp = 40;
+    play(c, 'sceau_lumiere');
+    expect(cardNeedsTarget(c, 'sceau_lumiere')).toBe(false);
+    expect(play(c, 'sceau_lumiere')).toBe(true);
+    expect(c.player.hp).toBe(48);
+    expect(c.seals).toEqual([]);
+  });
+
+  it('Double sceau : rejouer un Sceau ne juge que lui', () => {
+    const c = fight(['lieutenant'], ['sceau_droiture', 'sceau_rempart', 'sceau_rempart'], { doubleSeal: 1 });
+    play(c, 'sceau_droiture');
+    play(c, 'sceau_rempart');
+    const block = c.player.block;
+    play(c, 'sceau_rempart');
+    expect(c.player.block).toBe(block + 12);
+    expect(c.seals).toEqual(['droiture']);
   });
 
   it('Inquisition réactive le dernier Sceau jugé', () => {

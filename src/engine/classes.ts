@@ -8,6 +8,7 @@ export interface ClassInfo {
   quote: string;
   role: string;
   /** 1 = facile, 3 = difficile. */
+  /** Les étoiles : la richesse du jeu (1 simple, 2 intermédiaire, 3 riche), pas les chances de gagner. */
   difficulty: 1 | 2 | 3;
   hp: number;
   resource: string;
@@ -42,7 +43,7 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'paladin', name: 'Paladin', color: '#E6B84A', playable: true, difficulty: 1, hp: 80,
-    starterDeck: ['frappe_pal', 'frappe_pal', 'frappe_pal', 'frappe_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'sceau_droiture', 'lumiere_bienfaisante'],
+    starterDeck: ['frappe_pal', 'frappe_pal', 'frappe_pal', 'frappe_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'sceau_droiture', 'sceau_droiture', 'lumiere_bienfaisante'],
     startSpell: 'jugement', sprite: 'paladin.png',
     quote: 'Par la lumière, je juge. Par l\'acier, j\'exécute la sentence.',
     role: 'Bouclier, marteau et lumière sacrée', resource: 'Sceaux, Jugements et auras',
@@ -57,7 +58,7 @@ export const CLASSES: ClassInfo[] = [
     fantasy: 'Un premier tour parfait depuis l\'ombre, cinq points de combo, et une Éviscération qui achève le seigneur.',
   },
   {
-    id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: true, difficulty: 2, hp: 70,
+    id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: true, difficulty: 3, hp: 70,
     starterDeck: ['tir', 'tir', 'tir', 'tir', 'repli', 'repli', 'repli', 'repli', 'tir_ajuste', 'ordre_attaque'],
     startSpell: 'tir_arcanique', sprite: 'chasseur.png',
     quote: 'Mon arc vise, ma bête mord. Toi, tu cours.',
