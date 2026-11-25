@@ -113,7 +113,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | **Bête intérieure** | 1 | Compétence | C | Toi et ton compagnon infligez +3 dégâts ce tour-ci. | +5 dégâts |
 | **Rage du compagnon** | 0 | Compétence | C | La prochaine attaque de ton compagnon inflige +4 dégâts. | +6 dégâts |
 | **Morsure partagée** | 0 | Attaque | C | Inflige 3 dégâts. Ton compagnon agit immédiatement. **Éphémère.** | 5 dégâts |
-| **Lien sauvage** | 1 | Pouvoir | PC | Chaque fois que ton compagnon agit, gagne 2 blocage. | 3 blocage |
+| **Lien sauvage** | 1 | Pouvoir | PC | Chaque fois que ton compagnon agit, gagne 2 blocage, 3 fois par tour au plus (sans limite jusqu'au 25 novembre 2026). | 3 blocage |
 | **Frénésie** | 1 | Pouvoir | PC | Chaque attaque du compagnon donne +1 dégât aux suivantes, jusqu'à la fin du tour (depuis le 24 novembre 2026 : avant, le bonus durait tout le combat et s'emballait avec plusieurs copies). | Inné |
 | **Intimidation** | 1 | Compétence (Ordre) | PC | Ton compagnon effraie la cible : un ennemi normal est Contrôlé 1 tour. Contre un boss : **Interruption**. | Coûte 0 |
 | **Dressage** | 1 | Pouvoir | PC | Tes cartes Ordre coûtent 1 de moins (minimum 0). | Coûte 0 |
@@ -185,7 +185,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | **1** | **Compagnon robuste** : ton compagnon inflige +1 dégât. | **Lien endurant** : +6 PV max. |
 | **2** | **Férocité** : les attaques de ton compagnon appliquent Saignement 1. | **Esprit animal** : ton compagnon agit une fois au tout début de chaque combat. |
 | **3** | **Fureur bestiale** : ajoute ce sort à ta barre. | **Feindre la mort** : ajoute ce sort à ta barre. |
-| **4** | **Maître de meute** : Esprit de meute coûte 0. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
+| **4** | **Maître de meute** : ta première copie d'Esprit de meute du combat coûte 0 (toutes les copies jusqu'au 25 novembre 2026). | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
 | **5** | **Fureur primitive** (carte épique) | — |
 
 ### 7.2 Arbre Précision

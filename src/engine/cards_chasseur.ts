@@ -168,7 +168,7 @@ const LIST: HunterCard[] = [
   },
   {
     id: 'lien_sauvage', name: 'Lien sauvage', type: 'Pouvoir', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Chaque fois que ton compagnon agit, gagne ${up ? 3 : 2} blocage.`,
+    text: (up) => `Chaque fois que ton compagnon agit, gagne ${up ? 3 : 2} blocage (3 fois par tour).`,
     play: (ctx) => powerCard(ctx, 'lien_sauvage', ctx.up ? 3 : 2, 'Lien sauvage'),
   },
   {
@@ -193,6 +193,7 @@ const LIST: HunterCard[] = [
     text: (up) => `Un Loup spectral t'aide : ${up ? 5 : 3} dégâts à ta cible à la fin de tes tours.`,
     play: (ctx) => {
       ctx.c.spectral = (ctx.c.spectral ?? 0) + (ctx.up ? 5 : 3);
+      ctx.c.packUsed = true; // Maître de meute : seule la première copie est gratuite.
       fx(ctx.c, { kind: 'buff', who: 'player', label: 'Loup spectral' });
     },
   },

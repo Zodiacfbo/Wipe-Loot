@@ -548,6 +548,10 @@ export interface CombatState {
   compNextBonus?: number;
   /** Frénésie : dégâts gagnés par le compagnon pendant ce combat. */
   frenzyStacks?: number;
+  /** Lien sauvage : blocages déjà gagnés ce tour-ci (3 au plus). */
+  lienCount?: number;
+  /** Maître de meute : la première copie d'Esprit de meute du combat est déjà jouée. */
+  packUsed?: boolean;
   aspect?: AspectId | null;
   /** Les Pièges posés (3 au plus), dans l'ordre où ils se déclencheront. */
   traps?: Trap[];
