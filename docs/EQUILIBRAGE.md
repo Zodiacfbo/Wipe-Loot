@@ -658,3 +658,17 @@ Le bot est un plancher : les joueurs humains font mieux (le Chasseur du playtest
 
 Le niveau 1 bouge peu au bot (il joue mal la boucle) ; les trois arbres du niveau 10 se rapprochent (55 à 66 %). **En réserve** si un débutant bloque encore : le Sceau de droiture actif au début de chaque combat.
 
+
+## 25. Yzhar : le compagnon étourdi obéit encore aux Ordres (26 novembre 2026)
+
+Retour d'un testeur Chasseur : le Rayon oculaire (2 tours sur 3 en phase 1) rendait le compagnon inutile, Ordres compris. Désormais, étourdi, le compagnon (Chasseur) ou le familier (Démoniste) saute **seulement son action de fin de tour** ; les Ordres marchent. Avant, un Ordre du Démoniste consommait l'étourdissement.
+
+`tools/balance/yzhar.sim.ts` (le combat seul, PV pleins, 15 runs du bot de niveau 10 ; deux profils Chasseur ajoutés) :
+
+| Profil | Avant | Après |
+|---|---|---|
+| Chasseur Bêtes 7 + Survie 3 | 4/15 | 6/15 |
+| Chasseur Précision 7 + Bêtes 3 | 6/15 | 7/15 |
+| Démoniste (Démonologie) | 12/15 | 11/15 |
+
+Toutes les morts du Chasseur sont maintenant en **phase 2** (tours 10 à 15 souvent, Corps à 150-226/260, PV max 58 à 70). Mis de côté (issue #1) : la phase 2 contre le Chasseur.
