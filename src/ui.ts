@@ -1571,9 +1571,28 @@ function combatScreen(run: RunState, c: CombatState): string {
     <div class="barre-sorts"><span class="titre">SORTS</span>${spells}${selSpell ? spellInfo : ''}</div>
     <div class="energie ${p.energy === 0 ? 'vide' : ''}" aria-label="Énergie">${p.energy}/${p.maxEnergy}</div>
     <div class="piles"><button type="button" class="pile" data-action="pile" data-pile="draw">Pioche ${c.draw.length}</button><button type="button" class="pile" data-action="pile" data-pile="discard">Défausse ${c.discard.length}</button>${c.exhaust.length ? `<button type="button" class="pile" data-action="pile" data-pile="exhaust">Épuisées ${c.exhaust.length}</button>` : ''}</div>
-    <div class="main">${hand}</div>
+    <div class="main" style="--chevauche:-${handOverlap(c.hand.length)}px">${hand}</div>
     <div class="journal" aria-live="polite">${journal}</div>
     <button type="button" class="fin-tour" data-action="fin-tour" ${c.phase === 'player' ? '' : 'disabled'}>Fin du tour</button>`;
+}
+
+/** Chevauchement des cartes en main (px de chaque côté) : jusqu'à 5 cartes, comme avant ; au-delà, la main se resserre pour tenir dans sa zone (770 px), à droite des piles. */
+function handOverlap(n: number): number {
+  return Math.max(10, Math.ceil((n * 140 - 770) / (2 * Math.max(n, 1))));
+}
+
+/** Un ennemi très chargé (incantation, effets, passif) dépasserait sous la barre du haut et cacherait son intention : on réduit son sprite d'autant. */
+function fitEnemies(root: HTMLElement): void {
+  const zone = root.querySelector<HTMLElement>('.ennemis');
+  if (!zone) return;
+  for (const el of zone.querySelectorAll<HTMLElement>('.ennemi')) {
+    const over = el.offsetHeight - zone.clientHeight;
+    const img = el.querySelector<HTMLImageElement>(':scope > img');
+    if (over <= 0 || !img) continue;
+    const size = Math.max(96, img.width - over);
+    img.width = size;
+    img.height = size;
+  }
 }
 
 // ---------- Autres écrans ----------
@@ -2829,6 +2848,7 @@ export function render(): void {
   if (tutoActive() && (tutoActive()!.kind !== 'combat' || run.screen !== 'combat' || ui.overlay)) tutoStop();
   const tuto = run.screen === 'combat' && !ui.overlay ? tutoHtml() + miniHtml(loadProfile(), run.classId) : '';
   stage.innerHTML = html + overlayHtml(run) + tuto;
+  if (run.screen === 'combat') fitEnemies(stage);
   restoreScroll(scroll);
   verifierTenue();
   afterRender();
