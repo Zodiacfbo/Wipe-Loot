@@ -1,0 +1,30 @@
+{
+  "name": "Wipe & Loot",
+  "short_name": "W&L",
+  "description": "Un jeu de cartes et d'aventure au royaume d'Eldrava.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#17110D",
+  "theme_color": "#17110D",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

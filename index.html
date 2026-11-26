@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17110D">
+  <title>Wipe &amp; Loot</title>
+  <!-- Nom sous l'icône quand on installe le jeu : « W&L », ou « W&L dev » sur /dev/ (choisi dans src/main.ts). -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="W&amp;L">
+  <link rel="icon" type="image/png" href="./icone-192.png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="stage"></div>
+  <div id="rotate">
+    <p>Tourne ton téléphone</p>
+    <span>Wipe &amp; Loot se joue en mode paysage.</span>
+    <button type="button" id="rotate-connexion" class="gros-bouton">Se connecter</button>
+    <span id="rotate-connexion-note">Tu peux te connecter en portrait, puis tourner ton téléphone pour jouer.</span>
+    <div id="rotate-menu">
+      <span>En portrait, tu peux aussi :</span>
+      <button type="button" class="gros-bouton secondaire" data-action="ouvrir-messages" id="rotate-messages">💡 Bugs, idées, messages</button>
+      <button type="button" class="gros-bouton secondaire" data-action="ouvrir-news" id="rotate-news">📰 Quoi de neuf ?</button>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

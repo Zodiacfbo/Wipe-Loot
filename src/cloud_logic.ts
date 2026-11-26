@@ -1,0 +1,177 @@
+// Les règles de la sauvegarde en ligne qui ne dépendent pas de Firebase (testées dans tests/cloud.test.ts).
+import type { Site } from './version';
+
+/** Le dossier de la base pour chaque site. Le jeu lancé en local utilise le dossier de dev. */
+export type CloudSite = 'dev' | 'playtest' | 'main';
+export function cloudSite(site: Site): CloudSite {
+  if (site === 'playtest') return 'playtest';
+  if (site === 'officiel') return 'main';
+  return 'dev';
+}
+
+export const PSEUDO_MIN = 3;
+export const PSEUDO_MAX = 16;
+export const PASSWORD_MIN = 6;
+
+/** Pourquoi ce pseudo n'est pas accepté (null s'il est bon). */
+export function pseudoError(pseudo: string): string | null {
+  const p = pseudo.trim();
+  if (p.length < PSEUDO_MIN) return `Ton pseudo doit faire au moins ${PSEUDO_MIN} caractères.`;
+  if (p.length > PSEUDO_MAX) return `Ton pseudo doit faire au plus ${PSEUDO_MAX} caractères.`;
+  if (!/^[a-z0-9_-]+$/.test(plain(p))) return 'Ton pseudo ne peut contenir que des lettres, des chiffres, - et _.';
+  return null;
+}
+
+/** Le pseudo sans accents ni majuscules (« Élodie » → « elodie »). */
+function plain(pseudo: string): string {
+  return pseudo.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+/** Pourquoi ce mot de passe n'est pas accepté (null s'il est bon). */
+export function passwordError(password: string): string | null {
+  return password.length < PASSWORD_MIN ? `Ton mot de passe doit faire au moins ${PASSWORD_MIN} caractères.` : null;
+}
+
+/**
+ * Firebase ne connaît que « e-mail + mot de passe » : le pseudo devient une adresse factice,
+ * jamais montrée au joueur. Sans accents ni majuscules, pour que « Élodie » et « elodie » soient le même compte.
+ * Le domaine `.invalid` est réservé : aucun e-mail n'y sera jamais envoyé.
+ */
+export function pseudoToEmail(pseudo: string): string {
+  return `${plain(pseudo)}@joueurs.wipe-loot.invalid`;
+}
+
+/** Le message à montrer pour une erreur de Firebase (son code, ex. « auth/email-already-in-use »). */
+export function authErrorText(code: string): string {
+  switch (code) {
+    case 'auth/email-already-in-use': return 'Ce pseudo est déjà pris. Choisis-en un autre, ou connecte-toi.';
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+    case 'auth/invalid-email': return 'Pseudo ou mot de passe incorrect.';
+    case 'auth/weak-password': return `Ton mot de passe doit faire au moins ${PASSWORD_MIN} caractères.`;
+    case 'auth/too-many-requests': return 'Trop d\'essais. Attends quelques minutes avant de réessayer.';
+    case 'auth/network-request-failed':
+    case 'unavailable': return 'Pas de connexion internet. Réessaie quand le réseau revient.';
+    case 'auth/user-disabled': return 'Ce compte est bloqué. Écris à l\'organisateur.';
+    default: return 'La connexion n\'a pas marché. Réessaie dans un instant.';
+  }
+}
+
+/** Ce qu'on sait de la sauvegarde de cet appareil : à qui elle est, et quand elle a changé. */
+export interface LocalOwner {
+  uid: string | null;
+  /** Date (ms) de la dernière écriture locale. */
+  maj: number;
+}
+
+/** Ce que contient la fiche du joueur en ligne. */
+export interface CloudDoc {
+  pseudo: string;
+  profil: string | null;
+  run: string | null;
+  saison: number;
+  /** Date (ms, horloge du joueur) de la dernière écriture. */
+  majMs: number;
+  version: string;
+}
+
+/**
+ * À la connexion, quelle sauvegarde garder ?
+ * - « envoyer » : la sauvegarde de cet appareil part en ligne ;
+ * - « recevoir » : la sauvegarde en ligne remplace celle de cet appareil ;
+ * - « vider » : cet appareil a la sauvegarde d'un autre joueur, on repart de zéro.
+ */
+export type SyncChoice = 'envoyer' | 'recevoir' | 'vider';
+export function syncChoice(uid: string, local: LocalOwner, cloud: CloudDoc | null): SyncChoice {
+  const mine = local.uid === uid;
+  if (!cloud) {
+    // Nouveau compte (ou premier passage sur ce site) : on garde la partie de cet appareil
+    // si elle n'appartient à personne (le joueur jouait avant les comptes) ou à lui.
+    return mine || local.uid === null ? 'envoyer' : 'vider';
+  }
+  // Ce joueur a joué ici sans réseau après sa dernière sauvegarde en ligne : on garde l'appareil.
+  if (mine && local.maj > cloud.majMs) return 'envoyer';
+  return 'recevoir';
+}
+
+/** Faut-il remettre la sauvegarde à zéro (nouvelle saison) ? */
+export function seasonReset(playerSeason: number, currentSeason: number): boolean {
+  return playerSeason < currentSeason;
+}
+
+/**
+ * Le moment de la run, pour n'envoyer la sauvegarde en ligne qu'au changement d'étape
+ * (et pas à chaque carte jouée). Deux runs au même endroit donnent la même clé.
+ */
+export function runStepKey(run: { act?: number; position?: number | null; screen?: string } | null): string {
+  if (!run) return 'aucune';
+  return `${run.act ?? 1}:${run.position ?? '-'}:${run.screen ?? ''}`;
+}
+
+// ---------- News, messages (issue #9) ----------
+
+/** Une news, écrite depuis l'admin dans sites/{site}/config/general (champ `news`). */
+export interface NewsItem {
+  /** Numéro d'ordre, croissant. */
+  id: number;
+  /** AAAA-MM-JJ : la news n'apparaît qu'à partir de ce jour (on peut la préparer à l'avance). */
+  date: string;
+  items: string[];
+}
+
+/** Les news visibles aujourd'hui, la plus récente en premier (ordre de la liste, pas de tri par date). */
+export function visibleNews(news: NewsItem[], today: string): NewsItem[] {
+  return news.filter((n) => n.date <= today).sort((a, b) => b.id - a.id);
+}
+
+/** Combien de news pas encore lues (numéro plus grand que la dernière lue). */
+export function unreadNews(news: NewsItem[], lastRead: number, today: string): number {
+  return visibleNews(news, today).filter((n) => n.id > lastRead).length;
+}
+
+/** La date du jour, AAAA-MM-JJ (heure locale). */
+export function todayIso(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export type MessageType = 'bug' | 'idee' | 'message';
+export type MessageState = 'recu' | 'lu' | 'retenu' | 'fait' | 'non';
+export const MESSAGE_MAX = 300;
+export const REPLY_MAX = 300;
+export const MESSAGE_TYPES: Record<MessageType, string> = { bug: '🐞 Bug', idee: '💡 Idée', message: '✉ Message' };
+export const MESSAGE_STATES: Record<MessageState, string> = { recu: '⏳ Reçu', lu: '👀 Lu', retenu: '👍 Pris en compte', fait: '✅ Fait', non: '❌ Pas pour l\'instant' };
+
+/** Un message d'un joueur (sites/{site}/messages/{id}). */
+export interface MessageDoc {
+  uid: string;
+  pseudo: string;
+  type: MessageType;
+  texte: string;
+  etat: MessageState;
+  /** La réponse de l'organisateur (une seule). */
+  reponse: string | null;
+  /** Le joueur a vu le dernier changement (état ou réponse). L'organisateur le remet à false. */
+  vu: boolean;
+  dateMs: number;
+  version: string;
+  appareil: string;
+  ecran: string;
+  /** Pour un bug : une copie de la run en cours (JSON), pour la recharger chez l'organisateur. */
+  run: string | null;
+}
+
+/** Pourquoi ce message ne peut pas partir (null s'il est bon). */
+export function messageError(texte: string): string | null {
+  const t = texte.trim();
+  if (t.length < 3) return 'Écris quelques mots avant d\'envoyer.';
+  if (t.length > MESSAGE_MAX) return `${MESSAGE_MAX} caractères au plus.`;
+  return null;
+}
+
+/** L'appareil, en clair (« Téléphone · Chrome »), pour les bugs. */
+export function deviceLabel(ua: string, width: number): string {
+  const kind = /iPad|Tablet/i.test(ua) ? 'Tablette' : /Mobi|Android|iPhone/i.test(ua) ? 'Téléphone' : 'PC';
+  const browser = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'autre navigateur';
+  return `${kind} · ${browser} · ${width} px`;
+}

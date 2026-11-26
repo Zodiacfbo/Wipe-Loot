@@ -1,0 +1,6 @@
+__pycache__/
+node_modules/
+dist/
+tools/e2e/captures/
+firebase-debug.log
+firestore-debug.log

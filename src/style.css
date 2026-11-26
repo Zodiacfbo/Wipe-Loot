@@ -1,0 +1,1071 @@
+:root {
+  --fond: #17110d;
+  --fond-bas: #1e1611;
+  --panneau: #2b211a;
+  --panneau-sombre: #221913;
+  --bordure: #4a372a;
+  --texte: #f3ebdd;
+  --texte-2: #b9ae9f;
+  --accent: #e8742a;
+  --accent-clair: #f7b27a;
+  --or: #e6c36a;
+  --or-clair: #f5dfa0;
+  --pv: #c8413a;
+  --rage: #d9493a;
+  --blocage: #8fb8e8;
+  --vert: #8fd49a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #0c0806;
+  color: var(--texte);
+  font-family: Nunito, system-ui, sans-serif;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+button { font-family: inherit; color: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+img.px { image-rendering: pixelated; }
+/* Sprite animé : la planche (N images côte à côte) défile image par image, sans glisser.
+   --decalage (0 à -1) fait commencer chaque sprite à un moment différent de sa boucle. */
+img[data-anime] {
+  object-fit: cover; object-position: 0 0;
+  animation: sprite-anime calc(var(--images) * 0.2s) steps(var(--images), jump-none) infinite;
+  animation-delay: calc(var(--decalage, 0) * var(--images) * 0.2s);
+}
+.fx-onde { position: absolute; width: 220px; height: 220px; border-radius: 50%; border: 6px solid; pointer-events: none; z-index: 30; }
+@keyframes sprite-anime { to { object-position: 100% 0; } }
+@media (prefers-reduced-motion: reduce) { img[data-anime] { animation: none; } }
+
+#stage {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 1280px;
+  height: 720px;
+  transform-origin: 0 0;
+  background: var(--fond);
+  overflow: hidden;
+}
+
+#rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--fond);
+  z-index: 100;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 24px;
+}
+#rotate p { margin: 0; font-size: 24px; font-weight: 800; }
+#rotate span { color: var(--texte-2); }
+@media (orientation: portrait) and (max-width: 900px) {
+  #rotate { display: flex; }
+}
+
+/* ---------- Écran de combat ---------- */
+
+.sol { position: absolute; left: 0; right: 0; bottom: 0; height: 280px; background: var(--fond-bas); border-top: 1px solid #33261c; }
+
+.topbar {
+  position: absolute; left: 0; top: 0; right: 0; height: 52px; z-index: 20; background: #0f0b08; border-bottom: 1px solid #3a2a1f;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 18px; gap: 12px;
+}
+.topbar .groupe { display: flex; align-items: center; gap: 16px; }
+.nom-classe { font-weight: 800; font-size: 17px; }
+.stat { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
+.stat.pv { color: #f07a6a; }
+.etape { font-weight: 800; font-size: 15px; text-align: center; }
+.pips { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--texte-2); }
+.pip { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.pip.vide { background: transparent; border: 1px solid #6b5442; }
+.bouton {
+  height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #5a4433; background: #241a13; font-size: 12px; font-weight: 600;
+}
+.bouton:hover:not(:disabled) { border-color: var(--or); }
+
+.enrage {
+  position: absolute; left: 50%; top: 64px; transform: translateX(-50%); height: 32px; padding: 0 16px; border-radius: 16px;
+  border: 1px solid var(--accent); background: #2a1a10; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--accent-clair);
+}
+.enrage.actif { background: #5a1a10; color: #fff; border-color: #ff6a3a; }
+
+/* Héros */
+.heros { position: absolute; left: 70px; top: 150px; width: 300px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.heros .buffs { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 6px; min-height: 22px; max-width: 340px; }
+.heros .buffs .chip { white-space: nowrap; }
+.chip { padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #3a2417; border: 1px solid var(--accent); color: var(--accent-clair); }
+.chip.debuff { background: #2c2433; border-color: #7a6a8e; color: #d6c8e6; }
+.chip.saigne { background: #3a1416; border-color: #b8352b; color: #f5a8a0; }
+.jauges { width: 280px; display: flex; flex-direction: column; gap: 7px; }
+.ligne { display: flex; align-items: center; gap: 8px; }
+.bouclier-badge {
+  position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--blocage); flex: none;
+}
+.bouclier-badge span { position: absolute; font-size: 11px; font-weight: 700; color: var(--texte); }
+.barre-pv { flex: 1; height: 15px; border-radius: 8px; background: #3a1d1a; overflow: hidden; position: relative; }
+.barre-pv > div { height: 100%; background: var(--pv); }
+.barre-pv span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+.rage-label { width: 32px; text-align: center; font-size: 10px; font-weight: 700; color: #f07a6a; flex: none; }
+.rage { flex: 1; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; }
+.rage i { height: 10px; border-radius: 2px; background: #3a2621; }
+.rage i.plein { background: var(--rage); }
+.charges-label { width: auto; color: #9fc3ff; }
+.rage.charges { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.rage.charges i { height: 14px; border-radius: 50%; background: #1e2a3d; border: 1px solid #3c5a86; }
+.rage.charges i.plein { background: #8fb8ff; box-shadow: 0 0 6px #6aa0ff; }
+.rage.charges i.plein.surcharge { background: #d9a2ff; box-shadow: 0 0 6px #c070ff; }
+.aide-posture .alerte { color: #f07a6a; }
+.chip.brule { background: #3a2010; border-color: #e07a2a; color: #ffc08a; }
+.chip.gel { background: #142a3a; border-color: #5aa0d8; color: #bfe2ff; }
+.intention.gele { color: #bfe2ff; border-color: #5aa0d8; }
+.choix-classe-hall { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.choix-classe-hall button {
+  padding: 4px 12px; border-radius: 6px; border: 1px solid var(--bordure); background: var(--panneau-sombre); color: #c9bcab; font-size: 12px; font-weight: 600;
+}
+.choix-classe-hall button.actif { border-color: var(--couleur); color: #fff; box-shadow: inset 0 0 0 1px var(--couleur); }
+.postures { display: flex; gap: 6px; }
+.postures button {
+  flex: 1; height: 32px; border-radius: 6px; border: 1px solid var(--bordure); background: var(--panneau-sombre); color: #c9bcab;
+  font-size: 11px; font-weight: 600;
+}
+.postures button.actif { border-color: var(--or); background: #3a2e17; color: var(--or-clair); font-weight: 700; }
+.postures button:disabled:not(.actif) { opacity: 0.5; }
+.aide-posture { font-size: 10px; color: var(--texte-2); text-align: center; min-height: 13px; }
+
+/* Ennemis */
+.ennemis { position: absolute; left: 520px; right: 30px; top: 92px; height: 340px; display: flex; align-items: flex-end; justify-content: center; gap: 22px; }
+.ennemi {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px; border-radius: 12px;
+  border: 2px solid transparent; background: transparent;
+}
+.ennemi.ciblable { border-color: #6b5442; }
+.ennemi.ciblable:hover { border-color: var(--or); background: #2a1f14; }
+.intention {
+  display: flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border-radius: 13px; font-size: 13px; font-weight: 700;
+  background: #2a1714; border: 1px solid #8a3a30; color: #f07a6a;
+}
+.intention.defense { background: #172230; border-color: #3e6a9e; color: var(--blocage); }
+.intention.soutien { background: #1f2a17; border-color: #5f8a3e; color: #b8e08a; }
+.intention.interrompu { background: #222; border-color: #555; color: #aaa; }
+.cast {
+  width: 170px; padding: 6px 8px; border-radius: 9px; background: #1f1a10; border: 1px solid var(--or); display: flex; flex-direction: column; gap: 4px;
+}
+.cast .tete { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--or-clair); }
+.cast .tete b { color: var(--vert); }
+.cast .jauge { height: 7px; border-radius: 4px; background: #3a3220; overflow: hidden; }
+.cast .jauge div { width: 60%; height: 100%; background: var(--or); }
+.cast .effet { font-size: 10px; color: #c9bcab; }
+.ennemi .nom { font-size: 13px; font-weight: 600; text-align: center; }
+.ennemi .nom.elite { font-size: 14px; font-weight: 800; color: var(--or-clair); }
+.ennemi .barre-pv { width: 140px; flex: none; height: 12px; }
+.ennemi .infos { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 180px; }
+.ennemi .bloc { font-size: 11px; font-weight: 700; color: var(--blocage); }
+
+/* Bas d'écran */
+.energie {
+  position: absolute; left: 28px; top: 560px; width: 96px; height: 96px; border-radius: 50%; background: var(--accent); border: 4px solid var(--accent-clair);
+  display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; color: #1a0f08;
+}
+.energie.vide { background: #5a3a24; border-color: #7a5a44; color: #c9bcab; }
+.piles { position: absolute; left: 22px; top: 664px; display: flex; gap: 6px; }
+.pile { height: 26px; padding: 0 9px; border-radius: 6px; border: 1px solid var(--bordure); background: var(--panneau-sombre); color: #c9bcab; font-size: 11px; font-weight: 600; display: flex; align-items: center; }
+
+.barre-sorts { position: absolute; left: 410px; top: 436px; display: flex; align-items: center; gap: 10px; z-index: 2; }
+.barre-sorts .titre { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--texte-2); }
+.sort {
+  width: 60px; height: 60px; border-radius: 10px; border: 2px solid var(--or); background: #2e2416; color: var(--or-clair);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 9px; font-weight: 700; padding: 0;
+}
+.sort.recharge { border-color: var(--bordure); background: #1a1410; color: #8e7c6a; }
+.sort.recharge b { font-size: 22px; font-weight: 800; color: #c9bcab; }
+.sort.choisi { box-shadow: 0 0 0 4px #4a3a1a; }
+.sort:disabled:not(.recharge) { border-color: var(--bordure); opacity: 0.55; filter: grayscale(0.6); }
+
+.main { position: absolute; left: 150px; right: 260px; bottom: 6px; height: 230px; display: flex; justify-content: center; align-items: flex-end; }
+
+.carte {
+  position: relative; width: 140px; height: 196px; flex: none; margin: 0 -10px; padding: 0; border: none; background: none;
+  font-family: Nunito, system-ui, sans-serif; color: var(--texte); transition: transform 0.12s ease; text-align: center;
+}
+.main .carte:hover:not(:disabled), .main .carte.choisie { transform: translateY(-40px) scale(1.25); z-index: 5; }
+.carte.injouable { filter: brightness(0.6) saturate(0.6); }
+.contenu-archives.glossaire { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; align-content: start; }
+.mot-glossaire { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--panneau); border: 1px solid var(--bordure); font-size: 13px; color: var(--texte-2); }
+.mot-glossaire b { color: #f2c96b; font-size: 14px; }
+.filtres-deck { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.choix-filtre { display: flex; gap: 6px; flex-wrap: wrap; }
+.choix-filtre button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--bordure); background: var(--panneau); color: var(--texte-2); font-size: 13px; font-weight: 700; }
+.choix-filtre button.actif { border-color: var(--or); color: var(--or-clair); background: #3a2a14; }
+/* Un bon coup : la condition de la carte est remplie (finisher à 5 combo, Ouverture Camouflé, cible à achever…). */
+.carte.prete { filter: drop-shadow(0 0 6px rgba(255, 210, 110, 0.9)); animation: carte-prete 1.4s ease-in-out infinite; }
+@keyframes carte-prete { 50% { filter: drop-shadow(0 0 14px rgba(255, 210, 110, 1)); } }
+@media (prefers-reduced-motion: reduce) { .carte.prete { animation: none; } }
+.carte img.cadre { position: absolute; left: 0; top: 0; width: 140px; height: 196px; }
+.carte img.icone { position: absolute; left: 38px; top: 38px; width: 64px; height: 64px; }
+.carte .cout { position: absolute; left: 0; top: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff6e8; text-shadow: 1px 1px 0 #3a1a08; }
+.carte .cout.reduit { color: var(--vert); }
+.carte .cout-rage { position: absolute; left: 4px; top: 32px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff6e8; text-shadow: 1px 1px 0 #3a0a08; }
+.carte .titre { position: absolute; left: 24px; top: 13px; width: 102px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; line-height: 1; }
+.carte .titre.ameliore { color: var(--vert); }
+.carte .type { position: absolute; left: 38px; top: 109px; width: 64px; height: 14px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #c9bcab; }
+.carte .texte { position: absolute; left: 16px; top: 124px; width: 108px; height: 58px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; line-height: 1.15; }
+
+.fin-tour { position: absolute; right: 28px; top: 640px; width: 190px; height: 56px; border-radius: 12px; border: 2px solid var(--accent-clair); background: var(--accent); color: #1a0f08; font-size: 20px; font-weight: 800; }
+.fin-tour:disabled { opacity: 0.5; }
+
+.journal { position: absolute; right: 24px; top: 448px; width: 240px; height: 180px; padding: 8px 10px; border-radius: 10px; background: #120d0a; border: 1px solid #33261c; font-size: 12px; line-height: 1.35; color: #c9bcab; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; }
+.journal p { margin: 0; }
+.journal p:last-child { color: var(--texte); }
+
+.consigne { position: absolute; left: 50%; top: 440px; transform: translateX(-50%); padding: 6px 14px; border-radius: 8px; background: #3a2e17; border: 1px solid var(--or); color: var(--or-clair); font-size: 13px; font-weight: 600; }
+
+/* ---------- Écrans plein écran ---------- */
+
+.ecran { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px; text-align: center; }
+.ecran h1 { margin: 0; font-family: Cinzel, serif; font-size: 44px; font-weight: 700; }
+.ecran h2 { margin: 0; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; }
+.ecran p { margin: 0; color: var(--texte-2); max-width: 720px; line-height: 1.5; }
+.ecran .actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.gros-bouton { height: 54px; padding: 0 26px; border-radius: 12px; border: 2px solid var(--accent-clair); background: var(--accent); color: #1a0f08; font-size: 18px; font-weight: 800; }
+.gros-bouton.secondaire { background: var(--panneau); color: var(--texte); border-color: #5a4433; }
+.choix-cartes { display: flex; gap: 70px; align-items: center; justify-content: center; height: 300px; }
+.choix-cartes .carte { transform: scale(1.5); margin: 0; }
+.choix-cartes .carte:hover { transform: scale(1.6); }
+.liste-deck { display: flex; flex-wrap: wrap; gap: 8px 4px; justify-content: center; max-height: 470px; overflow-y: auto; padding: 10px 20px; width: 1180px; }
+.liste-deck .carte { margin: 0; }
+.liste-deck .carte:hover:not(:disabled) { transform: translateY(-6px); }
+.titre-jeu { font-family: Cinzel, serif; font-size: 64px; font-weight: 700; letter-spacing: 0.02em; }
+.sous-titre { color: var(--or); font-family: Cinzel, serif; font-size: 18px; }
+.sprite-titre { width: 192px; height: 192px; }
+.overlay { position: absolute; inset: 0; background: rgba(12, 8, 6, 0.94); z-index: 50; }
+
+/* ---------- Animations ---------- */
+.fx-texte {
+  position: absolute; z-index: 40; pointer-events: none; white-space: nowrap; font-weight: 800;
+  text-shadow: 2px 2px 0 #1a0f08, -1px -1px 0 #1a0f08;
+}
+.fx-projectile { position: absolute; z-index: 39; border-radius: 50%; pointer-events: none; }
+
+/* ---------- Carte de l'acte ---------- */
+.carte-acte { position: absolute; inset: 52px 0 0 0; }
+.carte-acte > * { position: absolute; }
+.carte-titre { left: 0; right: 0; top: 14px; margin: 0; text-align: center; font-family: Cinzel, serif; font-size: 26px; font-weight: 700; }
+.etage-num { top: 62px; width: 60px; text-align: center; font-size: 12px; font-weight: 700; color: var(--texte-2); }
+.liens { left: 0; top: -52px; pointer-events: none; }
+.liens line { stroke: #4a372a; stroke-width: 3; stroke-dasharray: 6 7; }
+.liens line.possible { stroke: var(--or); stroke-dasharray: none; opacity: 0.8; }
+.liens line.fait { stroke: var(--accent); stroke-width: 4; stroke-dasharray: none; }
+.noeud {
+  border-radius: 50%; border: 3px solid #5a4433; background: var(--panneau-sombre); color: #9c8b79; padding: 0; margin-top: -52px;
+  display: flex; align-items: center; justify-content: center; transition: transform 0.12s ease;
+}
+.noeud.elite { color: #e88a7a; }
+.noeud .indice { position: absolute; right: -6px; top: -6px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; background: #3a2a14; border: 2px solid var(--or); color: var(--or-clair); }
+.noeud .indice.combat { border-color: #e88a7a; color: #ffb0a0; }
+.noeud.boss { color: var(--or); border-width: 4px; }
+.noeud.campfire { color: #f59a2e; }
+.noeud.chest { color: var(--or-clair); }
+.noeud.event { color: #b8a8e0; }
+.noeud:disabled { opacity: 0.55; cursor: default; }
+.noeud.visite { opacity: 1; background: #3a2a1c; border-color: var(--accent); }
+.noeud.ici { opacity: 1; background: var(--accent); border-color: var(--accent-clair); color: #1a0f08; box-shadow: 0 0 0 6px rgba(232, 116, 42, 0.25); }
+.noeud.accessible { opacity: 1; border-color: var(--or); background: #2e2416; animation: pulse 1.4s ease-in-out infinite; }
+.noeud.accessible:hover { transform: scale(1.15); }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(230, 195, 106, 0.55); } 50% { box-shadow: 0 0 0 10px rgba(230, 195, 106, 0); } }
+@media (prefers-reduced-motion: reduce) { .noeud.accessible { animation: none; } }
+.noeud-q { font-size: 26px; font-weight: 800; line-height: 1; }
+.legende { left: 0; right: 0; bottom: 18px; display: flex; justify-content: center; gap: 24px; font-size: 13px; color: var(--texte-2); }
+.legende-item { display: flex; align-items: center; gap: 7px; }
+.noeud.mini { width: 30px; height: 30px; margin: 0; border-width: 2px; opacity: 1; }
+.noeud.mini svg { width: 16px; height: 16px; }
+.noeud.mini .noeud-q { font-size: 16px; }
+
+/* ---------- Événements ---------- */
+.texte-evenement { font-size: 17px; color: var(--texte) !important; }
+.choix-liste { display: flex; flex-direction: column; gap: 12px; width: 560px; }
+.choix-evenement {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 14px 18px; border-radius: 12px;
+  border: 2px solid #5a4433; background: var(--panneau); text-align: left;
+}
+.choix-evenement:hover { border-color: var(--or); }
+.choix-evenement b { font-size: 17px; }
+.choix-evenement span { font-size: 14px; color: var(--texte-2); }
+
+.carte .titre.long { font-size: 10px; letter-spacing: -0.01em; }
+
+/* ---------- Or et vendeur ---------- */
+.stat.or { color: #e6c36a; }
+.gain-or { display: flex; align-items: center; gap: 6px; font-size: 20px; font-weight: 800; color: #e6c36a; }
+.gain-or svg { width: 20px; height: 20px; }
+.noeud.shop { color: #e6c36a; }
+.boutique { position: absolute; inset: 52px 0 0 0; display: flex; align-items: center; gap: 10px; padding: 0 30px; }
+.vendeur { width: 250px; display: flex; flex-direction: column; align-items: center; gap: 12px; flex: none; }
+.replique { margin: 0; font-size: 14px; font-style: italic; color: var(--texte-2); text-align: center; }
+.etal { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.titre-boutique { margin: 0; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; }
+.articles { display: flex; gap: 22px; align-items: flex-start; height: 250px; }
+.article { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 140px; }
+.article .carte { margin: 0; }
+.article .carte:hover:not(:disabled) { transform: translateY(-8px) scale(1.05); }
+.article.vendu { height: 196px; border-radius: 12px; border: 2px dashed #4a372a; display: flex; align-items: center; justify-content: center; }
+.vendu-texte { font-weight: 800; color: #8e7c6a; }
+.prix { display: flex; align-items: center; gap: 5px; font-size: 16px; font-weight: 800; color: #e6c36a; }
+.prix.promo { color: #8fd49a; }
+.prix.trop-cher { color: #8a5a4a; }
+.services { display: flex; gap: 14px; align-items: stretch; }
+.service {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 8px 18px; border-radius: 12px;
+  border: 2px solid #5a4433; background: var(--panneau); text-align: left; min-width: 220px;
+}
+.service:hover:not(:disabled) { border-color: var(--or); }
+.service:disabled { opacity: 0.5; }
+.service b { font-size: 16px; }
+.service span { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #e6c36a; }
+
+.carte .texte.long { font-size: 11px; line-height: 1.1; }
+
+/* ---------- Boss ---------- */
+.cast.bloque { border-color: #e8562a; background: #2a1410; }
+.cast.bloque .tete b { color: #ff8a6a; }
+.cast.bloque .jauge div { background: #e8562a; }
+.consigne.lave { top: 104px; max-width: 760px; text-align: center; background: #3a1a10; border-color: #e8562a; color: #ffc49a; }
+.fx-banniere {
+  position: absolute; left: 50%; top: 250px; z-index: 45; pointer-events: none; white-space: nowrap;
+  font-family: Cinzel, serif; font-size: 40px; font-weight: 700; color: #ffd45e;
+  text-shadow: 0 0 18px #e8562a, 3px 3px 0 #1a0f08;
+}
+
+.ennemis.nombreux { gap: 6px; left: 470px; right: 16px; }
+.ennemis.nombreux .ennemi { padding: 4px 2px; }
+.ennemis.nombreux .barre-pv { width: 100px; }
+.ennemis.nombreux .nom { font-size: 11px; max-width: 104px; }
+
+/* ---------- Équipement et loot ---------- */
+.objet {
+  display: flex; align-items: flex-start; gap: 10px; width: 330px; padding: 10px 12px; border-radius: 10px; text-align: left;
+  border: 2px solid #5a4433; background: var(--panneau);
+}
+.objet.commun { border-color: #5fb86b; }
+.objet.rare { border-color: #4c8fe0; }
+.objet.epique { border-color: #a66be0; }
+.objet.vide, .objet.inconnu { border-style: dashed; opacity: 0.75; }
+.objet-icone { flex: none; width: 40px; height: 40px; border-radius: 8px; background: #1e1712; display: flex; align-items: center; justify-content: center; color: #d9c9b4; }
+.objet.commun .objet-icone { color: #8fd49a; }
+.objet.rare .objet-icone { color: #8fb8e8; }
+.objet div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.objet b { font-size: 15px; font-weight: 800; }
+.objet em { font-style: normal; font-size: 11px; color: var(--texte-2); }
+.objet span:not(.objet-icone) { font-size: 13px; line-height: 1.3; color: var(--texte); }
+.objet.vide span:not(.objet-icone), .objet.inconnu span:not(.objet-icone) { color: var(--texte-2); }
+.butin { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.butin-titre { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--or); }
+.choix-objet { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.bouton-objet { height: 38px; padding: 0 14px; border-radius: 9px; border: 2px solid var(--or); background: #3a2e17; color: var(--or-clair); font-size: 13px; font-weight: 800; }
+.bouton-objet.secondaire { border-color: #5a4433; background: var(--panneau); color: var(--texte); }
+.ecran.serre { gap: 10px; padding-top: 64px; }
+.ecran.serre .gain-or { margin-top: -4px; }
+.choix-cartes.compact { height: 200px; gap: 46px; }
+.choix-cartes.compact .carte { transform: scale(1.05); }
+.choix-cartes.compact .carte:hover { transform: scale(1.15); }
+.grille-equipement { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tables-loot { display: flex; flex-direction: column; gap: 14px; max-height: 470px; overflow-y: auto; padding: 0 10px; }
+.table-loot h3 { margin: 0 0 8px; font-size: 17px; font-weight: 800; text-align: left; }
+.table-loot h3 span { font-weight: 600; color: var(--texte-2); font-size: 14px; }
+.liste-objets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.bouton-loot { right: 24px; top: 14px; }
+
+/* ---------- Potions ---------- */
+.potions { display: flex; gap: 4px; margin-left: 4px; }
+.potion-slot { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #5a4433; background: #1e1712; display: flex; align-items: center; justify-content: center; padding: 0; color: #6e5c4b; }
+.potion-slot:not(.vide):hover { border-color: var(--or); background: #2c2218; }
+.potion-slot.vide { opacity: 0.7; }
+.butin-potion { margin-top: 2px; }
+.butins { display: flex; gap: 24px; align-items: flex-start; justify-content: center; }
+.butins .choix-objet { max-width: 330px; }
+
+/* ---------- Réparation ---------- */
+.mention-brise { color: #ff7a5a; font-weight: 800; }
+.objet.brise { border-color: #b8462e; background: repeating-linear-gradient(135deg, var(--panneau) 0 12px, #2e1d16 12px 24px); }
+.objet.brise .objet-icone { color: #b8462e; }
+.facture { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 24px; border-radius: 12px; border: 2px solid #5a4433; background: var(--panneau); max-width: 560px; }
+.facture-titre { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--or); text-transform: uppercase; }
+.facture b { display: flex; align-items: center; gap: 6px; font-size: 24px; color: var(--or-clair); }
+.facture span:last-child { font-size: 14px; color: var(--texte-2); line-height: 1.4; }
+.service.reparation { border-color: #b8462e; }
+.topbar .bouton, .topbar .stat, .nom-classe { white-space: nowrap; }
+.topbar > div:nth-child(2) { min-width: 0; flex: 1; padding: 0 12px; }
+.topbar .etape { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Coffre de la guilde ---------- */
+.bouton-coffre { position: static; }
+.article-coffre { padding: 0; border: none; background: none; text-align: left; }
+.article-coffre:hover .objet { border-color: var(--or); }
+.coffre-fin { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 22px; border-radius: 12px; border: 2px solid #5a4433; background: rgba(0, 0, 0, 0.25); max-width: 760px; }
+.coffre-fin p { margin: 0; }
+.article-coffre { display: flex; }
+.article-coffre .objet { flex: 1; width: auto; }
+.ecran p.mention-brise { color: #ff7a5a; }
+
+/* ---------- Boss secondaires : malédictions, panique, boucliers ---------- */
+.intention.malediction { background: #2c2433; border-color: #8e6ab8; color: #d6c8e6; }
+.effet-intention { max-width: 190px; font-size: 11px; line-height: 1.25; color: var(--texte-2); text-align: center; }
+.intention-suivante { font-size: 10px; color: #8fb8e8; text-align: center; max-width: 180px; }
+.ennemi.insaisissable img { opacity: 0.45; filter: drop-shadow(0 0 8px #8e6ab8); }
+.chip.bouclier-saldris { background: #172230; border-color: #3e6a9e; color: #a8c8f0; }
+.carte.paniquee { filter: grayscale(0.8) brightness(0.55); }
+.tampon-panique { position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%) rotate(-14deg); padding: 2px 8px; border: 2px solid #ff7a5a; border-radius: 6px; background: rgba(30, 10, 8, 0.85); color: #ff9a7a; font-size: 13px; font-weight: 800; z-index: 3; }
+.cout.augmente { color: #ff8a7a; }
+
+/* ---------- Barre de sorts ---------- */
+.sort { position: relative; width: 66px; text-align: center; line-height: 1.1; }
+.cout-sort { position: absolute; top: -8px; left: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #1a0f08; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.info-sort { position: static; align-self: flex-start; margin-left: 6px; width: 300px; display: flex; flex-direction: column; gap: 3px; padding: 8px 12px; border-radius: 10px; background: #2e2416; border: 1px solid var(--or); font-size: 12px; color: var(--texte); }
+.info-sort b { color: var(--or-clair); }
+.info-sort span { line-height: 1.3; }
+.info-sort em { font-style: normal; font-size: 12px; color: var(--or); font-weight: 700; }
+.titre-barre { margin: 4px 0 0; font-size: 16px; font-weight: 800; }
+.info-sort small { font-size: 11px; color: var(--texte-2); }
+.chip.pouvoir { background: #2a1f3a; border-color: #8e6ab8; color: #e0ccff; }
+.carte .texte.tres-long { font-size: 10px; line-height: 1.05; font-weight: 600; letter-spacing: -0.01em; }
+
+/* ---------- Événements, Brégan, quêtes ---------- */
+.choix-evenement.verrouille { opacity: 0.55; cursor: not-allowed; }
+.choix-evenement em { font-style: normal; font-size: 12px; font-weight: 700; color: #ff9a7a; }
+.choix-evenement .indice-classe { font-size: 11px; color: #a89a86; }
+.choix-liste.grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 760px; }
+.texte-evenement.classe { color: var(--or-clair); font-style: italic; }
+.quetes { left: 24px; bottom: 58px; max-width: 560px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--or); background: rgba(30, 22, 12, 0.92); display: flex; flex-direction: column; gap: 4px; }
+.quetes p { margin: 0; font-size: 12px; line-height: 1.35; color: var(--texte); }
+.note-quete { max-width: 560px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--or); background: #2e2416; }
+.note-quete p { margin: 4px 0 0; font-size: 13px; color: var(--texte); }
+.objet.legendaire { border-color: #ff9a2a; box-shadow: 0 0 12px rgba(255, 154, 42, 0.35); }
+.objet.legendaire .objet-icone { color: #ffb45a; }
+.gros-bouton.legendaire { background: #ff9a2a; border-color: #ffd08a; }
+.chip.rune { background: #10283a; border-color: #4cc3e0; color: #a8e8ff; }
+.choix-evenement.verrouille:hover { border-color: #5a4433; background: var(--panneau); transform: none; }
+
+/* ---------- Bilan de fin de run et niveau de classe ---------- */
+.bilan { display: flex; gap: 24px; align-items: stretch; padding: 14px 18px; border-radius: 12px; border: 1px solid #5a4433; background: var(--panneau); }
+.bilan-score { display: flex; flex-direction: column; gap: 4px; min-width: 300px; }
+.ligne-score { display: flex; justify-content: space-between; gap: 18px; font-size: 14px; color: var(--texte); }
+.ligne-score b { font-weight: 800; color: #8fd49a; }
+.ligne-score b.negatif { color: #ff8a7a; }
+.ligne-score.total { margin-top: 4px; padding-top: 6px; border-top: 1px solid #5a4433; font-size: 16px; }
+.ligne-score.total b { color: var(--or-clair); }
+.bilan-xp { display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 240px; padding-left: 22px; border-left: 1px solid #5a4433; text-align: left; }
+.gain-xp { font-size: 18px; color: #8fb8e8; }
+.gain-xp em { font-style: normal; font-size: 12px; color: var(--or); }
+.niveau { font-size: 15px; font-weight: 800; }
+.barre-xp { position: relative; height: 16px; border-radius: 8px; background: #1e1712; border: 1px solid #5a4433; overflow: hidden; }
+.barre-xp div { height: 100%; background: linear-gradient(90deg, #3e6a9e, #8fb8e8); }
+.barre-xp span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+.barre-xp.petite { width: 220px; height: 14px; }
+.niveau-gagne { margin: 0; font-weight: 800; color: var(--or-clair) !important; }
+.badge-classe { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 13px; color: var(--texte-2); }
+.badge-classe b { font-size: 15px; color: var(--texte); }
+
+/* ---------- Talents : 3 arbres en icônes et la fiche du talent ---------- */
+.ecran-talents, .ecran-classes { justify-content: flex-start; padding: 14px 24px 20px; gap: 12px; text-align: left; }
+.tete-talents { display: flex; align-items: center; gap: 14px; width: 100%; }
+.tete-talents .points-talent { margin-left: auto; }
+.points-talent { font-weight: 800; color: var(--or-clair); font-size: 17px; }
+.corps-talents, .corps-classes { display: flex; gap: 16px; width: 100%; flex: 1; min-height: 0; }
+.arbres-icones { flex: 1; display: flex; gap: 12px; }
+.arbre-icones { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px; border-radius: 14px; border: 2px solid var(--bordure); background: var(--panneau-sombre); }
+.arbre-icones h3 { margin: 0 0 2px; font-family: Cinzel, serif; font-size: 20px; display: flex; gap: 8px; align-items: baseline; }
+.arbre-icones h3 span { font-family: Nunito, sans-serif; font-weight: 800; font-size: 15px; color: var(--or); }
+.palier-icones { position: relative; display: flex; justify-content: center; gap: 22px; margin-top: 22px; }
+.lien-palier { position: absolute; top: -20px; left: 50%; width: 3px; height: 16px; transform: translateX(-50%); background: #5a4433; }
+.lien-palier.ouvert { background: var(--or); }
+.noeud-talent { width: 104px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: 0; background: none; }
+.icone-talent { position: relative; width: 58px; height: 58px; display: grid; place-items: center; border-radius: 50%; border: 3px solid #5a4433; background: #1a130e; }
+.icone-talent img { width: 40px; height: 40px; }
+.k-sort > .icone-talent, .icone-talent.k-sort { border-radius: 12px; }
+.k-epique > .icone-talent, .icone-talent.k-epique { border-radius: 12px; border-color: #a66be0; background: #2a1f38; }
+.noeud-talent.k-epique .icone-talent { width: 66px; height: 66px; }
+.noeud-talent.k-epique .icone-talent img { width: 50px; height: 50px; }
+.cout-palier { position: absolute; top: -9px; right: -14px; padding: 1px 6px; border-radius: 9px; background: #a66be0; color: #fff; font-size: 11px; font-weight: 900; line-height: 16px; white-space: nowrap; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.noeud-talent.ferme .cout-palier { filter: none; }
+.nom-talent { font-size: 12px; font-weight: 800; line-height: 1.1; text-align: center; }
+.noeud-talent:hover .icone-talent { border-color: var(--or-clair); }
+.noeud-talent.dispo .icone-talent { border-color: #a8834a; box-shadow: 0 0 8px rgba(230, 195, 106, 0.25); }
+.noeud-talent.pris .icone-talent, .icone-talent.pris { border-color: var(--or); box-shadow: 0 0 14px rgba(230, 195, 106, 0.55); }
+.noeud-talent.pris .icone-talent::after { content: "✓"; position: absolute; right: -7px; bottom: -7px; width: 22px; height: 22px; border-radius: 50%; background: var(--or); color: #1a0f08; font-size: 14px; font-weight: 900; line-height: 22px; text-align: center; }
+.noeud-talent.ecarte .icone-talent img { opacity: 0.45; filter: grayscale(0.8); }
+.noeud-talent.ecarte .nom-talent { color: var(--texte-2); }
+.noeud-talent.ferme .icone-talent { opacity: 0.4; filter: grayscale(1); }
+.noeud-talent.ferme .nom-talent { color: #6f6458; }
+.noeud-talent.choisi .icone-talent { border-color: #fff; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.22), 0 0 18px rgba(255, 255, 255, 0.35); opacity: 1; }
+
+.fiche-talent, .fiche-classe-detail { width: 360px; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 16px; border: 2px solid #6a4f3a; background: var(--panneau); }
+.fiche-talent p, .fiche-classe-detail p { margin: 0; color: var(--texte); max-width: none; line-height: 1.35; }
+.fiche-talent { position: relative; }
+.encart-expedition { border: 2px solid #E8742C; background: rgba(232, 116, 44, .15); border-radius: 10px; padding: 8px 10px; }
+.encart-expedition b:first-child { color: #F4C08A; }
+.fiche-talent .encart-expedition p { margin-top: 4px; font-size: 15px; }
+.fiche-talent:not(.vide) .encart-expedition { margin-right: 36px; } /* la croix de fermeture */
+.fermer-fiche { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #5a4433; background: var(--panneau-sombre); color: var(--texte-2); font-size: 15px; font-weight: 800; }
+.fermer-fiche:hover { border-color: var(--or); color: var(--texte); }
+.titre-fiche { font-size: 24px; font-weight: 800; }
+.haut-fiche { display: flex; gap: 14px; align-items: center; }
+.icone-talent.grande { flex: none; width: 84px; height: 84px; border-color: var(--or); }
+.icone-talent.grande img { width: 64px; height: 64px; }
+.etiquettes { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.type-talent { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; background: #3b2d22; color: var(--texte-2); }
+.type-talent.k-sort { background: #1f3347; color: #9cc8f0; }
+.type-talent.k-epique { background: #3a2550; color: #d4b0ff; }
+.texte-fiche { display: flex; flex-direction: column; gap: 8px; font-size: 19px; }
+.texte-fiche .ameliore { color: var(--vert); font-size: 16px; }
+.fiche-talent .note, .fiche-classe-detail .note { font-size: 15px; color: var(--texte-2); }
+.note b { color: var(--or-clair); }
+.bas-fiche { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.bas-fiche .gros-bouton:disabled { background: var(--panneau-sombre); border-color: #5a4433; color: var(--texte-2); }
+.rappel-talent { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid #4a372a; }
+.titre-rappel { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texte-2); }
+.cartes-rappel { display: flex; justify-content: center; gap: 10px; }
+.cartes-rappel .carte { margin: 0; cursor: default; }
+.rappel-talent .objet { text-align: left; }
+.fiche-talent.vide p { color: var(--texte-2); font-size: 17px; }
+.fiche-talent.vide ul { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 16px; color: var(--texte-2); }
+.legende-talents { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; font-size: 16px; font-weight: 700; }
+.legende-talents span { display: flex; align-items: center; gap: 10px; }
+.forme { width: 24px; height: 24px; border: 3px solid #a8834a; border-radius: 50%; background: #1a130e; }
+.forme.k-sort { border-radius: 6px; }
+.forme.k-epique { border-radius: 6px; border-color: #a66be0; background: #2a1f38; }
+
+/* ---------- Classes : grille de sprites et fiche de la classe ---------- */
+.colonne-classes { width: 690px; flex: none; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.legende-etoiles { margin: 0; text-align: center; font-size: 12px; color: var(--texte-2); }
+.legende-etoiles span { color: var(--or); }
+.grille-classes { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: 10px; }
+.carte-classe { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; padding: 0 0 8px; overflow: hidden; border-radius: 14px; border: 3px solid var(--bordure); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--couleur) 38%, transparent), transparent 65%), var(--panneau-sombre); color: var(--texte); }
+.carte-classe:hover { border-color: color-mix(in srgb, var(--couleur) 70%, var(--bordure)); }
+.carte-classe.choisie { border-color: var(--couleur); box-shadow: 0 0 0 3px color-mix(in srgb, var(--couleur) 40%, transparent), 0 0 20px color-mix(in srgb, var(--couleur) 45%, transparent); }
+.sprite-classe { flex: 1; display: grid; place-items: center; }
+.sprite-classe img { width: 104px; height: 104px; }
+.carte-classe b { font-size: 18px; font-weight: 800; }
+.carte-classe.bientot b { color: #7d6f60; }
+.silhouette img { filter: brightness(0) opacity(0.75); }
+.carte-classe.bientot img { filter: brightness(0) opacity(0.35); }
+.sprite-inconnu { display: grid; place-items: center; width: 84px; height: 84px; font-family: Cinzel, serif; font-size: 56px; font-weight: 700; color: color-mix(in srgb, var(--couleur) 55%, #2a2018); }
+.badge-classe { position: absolute; top: 7px; left: 7px; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; background: #3b2d22; color: var(--texte-2); }
+.jouee .badge-classe, .debloquee .badge-classe { background: #1d3a24; color: var(--vert); }
+.a-debloquer .badge-classe { background: #4a3a14; color: var(--or-clair); }
+.etoiles { color: var(--or); font-size: 13px; letter-spacing: 1px; }
+.etoiles i { font-style: normal; color: #4a3a2a; }
+.fiche-classe-detail { flex: 1; width: auto; border-color: var(--couleur); }
+.portrait-classe { height: 170px; flex: none; display: grid; place-items: center; border-radius: 12px; background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--couleur) 45%, transparent), transparent 70%), var(--panneau-sombre); }
+.portrait-classe img { width: 160px; height: 160px; }
+.nom-classe { display: flex; align-items: baseline; gap: 10px; }
+.nom-classe b { font-family: Cinzel, serif; font-size: 30px; color: var(--couleur); }
+.nom-classe em { font-style: normal; font-size: 14px; color: var(--texte-2); }
+.fiche-classe-detail q { font-style: italic; color: var(--or-clair); font-size: 15px; }
+.infos-classe { display: grid; grid-template-columns: 26px 1fr; gap: 6px 10px; align-items: center; font-size: 16px; }
+.infos-classe img { width: 26px; height: 26px; }
+.fiche-classe-detail > p { font-size: 15px; color: var(--texte-2); }
+.apercu-amelioration { display: flex; align-items: center; gap: 60px; height: 300px; }
+.apercu-amelioration .carte { transform: scale(1.5); margin: 0; }
+.fleche-amelioration { font-size: 40px; color: var(--or); font-weight: 800; }
+.passif-ennemi { max-width: 170px; font-size: 10px; line-height: 1.2; color: #c9b8a0; text-align: center; font-style: italic; }
+.ennemis.nombreux .passif-ennemi { max-width: 120px; font-size: 9px; }
+.note-objet { font-size: 11px; color: #ff9a7a; font-style: italic; }
+button.pile { cursor: pointer; }
+button.pile:hover { border-color: var(--or); color: var(--texte); }
+
+/* ---------- Hall de la guilde ---------- */
+.hall { position: absolute; inset: 0; display: grid; grid-template-columns: 330px 1fr 380px; grid-template-rows: 64px 1fr; gap: 14px; padding: 0 20px 20px; }
+.hall-tete { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid #3a2a1f; }
+.titre-jeu.petit { font-size: 26px; }
+.hall-nom { font-family: Cinzel, serif; font-size: 18px; color: var(--or); }
+.hall-options { margin-left: auto; }
+.hall > section { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px; border-radius: 14px; border: 1px solid #5a4433; background: rgba(0, 0, 0, 0.22); text-align: center; }
+.hall h3 { margin: 0; font-size: 18px; font-weight: 800; }
+.hall .barre-xp { width: 240px; }
+.hall-arbres { display: flex; gap: 10px; font-size: 13px; color: var(--texte-2); }
+.hall-arbres b { color: var(--or-clair); }
+.hall-arbres .complet b { color: #c8a0ff; }
+.hall-expedition { justify-content: center; }
+.hall-expedition h2 { margin: 0; font-family: Cinzel, serif; font-size: 32px; }
+.hall-expedition > p { margin: 0; max-width: 460px; color: var(--texte-2); line-height: 1.45; }
+.run-en-cours { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; border: 1px solid var(--or); background: #2e2416; }
+.run-en-cours p { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.emporte-texte { font-size: 13px; min-height: 18px; }
+.grille-coffre { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; justify-content: center; }
+.hall-coffre > p { margin: 0; font-size: 12px; color: var(--texte-2); line-height: 1.35; }
+.hall-stats { margin-top: auto; display: flex; gap: 14px; font-size: 12px; color: var(--texte-2); }
+.hall-stats b { color: var(--texte); }
+.hall-version { margin: 0; font-size: 11px; color: var(--texte-2); opacity: .7; user-select: all; }
+
+/* ---------- Niveaux de difficulté ---------- */
+.choix-difficulte { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ligne-difficulte { display: flex; align-items: center; gap: 8px; }
+.ligne-difficulte b { font-size: 17px; font-weight: 800; color: var(--or-clair); }
+.max-difficulte { font-size: 12px; color: var(--texte-2); }
+.choix-difficulte p { margin: 0; max-width: 440px; font-size: 13px; color: var(--texte-2); line-height: 1.35; }
+.choix-difficulte i { font-style: normal; color: #8e7c6a; }
+.badge-difficulte { margin-right: 8px; padding: 0 6px; border-radius: 6px; background: #5a1a10; color: #ffc49a; font-weight: 800; }
+.liste-difficultes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 18px; width: 1100px; text-align: left; }
+.liste-difficultes li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; color: #8e7c6a; padding: 3px 6px; border-radius: 6px; }
+.liste-difficultes li b { width: 22px; flex: none; text-align: right; font-weight: 800; }
+.liste-difficultes li.debloque { color: var(--texte); }
+.liste-difficultes li.choisi { background: #3a2e17; }
+.liste-difficultes li em { margin-left: auto; font-style: normal; font-size: 10px; text-transform: uppercase; }
+
+/* ---------- Archives de la guilde ---------- */
+.ecran-archives { flex-direction: row; align-items: stretch; justify-content: flex-start; padding: 20px 28px; gap: 20px; }
+.archives-gauche { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.archives-gauche .tete-talents h2 { flex: none; }
+.archives-droite { width: 380px; flex: none; display: flex; flex-direction: column; gap: 12px; }
+.archives-droite .fiche-talent { width: auto; flex: 1; min-height: 0; overflow-y: auto; text-align: left; }
+.onglets { display: flex; gap: 6px; }
+.onglet { height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid #5a4433; background: var(--panneau); color: var(--texte-2); font-weight: 700; white-space: nowrap; }
+.onglet.actif { border-color: var(--or); color: var(--or-clair); background: #3a2e17; }
+.contenu-archives { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 14px; border-radius: 16px; border: 1px solid #3a2a1f; background: #1c1510; text-align: left; }
+.groupe-archives h3 { margin: 0 0 6px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texte-2); }
+.tuiles-archives { display: flex; flex-wrap: wrap; gap: 10px; }
+.tuile-archive { position: relative; width: 78px; height: 78px; flex: none; padding: 0; display: grid; place-items: center; overflow: hidden; border-radius: 12px; border: 3px solid #5a4433; background: var(--panneau-sombre); color: #d9c9b4; }
+.tuile-archive img { width: 64px; height: 64px; }
+.tuile-archive svg { width: 40px; height: 40px; }
+.tuile-archive.cartes img { width: 70px; height: 70px; }
+.tuile-archive.elite, .tuile-archive.r-epique, .tuile-archive.epique { border-color: #a66be0; color: #d4b0ff; }
+.tuile-archive.boss, .tuile-archive.legendaire { border-color: #ff9a2a; color: #ffc27a; }
+.tuile-archive.commun, .tuile-archive.r-peu_commune { border-color: #5fb86b; color: #8fd49a; }
+.tuile-archive.rare, .tuile-archive.r-rare { border-color: #4c8fe0; color: #8fb8e8; }
+.tuile-archive.r-depart, .tuile-archive.r-commune { border-color: #8a7a6a; }
+.tuile-archive.inconnue { border-style: dashed; color: #5d4c3f; }
+.tuile-archive.inconnue img { filter: brightness(0); opacity: 0.55; }
+.tuile-archive.choisie { box-shadow: 0 0 0 3px var(--or), 0 0 16px rgba(230, 195, 106, 0.45); }
+.compteur-archive { position: absolute; bottom: 2px; right: 5px; font-size: 12px; font-weight: 800; color: var(--or-clair); text-shadow: 0 1px 2px #000; }
+.tuile-archive.inconnue .compteur-archive { color: #6d5a4a; }
+.tuile-archive.grande { width: 104px; height: 104px; }
+.tuile-archive.grande img { width: 88px; height: 88px; }
+.tuile-archive.grande svg { width: 52px; height: 52px; }
+.lore-archive { font-size: 16px; font-style: italic; color: var(--or-clair) !important; }
+.fiche-archive-carte .cartes-rappel { margin-top: 6px; }
+.type-talent.r-depart, .type-talent.r-commune { background: #3b2d22; }
+.type-talent.r-peu_commune { background: #213a26; color: #8fd49a; }
+
+/* --- Acte 2 : l'Aire de Vhaeryx (noir et pourpre) --- */
+[data-acte="2"] { --fond: #1a1122; --fond-bas: #251a31; }
+[data-acte="2"] .sol { border-top-color: #3a2a48; }
+.ecran-acte h1 { font-size: 44px; }
+.chip.affliction-rouge { border-color: #d8403a; color: #ffb0a8; }
+.chip.affliction-bleue { border-color: #4c8fe0; color: #bcd8ff; }
+.chip.affliction-verte { border-color: #5fb86b; color: #c4f0c8; }
+.chip.affliction-noire { border-color: #8a8a94; color: #e0e0e8; background: #141418; }
+.chip.affliction-bronze { border-color: #c08a3a; color: #f0d0a0; }
+
+/* --- Démoniste --- */
+.carte .cout-eclat { background: #5a2e8a; border: 1px solid #c8a0ff; border-radius: 50%; text-shadow: none; }
+.eclats-label { width: auto; color: #c8a0ff; }
+.rage.eclats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.rage.eclats i { width: 12px; height: 12px; justify-self: center; border-radius: 2px; transform: rotate(45deg); background: #2a1e38; border: 1px solid #5a3a7e; }
+.rage.eclats i.plein { background: #b07af0; box-shadow: 0 0 6px #a066e8; }
+.heros .familier { position: absolute; left: -48px; top: 150px; width: 72px; height: 72px; }
+.heros .seigneur-infernal { position: absolute; left: 196px; top: 70px; width: 120px; height: 120px; }
+.chip.ombre { background: #241a33; border-color: #8a5ac8; color: #dcc8ff; }
+.stat.eclats { color: #c8a0ff; }
+
+/* --- Prêtre --- */
+.carte .cout-foi { background: #a8842a; border: 1px solid #ffe08a; border-radius: 50%; text-shadow: none; }
+.foi-label { width: auto; color: #ffe08a; }
+.rage.foi i { height: 10px; border-radius: 50%; background: #2e281a; border: 1px solid #6a5a2a; }
+.rage.foi i.plein { background: #ffd45e; box-shadow: 0 0 5px #ffc83a; }
+.egide-label { width: auto; color: #bfe2ff; }
+.barre-egide { flex: 1; height: 12px; border-radius: 6px; background: #1a2430; position: relative; overflow: hidden; border: 1px solid #5a7ea8; }
+.barre-egide > div { height: 100%; background: linear-gradient(90deg, #8fc8ff, #e8f4ff); }
+.barre-egide span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #f4faff; text-shadow: 0 0 2px #0e1620, 0 0 2px #0e1620; }
+
+/* --- Voleur --- */
+.combo-label { width: auto; color: #ffe27a; }
+.rage.combo { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.rage.combo i { height: 12px; border-radius: 3px; background: #2a2614; border: 1px solid #6a5e2a; transform: rotate(45deg) scale(0.8); }
+.rage.combo i.plein { background: #ffe27a; box-shadow: 0 0 6px #ffd23a; }
+.camoufle { color: #b8a8e8; }
+.chip.poison { background: #1a2a14; border-color: #6ac84a; color: #c8f0b0; }
+.heros img.camoufle-sprite { opacity: 0.55; filter: drop-shadow(0 0 6px #6a4ab8); }
+
+/* Paladin : Sceaux et Aura */
+.pal-tuiles { align-items: stretch; }
+.pal-tuile { width: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 2px; border-radius: 8px; border: 1px dashed #5a4d33; color: #6d624f; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
+.pal-tuile.actif { border: 1px solid var(--or); background: #3a2e17; color: var(--or-clair); box-shadow: 0 0 10px #e6c36a55; }
+.pal-tuile.aura.actif { border-color: #f0e6c0; background: #34302a; color: #fff6dc; }
+.chs-tuiles { align-items: stretch; gap: 4px; }
+.chs-tuile { width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 2px; border-radius: 8px; border: 1px dashed #4d5a33; color: #626d4f; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
+.chs-tuile .renfort { font-style: normal; margin-left: 2px; color: #ffd36a; }
+.chs-tuile.actif { border: 1px solid #8fd49a; background: #22301b; color: #cfeec0; box-shadow: 0 0 10px #8fd49a44; }
+.chs-tuile.actif.absent { opacity: 0.45; filter: grayscale(0.8); }
+.chs-tuile.piege { border: 1px solid #ff9a2a; background: #3a2414; color: #ffc27a; box-shadow: 0 0 10px #ff9a2a44; }
+.chs-tuile.vide { min-height: 42px; }
+.chs-tuile.actif.totem-terre { border-color: #c8a070; background: #2e2416; color: #f0d8b0; box-shadow: 0 0 10px #c8a07044; }
+.chs-tuile.actif.totem-feu { border-color: #ff9a2a; background: #3a2414; color: #ffc27a; box-shadow: 0 0 10px #ff9a2a44; }
+.chs-tuile.actif.totem-eau { border-color: #5aa0d8; background: #172230; color: #bfe2ff; box-shadow: 0 0 10px #5aa0d844; }
+.chs-tuile.actif.totem-air { border-color: #c8e0f0; background: #222a30; color: #f0f8ff; box-shadow: 0 0 10px #c8e0f044; }
+.chs-tuile svg { width: 20px; height: 20px; }
+.carte .pastille-element { position: absolute; right: 2px; top: 2px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1.5px solid; box-shadow: 0 0 6px #0008; }
+.carte .pastille-element svg { width: 15px; height: 15px; }
+.carte.totem-terre .pastille-element { border-color: #c8a070; background: #2e2416; color: #f0d8b0; }
+.carte.totem-feu .pastille-element { border-color: #ff9a2a; background: #3a2414; color: #ffc27a; }
+.carte.totem-eau .pastille-element { border-color: #5aa0d8; background: #172230; color: #bfe2ff; }
+.carte.totem-air .pastille-element { border-color: #c8e0f0; background: #222a30; color: #f0f8ff; }
+.carte.totem-terre .type { color: #e8c48a; }
+.carte.totem-feu .type { color: #ffb05a; }
+.carte.totem-eau .type { color: #8cc8f5; }
+.carte.totem-air .type { color: #e6f4ff; }
+.chs-cible, .chs-ici { position: absolute; top: 34px; z-index: 5; display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; padding: 1px 6px 1px 3px; border-radius: 10px; white-space: nowrap; pointer-events: none; }
+.chs-cible { right: 0; background: #22301b; border: 1px solid #8fd49a; color: #cfeec0; }
+.chs-ici { left: 0; background: #3a2414; border: 1px solid #ff9a2a; color: #ffc27a; }
+.chs-cible svg, .chs-ici svg { width: 14px; height: 14px; }
+.chip.marque { border-color: #8fd49a; color: #cfeec0; }
+.heros .compagnon.enfui { opacity: 0.3; filter: grayscale(1); }
+.heros .loup-spectral { left: -40px; top: 60px; opacity: 0.55; filter: hue-rotate(160deg) brightness(1.4); }
+.choix-compagnons { display: flex; gap: 12px; width: min(900px, 96%); }
+.choix-compagnon { flex: 1; min-width: 0; }
+.choix-compagnon > img { width: 72px; height: 72px; }
+.choix-compagnon small { font-weight: 400; opacity: 0.75; }
+.pal-jugement { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; background: #241d12; border: 1px solid #5a4d33; }
+.pal-jugement small { font-size: 9px; color: #c9a95a; font-weight: 700; letter-spacing: 1px; }
+.pal-jugement b { font-size: 12px; color: var(--or-clair); }
+.chip.sacre { background: #3a2e17; border-color: var(--or); color: var(--or-clair); }
+.chip.impie { background: #2a1a2e; border-color: #9a6ab8; color: #e0c8f0; }
+
+/* Outil de test (version dev seulement, à retirer avant la version 1.0) */
+.bouton-test { border-color: #d86a3a !important; color: #ffb08a !important; }
+.hall-options { display: flex; gap: 6px; }
+.panneau-test { justify-content: flex-start; padding-top: 20px; gap: 10px; overflow-y: auto; }
+.test-bloc { display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(640px, 100%); padding: 10px; border: 1px dashed #d86a3a; border-radius: 10px; }
+.test-niveaux { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; width: 100%; }
+.test-niveaux button { height: 34px; border-radius: 6px; border: 1px solid var(--bordure); background: var(--panneau-sombre); color: #c9bcab; font-weight: 700; }
+.test-niveaux button.actif { border-color: var(--or); background: #3a2e17; color: var(--or-clair); }
+.test-boutons { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.bouton.danger { border-color: #c8402a; color: #f07a6a; }
+
+/* ---------- Équipement : le héros entouré de ses emplacements, et la fiche à droite ---------- */
+.ecran-equipement { position: absolute; inset: 0; display: flex; gap: 22px; padding: 28px 40px; }
+.poupee { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 24px; border-radius: 16px; border: 1px solid #3a2a1f; background: radial-gradient(ellipse at 50% 45%, #2c2119, var(--fond) 70%); }
+.poupee h2 { align-self: flex-start; margin: 0; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; }
+.poupee-grille { flex: 1; display: grid; grid-template-columns: 110px 1fr 110px; grid-template-rows: repeat(3, 1fr); column-gap: 40px; row-gap: 14px; align-items: center; justify-items: center; width: 640px; }
+.poupee-heros { grid-area: 1 / 2 / 4 / 3; width: 230px; height: 230px; }
+.case-equipement { position: relative; width: 96px; height: 96px; flex: none; padding: 0; display: grid; place-items: center; border-radius: 14px; border: 3px solid #5a4433; background: var(--panneau-sombre); color: #d9c9b4; }
+.case-equipement svg { width: 46px; height: 46px; }
+.case-equipement.vide { border-style: dashed; color: #5d4c3f; }
+.case-equipement.commun { border-color: #5fb86b; color: #8fd49a; }
+.case-equipement.rare { border-color: #4c8fe0; color: #8fb8e8; }
+.case-equipement.epique { border-color: #a66be0; color: #d4b0ff; }
+.case-equipement.legendaire { border-color: #ff9a2a; color: #ffc27a; box-shadow: 0 0 12px rgba(255, 154, 42, 0.35); }
+.case-equipement.brise::after { content: ""; position: absolute; inset: 0; border-radius: 11px; background: repeating-linear-gradient(135deg, transparent 0 8px, rgba(200, 65, 58, 0.28) 8px 11px); }
+.case-equipement.choisie { box-shadow: 0 0 0 3px var(--or), 0 0 18px rgba(230, 195, 106, 0.45); }
+.pastille-brise { position: absolute; top: -10px; right: -10px; z-index: 1; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--fond); background: var(--pv); color: #fff; font-size: 15px; font-weight: 900; line-height: 22px; text-align: center; }
+.nom-case { position: absolute; bottom: -21px; left: 50%; transform: translateX(-50%); font-size: 13px; color: var(--texte-2); white-space: nowrap; }
+.poupee-sorts { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.poupee-sorts > div { display: flex; gap: 12px; }
+.case-sort { width: 72px; height: 72px; border-color: #c9a35a; color: #e6c36a; }
+.case-sort svg { width: 34px; height: 34px; }
+.case-equipement.grande { width: 84px; height: 84px; }
+.fiche-equipement { width: 380px; }
+.fiche-equipement.brisee { border-color: var(--pv); }
+.type-talent.r-commun { background: #213a26; color: #8fd49a; }
+.type-talent.r-rare { background: #1f3347; color: #9cc8f0; }
+.type-talent.r-epique { background: #3a2550; color: #d4b0ff; }
+.type-talent.r-legendaire { background: #4a2e12; color: #ffc27a; }
+.type-talent.k-brise { background: #4a1f1c; color: #f08a80; }
+.alerte-brise { font-size: 16px; color: #f08a80 !important; }
+
+/* ---------- Feu de camp : la scène à gauche, les choix en tuiles à droite ---------- */
+.ecran-feu { position: absolute; left: 30px; right: 30px; top: 70px; bottom: 24px; display: flex; gap: 26px; }
+.scene-feu { position: relative; flex: 1; overflow: hidden; border-radius: 16px; border: 1px solid #3a2a1f; background: var(--fond); }
+.scene-feu::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: var(--fond-bas); border-top: 1px solid #33261c; }
+.heros-feu, .flammes-feu { position: absolute; z-index: 1; }
+.heros-feu { left: 6%; bottom: 60px; width: 200px; height: 200px; }
+.flammes-feu { left: 44%; bottom: 40px; width: 256px; height: 256px; background-size: 1024px 256px; background-repeat: no-repeat; image-rendering: pixelated; animation: flammes-feu 0.64s steps(4) infinite; }
+@keyframes flammes-feu { to { background-position: -1024px 0; } }
+.lueur-feu { position: absolute; left: calc(44% - 222px); bottom: 0; width: 700px; height: 520px; background: radial-gradient(ellipse at 50% 72%, rgba(245, 154, 46, 0.32), rgba(232, 70, 30, 0.1) 35%, transparent 65%); animation: lueur-feu 2.2s ease-in-out infinite; pointer-events: none; }
+@keyframes lueur-feu { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .flammes-feu, .lueur-feu { animation: none; } }
+.choix-du-feu { width: 520px; flex: none; display: flex; flex-direction: column; justify-content: center; gap: 14px; overflow-y: auto; }
+.choix-du-feu h2 { margin: 0; font-family: Cinzel, serif; font-size: 30px; font-weight: 700; }
+.choix-du-feu > p { margin: 0; color: var(--texte-2); font-size: 17px; }
+.choix-feu { display: flex; gap: 16px; align-items: center; padding: 14px 18px; border-radius: 14px; border: 2px solid #6a4f3a; background: var(--panneau); text-align: left; color: var(--texte); }
+.choix-feu:hover:not(:disabled) { border-color: var(--or); }
+.choix-feu > img { width: 64px; height: 64px; flex: none; }
+.choix-feu .case-equipement { width: 64px; height: 64px; }
+.choix-feu .case-equipement svg { width: 34px; height: 34px; }
+.texte-choix { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.texte-choix > b { font-size: 21px; }
+.texte-choix > span { color: var(--texte-2); font-size: 15px; line-height: 1.3; }
+.choix-feu.principal { border-color: var(--accent-clair); background: #3a2414; }
+.choix-feu.legendaire { border-color: #ff9a2a; background: #3a2410; box-shadow: 0 0 14px rgba(255, 154, 42, 0.35); }
+.choix-feu.legendaire .texte-choix > b { color: #ffc27a; }
+.choix-feu.legendaire .texte-choix > span { font-size: 13px; }
+.effet-choix b { color: var(--or-clair); }
+.choix-feu:disabled { opacity: 0.45; filter: grayscale(0.7); }
+.apercu-pv { position: relative; width: 220px; height: 12px; margin-top: 4px; overflow: hidden; border-radius: 6px; background: #3a1a18; }
+.apercu-pv i, .apercu-pv u { position: absolute; top: 0; bottom: 0; }
+.apercu-pv i { left: 0; background: var(--pv); }
+.apercu-pv u { background: var(--vert); }
+
+/* ---------- Vendeur gobelin : le grand étal, la fiche de l'article en fenêtre ---------- */
+.vendeur .services { flex-direction: column; align-items: stretch; width: 230px; gap: 8px; }
+.vendeur .services .service { width: auto; }
+.vendeur .services .gros-bouton { margin-top: 4px; }
+.rayons { display: flex; gap: 34px; align-items: flex-start; }
+.rayon { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.rayon > div { display: flex; gap: 12px; }
+.article-tuile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0; border: none; background: none; }
+.article-tuile .case-equipement { width: 84px; height: 84px; }
+.article-tuile .case-equipement svg { width: 42px; height: 42px; }
+.article-tuile:hover .case-equipement { box-shadow: 0 0 0 3px var(--or); }
+.vendu-tuile { font-size: 14px; font-weight: 800; color: #8e7c6a; }
+.fenetre-boutique { position: absolute; inset: 52px 0 0 0; z-index: 40; display: grid; place-items: center; background: rgba(12, 8, 6, 0.8); }
+.fiche-boutique { width: 520px; max-height: 640px; overflow-y: auto; text-align: left; }
+.fiche-boutique .choix-objet { flex-wrap: wrap; justify-content: flex-start; }
+.boutons-fiche { display: flex; gap: 12px; }
+.boutons-fiche .gros-bouton { flex: 1; }
+.boutons-fiche .gros-bouton:disabled { background: var(--panneau-sombre); border-color: #5a4433; color: var(--texte-2); }
+
+/* Deck : les cartes identiques regroupées, avec « ×N ». */
+.groupe-cartes { position: relative; flex: none; }
+.nombre-cartes { position: absolute; top: -6px; right: -4px; z-index: 2; min-width: 36px; height: 34px; padding: 0 6px; border-radius: 17px; border: 3px solid var(--fond); background: var(--or); color: #1a0f08; font-size: 17px; font-weight: 900; line-height: 28px; text-align: center; pointer-events: none; }
+
+/* Hall : le coffre en icônes, et la fiche de l'objet emporté */
+.case-coffre { width: 72px; height: 72px; }
+.case-coffre svg { width: 36px; height: 36px; }
+.case-coffre em { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); z-index: 1; padding: 0 6px; border-radius: 6px; background: var(--or); color: #1a0f08; font-size: 10px; font-weight: 800; font-style: normal; white-space: nowrap; }
+.fiche-coffre { width: 100%; padding: 10px 12px; border-radius: 12px; border: 2px solid #5a4433; background: var(--panneau); text-align: left; }
+.fiche-coffre.commun { border-color: #5fb86b; }
+.fiche-coffre.rare { border-color: #4c8fe0; }
+.fiche-coffre.epique { border-color: #a66be0; }
+.fiche-coffre.legendaire { border-color: #ff9a2a; }
+.fiche-coffre b { font-size: 16px; }
+.hall-coffre .fiche-coffre p { margin: 4px 0 0; font-size: 14px; color: var(--texte); }
+.hall-coffre .fiche-coffre p.emporte { font-size: 12px; color: var(--or-clair); }
+.tuile-archive.case-sort { border-color: #c9a35a; color: #e6c36a; }
+.tuile-archive.case-sort svg { width: 34px; height: 34px; }
+.comparaison { margin: 4px 0 0; max-width: 420px; font-size: 13px; line-height: 1.35; color: var(--texte-2); }
+.comparaison b { color: var(--texte); }
+
+/* Hall : la description de la classe jouée ; écran des classes : la progression avec la classe */
+.description-hall { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 14px; color: var(--texte-2); }
+.description-hall .etoiles { color: var(--or); }
+.description-hall .etoiles i { font-style: normal; color: #4a3a2c; }
+.description-hall em { font-style: normal; font-size: 12px; }
+.description-hall span:not(.etoiles) { display: flex; align-items: center; gap: 6px; }
+.description-hall img { width: 18px; height: 18px; }
+.progression-classe { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid #4a372a; }
+.ligne-niveau { display: flex; align-items: center; gap: 10px; }
+.fiche-classe-detail { min-height: 0; overflow-y: auto; }
+.fiche-classe-detail.avec-progression { gap: 8px; }
+.fiche-classe-detail.avec-progression .portrait-classe { height: 112px; }
+.fiche-classe-detail.avec-progression .portrait-classe img { width: 104px; height: 104px; }
+.fiche-classe-detail.avec-progression .infos-classe { gap: 2px 10px; font-size: 15px; }
+.fiche-classe-detail.avec-progression .infos-classe img { width: 22px; height: 22px; }
+.bouton-retour { align-self: flex-end; }
+
+/* ---------- Aides : infobulles des mots-clés et aperçu des dégâts ---------- */
+.carte, .chip { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+/* Les mots-clés : en or (appui long ou survol pour l'explication) ; souligné seulement au survol de la souris. */
+.mot { color: #f2c96b; text-underline-offset: 2px; }
+@media (hover: hover) { .mot:hover { text-decoration: underline dotted; text-decoration-thickness: 1.5px; } }
+.chip { cursor: help; }
+.bulle {
+  position: absolute; z-index: 90; max-width: 280px; padding: 9px 12px; border-radius: 10px; pointer-events: none;
+  background: #f3e6cf; color: #24170d; font-size: 13px; font-weight: 500; line-height: 1.35; text-align: left;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+.bulle b { display: block; font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.bulle hr { border: none; border-top: 1px solid #cdb894; margin: 7px 0; }
+.bulle::after { content: ""; position: absolute; left: var(--fleche, 50%); margin-left: -8px; border: 8px solid transparent; }
+.bulle.dessus::after { top: 100%; border-top-color: #f3e6cf; border-bottom: 0; }
+.bulle.dessous::after { bottom: 100%; border-bottom-color: #f3e6cf; border-top: 0; }
+.carte .valeur.plus { color: #5fd877; }
+.carte .valeur.moins { color: #ff7a6a; }
+.barre-pv > .apercu.fantome {
+  position: absolute; top: 0; height: 100%;
+  background: repeating-linear-gradient(45deg, #fff 0 4px, #ffc9bd 4px 8px); opacity: 0.85;
+  animation: apercu-pulse 1s ease-in-out infinite alternate;
+}
+.barre-pv:has(.apercu) span { z-index: 1; color: #1a0f08; text-shadow: 0 0 3px #fff; }
+.apercu.perte {
+  position: absolute; left: 50%; top: 38%; transform: translateX(-50%); z-index: 3; pointer-events: none; white-space: nowrap;
+  font-size: 22px; font-weight: 900; color: #ff6a5a; text-shadow: 0 2px 0 #000, 0 0 6px #000;
+}
+.apercu.perte.mortel { color: #ffd27a; }
+@keyframes apercu-pulse { from { opacity: 0.55; } to { opacity: 0.95; } }
+@media (prefers-reduced-motion: reduce) { .barre-pv > .apercu.fantome { animation: none; } }
+
+/* ---------- Râtelier de la guilde (légendaire forgé) ---------- */
+.ratelier { display: flex; gap: 12px; align-items: flex-start; text-align: left; margin-bottom: 4px; }
+.ratelier .case-equipement { width: 80px; height: 80px; }
+.ratelier > div { display: flex; flex-direction: column; gap: 2px; font-size: 12px; line-height: 1.3; }
+.ratelier b { color: #ffc27a; font-size: 14px; }
+.ratelier > div em { color: #b8a690; font-size: 11px; }
+.lien { align-self: flex-start; padding: 2px 0; border: none; background: none; color: var(--or); font: inherit; font-weight: 700; text-decoration: underline; }
+.case-equipement.bloquee { opacity: 0.35; filter: grayscale(1); }
+
+/* ---------- Acte 3 : Folie et Hallucinations ---------- */
+.chip.folie { background: #2a1838; border-color: #9a5ad8; color: #e2c8ff; }
+.chip.folie.alerte { border-color: #d86aff; box-shadow: 0 0 8px rgba(200, 90, 255, 0.45); }
+/* Le détail qui trahit une Hallucination : cadre violacé et texte qui tremble (lisible aussi sur téléphone). */
+.carte.hallucination .cadre { filter: hue-rotate(235deg) saturate(1.25); }
+.carte.hallucination .texte > span { display: inline-block; animation: hallucination-tremble 0.35s steps(2) infinite; }
+.tampon-hallucination { border-color: #c87aff; color: #e2c8ff; background: rgba(30, 10, 40, 0.88); }
+@keyframes hallucination-tremble { 0% { transform: translate(0, 0); } 50% { transform: translate(0.8px, -0.6px); } 100% { transform: translate(-0.6px, 0.5px); } }
+@media (prefers-reduced-motion: reduce) { .carte.hallucination .texte > span { animation: none; text-decoration: underline wavy #c87aff 1px; } }
+
+/* ---------- Tutoriel (src/tuto.ts) ---------- */
+.tuto-bouton { min-width: 40px; padding-left: 0; padding-right: 0; font-weight: 800; font-size: 18px; }
+.tuto-bouton.brille { background: var(--or); color: #1a120a; border-color: var(--or-clair); animation: tuto-brille 1.4s ease-in-out infinite; }
+@keyframes tuto-brille { 50% { box-shadow: 0 0 14px 4px rgba(230, 195, 106, 0.75); } }
+@media (prefers-reduced-motion: reduce) { .tuto-bouton.brille { animation: none; box-shadow: 0 0 10px 2px rgba(230, 195, 106, 0.7); } }
+.tuto-voile { position: absolute; inset: 0; z-index: 95; }
+.tuto-voile.sans-cible { background: rgba(0, 0, 0, 0.72); }
+.tuto-voile.sans-cible .tuto-trou { display: none; }
+.tuto-trou { position: absolute; border-radius: 12px; box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.72); outline: 3px solid var(--or); pointer-events: none; transition: left 0.2s, top 0.2s, width 0.2s, height 0.2s; }
+.tuto-bulle { position: absolute; width: 440px; padding: 16px 20px; border-radius: 14px; border: 2px solid var(--or); background: var(--panneau); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); }
+.tuto-bulle p { margin: 4px 0 12px; font-size: 19px; line-height: 1.4; color: var(--texte); max-width: none; }
+.tuto-bulle b { color: var(--or); }
+.tuto-titre { font-family: Cinzel, serif; font-weight: 700; color: var(--or); font-size: 16px; letter-spacing: 0.5px; }
+.tuto-boutons { display: flex; align-items: center; gap: 18px; }
+.tuto-boutons .gros-bouton { padding: 10px 26px; font-size: 18px; }
+.tuto-boutons .lien { align-self: center; font-size: 16px; }
+.tuto-boutons .tuto-passer { margin-left: auto; color: var(--texte-2); font-size: 14px; font-weight: 600; }
+.tuto-mini { position: absolute; z-index: 60; width: 300px; padding: 10px 14px; border-radius: 10px; border: 2px solid var(--or); background: var(--panneau); color: var(--texte); font-size: 16px; line-height: 1.35; pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
+.tuto-mini b { color: var(--or); }
+.tuto-mini::before { content: ""; position: absolute; top: -10px; left: calc(var(--fleche, 260px) - 9px); border: 9px solid transparent; border-top: 0; border-bottom-color: var(--or); }
+/* L'encart « Comment ça se joue » de la fiche de classe (les textes des bulles de la classe). */
+.comment-jouer { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--panneau-sombre); }
+.comment-jouer-titre { font-family: Cinzel, serif; color: var(--or); font-size: 16px; }
+.comment-jouer-ligne { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: start; font-size: 15px; line-height: 1.3; color: var(--texte); }
+.comment-jouer-ligne img { width: 28px; height: 28px; border-radius: 4px; }
+.comment-jouer-ligne b { color: var(--or); }
+/* La fiche de classe avec « Comment ça se joue » : portrait plus petit, infos sur une ligne (le bouton reste visible). */
+.fiche-classe-detail { gap: 8px; }
+.fiche-classe-detail .portrait-classe, .fiche-classe-detail.avec-progression .portrait-classe { height: 96px; }
+.fiche-classe-detail .portrait-classe img, .fiche-classe-detail.avec-progression .portrait-classe img { width: 88px; height: 88px; }
+.fiche-classe-detail .infos-classe { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 14px; }
+.fiche-classe-detail .infos-classe img { width: 20px; height: 20px; }
+.fiche-classe-detail .infos-classe .info { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; margin-right: 10px; }
+.fiche-classe-detail .note { font-size: 13px; }
+/* L'écran d'accueil (premier lancement) : la présentation du jeu en 4 tuiles. */
+.ecran-accueil { gap: 10px; }
+.ecran-accueil .sprite-titre { width: 128px; height: 128px; }
+.ecran-accueil .accroche { font-style: italic; color: var(--texte-2); font-size: 18px; }
+.tuiles-accueil { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 1120px; margin: 6px 0; }
+.tuile-accueil { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--bordure); border-radius: 12px; background: var(--panneau-sombre); text-align: left; }
+.tuile-accueil img { width: 36px; height: 36px; }
+.tuile-accueil b { color: var(--or); font-size: 19px; }
+.tuile-accueil span { color: var(--texte); font-size: 16px; line-height: 1.35; }
+
+/* ---------- Comptes en ligne : connexion, roue du hall, nouvelle saison ---------- */
+.fenetre-centree { display: grid; place-items: center; }
+.boite-connexion { width: 380px; max-width: calc(100% - 32px); max-height: calc(100% - 24px); overflow-y: auto; display: flex; flex-direction: column; gap: 12px; align-items: stretch; padding: 22px 26px; border-radius: 16px; border: 1px solid var(--bordure); background: var(--panneau); text-align: center; }
+.boite-connexion h2 { margin: 0; font-family: Cinzel, serif; color: var(--or); }
+.boite-connexion p { margin: 0; }
+.onglets-connexion { display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: #120d0a; }
+.onglets-connexion button { flex: 1; height: 36px; border: none; border-radius: 8px; background: none; font-weight: 700; color: var(--texte-2); }
+.onglets-connexion button.actif { background: var(--panneau); color: var(--texte); box-shadow: 0 0 0 1px #5a4433; }
+.champ { display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 13px; color: var(--texte-2); }
+.champ input { height: 44px; border-radius: 10px; border: 1px solid #5a4433; background: #120d0a; color: var(--texte); font: inherit; font-size: 17px; padding: 0 14px; user-select: text; -webkit-user-select: text; }
+.champ input:focus { outline: 2px solid var(--or); outline-offset: 1px; }
+.aide-connexion { font-size: 12px; color: var(--texte-2); }
+.erreur-connexion { padding: 8px 10px; border-radius: 8px; background: rgba(200, 65, 58, 0.18); border: 1px solid var(--pv); color: #ffb3ad; font-size: 14px; }
+.hall-pseudo { align-self: center; margin: 0 4px 0 8px; font-size: 13px; color: var(--texte-2); white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.hall-pseudo b { color: var(--texte); }
+.bouton-roue { position: relative; min-width: 40px; padding: 0; font-size: 20px; }
+.bouton-roue.actif { border-color: var(--or); }
+.overlay.transparent { background: transparent; }
+.menu-roue { position: absolute; top: 58px; right: 20px; width: 290px; display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 12px; border: 1px solid var(--bordure); background: var(--panneau); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); }
+.menu-roue button { display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 10px 12px; border: none; border-radius: 8px; background: #221913; font-size: 14px; }
+.menu-roue button small { display: block; color: var(--texte-2); font-size: 12px; }
+.menu-roue-note { margin: 4px 8px; font-size: 12px; color: var(--texte-2); }
+
+/* ---------- News et messages (roue du hall) ---------- */
+.bouton-roue .pastille, .mini-pastille { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--pv); color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+.bouton-roue .pastille { position: absolute; top: -7px; right: -7px; border: 2px solid var(--fond); }
+.boite-connexion.fenetre-large { width: 560px; text-align: left; }
+.boite-connexion.fenetre-large h2 { text-align: center; }
+.news { border: 1px solid #3a2a1f; border-radius: 12px; padding: 10px 14px; background: var(--panneau-sombre); }
+.news.nouv { border-color: var(--or); }
+.news small { color: var(--texte-2); }
+.news ul { margin: 6px 0 0; padding-left: 18px; }
+.news li { margin: 3px 0; }
+.tag-nouveau { margin-left: 8px; padding: 1px 7px; border-radius: 8px; background: var(--or); color: #1a0f08; font-size: 11px; font-weight: 800; }
+.types-message { display: flex; gap: 8px; }
+.types-message button { flex: 1; padding: 10px 6px; border-radius: 10px; border: 1px solid #5a4433; background: #221913; font-weight: 700; }
+.types-message button.actif { border-color: var(--or); background: #3a2a1f; }
+.boite-connexion textarea { width: 100%; height: 110px; resize: none; padding: 10px 12px; border-radius: 10px; border: 1px solid #5a4433; background: #120d0a; color: var(--texte); font: inherit; font-size: 15px; user-select: text; -webkit-user-select: text; }
+.boite-connexion textarea:focus { outline: 2px solid var(--or); outline-offset: 1px; }
+.compteur-message { margin-top: -6px; text-align: right; font-size: 12px; color: var(--texte-2); }
+.msg { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px solid #3a2a1f; background: var(--panneau-sombre); }
+.msg.nouv { border-color: var(--or); }
+.msg p { margin: 0; overflow-wrap: anywhere; }
+.msg-entete { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--texte-2); }
+.etat { padding: 1px 8px; border-radius: 8px; background: #3a2a1f; color: var(--texte); font-size: 12px; font-weight: 800; white-space: nowrap; }
+.etat-retenu { background: rgba(143, 212, 154, 0.18); color: var(--vert); }
+.etat-fait { background: rgba(143, 184, 232, 0.2); color: var(--blocage); }
+.etat-non { background: rgba(200, 65, 58, 0.18); color: #ffb3ad; }
+.reponse { padding: 4px 10px; border-left: 3px solid var(--or); background: #2b211a; font-size: 14px; overflow-wrap: anywhere; }
+.reponse b { color: var(--or); }
+.envoye { padding: 10px; border-radius: 10px; background: rgba(143, 212, 154, 0.12); color: var(--vert); text-align: center; }
+.lien-fermer { align-self: center; border: none; background: none; color: var(--texte-2); text-decoration: underline; font-size: 14px; }
+
+/* Écran de chute : le choix de l'objet brisé. */
+.choix-brise { max-width: 720px; margin: 4px auto 0; }
+.choix-brise .article-coffre.choisie { outline: 3px solid #ff6a3a; outline-offset: 2px; border-radius: 10px; }
+
+/* La connexion à la taille réelle de l'écran (téléphone en portrait ou en paysage, clavier ouvert). */
+body.connexion-libre #rotate { display: none !important; }
+body.connexion-libre .boite-connexion { font-size: 15px; }
+#rotate-connexion, #rotate-connexion-note { display: none; }
+body.connexion-proposee #rotate-connexion { display: block; margin-top: 18px; padding: 0 28px; }
+body.connexion-proposee #rotate-connexion-note { display: block; max-width: 300px; font-size: 13px; }
+
+/* Fin de chapitre : continuer ou rentrer à la guilde (maquette 1B). */
+.choix-fin-chapitre { display: flex; gap: 16px; width: 100%; max-width: 860px; }
+.choix-fin-chapitre .choix-evenement { flex: 1; text-align: left; }
+.choix-fin-chapitre .risque { color: #ff9a7a; }
+.choix-fin-chapitre .soin-acte { color: var(--vert); font-weight: 700; }
+.mention-coffre { color: #ffd36a; }
+.alerte-coffre { max-width: 520px; margin: 0 auto; }
+#rotate-menu { display: none; }
+body.menu-propose #rotate-menu { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 18px; }
+body.menu-propose #rotate-menu span { font-size: 13px; }
+body.menu-propose #rotate-menu .gros-bouton { width: 280px; max-width: 90vw; font-size: 17px; }
+/* La roue ⚙ à la taille réelle de l'écran : le hall derrière est masqué (il n'est pas mis à l'échelle). */
+body.connexion-libre .overlay.transparent { background: rgba(12, 8, 6, 0.94); }
+body.connexion-libre .menu-roue { width: min(340px, calc(100% - 32px)); right: 16px; top: 16px; font-size: 16px; }
+/* À la taille réelle de l'écran (téléphone en portrait) : les fenêtres larges ne débordent pas. */
+body.connexion-libre .boite-connexion { box-sizing: border-box; max-width: calc(100vw - 24px); }
+body.connexion-libre .types-message { flex-wrap: wrap; }
+
+/* Le compte à rebours du boss dans la barre du haut (maquette C du 24 novembre 2026). */
+.enrage-haut { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; color: #ff9a3a; font-weight: 800; }
+.enrage-haut svg { width: 13px; height: 13px; }
+.enrage-haut.actif { color: #fff; background: #5a1a10; border: 1px solid #ff6a3a; border-radius: 8px; padding: 0 6px; }
+.enrage-haut.imminent { animation: enrage-clignote 1s ease-in-out infinite; }
+@keyframes enrage-clignote { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .enrage-haut.imminent { animation: none; } }
+/* La règle d'un seigneur seul ou presque : plus large, donc moins haute. */
+.ennemis:not(.nombreux) .passif-ennemi { max-width: 250px; }
+
+/* Nouvelle version (src/update.ts) : fenêtre au centre du hall. */
+.fenetre-maj .boite-connexion { border: 2px solid var(--or); }
+.fenetre-maj .petit-texte { font-size: 13px; color: var(--texte-2); }
+.fenetre-maj .lien { align-self: center; color: var(--texte-2); font-weight: 400; }
+.ligne-seigneurs { margin: 0; color: var(--or); font-weight: 700; }
+/* « Ce qui t'attend » sous le choix de difficulté (maquette C, 25 novembre 2026). */
+.attente-difficulte { margin: 6px auto 0; max-width: 560px; padding: 7px 12px; border: 1px solid var(--bordure); border-radius: 10px; background: var(--panneau-sombre, #221913); text-align: left; font-size: 12.5px; }
+.attente-difficulte > b { color: var(--or); }
+.attente-difficulte ul { margin: 3px 0 0; padding-left: 4px; list-style: none; }
+.attente-difficulte li { margin: 1px 0; }
