@@ -73,6 +73,9 @@ export function gainRage(c: CombatState, amount: number): void {
   }
 }
 
+/** Le soin de l'Ange gardien n'est pas touché par la Malédiction de lignée. */
+let angelHealing = false;
+
 /** Soigne le joueur (la Peste et l'Affliction verte réduisent les soins de moitié). Renvoie les PV rendus. */
 export function healPlayer(c: CombatState, amount: number): number {
   const p = c.player;
@@ -89,11 +92,13 @@ export function healPlayer(c: CombatState, amount: number): number {
     heal += c.gear?.healBonus ?? 0; // Soins améliorés
     if (c.gear?.equinoxe && !c.shadowForm) heal += 3; // Équinoxe (Lumière)
     if (c.shadowForm) heal = Math.floor(heal * 0.75); // Forme d'Ombre
-    // Malédiction de lignée du Prêtre : ses soins le blessent.
-    if ((d?.lignee ?? 0) > 0) {
+    // Malédiction de lignée du Prêtre : ses soins le blessent (sauf le soin de l'Ange gardien).
+    // S'il en tombe, il a droit aux mêmes sauvetages que pour tout autre coup (Ange gardien, Phylactère…).
+    if ((d?.lignee ?? 0) > 0 && !angelHealing) {
       p.hp = Math.max(0, p.hp - heal);
       fx(c, { kind: 'tick', who: 'player', amount: heal, label: 'Soin maudit' });
-      if (p.hp <= 0) c.phase = 'defeat';
+      if (heal > 0) onHpLost(c);
+      deathSaves(c);
       return 0;
     }
   }
@@ -439,32 +444,29 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
 }
 
 /** Dégâts subis par le joueur. `isAttack` : une attaque ennemie (donne de la rage). */
-export function damagePlayer(c: CombatState, amount: number, isAttack: boolean): number {
+/** Ange gardien : une fois par combat, on reste à 1 PV et on est soigné. */
+function angelSave(c: CombatState): void {
   const p = c.player;
-  if (p.iceBlock) return 0; // Carapace de glace
-  if (!isAttack) amount -= c.gear?.nonAttackReduce ?? 0;
-  if (p.rempart) amount = Math.floor(amount / 2);
-  if (amount <= 0) return 0;
-  const absorbed = Math.min(p.block, amount);
-  p.block -= absorbed;
-  // Le Prêtre : l'Égide encaisse après le blocage.
-  const hpLoss = absorbAegis(c, amount - absorbed);
-  p.hp -= hpLoss;
-  // Dernier serment (Paladin) : sous 20 % des PV max, une fois par combat.
-  if (hpLoss > 0) lastOath(c);
-  // Ange gardien : une fois par combat, on reste à 1 PV et on est soigné.
-  if (p.hp <= 0 && power(c, 'ange_gardien') && !c.angelUsed) {
-    c.angelUsed = true;
-    p.hp = 1;
+  if (p.hp > 0 || !power(c, 'ange_gardien') || c.angelUsed) return;
+  c.angelUsed = true;
+  p.hp = 1;
+  angelHealing = true;
+  try {
     healPlayer(c, 15);
-    fx(c, { kind: 'banner', text: 'L\'Ange gardien te protège !' });
+  } finally {
+    angelHealing = false;
   }
-  if (hpLoss > 0) onHpLost(c);
-  if (isAttack) {
-    const blockedRage = p.posture === 'defensive' || p.ignorerDouleur;
-    if (hpLoss > 0 || blockedRage) gainRage(c, 1);
-    if (hpLoss === 0) p.blockedFullAttack = true;
-  }
+  fx(c, { kind: 'banner', text: 'L\'Ange gardien te protège !' });
+}
+
+/**
+ * Le joueur tombe à 0 PV : les sauvetages, dans l'ordre (Ange gardien, Pierre d'âme, Réincarnation,
+ * Renaissance, Phylactère brisé), sinon la défaite. Toute perte de PV doit passer par ici.
+ */
+export function deathSaves(c: CombatState): void {
+  const p = c.player;
+  if (p.hp > 0) return;
+  angelSave(c);
   if (p.hp <= 0 && c.soulstone) soulstoneRise(c); // Pierre d'âme
   // Réincarnation (Chaman) : une fois par run.
   if (p.hp <= 0) reincarnate(c);
@@ -485,6 +487,30 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
     p.hp = 0;
     c.phase = 'defeat';
   }
+}
+
+export function damagePlayer(c: CombatState, amount: number, isAttack: boolean): number {
+  const p = c.player;
+  if (p.iceBlock) return 0; // Carapace de glace
+  if (!isAttack) amount -= c.gear?.nonAttackReduce ?? 0;
+  if (p.rempart) amount = Math.floor(amount / 2);
+  if (amount <= 0) return 0;
+  const absorbed = Math.min(p.block, amount);
+  p.block -= absorbed;
+  // Le Prêtre : l'Égide encaisse après le blocage.
+  const hpLoss = absorbAegis(c, amount - absorbed);
+  p.hp -= hpLoss;
+  // Dernier serment (Paladin) : sous 20 % des PV max, une fois par combat.
+  if (hpLoss > 0) lastOath(c);
+  // Ange gardien : une fois par combat, on reste à 1 PV et on est soigné.
+  angelSave(c);
+  if (hpLoss > 0) onHpLost(c);
+  if (isAttack) {
+    const blockedRage = p.posture === 'defensive' || p.ignorerDouleur;
+    if (hpLoss > 0 || blockedRage) gainRage(c, 1);
+    if (hpLoss === 0) p.blockedFullAttack = true;
+  }
+  deathSaves(c);
   // Cœur de la bombe : une grosse perte de PV fait exploser le joueur.
   const boom = c.gear?.bigHitAoe ?? 0;
   if (boom > 0 && hpLoss >= 10 && c.phase === 'player') {

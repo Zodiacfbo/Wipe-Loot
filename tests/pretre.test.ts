@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { healPlayer } from '../src/engine/actions';
 import { CARDS, rewardPool, starterCards } from '../src/engine/cards';
 import { canPlayCard, createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
@@ -153,6 +154,27 @@ describe('les cartes du Prêtre', () => {
     endTurn(c);
     expect(c.phase).toBe('player');
     expect(c.player.hp).toBe(16);
+  });
+
+  it('Malédiction de lignée : un soin maudit qui tue déclenche l\'Ange gardien (son soin n\'est pas maudit)', () => {
+    const c = fight(['lieutenant'], ['ange_gardien']);
+    play(c, 'ange_gardien');
+    c.player.debuffs!.lignee = 2;
+    c.player.hp = 5;
+    healPlayer(c, 10);
+    expect(c.phase).toBe('player');
+    expect(c.player.hp).toBe(16);
+  });
+
+  it('Malédiction de lignée : un soin maudit qui tue déclenche aussi le Phylactère brisé', () => {
+    const c = fight(['lieutenant'], [], { cheatDeath: 1 });
+    c.player.debuffs!.lignee = 2;
+    c.player.hp = 5;
+    healPlayer(c, 10);
+    expect(c.phase).toBe('player');
+    expect(c.player.hp).toBe(1);
+    healPlayer(c, 10);
+    expect(c.phase).toBe('defeat');
   });
 
   it('Bénédiction de vigueur : +4 PV max pour la run', () => {
