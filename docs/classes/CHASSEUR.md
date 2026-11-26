@@ -284,7 +284,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 **Les règles précisées :**
 - **Le compagnon** se choisit sur un écran au départ de l'expédition, avant Brégan. Le dernier choisi est sélectionné par défaut. Il agit à la fin de ton tour sur ta dernière cible, ou sur le premier ennemi si elle est morte. Une étiquette « cible » le montre sur l'ennemi.
-- **Il ne meurt pas.** Le Rayon oculaire d'Yzhar l'étourdit, et la Malédiction de lignée de Vhaeryx le fait fuir pendant 2 tours.
+- **Il ne meurt pas.** Le Rayon oculaire d'Yzhar l'étourdit : il saute son action de fin de tour, mais les Ordres marchent toujours (26 novembre 2026), et la Malédiction de lignée de Vhaeryx le fait fuir pendant 2 tours.
 - **Ses bonus :** les bagues des alliés (`allyBonus`) et du familier (`petBonus`) valent pour lui. La Marque s'ajoute à ses attaques.
 - **Les Pièges :** 3 au plus. Un 4ᵉ remplace le plus ancien. Ils partent tous au début du tour ennemi, sur le premier ennemi vivant de la ligne, celui qui agit en premier. Une étiquette « ici » le montre. Le Piège givrant contrôle un ennemi normal et divise par deux la prochaine attaque d'un boss.
 - **Instinct du chasseur** donne son énergie au début de ton tour suivant, puisque les Pièges se déclenchent pendant le tour ennemi.

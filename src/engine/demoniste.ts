@@ -208,15 +208,16 @@ function petTarget(c: CombatState, random_: boolean): EnemyState | null {
   return pool[Math.floor(random(c) * pool.length)];
 }
 
-/** Le familier agit (à la fin de ton tour, ou sur ordre). */
-export function petAct(c: CombatState, times = 1): void {
-  if (!c.pet || c.petSacrificed || c.phase !== 'player') return;
-  // Rayon oculaire d'Yzhar : le familier est étourdi.
-  if ((c.petStunned ?? 0) > 0) {
+/** Le familier agit (à la fin de ton tour avec `endOfTurn`, ou sur ordre). */
+export function petAct(c: CombatState, times = 1, endOfTurn = false): void {
+  // Rayon oculaire d'Yzhar : étourdi, le familier saute son action de fin de tour (les Ordres marchent encore).
+  if (!c.pet) return;
+  if (endOfTurn && (c.petStunned ?? 0) > 0) {
     c.petStunned! -= 1;
-    log(c, `Ton ${PETS[c.pet].name} est étourdi et ne fait rien.`);
+    if (!c.petSacrificed) log(c, `Ton ${PETS[c.pet].name} est étourdi : il ne fait rien à la fin du tour.`);
     return;
   }
+  if (c.petSacrificed || c.phase !== 'player') return;
   const n = times * (c.petDouble ? 2 : 1);
   c.petDouble = false;
   // Malédiction de lignée : le familier se retourne contre toi.

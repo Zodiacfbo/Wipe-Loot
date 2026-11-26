@@ -17,6 +17,8 @@ const PROFILES: [string, string[], string][] = [
   ['Démoniste', alloc({ demonologie: ['A', 'B', 'B', 'A', 'A'], destruction: ['A', 'B', 'A'] }, 'demoniste'), 'demoniste'],
   ['Affliction', alloc({ affliction: ['A', 'A', 'B', 'A', 'A'], destruction: ['A', 'B', 'A'] }, 'demoniste'), 'demoniste'],
   ['Prêtre', alloc({ discipline: ['A', 'A', 'A', 'A', 'A'], sacre: ['A', 'B', 'A'] }, 'pretre'), 'pretre'],
+  ['Chasseur Bêtes', alloc({ betes: ['A', 'B', 'A', 'A', 'A'], survie: ['A', 'B', 'A'] }, 'chasseur'), 'chasseur'],
+  ['Chasseur Précision', alloc({ precision: ['A', 'B', 'A', 'A', 'A'], betes: ['A', 'B', 'A'] }, 'chasseur'), 'chasseur'],
 ];
 const ONLY = process.env.CLASSES?.split(',');
 

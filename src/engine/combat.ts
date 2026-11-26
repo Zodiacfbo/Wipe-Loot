@@ -835,7 +835,7 @@ export function endTurn(c: CombatState): void {
   if (isPaladin(c)) paladinEndTurn(c);
   if (c.phase !== 'player') return;
   // Le familier agit, puis le Seigneur infernal ; le Molosse guette les incantations.
-  petAct(c);
+  petAct(c, 1, true);
   if (c.infernal && c.phase === 'player') {
     for (const e of livingEnemies(c)) {
       if (e.submerged || c.phase !== 'player') continue;

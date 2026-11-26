@@ -1,7 +1,8 @@
 // Acte 3 : Yzhar, le Dieu dormant (le boss final d'Irem).
 // Référence : docs/actes/ACTE3_IREM.md (§7)
 // - Pendant tout le combat : 1 Folie au début de chacun de ses tours.
-// - Phase 1, l'Œil (200 PV) : Rayon oculaire (il rebondit sur ton familier, étourdi 1 tour), Regard sombre
+// - Phase 1, l'Œil (200 PV) : Rayon oculaire (il rebondit sur ton familier : il saute sa prochaine action de fin de tour,
+//   les Ordres marchent encore ; les totems sautent leur prochain tour), Regard sombre
 //   (3 tours : des dégâts à la fin de ton tour si tu ne joues pas « Se mettre à couvert »),
 //   un Tentacule oculaire tous les 2 tours. Quand l'Œil se ferme, ses Tentacules aussi, et le Corps se réveille.
 // - Phase 2, le Corps : Carapace divine (dégâts réduits), Tentacule géant tous les 2 tours,
