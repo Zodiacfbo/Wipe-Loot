@@ -71,6 +71,11 @@ export const TOTEM_STACK_BONUS = 0.5;
  */
 export function placeTotem(c: CombatState, id: string, value: number, value2?: number, turns?: number): void {
   const def = TOTEMS[id];
+  // Malédiction de lignée : pas de totem pendant 2 tours (comme les Sceaux du Paladin).
+  if ((c.player.debuffs?.lignee ?? 0) > 0) {
+    log(c, `La Malédiction de lignée te coupe des esprits : ${def.name} ne se dresse pas.`);
+    return;
+  }
   const el = def.element;
   const old = totemAt(c, el);
   const stacks = old?.id === id ? Math.min(TOTEM_MAX_STACKS, (old.stacks ?? 0) + 1) : 0;

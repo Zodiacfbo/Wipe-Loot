@@ -1004,7 +1004,10 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   if (i.domination) parts.push('pendant ton prochain tour, ta première Attaque te frappera toi-même');
   if (i.lignee) {
     const cls = ui.run?.classId;
-    parts.push(cls === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes'
+    parts.push(cls === 'mage' ? 'Malédiction de lignée : 1 carte de moins en main pendant 2 tours'
+      : cls === 'chaman' ? 'Malédiction de lignée : tes totems s\'effondrent, plus de totem pendant 2 tours'
+      : cls === 'druide' ? 'Malédiction de lignée : retour en forme normale, plus de changement pendant 2 tours'
+      : cls === 'chasseur' ? 'Malédiction de lignée : ton compagnon s\'enfuit 2 tours'
       : cls === 'demoniste' ? 'Malédiction de lignée : ton familier se retourne contre toi 2 tours'
       : cls === 'pretre' ? 'Malédiction de lignée : tes soins te blessent 2 tours'
       : cls === 'voleur' ? 'Malédiction de lignée : tes points de combo s\'envolent, plus de combo pendant 2 tours'

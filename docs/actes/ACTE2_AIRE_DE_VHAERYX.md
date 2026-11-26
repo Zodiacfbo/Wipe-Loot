@@ -498,7 +498,7 @@ Un joueur « moyen » en fin d'acte 2 a environ :
 - **L'appel des éléments** (Chaman) viendra avec le Chaman.
 - **Le butin de boss de Vhaeryx** (objets épiques) viendra avec l'acte 3 : pour l'instant, Vhaeryx termine la run.
 - **Le Sceptre de domination** de Skarn : un Dragonnet ennemi change de camp, détruit un Œuf ou inflige 8 dégâts, puis quitte le combat.
-- **La Malédiction de lignée** : seules celles du Guerrier et du Mage existent (les autres classes ne sont pas encore jouables).
+- **La Malédiction de lignée** (26 novembre 2026 : 2 tours pour toutes les classes) : Guerrier forcé en Berserker ; Mage 1 carte de moins par tour ; Voleur combo perdu, plus de combo ; Prêtre soins qui blessent ; Paladin Sceau brisé, plus de Sceau ; Chaman totems effondrés, plus de totem ; Druide forme normale, plus de changement ; Chasseur compagnon enfui ; Démoniste familier retourné.
 
 ### 11.3 Entre les deux actes
 

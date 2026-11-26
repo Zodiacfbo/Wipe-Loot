@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { placeTotem } from '../src/engine/chaman';
 import { ACTS, LAST_ACT } from '../src/engine/acts';
 import { createCombat, endTurn, playCard } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
@@ -266,7 +267,31 @@ describe('Vhaeryx', () => {
     m.enemies[0].intent = ENEMIES.vhaeryx.cycle[1];
     m.player.block = 99;
     endTurn(m);
-    expect(m.hand.length).toBe(3);
+    // Mage : 1 carte de moins à chacun des 2 tours qui suivent.
+    expect(m.hand.length).toBe(4);
+    m.player.block = 99;
+    m.enemies[0].intent = { kind: 'attack', dmg: 1 };
+    endTurn(m);
+    expect(m.hand.length).toBe(4);
+    m.player.block = 99;
+    m.enemies[0].intent = { kind: 'attack', dmg: 1 };
+    endTurn(m);
+    expect(m.hand.length).toBe(5);
+  });
+
+  it('la Malédiction de lignée du Chaman : les totems tombent, et aucun ne se pose pendant 2 tours', () => {
+    const s = fight(['vhaeryx'], [], 'chaman');
+    placeTotem(s, 'pierre', 4);
+    expect(s.totems!.terre).toBeTruthy();
+    s.enemies[0].intent = ENEMIES.vhaeryx.cycle[1];
+    s.player.block = 99;
+    endTurn(s);
+    expect(s.totems!.terre).toBeNull();
+    placeTotem(s, 'pierre', 4);
+    expect(s.totems!.terre).toBeNull();
+    s.player.debuffs!.lignee = 0;
+    placeTotem(s, 'pierre', 4);
+    expect(s.totems!.terre).toBeTruthy();
   });
 });
 
