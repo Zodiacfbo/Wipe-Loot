@@ -343,11 +343,8 @@ function submerge(c: CombatState, v: EnemyState): void {
   v.block = 0;
   v.interrupted = false;
   v.delayed = false;
-  v.buffs.saignement = 0;
-  v.buffs.saignementTours = 0;
-  v.buffs.brulure = 0;
-  v.buffs.gel = 0;
-  v.gele = undefined;
+  // Tes effets sur lui (Brûlure, Saignement, Gel, DoT, Poison, Censure, Marque…) restent, figés pendant la plongée :
+  // ils ne frappent pas et ne diminuent pas tant qu'il est sous la lave (même règle pour toutes les classes).
   fx(c, { kind: 'banner', text: 'Vulkhar plonge dans la lave !' });
   log(c, 'Vulkhar plonge dans la lave ! Des Rejetons de flamme surgissent.');
   for (let i = 0; i < 6; i++) c.enemies.push(makeEnemy(c, 'rejeton', ENEMIES.rejeton.hpMax));
