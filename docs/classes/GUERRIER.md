@@ -293,3 +293,130 @@ Si Krâgg n'est pas présent sur la carte de cette run, la quête ne peut pas ê
   - **Heurt de bouclier : +1 point** (contre +15 pour 3 talents). Jouée souvent, mais avec **3,6 blocage** en moyenne au moment du jeu : environ 15 dégâts. Un bot qui monte son blocage avant de la jouer fait pire (−8) : il la garde en main pour rien. **C'est la carte :** le blocage du Guerrier disparaît à chaque tour et sert déjà à encaisser, il monte rarement assez haut dans un même tour. Note : Protection est déjà l'arbre le plus fort (70 % sans la carte).
   - **Piste :** compter le blocage **gagné ce tour-ci** plutôt que le blocage actuel, ou ajouter un plancher (« au moins 12 dégâts »), ou ne pas consommer la rage quand on a 10 blocage ou plus.
   - **Décision (novembre 2026) :** rien n'est changé pour le Guerrier. Ses arbres sont déjà à peu près équivalents (meilleur build 7 + 3 : Armes 71 %, Fureur 57 %, Protection 71 %, sur 150 runs), et Protection tient même avec un Heurt de bouclier faible.
+
+---
+
+## 12. Projet : la pleine rage, les postures et des arbres plus nets (27 novembre 2026, concept validé, à mettre en route)
+
+**Pourquoi.** Export playtest du 27 novembre 2026 : **0 victoire sur 14 runs** de Guerrier (3 joueurs), 13 chutes sur 17 combats contre Vulkhar, en **14 tours en moyenne** (son déchaînement arrive au tour 14 ; Chasseur 7 tours, Voleur 8). Contre les monstres ordinaires : 11 PV perdus et 3,8 tours par combat (Chasseur : 3 PV, 1,7 tour). Comme le Paladin avant son §24 de l'équilibrage, le Guerrier **tient mais ne tape pas assez**.
+
+**Ce que montre le code et le bot** (sonde jetable, bot de niveau 1 contre Vulkhar, PV pleins, 40 combats par posture) :
+
+| Posture tenue tout le combat | Victoires | Tours | Tours commencés à 10 rage | PV restants (victoires) |
+|---|---|---|---|---|
+| Combat | 15/40 | 7,6 | **62 %** | 19 |
+| Berserker | **5/40** | 9,8 | 74 % | 15 |
+| Défensive | 12/40 | 11,0 | 65 % | 33 |
+
+1. **La rage déborde.** Beaucoup de sources (chaque Attaque, chaque coup reçu, Charge, Cri de guerre, une dizaine de cartes), très peu de dépenses : la Frappe héroïque au départ, puis seulement Exécution (rare), Fulgurance (1 rage) et les 3 épiques. Le bot commence 62 % de ses tours à 10 rage : tout ce qu'il gagne ensuite est perdu. Les joueurs le sentent : Fulgurance prise 5 fois sur 5.
+2. **La posture de Combat ne se sent pas** : son +3 ne touche que les cartes à rage, environ une par combat.
+3. **La posture Berserker est un piège** : elle donne encore plus d'une ressource qui déborde, et +20 % de dégâts subis.
+4. **Changer de posture est puni** (rage ramenée à 3) : on ne s'en sert pas.
+5. La fiche (§3) annonce des cartes qui changent de posture : **aucune n'existe**.
+6. **Le bot ne change jamais de posture** : toutes les mesures du Guerrier sont faites en posture de Combat.
+7. **Les arbres ne collent pas à leur idée** : les saignements sont en Armes alors qu'ils vont au barbare, Exécution n'appartient à aucun arbre, le Fureur n'a presque aucun soin (Sanguinaire : 2 PV) et beaucoup de « tu subis plus de dégâts », les Cris sont éparpillés sur les 3 arbres (et le talent des Cris, Voix de stentor, est en Fureur).
+
+### 12.1 L'idée : une boucle simple, comme Sceau puis Jugement
+
+> **Je remplis ma rage. À pleine rage, mon prochain coup la libère, et ma posture décide comment.**
+
+Chaque arbre a **sa posture** (comme dans le WoW d'origine). Le combat commence dans la posture de l'arbre principal : le débutant n'a rien à faire, le joueur confirmé peut changer.
+
+| Arbre | Fantasme | Posture | La pleine rage… |
+|---|---|---|---|
+| ⚔️ Armes | Le champion, l'exécuteur : peu de coups, mais énormes | Combat | …ajoute **+10 dégâts** au coup |
+| 🔥 Fureur | Le barbare à deux armes : il encaisse, fait saigner, se soigne en tapant | Berserker | …fait toucher le coup à **tous les ennemis** |
+| 🛡️ Protection | Le tank : blocage, bouclier, Cris | Défensive | …donne **12 blocage** |
+
+Les chiffres (+10, 12) sont indicatifs : le bot les fixera.
+
+### 12.2 Les règles
+
+1. **Pleine rage** (mot-clé dans `keywords.ts`). Quand ta rage atteint son maximum (10, ou 15 avec Furie inextinguible), la jauge s'allume. **Ta prochaine Attaque qui inflige des dégâts vide toute ta rage** et ajoute l'effet de ta posture (§12.1). La rage ne déborde plus jamais.
+2. **Dépenser tôt reste possible.** Frappe héroïque, Frappe brutale, Fulgurance, Brise-guerre, Exécution et les épiques dépensent la rage avant le maximum. Le choix du joueur : dépenser maintenant, ou attendre la pleine rage.
+3. **Exécution à pleine rage** reçoit aussi l'effet de la posture (le grand moment de l'exécuteur). À plafonner seulement si le bot montre des excès.
+4. **Changer de posture ne fait plus perdre de rage.** Toujours gratuit, une fois par tour. Le talent Maîtrise tactique disparaît (§12.4).
+5. **Posture de départ** : celle de l'arbre principal (celui qui a strictement le plus de points, comme `mainTree` du Mage) : Armes → Combat, Fureur → Berserker, Protection → Défensive. Sans arbre principal : Combat.
+6. **Les postures** (effet permanent inchangé + pleine rage) :
+
+| Posture | Tant qu'elle est active | Contrepartie | Pleine rage |
+|---|---|---|---|
+| ⚔️ Combat | Cartes à rage : +3 dégâts | Aucune | +10 dégâts |
+| 🔥 Berserker | +1 rage par Attaque (la jauge se remplit plus vite) | Tu subis 20 % de dégâts en plus | Le coup touche aussi tous les autres ennemis |
+| 🛡️ Défensive | +3 blocage, rage même si l'attaque est bloquée | Attaques −20 % | 12 blocage |
+
+7. **Pas de carte qui change de posture** pour l'instant (la classe ⭐ reste simple). La phrase du §3 qui en annonce est à retirer.
+8. **Les soins restent dans l'arbre Fureur seulement** (Soif de sang, Sanguinaire, Régénération enragée), plus Dernier rempart (Protection) et les objets. La règle du CLAUDE.md (« pas de vol de vie ») devient : « des soins seulement dans l'arbre Fureur ».
+9. **Interface** : la jauge de rage montre le maximum et brille à pleine rage ; l'aide sous les postures dit ce que fera la pleine rage (« Pleine rage : +10 dégâts »). Le tuto (`CLASS_STEPS`) est réécrit : la bulle « ta rage redescend alors à 3 » disparaît, une bulle explique la pleine rage.
+
+### 12.3 Le paquet de départ
+
+**Base (décidé le 27 novembre 2026)** : Frappe ×3, Parade ×4, **Frappe héroïque ×2**, Cri de guerre ×1.
+
+**Il suit l'arbre principal** (comme le Mage, `starterSwaps` dans `classes.ts`) :
+
+| Arbre principal | Changement |
+|---|---|
+| Aucun, ou Armes | Paquet de base |
+| Fureur | 2 Frappes → 2 **Coups de folie** |
+| Protection | 2 Parades → 2 **Levées de bouclier** |
+
+### 12.4 Les talents
+
+| Palier | ⚔️ Armes | 🔥 Fureur | 🛡️ Protection |
+|---|---|---|---|
+| 1 | Lame aiguisée · **Colère intérieure** (vient de Fureur) | Cruauté · **Robuste** (vient de Protection, **+10 PV max** au lieu de +8) | Bouclier lourd · **Voix de stentor** (vient de Fureur) |
+| 2 | **Brise-armure** (nouveau) · **Entaille** (revue) | **Plaies profondes** (vient d'Armes) · **Soif de sang** (nouveau) | Garde haute · Présence menaçante |
+| 3 | Coup de pommeau · Impact | **Deux armes** (nouveau) · **Régénération enragée** (nouveau sort) | Rempart · Cri de défi |
+| 4 | Implacable · Arme lourde | Témérité · Frénésie | Dernier rempart · Quatrième emplacement |
+| 5 | Frappe mortelle | Sanguinaire (**soigne 5**, + : 7) | Heurt de bouclier (**revu**) |
+
+**Les nouveautés** (textes proposés, 72 caractères au plus) :
+
+| Talent | Texte |
+|---|---|
+| Brise-armure | Armure fracassée dure 1 tour de plus. |
+| Entaille (revue) | Tes Attaques à 2 énergie ou plus appliquent Armure fracassée 1 tour. |
+| Soif de sang | Tes Attaques sur un ennemi qui Saigne te soignent 1 PV. |
+| Deux armes | Ton 2ᵉ bijou devient une main gauche : il peut porter une arme. |
+| Régénération enragée | Sort, 0 énergie, 1 fois par combat : dépense ta rage, soigne 2 PV par point. |
+
+**Deux armes** : l'emplacement `bijou2` accepte une arme de mêlée ; **ses effets comptent entièrement** (elle coûte déjà un bijou ; le bot dira si c'est trop fort). Affiché « Main gauche » dans l'équipement. Les talents étant copiés dans la run au départ, une arme en main gauche reste valable toute l'expédition. À vérifier : le butin propose bien une arme pour cet emplacement, et le Râtelier (légendaire emporté) ne bloque pas la main gauche.
+
+**Talents retirés (décidé le 27 novembre 2026)** : Maîtrise tactique (sans objet), Main gauche, Fureur sans fin. Le sort **Rage du berserker** quitte les talents et rejoint le butin des gardiens (avec Cri de commandement et Vague de choc). Chaque classe garde 27 talents.
+
+### 12.5 Les cartes : 54 (52 + 2 nouvelles)
+
+| Groupe | Cartes | Nombre |
+|---|---|---|
+| Tronc commun | Enchaînement, Coup de tonnerre, Interception, Ignorer la douleur, Cri de bataille, Résolution, Désarmement, Coup de semonce, Inébranlable, Parade ripostée, Soif de bataille, Hurlement furieux | 12 |
+| ⚔️ Armes | Exécution, Fracasser armure, Fulgurance, Frappe écrasante, Coup de grâce, Balayage, Concentration martiale, Frappe du colosse, Tempête d'acier, Maître d'armes, Frappe mortelle, **Frappe brutale**, **Brise-guerre** | 13 |
+| 🔥 Fureur | Taillade, Pourfendre, Entaille profonde, Coup de folie, Rage sanglante, Frappe frénétique, Ruée sanguinaire, Tourbillon, Enragé, Rafale, Ambidextrie, Furie croissante, Fureur suicidaire, Furie inextinguible, Sanguinaire | 15 |
+| 🛡️ Protection | Coup de bouclier, Cri démoralisant, Cri d'intimidation, Cri de ralliement, Levée de bouclier, Vengeance, Provocation, Charge du bouclier, Ténacité, Peau de fer, Riposte au bouclier, Garde de fer, Bastion, Heurt de bouclier | 14 |
+
+**Les 2 nouvelles cartes d'Armes :**
+
+| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
+|---|---|---|---|---|---|
+| **Frappe brutale** | 1 + 2 rage | Attaque | C | Inflige 12 dégâts. | 16 dégâts |
+| **Brise-guerre** | 2 + 3 rage | Attaque | R | Inflige 12 dégâts à tous les ennemis. Armure fracassée 2 tours. | 16 dégâts |
+
+**Cartes revues :**
+- **Sanguinaire** : soigne 5 PV (+ : 7) au lieu de 2 (4).
+- **Heurt de bouclier** : inflige le **blocage gagné ce tour-ci + 6** (+ : + 12), au lieu du blocage actuel + 4. Raison : le blocage du Guerrier disparaît à chaque tour, il montait rarement assez (§11).
+- **Furie inextinguible** : inchangée (rage maximale 15 : la pleine rage arrive plus tard, mais nourrit une plus grosse Exécution).
+
+**Les Cris** (mot-clé **Cri** dans `keywords.ts`) : une Compétence qui touche tous les ennemis ou te renforce, et **donne 1 rage** (Voix de stentor : +1 rage, débuffs +1 tour). Cris de Protection : Cri démoralisant, Cri d'intimidation, Cri de ralliement, Cri de défi (sort) ; Cri de commandement reste un sort de butin ; Cri de guerre et Cri de bataille restent communs. Les textes de Cri d'intimidation et Cri de ralliement gagnent « Gagne 1 rage ».
+
+### 12.6 Ce qui ne change pas
+
+Les gains de rage, Charge, les autres cartes et sorts, Brisemonts et sa quête, la Malédiction de lignée (forcé en Berserker 2 tours : elle déclenche maintenant aussi la pleine rage en zone, à vérifier au test).
+
+### 12.7 La mise en route (prévue avec le Paladin et le Chasseur Survie)
+
+1. **Bot d'abord** : il apprend à changer de posture (une action de plus dans `candidates`) et à valoir la pleine rage dans `evaluate()` (sinon il ne l'attend jamais). Refaire la mesure actuelle avec lui (point de départ).
+2. **Moteur** : pleine rage (`gainRage`, `playCard`, `actions.ts`), postures sans plafond de rage (`changePosture`, clé `postureRage` retirée d'`ItemEffects`), posture de départ (`createCombat`), `starterSwaps` du Guerrier, talents (`talents.ts`, `talent_icons.ts`, `TALENT_REFS`), cartes (`cards.ts` : 2 nouvelles, déplacements d'arbre, Sanguinaire, Heurt de bouclier, Cris), sorts (`spells.ts` : Régénération enragée ; Rage du berserker dans `lootSpells`), Deux armes (`items.ts`, `allowedSlots` dans `run.ts`, équipement dans `ui.ts`). Migration `save.ts` seulement si un champ de run change.
+3. **Interface** : jauge et aide des postures, tuto, illustrations des 2 cartes et des icônes des nouveaux talents (`tools/pixel`).
+4. **Tests** : pleine rage dans chaque posture, Exécution à pleine rage, posture de départ, paquet par arbre, Deux armes, nombre de talents ; `cardtext` (72 caractères).
+5. **Mesures** (200 runs) : niveau 1 (cible : Vulkhar battu en moins de 12 tours, run 0-10 %), niveau 5 (15-30 %), les 3 arbres au niveau 10 (proches, 50-75 %). Régler +10 / 12 blocage, Deux armes et Exécution à pleine rage. Noter dans `EQUILIBRAGE.md`.
+6. **Docs** : réécrire les §2 à §9 de cette fiche avec les chiffres retenus, `ROADMAP.md`, la règle des soins du CLAUDE.md.
