@@ -29,7 +29,10 @@ export interface ClassInfo {
 export const CLASSES: ClassInfo[] = [
   {
     id: 'guerrier', name: 'Guerrier', color: '#C8402A', playable: true, difficulty: 1, hp: 80,
-    starterDeck: ['frappe', 'frappe', 'frappe', 'frappe', 'parade', 'parade', 'parade', 'parade', 'frappe_heroique', 'cri_de_guerre'],
+    // 27 novembre 2026 (fiche §12) : 2 Frappes héroïques, et le paquet suit l'arbre principal.
+    starterDeck: ['frappe', 'frappe', 'frappe', 'parade', 'parade', 'parade', 'parade', 'frappe_heroique', 'frappe_heroique', 'cri_de_guerre'],
+    // Une seule carte changée : 2 Coups de folie (0 énergie) portaient le Fureur à 84 % au bot (EQUILIBRAGE §28).
+    starterSwaps: { fureur: { from: 'frappe', to: 'coup_de_folie', count: 1 }, protection: { from: 'parade', to: 'levee_de_bouclier', count: 1 } },
     startSpell: 'charge', sprite: 'guerrier.png',
     quote: 'Chaque coup reçu me rend plus fort. Chaque coup donné rapproche la fin.',
     role: 'Frappe fort, ou encaisse tout', resource: 'Rage (0 à 10) et postures',
@@ -63,7 +66,13 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: true, difficulty: 3, hp: 70,
-    starterDeck: ['tir', 'tir', 'tir', 'tir', 'repli', 'repli', 'repli', 'repli', 'tir_ajuste', 'ordre_attaque'],
+    // 27 novembre 2026 : un peu de chaque arbre au départ ; l'arbre principal renforce le sien.
+    starterDeck: ['tir', 'tir', 'tir', 'tir', 'repli', 'repli', 'repli', 'tir_ajuste', 'ordre_attaque', 'piege_explosif'],
+    starterSwaps: {
+      precision: { from: 'ordre_attaque', to: 'tir_ajuste', count: 1 },
+      betes: { from: 'tir_ajuste', to: 'ordre_attaque', count: 1 },
+      survie: { from: 'tir_ajuste', to: 'piege_venin', count: 1 },
+    },
     startSpell: 'tir_arcanique', sprite: 'chasseur.png',
     quote: 'Mon arc vise, ma bête mord. Toi, tu cours.',
     role: 'Tire de loin, et vient à bout des hordes', resource: 'Compagnon animal, pièges et esprits',
@@ -71,7 +80,13 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'pretre', name: 'Prêtre', color: '#E0E0E8', playable: true, difficulty: 2, hp: 70,
-    starterDeck: ['chatiment', 'chatiment', 'chatiment', 'chatiment', 'priere_garde', 'priere_garde', 'priere_garde', 'priere_garde', 'soins_rapides', 'murmure_douleur'],
+    // 27 novembre 2026 : un peu de chaque arbre au départ (de l'Égide et de la Foi dès le premier combat) ; l'arbre principal renforce le sien.
+    starterDeck: ['chatiment', 'chatiment', 'chatiment', 'priere_garde', 'priere_garde', 'priere_garde', 'soins_rapides', 'egide_renforcee', 'chatiment_ardent', 'murmure_douleur'],
+    starterSwaps: {
+      discipline: { from: 'priere_garde', to: 'egide_renforcee', count: 1 },
+      sacre: { from: 'chatiment', to: 'chatiment_ardent', count: 1 },
+      ombre: { from: 'chatiment', to: 'attaque_mentale', count: 1 },
+    },
     startSpell: 'egide_sacree', sprite: 'pretre.png',
     quote: 'La lumière protège. L\'ombre dévore. Je porte les deux.',
     role: 'Protège par la lumière, ou ronge par l\'ombre', resource: 'Foi (0 à 10) et Égide',

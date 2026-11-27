@@ -687,3 +687,55 @@ Toutes les morts du Chasseur sont maintenant en **phase 2** (tours 10 à 15 souv
 | Survie, Champ de pièges à 2 Pièges | 30 % | 6 % | 6,0 |
 
 **Conclusion** : Survie écrase les groupes et peine contre les seigneurs (chapitre III atteint dans 96 % des runs, 32 % de victoires). Réduire Champ de pièges ne change presque rien : on ne touche pas aux chiffres. Refonte notée pour plus tard (fiche du Chasseur §13, issue #1) : les Pièges posés sur les ennemis, un seul de chaque type par ennemi, et le talent Loup solitaire.
+
+## 27. Les Pièges posés sur les ennemis (27 novembre 2026, soir)
+
+Refonte codée (fiche du Chasseur §13) : un Piège se pose sur un ennemi, un seul de chaque type par ennemi, et part quand il agit ; l'Explosif frappe l'ennemi piégé en plein et les autres à moitié ; Champ de pièges pose un Piège explosif sur chaque ennemi. Le bot vise avec ses Pièges (`hunterValue` dans `bot.ts` : l'Explosif sur un ennemi solide, le Givrant sur celui qui frappe fort).
+
+**Sonde du bot** (jetable ; run complète, niveau 10, 50 runs par case, ± 14 points), comparée au §26 :
+
+| Arbre principal | Difficulté 0 | Difficulté 15 | PV perdus par gardien |
+|---|---|---|---|
+| Précision 7 + Bêtes 3 | 64 % (60) | 20 % (18) | 6,5 (7,0) |
+| Bêtes 7 + Survie 3 | 42 % (50) | 2 % (6) | 6,2 (10,0) |
+| Survie 7 + Bêtes 3 | 28 % (32) | 8 % (8) | 6,2 (4,0) |
+
+**Conclusion** : rien ne bouge au-delà de la marge. Survie perd un peu de sa facilité contre les gardiens (6,2 PV au lieu de 4,0 : les groupes ne meurent plus tous avant d'agir) sans perdre de victoires. Survie reste l'arbre le plus faible : la suite, c'est le Loup solitaire (fiche §13.5).
+
+## 28. Le nouveau Guerrier : pleine rage et postures (27 novembre 2026)
+
+**Le constat** (export playtest du 27 novembre, fiche du Guerrier §12) : Guerrier 0/14, Vulkhar en 14 tours. Sonde du bot (niveau 1, Vulkhar seul, 40 combats) : 62 % des tours commencent à 10 rage (la rage déborde), la posture Berserker est un piège (5/40 contre 15/40 en Combat), et **le bot ne changeait jamais de posture**.
+
+**Ce qui est codé** : la pleine rage (à rage maximale, la prochaine Attaque qui blesse vide la jauge et ajoute l'effet de la posture), la rage gardée en changeant de posture, posture et paquet de départ selon l'arbre principal, 2 Frappes héroïques au départ, les arbres revus (Brise-armure, Entaille, Soif de sang, Deux armes, Régénération enragée ; Frappe brutale et Brise-guerre). Le bot change maintenant de posture (`candidates`) et compte la pleine rage prête (`warriorValue`).
+
+**Sonde Vulkhar** (niveau 1, 40 combats, chiffres du projet) : Vulkhar battu 15/40 → 26/40, tours commencés à rage maximale 62 % → 17 %, PV restants 19 → 30.
+
+**Runs complètes avec les chiffres du projet** (+10, +5 et tout le coup en zone, 12 blocage, 2 cartes changées par arbre ; 100 runs) : niveau 1 19 %, niveau 5 68 %, niveau 10 Protection 69 %, Armes 74 %, **Fureur 86 %** : trop fort. Sondes (Fureur 7 + Protection 3, 100 runs) : sans Deux armes 82 %, sans Soif de sang 85 %, départ en Combat 80 %, Sanguinaire à 2 PV 84 %, **sans les 2 Coups de folie 67 %**, 1 seul Coup de folie 70 %. C'est le piège connu : un Coup de folie (0 énergie, 2 coups, +1 rage) fait mieux qu'une Frappe sans rien coûter.
+
+**Point de départ refait avec la même sonde** (l'ancien Guerrier de `dev`, 100 runs) : niveau 1 6 % (Vulkhar 34 %), niveau 5 38 %, Fureur 7 + Protection 3 59 %.
+
+**Retenu** : pleine rage **Combat +6, Berserker +3 et la moitié du coup aux autres ennemis, Défensive 8 blocage** (`FULL_RAGE` dans `combat.ts`), et **une seule carte changée** dans le paquet de départ (1 Coup de folie en Fureur, 1 Levée de bouclier en Protection). 100 runs par profil :
+
+| Profil | Ancien Guerrier (même sonde) | Projet | Retenu | Vulkhar vaincu (retenu) |
+|---|---|---|---|---|
+| Niveau 1 | 6 % | 19 % | **6 %** | 46 % (34 % avant) |
+| Niveau 5 (Protection 3, Fureur 2) | 38 % | 68 % | **48 %** | 99 % |
+| Niveau 10 Protection 7 + Fureur 3 | — | 69 % | **65 %** | 99 % |
+| Niveau 10 Armes 7 + Fureur 3 | — | 74 % | **70 %** | 88 % |
+| Niveau 10 Fureur 7 + Protection 3 | 59 % | 86 % | **70 %** | 100 % |
+
+**Conclusion** : le niveau 1 garde la même difficulté sur la run, mais bat Vulkhar bien plus souvent (le mur du débutant) ; les 3 arbres du niveau 10 se tiennent (65 à 70 %). Le niveau 5 reste au-dessus de la cible (comme avant, à la marge près). À relire au prochain export : les vrais joueurs face à Vulkhar, et la posture qu'ils utilisent.
+
+## 29. Le paquet de départ du Prêtre (27 novembre 2026)
+
+Paquet mixte (3 Châtiment, 3 Prière de garde, Soins rapides, Égide renforcée, Châtiment ardent, Murmure de douleur), renforcé par l'arbre principal (Discipline : 2ᵉ Égide renforcée ; Sacré : 2ᵉ Châtiment ardent ; Ombre : Attaque mentale). Avant et après mesurés côte à côte avec le même bot, 100 runs par profil (± 5 à 10 points), difficulté 0.
+
+| Profil | Avant | Après | Vulkhar vaincu (avant → après) |
+|---|---|---|---|
+| Niveau 1 (aucun talent) | 10 % | 7 % | 31 → 36 % |
+| Niveau 5 (Discipline 3, Sacré 2) | 18 % | 20 % | 77 → 82 % |
+| Niveau 10 Discipline 7 + Sacré 3 | 49 % | **59 %** | 99 → 100 % |
+| Niveau 10 Ombre 7 + Sacré 3 | 59 % | 64 % | 98 → 100 % |
+| Niveau 10 Sacré 7 + Discipline 3 | 46 % | 42 % | 96 → 98 % |
+
+**Conclusion** : rien ne bouge au-delà de la marge, sauf Discipline qui remonte (+10 points, à la limite de la marge) : la 2ᵉ Égide renforcée sert l'arbre de l'Égide dès le départ. Les trois arbres restent dans la cible (42 à 64 %) ; Sacré est maintenant le plus bas, à relire si les joueurs le trouvent faible. Le niveau 1 bat un peu plus souvent Vulkhar.

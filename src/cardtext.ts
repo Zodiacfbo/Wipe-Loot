@@ -38,6 +38,23 @@ export function placeHit(text: string, hit: number | null | undefined): HitText 
   return null;
 }
 
+/**
+ * Le blocage corrigé (Robustesse, posture, objets…) : le seul « N blocage » du texte, s'il change.
+ * Renvoie le texte coupé autour du chiffre, comme `placeHit`, ou null.
+ */
+export function placeBlock(text: string, block: number | null | undefined): HitText | null {
+  if (block === null || block === undefined) return null;
+  const all = [...text.matchAll(/(\d+)([\s ]+blocage)/g)];
+  if (all.length !== 1) return null;
+  const m = all[0];
+  const rest = text.slice(m.index! + m[0].length);
+  // « 2 blocage par carte », « 3 blocage au début de ton tour » : pas un gain immédiat et unique.
+  if (/^[\s ]+(par|à chaque|au début|en fin|à la fin)/.test(rest)) return null;
+  if (/(Début de ton tour|Fin de ton tour|Quand|Chaque fois)/i.test(text.slice(0, m.index))) return null;
+  if (Number(m[1]) === block) return null;
+  return { before: text.slice(0, m.index), after: text.slice(m.index! + m[1].length), base: Number(m[1]) };
+}
+
 /** Les mots qui passent du début du texte au bandeau de la carte. */
 const RIBBON_PREFIX = /^(Coup final|Sceau|Aura|Ouverture|Poison d'arme|Piège|Esprit|Ours|Félin|Astrale|Totem|Arme)[\s\u00a0]*:[\s\u00a0]*/;
 

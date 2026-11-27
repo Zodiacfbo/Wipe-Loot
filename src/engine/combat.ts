@@ -5,6 +5,7 @@ import {
   applyBrulure,
   applyGel,
   applySaignement,
+  applyFracture,
   gainCharges,
   isBossEnemy,
   emptyDebuffs,
@@ -30,7 +31,7 @@ import { addHallucination, folieStartTurn, gainFolie } from './folie';
 import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
 import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
 import { afterPaladinCard, censureTick, hasSeal, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn, SEAL_JUDGE_TARGET } from './paladin';
-import { afterHunterCard, flecheStartTurn, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
+import { afterHunterCard, flecheStartTurn, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps, trapCardBlock, trapTargetBlock } from './chasseur';
 import { afterDruidCard, druidDamageTaken, druidEndTurn, druidOnAttacked, druidStartCombat, druidStartTurn, enterForm, isDruid, setForm } from './druide';
 import { afterShamanCard, clearTotems, isShaman, shamanOnAttacked, shamanStartCombat, shamanStartTurn, totemsAct, windfuryExtra } from './chaman';
 import { SPELLS, spellCooldown } from './spells';
@@ -311,6 +312,7 @@ export function startPlayerTurn(c: CombatState): void {
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
+  p.blockGained = 0;
   c.bleedDoneThisTurn = false;
   if (c.turn > 1) {
     for (const s of c.spells) s.cooldown = Math.max(0, s.cooldown - 1);
@@ -495,6 +497,8 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return false;
   // Voleur : une Ouverture ne se joue qu'en Camouflage.
   if (def.opener && !stealthed(c, def.type === 'Attaque')) return false;
+  // Chasseur : une carte Piège sans ennemi libre pour ce type.
+  if (trapCardBlock(c, card.id)) return false;
   return true;
 }
 
@@ -513,7 +517,9 @@ export function cardBlockReason(c: CombatState, handIndex: number): string | nul
   const shards = shardCost(c, card.id, card.upgraded);
   if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return shards === 'all' ? 'Il te faut au moins 1 éclat d\'âme.' : `Pas assez d'éclats d'âme : il en faut ${shards}.`;
   if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return def.faithCost === 'all' ? 'Il te faut de la Foi.' : `Pas assez de Foi : il en faut ${def.faithCost}.`;
-  if (def.opener) return 'Une Ouverture ne se joue que Camouflé.';
+  if (def.opener && !stealthed(c, def.type === 'Attaque')) return 'Une Ouverture ne se joue que Camouflé.';
+  const trap = trapCardBlock(c, card.id);
+  if (trap) return trap;
   return 'Cette carte ne peut pas être jouée maintenant.';
 }
 
@@ -533,6 +539,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const def = CARDS[card.id];
   const target = resolveTarget(c, cardNeedsTarget(c, card.id), targetUid, def.type === 'Attaque');
   if (target === 'invalid') return false;
+  // Chasseur : un seul Piège de chaque type par ennemi.
+  if (target && trapTargetBlock(card.id, target)) return false;
 
   const p = c.player;
   const cost = energyCost(c, card.id, card.upgraded);
@@ -552,6 +560,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   else if (c.freeNextSpell && def.type === 'Sort') c.freeNextSpell = false;
   c.cardsThisTurn = (c.cardsThisTurn ?? 0) + 1;
   c.firstCardDone = true;
+  // Guerrier : une Attaque jouée à rage maximale libère la pleine rage (§12 de la fiche).
+  const releasing = def.type === 'Attaque' && isWarrior(c) && p.maxRage > 0 && p.rage >= p.maxRage;
   let rageSpent = 0;
   if (def.rageCost === 'all') {
     rageSpent = p.rage;
@@ -590,6 +600,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     return true;
   }
   if (card.id === 'hallucination') dreamEnergy(c);
+  if (releasing) c.fullRage = { posture: p.posture, bonus: p.posture === 'combat' ? FULL_RAGE.combat : p.posture === 'berserker' ? FULL_RAGE.berserker : 0 };
   const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent, comboSpent };
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
@@ -637,8 +648,10 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     if (c.attacksThisTurn === 3 && power(c, 'rafale')) drawCards(c, power(c, 'rafale'));
     // Frénésie : la 3e Attaque du tour rend de l'énergie.
     if (c.attacksThisTurn === 3 && c.gear?.frenzyEnergy) p.energy += c.gear.frenzyEnergy;
-    // Entaille : les Attaques à 2 énergie ou plus font saigner.
-    if (cost >= 2 && ctx.dealt && target && !target.dead && c.gear?.heavyBleed) applySaignement(target, c.gear.heavyBleed, c);
+    // Entaille : les Attaques à 2 énergie ou plus fracassent l'armure.
+    if (cost >= 2 && ctx.dealt && target && !target.dead && c.gear?.heavyFracture) applyFracture(c, target, c.gear.heavyFracture);
+    // Soif de sang : frapper un ennemi qui Saigne soigne.
+    if (ctx.dealt && target && target.buffs.saignement > 0 && c.gear?.bleedLeech) healPlayer(c, c.gear.bleedLeech);
     // Entaille profonde : les Attaques à rage qui touchent font saigner.
     if (def.rageCost !== undefined && ctx.dealt && target && !target.dead && power(c, 'entaille_profonde')) {
       applySaignement(target, power(c, 'entaille_profonde'), c);
@@ -676,6 +689,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     }
     if (g.healOnAttack) healPlayer(c, g.healOnAttack);
   }
+  if (releasing) releaseFullRage(c, ctx.dealt);
   // Sceptre de Brannoc : la version incantation soigne quand un Sort touche.
   if (def.type === 'Sort' && ctx.dealt && c.gear?.healOnAttack) healPlayer(c, c.gear.healOnAttack);
   if (def.type === 'Attaque' || def.type === 'Sort') c.firstAttackDone = true;
@@ -726,13 +740,51 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   return true;
 }
 
+/** Les chiffres de la pleine rage : le bonus du premier coup (Combat, Berserker), la part de ce coup portée aux
+ * autres ennemis en Berserker, et le blocage en Défensive. Un objet (et non des constantes) pour que les sondes du bot les règlent. */
+// 27 novembre 2026 : +10 / +5 et tout le coup / 12 rendaient le Guerrier trop fort au bot (EQUILIBRAGE §28).
+export const FULL_RAGE = { combat: 6, berserker: 3, splash: 0.5, block: 8 };
+
+const isWarrior = (c: CombatState) => (c.classId ?? 'guerrier') === 'guerrier';
+
+/** La pleine rage est-elle prête (la prochaine Attaque qui touche la libère) ? */
+export function fullRageReady(c: CombatState): boolean {
+  return isWarrior(c) && c.player.maxRage > 0 && c.player.rage >= c.player.maxRage;
+}
+
+/** Après l'Attaque qui libère la pleine rage : le coup en zone (Berserker), le blocage (Défensive), puis la rage se vide.
+ * Une Attaque qui n'a touché personne ne libère rien : la rage reste pleine. */
+function releaseFullRage(c: CombatState, dealt: boolean): void {
+  const fr = c.fullRage;
+  c.fullRage = undefined;
+  if (!fr || !dealt) return;
+  const p = c.player;
+  const splash = Math.floor((fr.first ?? 0) * FULL_RAGE.splash);
+  if (fr.posture === 'berserker' && splash > 0) {
+    for (const e of livingEnemies(c)) {
+      if (e.uid === fr.targetUid || e.submerged) continue;
+      fx(c, { kind: 'hit', from: 'player', to: e.uid, amount: splash, blocked: Math.min(e.block, splash), ranged: false });
+      damageEnemy(c, e, splash);
+    }
+  }
+  if (fr.posture === 'defensive') {
+    p.block += FULL_RAGE.block;
+    p.blockGained = (p.blockGained ?? 0) + FULL_RAGE.block;
+    fx(c, { kind: 'block', who: 'player', amount: FULL_RAGE.block });
+  }
+  p.rage = 0;
+  fx(c, { kind: 'buff', who: 'player', label: 'Pleine rage !' });
+  log(c, fr.posture === 'combat' ? `Pleine rage : +${FULL_RAGE.combat} dégâts.`
+    : fr.posture === 'berserker' ? 'Pleine rage : le coup frappe tous les ennemis.'
+      : `Pleine rage : +${FULL_RAGE.block} blocage.`);
+}
+
 export function changePosture(c: CombatState, posture: Posture): boolean {
   const p = c.player;
   if (c.phase !== 'player' || p.postureChanged || p.posture === posture) return false;
   if ((p.debuffs?.lignee ?? 0) > 0) return false; // Malédiction de lignée : forcé en Berserker
   p.posture = posture;
   p.postureChanged = true;
-  p.rage = Math.min(p.rage, c.gear?.postureRage ?? 3);
   log(c, `Posture : ${posture === 'combat' ? 'Combat' : posture === 'berserker' ? 'Berserker' : 'Défensive'}.`);
   return true;
 }
@@ -1095,8 +1147,6 @@ function enemyTurn(c: CombatState): void {
 }
 
 function enemyTurnInner(c: CombatState): void {
-  // Chasseur : les Pièges se déclenchent sur le premier ennemi qui agit.
-  springTraps(c);
   for (const e of [...c.enemies]) {
     c.dotTicking = false;
     if (c.phase !== 'player') break;
@@ -1241,6 +1291,9 @@ function enemyTurnInner(c: CombatState): void {
       c.orbUsed = true;
       fx(c, { kind: 'interrupt', who: e.uid });
       log(c, `L'Orbe de distorsion annule ${e.intent.cast} !`);
+    } else if (!springTraps(c, e)) {
+      // Chasseur : ses Pièges sont partis quand il a commencé à agir, et l'ont tué ou Givré.
+      if (c.phase !== 'player') break;
     } else {
       resolveIntent(c, e, e.intent);
       // Potion de vitesse : Grizzik agit une deuxième fois.

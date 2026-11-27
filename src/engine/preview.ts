@@ -20,6 +20,8 @@ export interface CardPreview {
   enemies: EnemyPreview[];
   /** Les coups portés par la carte (dégâts avant blocage), dans l'ordre. */
   hits: number[];
+  /** Le blocage gagné par le joueur, à chaque fois (Robustesse, posture, objets compris). */
+  blocks: number[];
 }
 
 function simulate(c: CombatState, index: number, targetUid: number | undefined, rngShift = 0): CardPreview | null {
@@ -38,7 +40,8 @@ function simulate(c: CombatState, index: number, targetUid: number | undefined, 
     if (hp > 0 || block > 0 || kill) enemies.push({ uid: e.uid, hp, block, kill });
   }
   const hits = (copy.fx ?? []).flatMap((f) => (f.kind === 'hit' && f.from === 'player' && f.to !== 'player' ? [f.amount] : []));
-  return { enemies, hits };
+  const blocks = (copy.fx ?? []).flatMap((f) => (f.kind === 'block' && f.who === 'player' ? [f.amount] : []));
+  return { enemies, hits, blocks };
 }
 
 const same = (a: CardPreview | null, b: CardPreview | null) => JSON.stringify(a?.enemies) === JSON.stringify(b?.enemies);
@@ -95,6 +98,26 @@ export function cardHitValue(c: CombatState, index: number): number | null {
   // Des dégâts tirés au hasard (« entre 4 et 16 ») : le texte reste tel quel.
   if (JSON.stringify(sim.hits) !== JSON.stringify(simulate(state, index, target, 0x9e3779b9)?.hits)) return null;
   return sim.hits.every((h) => h === sim.hits[0]) ? sim.hits[0] : null;
+}
+
+/**
+ * Le blocage que la carte donnerait, pour corriger le chiffre de son texte (« 5 blocage » → 7 avec 2 Robustesse).
+ * null : pas de blocage tout de suite, plusieurs gains différents, ou un résultat qui dépend du hasard.
+ */
+export function cardBlockValue(c: CombatState, index: number): number | null {
+  const card = c.hand[index];
+  if (!card || !canPlayCard(c, index)) return null;
+  const def = CARDS[card.id];
+  let target: number | undefined;
+  if (cardNeedsTarget(c, card.id)) {
+    const t = resolveTarget(c, true, firstTarget(c, def.type === 'Attaque'), def.type === 'Attaque');
+    if (t === 'invalid' || t === null) return null;
+    target = t.uid;
+  }
+  const sim = simulate(c, index, target);
+  if (!sim || sim.blocks.length === 0) return null;
+  if (JSON.stringify(sim.blocks) !== JSON.stringify(simulate(c, index, target, 0x9e3779b9)?.blocks)) return null;
+  return sim.blocks.every((b) => b === sim.blocks[0]) ? sim.blocks[0] : null;
 }
 
 function firstTarget(c: CombatState, attack: boolean): number | undefined {

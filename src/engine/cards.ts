@@ -6,6 +6,7 @@ import {
   fx,
   onHpLost,
   applySaignement,
+  applyFracture,
   drawCards,
   gainBlock,
   damageEnemy,
@@ -176,9 +177,9 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   fracasser_armure: {
     id: 'fracasser_armure', name: 'Fracasser armure', type: 'Compétence', rarity: 'commune', cost: 1,
     needsTarget: true, icon: 'epee',
-    text: (up) => `Armure fracassée ${up ? 3 : 2} tours. Gagne 2 rage.`,
+    text: (up, g) => `Armure fracassée ${(up ? 3 : 2) + (g?.fractureDuration ?? 0)} tours. Gagne 2 rage.`,
     play: (ctx) => {
-      if (ctx.target) ctx.target.buffs.armureFracassee += ctx.up ? 3 : 2;
+      if (ctx.target) applyFracture(ctx.c, ctx.target, ctx.up ? 3 : 2);
       gainRage(ctx.c, 2);
     },
   },
@@ -377,7 +378,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   cri_intimidation: {
     id: 'cri_intimidation', name: 'Cri d\'intimidation', type: 'Compétence', rarity: 'peu_commune', cost: 1,
     needsTarget: true, exhaust: true, icon: 'pouvoir',
-    text: (up) => `La cible (sauf boss) a Peur. Les autres : Démoralisé ${up ? 2 : 1}. Épuisé.`,
+    text: (up) => `Cible (sauf boss) : Peur. Autres : Démoralisé ${up ? 2 : 1}. +1 rage. Épuisé.`,
     play: (ctx) => {
       const t = ctx.target;
       if (t && !isBoss(t)) {
@@ -385,6 +386,7 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
         fx(ctx.c, { kind: 'buff', who: t.uid, label: 'Apeuré' });
       }
       for (const e of livingEnemies(ctx.c)) if (e !== t) e.buffs.demoralise = Math.max(e.buffs.demoralise, ctx.up ? 2 : 1);
+      gainRage(ctx.c, 1);
     },
   },
   concentration_martiale: {
@@ -396,12 +398,12 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   frappe_du_colosse: {
     id: 'frappe_du_colosse', name: 'Frappe du colosse', type: 'Attaque', rarity: 'rare', cost: 2, needsTarget: true,
     icon: 'epee',
-    text: (up) => `Retire tout son blocage. ${up ? 14 : 10} dégâts. Armure fracassée 2.`,
+    text: (up, g) => `Retire tout son blocage. ${up ? 14 : 10} dégâts. Armure fracassée ${2 + (g?.fractureDuration ?? 0)}.`,
     play: (ctx) => {
       if (!ctx.target) return;
       ctx.target.block = 0;
       hit(ctx, ctx.up ? 14 : 10);
-      if (!ctx.target.dead) ctx.target.buffs.armureFracassee += 2;
+      applyFracture(ctx.c, ctx.target, 2);
     },
   },
   tempete_acier: {
@@ -423,13 +425,31 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   frappe_mortelle: {
     id: 'frappe_mortelle', name: 'Frappe mortelle', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 4,
     needsTarget: true, icon: 'epee',
-    text: (up) => `${up ? 24 : 18} dégâts. Ne peut plus être soigné. Armure fracassée 1.`,
+    text: (up, g) => `${up ? 24 : 18} dégâts. Ne peut plus être soigné. Armure fracassée ${1 + (g?.fractureDuration ?? 0)}.`,
     play: (ctx) => {
       if (!ctx.target) return;
       hit(ctx, ctx.up ? 24 : 18, { rageCard: true });
       if (!ctx.target.dead) {
         ctx.target.noHeal = true;
-        ctx.target.buffs.armureFracassee += 1;
+        applyFracture(ctx.c, ctx.target, 1);
+      }
+    },
+  },
+  frappe_brutale: {
+    id: 'frappe_brutale', name: 'Frappe brutale', type: 'Attaque', rarity: 'commune', cost: 1, rageCost: 2,
+    needsTarget: true, icon: 'epee',
+    text: (up) => `Inflige ${up ? 16 : 12} dégâts.`,
+    play: (ctx) => hit(ctx, ctx.up ? 16 : 12, { rageCard: true }),
+  },
+  brise_guerre: {
+    id: 'brise_guerre', name: 'Brise-guerre', type: 'Attaque', rarity: 'rare', cost: 2, rageCost: 3,
+    needsTarget: false, icon: 'epee',
+    text: (up, g) => `${up ? 16 : 12} dégâts à tous les ennemis. Armure fracassée ${2 + (g?.fractureDuration ?? 0)}.`,
+    play: (ctx) => {
+      for (const e of livingEnemies(ctx.c)) {
+        if (e.submerged) continue;
+        if (playerAttack(ctx.c, e, ctx.up ? 16 : 12, { rageCard: true }) > 0) ctx.dealt = true;
+        applyFracture(ctx.c, e, 2);
       }
     },
   },
@@ -527,10 +547,10 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   sanguinaire: {
     id: 'sanguinaire', name: 'Sanguinaire', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 3, needsTarget: true,
     icon: 'epee',
-    text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 4 : 2} PV.`,
+    text: (up) => `${up ? 16 : 12} dégâts. Te soigne de ${up ? 7 : 5} PV.`,
     play: (ctx) => {
       hit(ctx, ctx.up ? 16 : 12, { rageCard: true });
-      healPlayer(ctx.c, ctx.up ? 4 : 2);
+      healPlayer(ctx.c, ctx.up ? 7 : 5);
     },
   },
 
@@ -606,9 +626,10 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   cri_de_ralliement: {
     id: 'cri_de_ralliement', name: 'Cri de ralliement', type: 'Compétence', rarity: 'peu_commune', cost: 1,
     needsTarget: false, exhaust: true, icon: 'bouclier',
-    text: (up) => `${up ? 9 : 6} blocage et 1 Robustesse. Épuisé.`,
+    text: (up) => `${up ? 9 : 6} blocage et 1 Robustesse. +1 rage. Épuisé.`,
     play: (ctx) => {
       ctx.c.player.robustesse += 1;
+      gainRage(ctx.c, 1);
       gainBlock(ctx.c, ctx.up ? 9 : 6);
     },
   },
@@ -632,8 +653,8 @@ const WARRIOR_CARDS: Record<string, CardDef> = {
   heurt_de_bouclier: {
     id: 'heurt_de_bouclier', name: 'Heurt de bouclier', type: 'Attaque', rarity: 'epique', cost: 1, rageCost: 2,
     needsTarget: true, icon: 'bouclier',
-    text: (up) => `Dégâts égaux à ton blocage + ${up ? 10 : 4}.`,
-    play: (ctx) => hit(ctx, ctx.c.player.block + (ctx.up ? 10 : 4), { rageCard: true }),
+    text: (up) => `Dégâts : blocage gagné ce tour-ci + ${up ? 12 : 6}.`,
+    play: (ctx) => hit(ctx, (ctx.c.player.blockGained ?? 0) + (ctx.up ? 12 : 6), { rageCard: true }),
   },
 
   // --- Carte-statut ---

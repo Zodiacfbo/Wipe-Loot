@@ -46,9 +46,9 @@ export const COMBAT_END: TutoStep = { cible: ['.topbar [data-action="tuto"]'], t
 export const CLASS_STEPS: Record<string, TutoStep[]> = {
   guerrier: [
     { cible: ['.jauges .rage'], ligne: true, icone: 'cri_de_guerre', texte: 'Ta **rage**, de 0 à 10 : +1 quand tu joues une Attaque ou que tu perds des PV. Elle repart à 0 à chaque combat.' },
-    { cible: ['.main .carte:has(.cout-rage)', '.main'], icone: 'frappe_heroique', texte: 'Certaines cartes coûtent aussi de la **rage** (le chiffre rouge). Les plus fortes en demandent beaucoup.' },
-    { cible: ['.postures'], icone: 'coup_de_bouclier', texte: '**Combat** : +3 dégâts aux cartes à rage. **Berserker** : plus de rage, mais tu prends plus cher. **Défensive** : plus de blocage, moins de dégâts.' },
-    { cible: ['.postures'], icone: 'concentration_martiale', texte: 'Changer de **posture** est gratuit, une fois par tour. Mais ta rage redescend alors à 3.' },
+    { cible: ['.jauges .rage'], ligne: true, icone: 'execution', texte: 'À 10, c\'est la **pleine rage** : ta prochaine Attaque la libère, avec un bonus qui dépend de ta posture. Puis la jauge se vide.' },
+    { cible: ['.main .carte:has(.cout-rage)', '.main'], icone: 'frappe_heroique', texte: 'Tu peux aussi dépenser ta **rage** plus tôt, avec les cartes qui en coûtent (le chiffre rouge).' },
+    { cible: ['.postures'], icone: 'coup_de_bouclier', texte: '**Combat** : pleine rage +6 dégâts. **Berserker** : elle frappe aussi tous les ennemis. **Défensive** : +8 blocage. Changer est gratuit, une fois par tour.' },
   ],
   mage: [
     { cible: ['.ennemis'], icone: 'boule_de_feu', texte: '**Brûlure** : la cible perd des PV à chaque tour, un peu moins à chaque fois.' },
@@ -69,12 +69,12 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
   chasseur: [
     { cible: ['.familier.compagnon', '.chs-tuiles'], icone: 'ordre_attaque', texte: 'Ton **compagnon** agit seul à la fin de chacun de tes tours, sur ta dernière cible. Il ne peut pas mourir. Les cartes **Ordre** le font agir tout de suite.' },
     { cible: ['.ennemis'], icone: 'marque_proie', texte: '**Marque** une cible : tes Attaques et ton compagnon lui font plus mal. Une seule à la fois.' },
-    { cible: ['.chs-tuiles'], icone: 'piege_givrant', texte: 'Les **Pièges** (3 au plus) se déclenchent sur le premier ennemi qui agit, marqué « ici ».' },
+    { cible: ['.ennemi .pieges', '.ennemi .ordre', '.ennemi'], icone: 'piege_givrant', texte: 'Les **Pièges** se posent sur un ennemi (un seul de chaque type) et partent quand il agit. Le numéro dit qui agit en premier.' },
     { cible: ['.chs-tuiles .chs-tuile:nth-child(2)', '.chs-tuiles'], icone: 'esprit_aigle', texte: 'Un **Esprit** animal te renforce tout le combat. Un seul à la fois.' },
   ],
   pretre: [
     { cible: ['.barre-egide'], ligne: true, icone: 'egide_renforcee', texte: 'L\'**Égide** est un bouclier qui reste d\'un tour à l\'autre, jusqu\'à 30. Les soins en trop deviennent de l\'Égide.' },
-    { cible: ['.jauges .foi'], ligne: true, icone: 'courroux_celeste', texte: '**Foi**, de 0 à 10 : +1 à chaque soin ou Égide. Certaines cartes la dépensent pour frapper fort.' },
+    { cible: ['.jauges .foi'], ligne: true, icone: 'courroux_celeste', texte: '**Foi**, de 0 à 10 : chaque carte qui soigne ou donne de l\'Égide rapporte 1 Foi. D\'autres la dépensent pour frapper fort.' },
     { cible: ['.main'], icone: 'soins_rapides', texte: 'Soigne-toi et protège-toi tôt : ta puissance vient de là.' },
   ],
   demoniste: [

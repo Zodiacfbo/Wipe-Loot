@@ -121,6 +121,11 @@ img[data-anime] {
 .rage { flex: 1; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; }
 .rage i { height: 10px; border-radius: 2px; background: #3a2621; }
 .rage i.plein { background: var(--rage); }
+/* Pleine rage (Guerrier) : la jauge s'allume. */
+.rage.pleine i.plein { background: #ff7a3a; box-shadow: 0 0 6px #ff6a2a; animation: pleine-rage 0.8s ease-in-out infinite alternate; }
+@keyframes pleine-rage { from { filter: brightness(1); } to { filter: brightness(1.35); } }
+.aide-posture .pleine-rage { color: #ff8a4a; }
+.aide-posture .mot-pleine { color: #f0a07a; }
 .charges-label { width: auto; color: #9fc3ff; }
 .rage.charges { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .rage.charges i { height: 14px; border-radius: 50%; background: #1e2a3d; border: 1px solid #3c5a86; }
@@ -726,10 +731,16 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .carte.totem-feu .type { color: #ffb05a; }
 .carte.totem-eau .type { color: #8cc8f5; }
 .carte.totem-air .type { color: #e6f4ff; }
-.chs-cible, .chs-ici { position: absolute; top: 34px; z-index: 5; display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; padding: 1px 6px 1px 3px; border-radius: 10px; white-space: nowrap; pointer-events: none; }
-.chs-cible { right: 0; background: #22301b; border: 1px solid #8fd49a; color: #cfeec0; }
-.chs-ici { left: 0; background: #3a2414; border: 1px solid #ff9a2a; color: #ffc27a; }
-.chs-cible svg, .chs-ici svg { width: 14px; height: 14px; }
+.chs-cible { position: absolute; top: 34px; right: 0; z-index: 5; display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; padding: 1px 6px 1px 3px; border-radius: 10px; white-space: nowrap; pointer-events: none; background: #22301b; border: 1px solid #8fd49a; color: #cfeec0; }
+.chs-cible svg { width: 14px; height: 14px; }
+/* Chasseur : l'ordre d'action des ennemis et les Pièges posés sous leur barre de vie (maquette A, 27 novembre 2026). */
+.ennemi .nom .ordre { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-right: 4px; border-radius: 50%; background: #1d2614; border: 1.5px solid #8fd49a; color: #cfeec0; font-size: 10px; font-weight: 800; vertical-align: 1px; }
+.ennemi .pieges { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: 3px; }
+.ennemi .piege { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 6px; font-size: 11px; font-weight: 700; white-space: nowrap; border: 1px solid #ff9a2a; background: #3a2414; color: #ffc27a; }
+.ennemi .piege svg { width: 13px; height: 13px; }
+.ennemi.piege-bloque { position: relative; }
+.ennemi.piege-bloque > :not(.piege-deja) { filter: grayscale(1) brightness(0.55); }
+.piege-deja { position: absolute; left: 50%; top: 45%; transform: translateX(-50%); z-index: 6; padding: 3px 8px; border-radius: 6px; background: #111; border: 1px solid #888; color: #eee; font-size: 12px; font-weight: 700; white-space: nowrap; pointer-events: none; }
 .chip.marque { border-color: #8fd49a; color: #cfeec0; }
 .heros .compagnon.enfui { opacity: 0.3; filter: grayscale(1); }
 .heros .loup-spectral { left: -40px; top: 30px; opacity: 0.55; filter: hue-rotate(160deg) brightness(1.4); }

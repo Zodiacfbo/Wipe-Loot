@@ -63,10 +63,14 @@ L'**Égide** est un bouclier sacré propre au Prêtre.
 
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Châtiment** | 4 | 1 | Sort (Sacré) | Inflige 7 dégâts. | 10 dégâts |
-| **Prière de garde** | 4 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
+| **Châtiment** | 3 | 1 | Sort (Sacré) | Inflige 7 dégâts. | 10 dégâts |
+| **Prière de garde** | 3 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
 | **Soins rapides** | 1 | 1 | Compétence | Soigne 6 PV. | 9 PV |
+| **Égide renforcée** | 1 | 1 | Compétence (Discipline) | Gagne 7 Égide. | 10 Égide |
+| **Châtiment ardent** | 1 | 1 | Sort (Sacré) | Inflige 8 dégâts. Gagne 1 Foi. | 11 dégâts |
 | **Murmure de douleur** | 1 | 1 | Sort (Ombre) | Applique DoT 4 pendant 4 tours. | DoT 5 |
+
+**Le paquet suit l'arbre principal** (celui qui a strictement le plus de points, depuis le 27 novembre 2026) : **Discipline** : 1 Prière de garde devient une 2ᵉ Égide renforcée ; **Sacré** : 1 Châtiment devient un 2ᵉ Châtiment ardent ; **Ombre** : 1 Châtiment devient une Attaque mentale. Sans talent ou à égalité, le paquet ci-dessus. Avant : 4 Châtiment, 4 Prière de garde, Soins rapides, Murmure de douleur (rien ne donnait de l'Égide ni de la Foi en dehors de Soins rapides).
 
 ### 4.2 Sort de barre de départ
 

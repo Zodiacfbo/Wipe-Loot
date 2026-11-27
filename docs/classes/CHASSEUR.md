@@ -74,9 +74,12 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
 | **Tir** | 4 | 1 | Attaque | Inflige 6 dégâts. | 9 dégâts |
-| **Repli** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
+| **Repli** | 3 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
 | **Tir ajusté** | 1 | 2 | Attaque | Inflige 13 dégâts. | 18 dégâts |
 | **Ordre : Attaque** | 1 | 0 | Compétence (Ordre) | Ton compagnon agit immédiatement. | Pioche 1 carte |
+| **Piège explosif** | 1 | 1 | Compétence (Piège) | Voir l'arbre Survie. | |
+
+**Depuis le 27 novembre 2026 : un peu de chaque arbre au départ** (un Repli de moins pour le Piège explosif), et l'arbre principal (celui qui a strictement le plus de talents ; à égalité, rien ne change) renforce le sien (`starterSwaps` dans `classes.ts`) : **Précision** : l'Ordre d'attaque devient un 2ᵉ Tir ajusté ; **Bêtes** : le Tir ajusté devient un 2ᵉ Ordre d'attaque ; **Survie** : le Tir ajusté devient un Piège à venin. Sans passe du bot (à mon choix).
 
 ### 4.2 Sort de barre de départ
 
@@ -298,7 +301,9 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 ---
 
-## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, à trancher)
+## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, Pièges codés le 27 novembre au soir, Loup solitaire mis de côté)
+
+**Fait le 27 novembre 2026 (soir)** : les Pièges posés sur les ennemis (§13.1 à 13.4, maquette A) et la carte **Coup dans le piège** (Attaque, 1 énergie, peu commune, arbre Survie : 6 dégâts, 9 améliorée, puis les Pièges de la cible partent tout de suite ; un Givrant déclenché ainsi lui fait perdre sa prochaine action). Bot : `EQUILIBRAGE.md` §27. **Le Loup solitaire (§13.5) est mis de côté** : la refonte des Pièges règle le problème (les groupes ne meurent plus avant d'agir) et le testeur Survie gagne déjà haut ; à reprendre si Survie faiblit au prochain export. Le Chasseur d'avant la refonte : commit `3892329` de `dev`.
 
 Deux changements pour un seul build : les Pièges posés sur les ennemis (§13.1 à 13.4) et le Loup solitaire, un Chasseur de mêlée sans compagnon (§13.5). Document Word de présentation : « Refonte de l'arbre Survie du Chasseur » (27 novembre 2026).
 
@@ -347,6 +352,13 @@ C'est le point le plus important pour la lisibilité : chaque limite doit se voi
 | Instinct du chasseur (talent) | +1 énergie et +1 carte au tour suivant, 1 fois par tour | inchangé |
 
 ### 13.4 Les questions à trancher
+
+**Tranché le 27 novembre 2026 (soir) :**
+1. **Avant** : tous les Pièges partent quand l'ennemi piégé commence à agir. S'il survit, **son action a bien lieu** (le Piège ne l'annule pas). Seule exception, par son effet : le Piège givrant, qui lui fait perdre cette action (un boss : son action à −50 %).
+2. **Explosif : l'ennemi piégé prend tous les dégâts, les autres la moitié.**
+3. **Aucune limite au total** : un seul de chaque type par ennemi. Les 3 tuiles de Pièges sous le héros disparaissent.
+4. **Pastilles + numéros** : les Pièges en pastilles sous la barre de vie de l'ennemi, et un petit numéro d'ordre d'action au-dessus des ennemis (seulement pour le Chasseur). Maquettes sur le vrai écran avant de coder.
+
 
 1. **Avant ou après l'action de l'ennemi ?**
    - **A (conseillé) : avant**, pour tous les Pièges. Simple à expliquer (« il marche dessus »). L'ennemi peut mourir sans agir, mais un seul à la fois, plus tout le groupe.

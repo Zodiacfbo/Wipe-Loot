@@ -69,18 +69,18 @@ describe('les arbres de talents', () => {
 describe('les talents dans la run', () => {
   it('PV max, sorts de barre, carte épique, et la barre s\'agrandit au besoin', () => {
     const a = emptyAlloc();
-    a.protection = ['B', 'A', 'A', 'A', 'A']; // Robuste, Garde haute, Rempart, Dernier rempart, Heurt de bouclier
-    a.fureur = ['A', 'A', 'A', 'A']; // … Rage du berserker, Témérité
+    a.protection = ['A', 'A', 'A', 'A', 'A']; // Bouclier lourd, Garde haute, Rempart, Dernier rempart, Heurt de bouclier
+    a.fureur = ['B', 'A', 'B', 'A']; // Robuste, Plaies profondes, Régénération enragée, Témérité
     const run = newRun(3, null, talentIds(a));
-    expect(run.maxHp).toBe(88);
-    expect(run.spells).toEqual(['charge', 'rage_berserker', 'temerite', 'rempart', 'dernier_rempart']);
+    expect(run.maxHp).toBe(90);
+    expect(run.spells).toEqual(['charge', 'regeneration_enragee', 'temerite', 'rempart', 'dernier_rempart']);
     expect(barCapacity(run)).toBe(5);
     expect(run.deck.some((c) => c.id === 'heurt_de_bouclier')).toBe(true);
     expect(runGear(run).startBlock).toBe(5);
   });
 
   it('les sorts de talent ne tombent plus sur les boss ; les épiques seulement si débloquées', () => {
-    expect(WARRIOR_LOOT_SPELLS.sort()).toEqual(['cri_commandement', 'vague_de_choc']);
+    expect(WARRIOR_LOOT_SPELLS.sort()).toEqual(['cri_commandement', 'rage_berserker', 'vague_de_choc']);
     let epics = 0;
     for (let seed = 1; seed < 80; seed++) {
       const run = newRun(seed);
@@ -127,12 +127,12 @@ describe('les effets des talents en combat', () => {
     expect(hit('frappe_ecrasante')).toBe(20);
   });
 
-  it('Maîtrise tactique, Colère intérieure, Fureur sans fin', () => {
-    const c = fight({ postureRage: 6, turnRage: 1, maxRage: 15 }, Array(10).fill('parade'));
+  it('changer de posture garde la rage ; Colère intérieure ; rage maximale 15', () => {
+    const c = fight({ turnRage: 1, maxRage: 15 }, Array(10).fill('parade'));
     expect(c.player.maxRage).toBe(15);
     c.player.rage = 12;
     changePosture(c, 'defensive');
-    expect(c.player.rage).toBe(6);
+    expect(c.player.rage).toBe(12);
     c.player.block = 999;
     endTurn(c);
     expect(c.player.rage).toBeGreaterThanOrEqual(7);

@@ -25,9 +25,11 @@ Le Guerrier est un combattant au corps à corps qui **se nourrit du combat**. Il
 
 ---
 
-## 2. Mécanique 1 : la Rage
+## 2. Mécanique 1 : la Rage et la pleine rage
 
-- La rage va de **0 à 10**.
+> Version en jeu depuis le 27 novembre 2026 (projet du §12).
+
+- La rage va de **0 à 10** (15 avec Furie inextinguible).
 - Elle est **à 0 au début de chaque combat** et se perd à la fin du combat.
 - Elle **ne diminue pas** d'un tour à l'autre pendant le combat.
 
@@ -35,34 +37,32 @@ Le Guerrier est un combattant au corps à corps qui **se nourrit du combat**. Il
 
 | Source | Gain |
 |---|---|
-| Jouer une **Attaque** qui inflige des dégâts | +1 rage (par carte, pas par coup) |
-| **Perdre des PV** à cause d'une attaque ennemie | +1 rage (par attaque reçue) |
-| Les cartes et sorts qui en donnent | Charge, Cri de guerre, Rage sanglante… |
+| Jouer une **Attaque** qui inflige des dégâts | +1 rage (par carte, pas par coup ; +2 en Berserker) |
+| **Perdre des PV** à cause d'une attaque ennemie | +1 rage (par attaque reçue ; même bloquée en Défensive) |
+| Les cartes et sorts qui en donnent | Charge, Cri de guerre, les Cris, Rage sanglante… |
 
 **Comment la dépenser :**
-- Certaines cartes ont un **coût en rage** en plus de leur coût en énergie (affiché en rouge sur la carte). Exemple : *Frappe héroïque* coûte **1 énergie + 3 rage**.
-- **Exécution** consomme **toute** la rage pour un coup proportionnel.
+- **La pleine rage.** Quand la rage atteint son maximum, la jauge s'allume. **Ta prochaine Attaque qui blesse vide toute ta rage** et ajoute l'effet de ta posture (§3). La rage ne déborde donc jamais. Une Attaque qui ne blesse pas (Pourfendre) ne libère rien.
+- **Les cartes à rage** dépensent plus tôt (coût affiché en rouge) : Frappe héroïque (3), Frappe brutale (2), Fulgurance (1), Brise-guerre (3), les épiques. Jouée à pleine rage, la carte paie son coût, puis la pleine rage vide le reste.
+- **Exécution** consomme **toute** la rage pour un coup proportionnel ; à pleine rage, elle reçoit aussi le bonus de la posture.
 
-**L'intérêt :** le Guerrier est faible au premier tour et fort au troisième. Le joueur doit construire sa rage rapidement, puis choisir entre la dépenser régulièrement en Frappes héroïques ou la stocker pour une grosse Exécution.
+**L'intérêt :** une boucle simple, comme le Sceau puis le Jugement du Paladin : remplir sa rage, puis la libérer. Le choix : dépenser tôt en cartes à rage, ou attendre la pleine rage.
 
 ---
 
 ## 3. Mécanique 2 : les Postures
 
-Le Guerrier est toujours dans **une posture** parmi trois :
+Le Guerrier est toujours dans **une posture** parmi trois. **Chaque arbre a la sienne**, et le combat commence dans celle de l'arbre principal (celui qui a strictement le plus de points ; sinon Combat).
 
-| Posture | Bonus | Contrepartie |
-|---|---|---|
-| ⚔️ **Combat** (posture de départ) | Tes Attaques qui coûtent de la rage infligent **+3 dégâts**. | Aucune. |
-| 🔥 **Berserker** | **+1 rage supplémentaire** chaque fois que tu joues une Attaque. | Tu subis **20 % de dégâts en plus**. |
-| 🛡️ **Défensive** | Tes cartes de blocage donnent **+3 blocage**. Tu gagnes 1 rage à chaque attaque reçue, **même si elle est entièrement bloquée**. | Tes Attaques infligent **20 % de dégâts en moins**. |
+| Posture | Arbre | Tant qu'elle est active | Contrepartie | Pleine rage |
+|---|---|---|---|---|
+| ⚔️ **Combat** | Armes (et sans talent) | Tes Attaques qui coûtent de la rage infligent **+3 dégâts**. | Aucune. | **+6 dégâts** au premier coup |
+| 🔥 **Berserker** | Fureur | **+1 rage supplémentaire** chaque fois que tu joues une Attaque. | Tu subis **20 % de dégâts en plus**. | **+3 dégâts**, et **la moitié** du premier coup frappe aussi **tous les autres ennemis** |
+| 🛡️ **Défensive** | Protection | Tes cartes de blocage donnent **+3 blocage**. Tu gagnes 1 rage à chaque attaque reçue, **même si elle est entièrement bloquée**. | Tes Attaques infligent **20 % de dégâts en moins**. | **+8 blocage** |
 
-**Changer de posture :**
-- **Une fois par tour, gratuitement**, avec le bouton de posture à côté du héros.
-- Quand tu changes de posture, ta rage est **plafonnée à 3**. Le surplus est perdu. Le talent *Maîtrise tactique* relève ce plafond à 6.
-- Certaines cartes changent aussi la posture, sans compter dans la limite d'un changement par tour.
+**Changer de posture :** **une fois par tour, gratuitement**, avec les boutons sous la jauge. **La rage est gardée** (avant le 27 novembre 2026, elle retombait à 3). Aucune carte ne change la posture. La Malédiction de lignée force le Berserker 2 tours.
 
-**L'intérêt :** une décision à chaque tour. Le joueur peut passer en Défensive avant le gros coup annoncé par le boss, mais il perdra une partie de sa rage.
+**L'intérêt :** la posture décide de ce que fera la pleine rage : un gros coup, un coup sur tout le groupe, ou du blocage avant la grosse attaque annoncée.
 
 ---
 
@@ -72,10 +72,12 @@ Le Guerrier est toujours dans **une posture** parmi trois :
 
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Frappe** | 4 | 1 | Attaque | Inflige 6 dégâts. | 9 dégâts |
+| **Frappe** | 3 | 1 | Attaque | Inflige 6 dégâts. | 9 dégâts |
 | **Parade** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
-| **Frappe héroïque** | 1 | 1 + 3 rage | Attaque | Inflige 14 dégâts. | 18 dégâts |
+| **Frappe héroïque** | 2 | 1 + 3 rage | Attaque | Inflige 14 dégâts. | 18 dégâts |
 | **Cri de guerre** | 1 | 0 | Compétence | Gagne 2 rage. Pioche 1 carte. | Gagne 3 rage |
+
+**Le paquet suit l'arbre principal** (`starterSwaps`, comme le Mage) : Fureur → 1 Frappe devient 1 **Coup de folie** ; Protection → 1 Parade devient 1 **Levée de bouclier** (2 au départ du projet : trop fort au bot, `EQUILIBRAGE.md` §28) ; Armes ou aucun arbre : paquet de base.
 
 ### 4.2 Sort de barre de départ
 
@@ -87,7 +89,7 @@ Au premier tour, Charge permet de lancer une Frappe héroïque immédiatement. C
 
 ---
 
-## 5. Les cartes (52)
+## 5. Les cartes (54)
 
 **Légende des raretés :** C = Commune · PC = Peu commune · R = Rare · É = Épique (débloquée par le dernier palier de talent de son arbre).
 
@@ -100,7 +102,7 @@ Au premier tour, Charge permet de lancer une Frappe héroïque immédiatement. C
 - **Les cartes épiques** sont débloquées par le palier 5 de leur arbre : un exemplaire dans le deck de départ, et elles peuvent ensuite apparaître (rarement) dans les récompenses des boss secondaires.
 - **Les récompenses de cartes** penchent vers les arbres où tu as mis des points (+50 % de chances par point pour les cartes de cet arbre).
 
-### 5.1 Tronc commun (9 cartes)
+### 5.1 Tronc commun (12 cartes)
 
 Ces cartes apparaissent quel que soit l'arbre de talents investi.
 
@@ -108,71 +110,75 @@ Ces cartes apparaissent quel que soit l'arbre de talents investi.
 |---|---|---|---|---|---|
 | **Enchaînement** | 1 | Attaque | C | Inflige 8 dégâts à la cible et 4 dégâts à un autre ennemi. | 11 / 6 |
 | **Coup de tonnerre** | 1 | Attaque | C | Inflige 4 dégâts à tous les ennemis et leur applique Ralenti 1. | 7 dégâts |
-| **Fracasser armure** | 1 | Compétence | C | Applique Armure fracassée (2 tours). Gagne 2 rage. | 3 tours |
-| **Cri démoralisant** | 1 | Compétence | C | Applique Démoralisé à tous les ennemis (2 tours). Gagne 1 rage. | Coûte 0 |
-| **Coup de bouclier** | 1 | Compétence | PC | **Interruption.** Inflige 4 dégâts. | 8 dégâts |
 | **Interception** | 1 | Attaque | PC | Inflige 6 dégâts. Si la cible prépare une Incantation, elle est **retardée d'un tour**. | 9 dégâts |
-| **Cri de bataille** | 1 | Pouvoir | PC | Gagne 2 Puissance. | 3 Puissance |
 | **Ignorer la douleur** | 1 | Compétence | PC | Gagne 8 blocage. Ce tour-ci, gagne 1 rage à chaque attaque reçue, même bloquée. | 11 blocage |
-| **Exécution** | 1 + toute la rage | Attaque | R | Inflige **4 dégâts par point de rage** dépensé. Si la cible a 30 % de PV ou moins : **8 dégâts par point**. | 5 / 10 par point |
+| **Cri de bataille** | 1 | Pouvoir | PC | Gagne 2 Puissance. | 3 Puissance |
+| **Résolution** | 0 | Compétence | C | Dépense la moitié de ta rage. Gagne 3 blocage par point de rage dépensé. | 4 blocage par point |
+| **Désarmement** | 1 | Compétence | PC | La cible (sauf boss) ne peut pas attaquer à son prochain tour. Un boss inflige 30 % de dégâts en moins à son prochain tour. | Coûte 0 |
+| **Coup de semonce** | 1 | Attaque | C | Inflige 6 dégâts. Applique Démoralisé (1 tour). | 9 dégâts |
+| **Inébranlable** | 2 | Compétence | C | Gagne 14 blocage. | 18 blocage |
+| **Parade ripostée** | 1 | Compétence | C | Gagne 6 blocage. La prochaine attaque ennemie reçue ce tour-ci inflige 6 dégâts à l'attaquant. | 9 / 9 |
+| **Soif de bataille** | 1 | Compétence | C | Pioche 2 Attaques depuis ta pioche. | Coûte 0 |
+| **Hurlement furieux** | 1 | Compétence | C | Gagne 3 rage. Pioche 1 carte. | Pioche 2 cartes |
 
-### 5.2 Arbre Armes (14 cartes) : gros coups et saignements
+### 5.2 Arbre Armes (13 cartes) : le champion, gros coups et Exécution
+
+| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
+|---|---|---|---|---|---|
+| **Exécution** | 1 + toute la rage | Attaque | R | Inflige **4 dégâts par point de rage** dépensé. Si la cible a 30 % de PV ou moins : **8 dégâts par point**. | 5 / 10 par point |
+| **Fracasser armure** | 1 | Compétence | C | Applique Armure fracassée (2 tours). Gagne 2 rage. | 3 tours |
+| **Fulgurance** | 0 + 1 rage | Attaque | C | Inflige 6 dégâts. **Ignore le blocage.** | 9 dégâts |
+| **Frappe écrasante** | 2 | Attaque | C | Inflige 16 dégâts. | 21 dégâts |
+| **Frappe brutale** | 1 + 2 rage | Attaque | C | Inflige 12 dégâts. | 16 dégâts |
+| **Coup de grâce** | 1 | Attaque | PC | Inflige 7 dégâts. Si la cible meurt, gagne 1 énergie et 3 rage. | 10 dégâts |
+| **Balayage** | 1 | Compétence | PC | Tes 2 prochaines Attaques ce tour-ci touchent aussi un deuxième ennemi. | 3 Attaques |
+| **Concentration martiale** | 1 | Pouvoir | R | Au début de ton tour, si tu as 5 rage ou plus, gagne 1 énergie. | Coûte 0 |
+| **Frappe du colosse** | 2 | Attaque | R | Inflige 10 dégâts. La cible **perd tout son blocage** et reçoit Armure fracassée (2 tours). | 14 dégâts |
+| **Tempête d'acier** | 3 | Attaque | R | Inflige 4 dégâts à tous les ennemis, 4 fois. | 5 dégâts × 4 |
+| **Brise-guerre** | 2 + 3 rage | Attaque | R | Inflige 12 dégâts à tous les ennemis. Armure fracassée (2 tours). | 16 dégâts |
+| **Maître d'armes** | 2 | Pouvoir | R | Tes Attaques qui coûtent de la rage infligent +4 dégâts. | Coûte 1 |
+| **Frappe mortelle** | 1 + 4 rage | Attaque | É | Inflige 18 dégâts. La cible **ne peut plus être soignée** ce combat et reçoit Armure fracassée (1 tour). | 24 dégâts |
+
+### 5.3 Arbre Fureur (15 cartes) : le barbare, saignements et deux armes
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
 | **Taillade** | 0 | Attaque | C | Inflige 3 dégâts. Applique Saignement 2. | 5 / 3 |
 | **Pourfendre** | 1 | Attaque | C | Applique Saignement 5. | Saignement 7 |
-| **Fulgurance** | 0 + 1 rage | Attaque | C | Inflige 6 dégâts. **Ignore le blocage.** | 9 dégâts |
-| **Frappe écrasante** | 2 | Attaque | C | Inflige 16 dégâts. | 21 dégâts |
-| **Parade ripostée** | 1 | Compétence | C | Gagne 6 blocage. La prochaine attaque ennemie reçue ce tour-ci inflige 6 dégâts à l'attaquant. | 9 / 9 |
-| **Coup de grâce** | 1 | Attaque | PC | Inflige 7 dégâts. Si la cible meurt, gagne 1 énergie et 3 rage. | 10 dégâts |
-| **Balayage** | 1 | Compétence | PC | Tes 2 prochaines Attaques ce tour-ci touchent aussi un deuxième ennemi. | 3 Attaques |
-| **Entaille profonde** | 1 | Pouvoir | PC | Chaque fois qu'une Attaque coûtant de la rage touche, applique Saignement 2. | Saignement 3 |
-| **Cri d'intimidation** | 1 | Compétence | PC | Applique Peur à un ennemi (sauf boss). Les autres ennemis sont Démoralisés (1 tour). **Épuisé.** | Démoralisé 2 tours |
-| **Concentration martiale** | 1 | Pouvoir | R | Au début de ton tour, si tu as 5 rage ou plus, gagne 1 énergie. | Coûte 0 |
-| **Frappe du colosse** | 2 | Attaque | R | Inflige 10 dégâts. La cible **perd tout son blocage** et reçoit Armure fracassée (2 tours). | 14 dégâts |
-| **Tempête d'acier** | 3 | Attaque | R | Inflige 4 dégâts à tous les ennemis, 4 fois. | 5 dégâts × 4 |
-| **Maître d'armes** | 2 | Pouvoir | R | Tes Attaques qui coûtent de la rage infligent +4 dégâts. | Coûte 1 |
-| **Frappe mortelle** | 1 + 4 rage | Attaque | É | Inflige 18 dégâts. La cible **ne peut plus être soignée** ce combat et reçoit Armure fracassée (1 tour). | 24 dégâts |
-
-### 5.3 Arbre Fureur (14 cartes) : attaques en rafale et rage illimitée
-
-| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
-|---|---|---|---|---|---|
 | **Coup de folie** | 0 | Attaque | C | Inflige 3 dégâts deux fois. Gagne 1 rage. | 4 × 2 |
 | **Rage sanglante** | 0 | Compétence | C | Perds 3 PV. Gagne 4 rage. | Gagne 6 rage |
 | **Frappe frénétique** | 1 | Attaque | C | Inflige 5 dégâts, +2 par Attaque déjà jouée ce tour-ci. | 7 dégâts, +3 par Attaque |
-| **Hurlement furieux** | 1 | Compétence | C | Gagne 3 rage. Pioche 1 carte. | Pioche 2 cartes |
-| **Soif de bataille** | 1 | Compétence | C | Pioche 2 Attaques depuis ta pioche. | Coûte 0 |
 | **Ruée sanguinaire** | 2 | Attaque | PC | Inflige 3 dégâts 5 fois, sur des ennemis au hasard. | 3 dégâts × 7 |
 | **Tourbillon** | 2 | Attaque | PC | Inflige 8 dégâts à tous les ennemis. | 11 dégâts |
+| **Entaille profonde** | 1 | Pouvoir | PC | Chaque fois qu'une Attaque coûtant de la rage touche, applique Saignement 2. | Saignement 3 |
 | **Enragé** | 1 | Pouvoir | PC | Chaque fois que tu perds des PV, ta prochaine Attaque inflige +3 dégâts. | +5 dégâts |
 | **Rafale** | 1 | Pouvoir | PC | Chaque fois que tu joues ta 3ᵉ Attaque d'un tour, pioche 1 carte. | Coûte 0 |
 | **Ambidextrie** | 2 | Pouvoir | R | Au début de ton tour, ajoute une **Frappe de la main gauche** à ta main (0 énergie, 4 dégâts, Éphémère). | Coûte 1 |
 | **Furie croissante** | 1 | Pouvoir | R | Chaque fois que ta rage atteint son maximum, gagne 1 Puissance. | Inné |
 | **Fureur suicidaire** | 1 | Compétence | R | Pendant 3 tours, tes Attaques infligent 50 % de dégâts en plus, et tu subis 25 % de dégâts en plus. **Épuisé.** | 4 tours |
 | **Furie inextinguible** | 2 | Pouvoir | R | Ta rage maximale passe à 15. Gagne 1 rage au début de chaque tour. | Gagne 2 rage par tour |
-| **Sanguinaire** | 1 + 3 rage | Attaque | É | Inflige 12 dégâts. Te soigne de 2 PV. | 16 dégâts, soin 4 |
+| **Sanguinaire** | 1 + 3 rage | Attaque | É | Inflige 12 dégâts. Te soigne de 5 PV. | 16 dégâts, soin 7 |
 
-### 5.4 Arbre Protection (15 cartes) : blocage et contre-attaque
+### 5.4 Arbre Protection (14 cartes) : le tank, bouclier et Cris
+
+Les **Cris** (mot-clé) touchent tous les ennemis ou te renforcent, et donnent de la rage ; Voix de stentor les renforce.
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
+| **Coup de bouclier** | 1 | Compétence | PC | **Interruption.** Inflige 4 dégâts. | 8 dégâts |
+| **Cri démoralisant** | 1 | Compétence | C | Applique Démoralisé à tous les ennemis (2 tours). Gagne 1 rage. | Coûte 0 |
+| **Cri d'intimidation** | 1 | Compétence | PC | Applique Peur à un ennemi (sauf boss). Les autres ennemis sont Démoralisés (1 tour). Gagne 1 rage. **Épuisé.** | Démoralisé 2 tours |
+| **Cri de ralliement** | 1 | Compétence | PC | Gagne 6 blocage, 1 Robustesse et 1 rage. **Épuisé.** | 9 blocage |
 | **Levée de bouclier** | 1 | Compétence | C | Gagne 9 blocage. Gagne 1 rage. | 12 blocage |
-| **Inébranlable** | 2 | Compétence | C | Gagne 14 blocage. | 18 blocage |
-| **Coup de semonce** | 1 | Attaque | C | Inflige 6 dégâts. Applique Démoralisé (1 tour). | 9 dégâts |
 | **Vengeance** | 1 | Attaque | C | Inflige 8 dégâts. Coûte 0 si tu as entièrement bloqué une attaque depuis ton dernier tour. | 11 dégâts |
-| **Résolution** | 0 | Compétence | C | Dépense la moitié de ta rage. Gagne 3 blocage par point de rage dépensé. | 4 blocage par point |
 | **Provocation** | 1 | Compétence | PC | L'intention de la cible devient une **Attaque** de ses dégâts habituels. Si elle préparait une Incantation, celle-ci est annulée. **Épuisé.** | N'est plus Épuisé |
-| **Désarmement** | 1 | Compétence | PC | La cible (sauf boss) ne peut pas attaquer à son prochain tour. Un boss inflige 30 % de dégâts en moins à son prochain tour. | Coûte 0 |
 | **Charge du bouclier** | 2 | Attaque | PC | Inflige 10 dégâts. Gagne 10 blocage. | 13 / 13 |
 | **Ténacité** | 1 | Pouvoir | PC | Au début de ton tour, gagne 3 blocage. | 5 blocage |
 | **Peau de fer** | 1 | Pouvoir | PC | Gagne 2 Robustesse. | 3 Robustesse |
-| **Cri de ralliement** | 1 | Compétence | PC | Gagne 6 blocage et 1 Robustesse. **Épuisé.** | 9 blocage |
 | **Riposte au bouclier** | 1 | Pouvoir | R | Chaque fois qu'une attaque ennemie est entièrement bloquée, inflige 5 dégâts à l'attaquant. | 8 dégâts |
 | **Garde de fer** | 2 | Pouvoir | R | Au début de ton tour, tu conserves la moitié de ton blocage au lieu de tout perdre. | Coûte 1 |
 | **Bastion** | 2 | Pouvoir | R | Chaque fois que tu joues une carte qui donne du blocage, inflige 3 dégâts à tous les ennemis. | 5 dégâts |
-| **Heurt de bouclier** | 1 + 2 rage | Attaque | É | Inflige des dégâts **égaux à ton blocage actuel + 4**. | Blocage + 10 |
+| **Heurt de bouclier** | 1 + 2 rage | Attaque | É | Inflige des dégâts **égaux au blocage gagné ce tour-ci + 6**. | Blocage gagné + 12 |
 
 ---
 
@@ -184,15 +190,15 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 |---|---|---|---|---|
 | **Charge** | 0 | 3 tours | Inflige 3 dégâts et gagne 3 rage. | Départ |
 | **Coup de pommeau** | 0 | 4 tours | **Interruption.** Inflige 2 dégâts. | Talent Armes, palier 3 |
-| **Rage du berserker** | 0 | 3 tours | Gagne 5 rage. Immunité à la Peur et aux cartes rendues injouables jusqu'à ton prochain tour. | Talent Fureur, palier 3 |
+| **Régénération enragée** | 0 | 1 fois par combat | Dépense toute ta rage : soigne 2 PV par point. | Talent Fureur, palier 3 |
 | **Témérité** | 1 | 5 tours | Ce tour-ci, tes Attaques infligent 50 % de dégâts en plus. Tu subis 25 % de dégâts en plus jusqu'à ton prochain tour. | Talent Fureur, palier 4 |
 | **Rempart** | 1 | 5 tours | Jusqu'à ton prochain tour, les dégâts que tu subis sont **réduits de moitié**. | Talent Protection, palier 3 |
 | **Cri de défi** | 1 | 4 tours | L'intention de **tous les ennemis** devient une Attaque. Les Incantations en cours sont annulées. | Talent Protection, palier 3 |
 | **Dernier rempart** | 0 | 1 fois par combat | Soigne 15 % de tes PV max. | Talent Protection, palier 4 |
 
-**Les sorts de barre qu'on peut trouver dans les tables de loot** : *Cri de commandement* (1 énergie, recharge 4 : tous les ennemis Démoralisés 2 tours et +1 Robustesse), *Vague de choc* (1 énergie, recharge 3 : 6 dégâts à tous et Ralenti 1).
+**Les sorts de barre qu'on peut trouver dans les tables de loot** : *Rage du berserker* (0 énergie, recharge 3 : +5 rage, immunité à la Peur et aux cartes Paniquées ; talent jusqu'au 27 novembre 2026), *Cri de commandement* (1 énergie, recharge 4 : tous les ennemis Démoralisés 2 tours et +1 Robustesse), *Vague de choc* (1 énergie, recharge 3 : 6 dégâts à tous et Ralenti 1).
 
-**Dans le prototype :** les sorts de talent sont dans la barre dès le début de la run. Seuls *Cri de commandement* et *Vague de choc* tombent sur les boss secondaires (1 chance sur 5). La barre a **3 emplacements** (4 avec le talent Quatrième emplacement) ; si les talents donnent plus de sorts que d'emplacements, la barre s'agrandit pour tous les accueillir. Un sort trouvé s'ajoute ou en remplace un.
+**Dans le prototype :** les sorts de talent sont dans la barre dès le début de la run. Seuls *Rage du berserker*, *Cri de commandement* et *Vague de choc* tombent sur les boss secondaires (1 chance sur 5). La barre a **3 emplacements** (4 avec le talent Quatrième emplacement) ; si les talents donnent plus de sorts que d'emplacements, la barre s'agrandit pour tous les accueillir. Un sort trouvé s'ajoute ou en remplace un.
 
 **Rappel de règle :** un sort de barre ne se pioche pas : il est toujours là, mais il a un temps de recharge. Sur téléphone, un premier appui affiche le sort, un second le lance.
 
@@ -207,35 +213,37 @@ Le Guerrier commence avec **Charge**. Les autres sorts s'obtiennent par les **ta
 - Aux paliers 1 à 4, le joueur **choisit 1 talent parmi 2**.
 - Le palier 5 débloque la **carte épique** de l'arbre : un exemplaire est ajouté au deck de départ de chaque run, et la carte peut aussi apparaître dans les récompenses.
 
-### 7.1 Arbre Armes
+### 7.1 Arbre Armes : le champion (posture Combat)
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Lame aiguisée** : Frappe et Frappe héroïque infligent +3 dégâts. | **Maîtrise tactique** : changer de posture conserve jusqu'à 6 rage (au lieu de 3). |
-| **2** | **Plaies profondes** : tes Saignements durent 1 tour de plus. | **Entaille** : tes Attaques qui coûtent 2 énergie ou plus appliquent Saignement 3. |
+| **1** | **Lame aiguisée** : Frappe et Frappe héroïque infligent +3 dégâts. | **Colère intérieure** : gagne 2 rage au début de chaque tour. |
+| **2** | **Brise-armure** : ton Armure fracassée dure 1 tour de plus. | **Entaille** : tes Attaques à 2 énergie ou plus appliquent Armure fracassée 1 tour. |
 | **3** | **Coup de pommeau** : ajoute ce sort à ta barre. | **Impact** : Exécution passe au bonus de dégâts à 40 % de PV de la cible au lieu de 30 %. |
 | **4** | **Implacable** : quand tu tues un ennemi, gagne 3 rage et pioche 1 carte. | **Arme lourde** : tes Attaques qui coûtent 2 énergie ou plus infligent +6 dégâts. |
 | **5** | **Frappe mortelle** (carte épique) | — |
 
-### 7.2 Arbre Fureur
+### 7.2 Arbre Fureur : le barbare (posture Berserker)
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Cruauté** : commence chaque combat avec 1 Puissance. | **Colère intérieure** : gagne 2 rage au début de chaque tour. |
-| **2** | **Voix de stentor** : tes cartes de Cri donnent 1 rage de plus, et leurs débuffs durent 1 tour de plus. | **Main gauche** : tes Attaques qui coûtent 0 énergie infligent +2 dégâts. |
-| **3** | **Rage du berserker** : ajoute ce sort à ta barre. | **Fureur sans fin** : ta rage maximale passe à 15, et tu commences chaque combat avec 3 rage. |
+| **1** | **Cruauté** : commence chaque combat avec 1 Puissance. | **Robuste** : +10 PV max. |
+| **2** | **Plaies profondes** : tes Saignements durent 1 tour de plus. | **Soif de sang** : tes Attaques sur un ennemi qui Saigne te soignent 1 PV. |
+| **3** | **Deux armes** : ton 2e bijou devient une main gauche, il peut porter une arme de mêlée (ses effets comptent entièrement). | **Régénération enragée** : ajoute ce sort à ta barre. |
 | **4** | **Témérité** : ajoute ce sort à ta barre. | **Frénésie** : quand tu joues ta 3ᵉ Attaque d'un tour, gagne 1 énergie (1 fois par tour). |
 | **5** | **Sanguinaire** (carte épique) | — |
 
-### 7.3 Arbre Protection
+### 7.3 Arbre Protection : le tank (posture Défensive)
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Bouclier lourd** : tes cartes de blocage donnent +1 blocage. | **Robuste** : +8 PV max. |
+| **1** | **Bouclier lourd** : tes cartes de blocage donnent +1 blocage. | **Voix de stentor** : tes Cris (et Hurlement furieux) donnent 1 rage de plus, et leurs Démoralisés durent 1 tour de plus. |
 | **2** | **Garde haute** : commence chaque combat avec 5 blocage. | **Présence menaçante** : au début de chaque combat, tous les ennemis sont Démoralisés (1 tour). |
 | **3** | **Rempart** : ajoute ce sort à ta barre. | **Cri de défi** : ajoute ce sort à ta barre. |
 | **4** | **Dernier rempart** : ajoute ce sort à ta barre. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
 | **5** | **Heurt de bouclier** (carte épique) | — |
+
+**Retirés le 27 novembre 2026** : Maîtrise tactique (changer de posture ne coûte plus de rage), Main gauche, Fureur sans fin ; Rage du berserker devient un sort de butin.
 
 ---
 
@@ -258,12 +266,12 @@ Si Krâgg n'est pas présent sur la carte de cette run, la quête ne peut pas ê
 
 ## 9. Les builds
 
-| Build | Arbres | Cartes clés | Plan de jeu |
-|---|---|---|---|
-| **L'Exécuteur** | Armes | Pourfendre, Entaille profonde, Frappe du colosse, Exécution, Frappe mortelle | Saigner la cible, accumuler la rage, puis finir le boss en une Exécution. |
-| **Le Berserker** | Fureur | Coup de folie, Ambidextrie, Rafale, Furie inextinguible, Sanguinaire | Jouer beaucoup d'Attaques bon marché en posture Berserker. La rage ne s'arrête jamais. |
-| **Le Mur** | Protection | Levée de bouclier, Garde de fer, Bastion, Riposte au bouclier, Heurt de bouclier | Empiler le blocage, puis le convertir en dégâts avec Heurt de bouclier. |
-| **Le Tank qui tape** | Protection + Fureur | Ignorer la douleur, Enragé, Vengeance, Sanguinaire | Encaisser en posture Défensive pour générer de la rage, puis frapper fort en Berserker. |
+| Build | Arbres | Posture | Cartes clés | Plan de jeu |
+|---|---|---|---|---|
+| **L'Exécuteur** | Armes | Combat | Fracasser armure, Frappe du colosse, Frappe brutale, Exécution, Frappe mortelle | Fracasser l'armure, remplir la rage, puis finir le boss en une Exécution à pleine rage. |
+| **Le Barbare** | Fureur | Berserker | Taillade, Pourfendre, Coup de folie, Ambidextrie, Sanguinaire, Deux armes | Faire saigner, frapper vite et souvent, se soigner en tapant ; la pleine rage nettoie le groupe. |
+| **Le Mur** | Protection | Défensive | Levée de bouclier, Garde de fer, Bastion, Riposte au bouclier, Heurt de bouclier | Empiler le blocage, crier pour la rage, puis convertir le blocage du tour en dégâts. |
+| **Le Tank qui tape** | Protection + Fureur | Défensive puis Berserker | Ignorer la douleur, Enragé, Vengeance, Sanguinaire | Encaisser en Défensive jusqu'à la pleine rage, puis passer en Berserker pour la libérer sur tout le groupe. |
 
 ---
 
@@ -293,3 +301,132 @@ Si Krâgg n'est pas présent sur la carte de cette run, la quête ne peut pas ê
   - **Heurt de bouclier : +1 point** (contre +15 pour 3 talents). Jouée souvent, mais avec **3,6 blocage** en moyenne au moment du jeu : environ 15 dégâts. Un bot qui monte son blocage avant de la jouer fait pire (−8) : il la garde en main pour rien. **C'est la carte :** le blocage du Guerrier disparaît à chaque tour et sert déjà à encaisser, il monte rarement assez haut dans un même tour. Note : Protection est déjà l'arbre le plus fort (70 % sans la carte).
   - **Piste :** compter le blocage **gagné ce tour-ci** plutôt que le blocage actuel, ou ajouter un plancher (« au moins 12 dégâts »), ou ne pas consommer la rage quand on a 10 blocage ou plus.
   - **Décision (novembre 2026) :** rien n'est changé pour le Guerrier. Ses arbres sont déjà à peu près équivalents (meilleur build 7 + 3 : Armes 71 %, Fureur 57 %, Protection 71 %, sur 150 runs), et Protection tient même avec un Heurt de bouclier faible.
+
+---
+
+## 12. La pleine rage, les postures et des arbres plus nets (27 novembre 2026, en jeu)
+
+**Pourquoi.** Export playtest du 27 novembre 2026 : **0 victoire sur 14 runs** de Guerrier (3 joueurs), 13 chutes sur 17 combats contre Vulkhar, en **14 tours en moyenne** (son déchaînement arrive au tour 14 ; Chasseur 7 tours, Voleur 8). Contre les monstres ordinaires : 11 PV perdus et 3,8 tours par combat (Chasseur : 3 PV, 1,7 tour). Comme le Paladin avant son §24 de l'équilibrage, le Guerrier **tient mais ne tape pas assez**.
+
+**Ce que montre le code et le bot** (sonde jetable, bot de niveau 1 contre Vulkhar, PV pleins, 40 combats par posture) :
+
+| Posture tenue tout le combat | Victoires | Tours | Tours commencés à 10 rage | PV restants (victoires) |
+|---|---|---|---|---|
+| Combat | 15/40 | 7,6 | **62 %** | 19 |
+| Berserker | **5/40** | 9,8 | 74 % | 15 |
+| Défensive | 12/40 | 11,0 | 65 % | 33 |
+
+1. **La rage déborde.** Beaucoup de sources (chaque Attaque, chaque coup reçu, Charge, Cri de guerre, une dizaine de cartes), très peu de dépenses : la Frappe héroïque au départ, puis seulement Exécution (rare), Fulgurance (1 rage) et les 3 épiques. Le bot commence 62 % de ses tours à 10 rage : tout ce qu'il gagne ensuite est perdu. Les joueurs le sentent : Fulgurance prise 5 fois sur 5.
+2. **La posture de Combat ne se sent pas** : son +3 ne touche que les cartes à rage, environ une par combat.
+3. **La posture Berserker est un piège** : elle donne encore plus d'une ressource qui déborde, et +20 % de dégâts subis.
+4. **Changer de posture est puni** (rage ramenée à 3) : on ne s'en sert pas.
+5. La fiche (§3) annonce des cartes qui changent de posture : **aucune n'existe**.
+6. **Le bot ne change jamais de posture** : toutes les mesures du Guerrier sont faites en posture de Combat.
+7. **Les arbres ne collent pas à leur idée** : les saignements sont en Armes alors qu'ils vont au barbare, Exécution n'appartient à aucun arbre, le Fureur n'a presque aucun soin (Sanguinaire : 2 PV) et beaucoup de « tu subis plus de dégâts », les Cris sont éparpillés sur les 3 arbres (et le talent des Cris, Voix de stentor, est en Fureur).
+
+### 12.1 L'idée : une boucle simple, comme Sceau puis Jugement
+
+> **Je remplis ma rage. À pleine rage, mon prochain coup la libère, et ma posture décide comment.**
+
+Chaque arbre a **sa posture** (comme dans le WoW d'origine). Le combat commence dans la posture de l'arbre principal : le débutant n'a rien à faire, le joueur confirmé peut changer.
+
+| Arbre | Fantasme | Posture | La pleine rage… |
+|---|---|---|---|
+| ⚔️ Armes | Le champion, l'exécuteur : peu de coups, mais énormes | Combat | …ajoute **+10 dégâts** au coup |
+| 🔥 Fureur | Le barbare à deux armes : il encaisse, fait saigner, se soigne en tapant | Berserker | …fait toucher le coup à **tous les ennemis** |
+| 🛡️ Protection | Le tank : blocage, bouclier, Cris | Défensive | …donne **12 blocage** |
+
+Les chiffres du projet (+10, +5, 12) se sont révélés trop forts au bot. **Retenus le 27 novembre 2026 : Combat +6 ; Berserker +3, et la moitié du coup aux autres ennemis ; Défensive 8 blocage** (`FULL_RAGE` dans `combat.ts`, `EQUILIBRAGE.md` §28).
+
+### 12.2 Les règles
+
+1. **Pleine rage** (mot-clé dans `keywords.ts`). Quand ta rage atteint son maximum (10, ou 15 avec Furie inextinguible), la jauge s'allume. **Ta prochaine Attaque qui inflige des dégâts vide toute ta rage** et ajoute l'effet de ta posture (§12.1). La rage ne déborde plus jamais.
+2. **Dépenser tôt reste possible.** Frappe héroïque, Frappe brutale, Fulgurance, Brise-guerre, Exécution et les épiques dépensent la rage avant le maximum. Le choix du joueur : dépenser maintenant, ou attendre la pleine rage.
+3. **Exécution à pleine rage** reçoit aussi l'effet de la posture (le grand moment de l'exécuteur). À plafonner seulement si le bot montre des excès.
+4. **Changer de posture ne fait plus perdre de rage.** Toujours gratuit, une fois par tour. Le talent Maîtrise tactique disparaît (§12.4).
+5. **Posture de départ** : celle de l'arbre principal (celui qui a strictement le plus de points, comme `mainTree` du Mage) : Armes → Combat, Fureur → Berserker, Protection → Défensive. Sans arbre principal : Combat.
+6. **Les postures** (effet permanent inchangé + pleine rage) :
+
+| Posture | Tant qu'elle est active | Contrepartie | Pleine rage |
+|---|---|---|---|
+| ⚔️ Combat | Cartes à rage : +3 dégâts | Aucune | +10 dégâts |
+| 🔥 Berserker | +1 rage par Attaque (la jauge se remplit plus vite) | Tu subis 20 % de dégâts en plus | Le coup touche aussi tous les autres ennemis |
+| 🛡️ Défensive | +3 blocage, rage même si l'attaque est bloquée | Attaques −20 % | 12 blocage |
+
+7. **Pas de carte qui change de posture** pour l'instant (la classe ⭐ reste simple). La phrase du §3 qui en annonce est à retirer.
+8. **Les soins restent dans l'arbre Fureur seulement** (Soif de sang, Sanguinaire, Régénération enragée), plus Dernier rempart (Protection) et les objets. La règle du CLAUDE.md (« pas de vol de vie ») devient : « des soins seulement dans l'arbre Fureur ».
+9. **Interface** : la jauge de rage montre le maximum et brille à pleine rage ; l'aide sous les postures dit ce que fera la pleine rage (« Pleine rage : +10 dégâts »). Le tuto (`CLASS_STEPS`) est réécrit : la bulle « ta rage redescend alors à 3 » disparaît, une bulle explique la pleine rage.
+
+### 12.3 Le paquet de départ
+
+**Base (décidé le 27 novembre 2026)** : Frappe ×3, Parade ×4, **Frappe héroïque ×2**, Cri de guerre ×1.
+
+**Il suit l'arbre principal** (comme le Mage, `starterSwaps` dans `classes.ts`) :
+
+| Arbre principal | Changement |
+|---|---|
+| Aucun, ou Armes | Paquet de base |
+| Fureur | 2 Frappes → 2 **Coups de folie** |
+| Protection | 2 Parades → 2 **Levées de bouclier** |
+
+### 12.4 Les talents
+
+| Palier | ⚔️ Armes | 🔥 Fureur | 🛡️ Protection |
+|---|---|---|---|
+| 1 | Lame aiguisée · **Colère intérieure** (vient de Fureur) | Cruauté · **Robuste** (vient de Protection, **+10 PV max** au lieu de +8) | Bouclier lourd · **Voix de stentor** (vient de Fureur) |
+| 2 | **Brise-armure** (nouveau) · **Entaille** (revue) | **Plaies profondes** (vient d'Armes) · **Soif de sang** (nouveau) | Garde haute · Présence menaçante |
+| 3 | Coup de pommeau · Impact | **Deux armes** (nouveau) · **Régénération enragée** (nouveau sort) | Rempart · Cri de défi |
+| 4 | Implacable · Arme lourde | Témérité · Frénésie | Dernier rempart · Quatrième emplacement |
+| 5 | Frappe mortelle | Sanguinaire (**soigne 5**, + : 7) | Heurt de bouclier (**revu**) |
+
+**Les nouveautés** (textes proposés, 72 caractères au plus) :
+
+| Talent | Texte |
+|---|---|
+| Brise-armure | Armure fracassée dure 1 tour de plus. |
+| Entaille (revue) | Tes Attaques à 2 énergie ou plus appliquent Armure fracassée 1 tour. |
+| Soif de sang | Tes Attaques sur un ennemi qui Saigne te soignent 1 PV. |
+| Deux armes | Ton 2ᵉ bijou devient une main gauche : il peut porter une arme. |
+| Régénération enragée | Sort, 0 énergie, 1 fois par combat : dépense ta rage, soigne 2 PV par point. |
+
+**Deux armes** : l'emplacement `bijou2` accepte une arme de mêlée ; **ses effets comptent entièrement** (elle coûte déjà un bijou ; le bot dira si c'est trop fort). Affiché « Main gauche » dans l'équipement. Les talents étant copiés dans la run au départ, une arme en main gauche reste valable toute l'expédition. À vérifier : le butin propose bien une arme pour cet emplacement, et le Râtelier (légendaire emporté) ne bloque pas la main gauche.
+
+**Talents retirés (décidé le 27 novembre 2026)** : Maîtrise tactique (sans objet), Main gauche, Fureur sans fin. Le sort **Rage du berserker** quitte les talents et rejoint le butin des gardiens (avec Cri de commandement et Vague de choc). Chaque classe garde 27 talents.
+
+### 12.5 Les cartes : 54 (52 + 2 nouvelles)
+
+| Groupe | Cartes | Nombre |
+|---|---|---|
+| Tronc commun | Enchaînement, Coup de tonnerre, Interception, Ignorer la douleur, Cri de bataille, Résolution, Désarmement, Coup de semonce, Inébranlable, Parade ripostée, Soif de bataille, Hurlement furieux | 12 |
+| ⚔️ Armes | Exécution, Fracasser armure, Fulgurance, Frappe écrasante, Coup de grâce, Balayage, Concentration martiale, Frappe du colosse, Tempête d'acier, Maître d'armes, Frappe mortelle, **Frappe brutale**, **Brise-guerre** | 13 |
+| 🔥 Fureur | Taillade, Pourfendre, Entaille profonde, Coup de folie, Rage sanglante, Frappe frénétique, Ruée sanguinaire, Tourbillon, Enragé, Rafale, Ambidextrie, Furie croissante, Fureur suicidaire, Furie inextinguible, Sanguinaire | 15 |
+| 🛡️ Protection | Coup de bouclier, Cri démoralisant, Cri d'intimidation, Cri de ralliement, Levée de bouclier, Vengeance, Provocation, Charge du bouclier, Ténacité, Peau de fer, Riposte au bouclier, Garde de fer, Bastion, Heurt de bouclier | 14 |
+
+**Les 2 nouvelles cartes d'Armes :**
+
+| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
+|---|---|---|---|---|---|
+| **Frappe brutale** | 1 + 2 rage | Attaque | C | Inflige 12 dégâts. | 16 dégâts |
+| **Brise-guerre** | 2 + 3 rage | Attaque | R | Inflige 12 dégâts à tous les ennemis. Armure fracassée 2 tours. | 16 dégâts |
+
+**Cartes revues :**
+- **Sanguinaire** : soigne 5 PV (+ : 7) au lieu de 2 (4).
+- **Heurt de bouclier** : inflige le **blocage gagné ce tour-ci + 6** (+ : + 12), au lieu du blocage actuel + 4. Raison : le blocage du Guerrier disparaît à chaque tour, il montait rarement assez (§11).
+- **Furie inextinguible** : inchangée (rage maximale 15 : la pleine rage arrive plus tard, mais nourrit une plus grosse Exécution).
+
+**Les Cris** (mot-clé **Cri** dans `keywords.ts`) : une Compétence qui touche tous les ennemis ou te renforce, et **donne 1 rage** (Voix de stentor : +1 rage, débuffs +1 tour). Cris de Protection : Cri démoralisant, Cri d'intimidation, Cri de ralliement, Cri de défi (sort) ; Cri de commandement reste un sort de butin ; Cri de guerre et Cri de bataille restent communs. Les textes de Cri d'intimidation et Cri de ralliement gagnent « Gagne 1 rage ».
+
+### 12.6 Ce qui ne change pas
+
+Les gains de rage, Charge, les autres cartes et sorts, Brisemonts et sa quête, la Malédiction de lignée (forcé en Berserker 2 tours : elle déclenche maintenant aussi la pleine rage en zone, à vérifier au test).
+
+### 12.7 La mise en route (faite le 27 novembre 2026)
+
+Codé, testé (`tests/guerrier.test.ts`) et mesuré (`EQUILIBRAGE.md` §28) : niveau 1 6 % (Vulkhar battu 46 %, contre 34 % avant), niveau 5 48 %, niveau 10 Protection 65 %, Armes 70 %, Fureur 70 %. Le plan d'origine, gardé pour mémoire :
+
+1. **Bot d'abord** : il apprend à changer de posture (une action de plus dans `candidates`) et à valoir la pleine rage dans `evaluate()` (sinon il ne l'attend jamais). Refaire la mesure actuelle avec lui (point de départ).
+2. **Moteur** : pleine rage (`gainRage`, `playCard`, `actions.ts`), postures sans plafond de rage (`changePosture`, clé `postureRage` retirée d'`ItemEffects`), posture de départ (`createCombat`), `starterSwaps` du Guerrier, talents (`talents.ts`, `talent_icons.ts`, `TALENT_REFS`), cartes (`cards.ts` : 2 nouvelles, déplacements d'arbre, Sanguinaire, Heurt de bouclier, Cris), sorts (`spells.ts` : Régénération enragée ; Rage du berserker dans `lootSpells`), Deux armes (`items.ts`, `allowedSlots` dans `run.ts`, équipement dans `ui.ts`). Migration `save.ts` seulement si un champ de run change.
+3. **Interface** : jauge et aide des postures, tuto, illustrations des 2 cartes et des icônes des nouveaux talents (`tools/pixel`).
+4. **Tests** : pleine rage dans chaque posture, Exécution à pleine rage, posture de départ, paquet par arbre, Deux armes, nombre de talents ; `cardtext` (72 caractères).
+5. **Mesures** (200 runs) : niveau 1 (cible : Vulkhar battu en moins de 12 tours, run 0-10 %), niveau 5 (15-30 %), les 3 arbres au niveau 10 (proches, 50-75 %). Régler +10 / 12 blocage, Deux armes et Exécution à pleine rage. Noter dans `EQUILIBRAGE.md`.
+6. **Docs** : réécrire les §2 à §9 de cette fiche avec les chiffres retenus, `ROADMAP.md`, la règle des soins du CLAUDE.md.

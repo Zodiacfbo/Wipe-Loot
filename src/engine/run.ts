@@ -13,7 +13,7 @@ import { EPIC_CARDS, TALENTS, treesFor } from './talents';
 import { difficultyMods } from './difficulty';
 import { random } from './rng';
 import { logChoice, stepOf } from './choices';
-import type { CardInstance, CompanionId, Rarity, RunState, ShopCard } from './types';
+import type { CardInstance, CompanionId, Posture, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
 export const SAVE_VERSION = 25;
@@ -39,7 +39,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = starterDeckFor(classId, talents).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 27, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 28, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null, retreated: false, choix: [],
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
@@ -97,7 +97,15 @@ export function wornSlot(run: RunState, id: string): SlotKey | null {
 /** Où l'objet peut aller : un objet déjà porté ne peut que remplacer son propre exemplaire (objet unique). */
 export function allowedSlots(run: RunState, id: string): SlotKey[] {
   const worn = wornSlot(run, id);
-  return worn ? [worn] : slotsFor(id);
+  if (worn) return [worn];
+  // Deux armes (Guerrier Fureur) : le 2e bijou devient une main gauche, qui porte une arme de mêlée.
+  if (hasOffhand(run) && ITEMS[id]?.slot === 'arme' && ITEMS[id].family !== 'incant') return ['arme', 'bijou2'];
+  return slotsFor(id);
+}
+
+/** Le talent Deux armes : le 2e emplacement de bijou peut porter une arme. */
+export function hasOffhand(run: RunState): boolean {
+  return run.classId === 'guerrier' && (run.talents ?? []).includes('deux_armes');
 }
 
 /** Retire d'une liste les objets déjà portés (sauf si tout y passe). */
@@ -169,6 +177,12 @@ export function mainTree(classId: string, talents: string[]): string | null {
   const best = Math.max(0, ...counts.map((c) => c.n));
   const top = counts.filter((c) => c.n === best);
   return best > 0 && top.length === 1 ? top[0].id : null;
+}
+
+/** Guerrier : la posture de départ suit l'arbre principal (Armes ou aucun : Combat). */
+export function startPosture(talents: string[]): Posture {
+  const tree = mainTree('guerrier', talents);
+  return tree === 'fureur' ? 'berserker' : tree === 'protection' ? 'defensive' : 'combat';
 }
 
 /** Le paquet de départ, adapté à l'arbre principal (`starterSwaps` de la classe). */
@@ -339,6 +353,8 @@ export function startEncounter(run: RunState, encounter: Encounter): void {
   run.encounter = encounter;
   run.entry = { hp: run.hp, deck: run.deck.map((c) => ({ ...c })), potions: [...run.potions] };
   run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' }, run.companion ?? 'loup', !run.reincarnated);
+  // Guerrier : le combat commence dans la posture de l'arbre principal.
+  if (run.classId === 'guerrier') run.combat.player.posture = startPosture(run.talents ?? []);
   run.screen = 'combat';
 }
 

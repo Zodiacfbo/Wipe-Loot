@@ -7,6 +7,7 @@ import {
   canUseSpell,
   cardBlockReason,
   changePosture,
+  fullRageReady,
   cardNeedsTarget,
   changeForm,
   choosePet,
@@ -21,8 +22,8 @@ import { AFFLICTIONS, ENEMIES_ACTE2, ELITE_ENCOUNTERS_2, GRIZZIK_POTIONS } from 
 import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM, YZHAR } from './engine/enemies_acte3';
 import { turnsBeforeSwap } from './engine/irem';
 import { MUTATION_LABEL } from './engine/actions';
-import { cardHitValue } from './engine/preview';
-import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeHit, splitRibbon } from './cardtext';
+import { cardBlockValue, cardHitValue } from './engine/preview';
+import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeBlock, placeHit, splitRibbon } from './cardtext';
 import { afterRender, explainCard, initAides } from './aides';
 import { closeMini, combatTutoDone, howToPlayHtml, miniHtml, placeTuto, startCombatTuto, startHallTuto, tutoActive, tutoFinish, tutoHtml, tutoMove, tutoStop } from './tuto';
 import { cardReady, chargesUseful } from './engine/hints';
@@ -71,6 +72,7 @@ import {
   LEGENDARY_MIN_ACT,
   retryAfterWipe,
   allowedSlots,
+  hasOffhand,
   wornSlot,
   defaultBreakSlot,
   retryHp,
@@ -110,11 +112,11 @@ import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetCl
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
 import { ELEMENTS, ELEMENT_NAME, IMBUES, TOTEMS, totemDescription } from './engine/chaman';
 import { FORMS, FORM_IDS, MAX_BEAR_RAGE, MAX_CAT_COMBO, canShift, shiftCost } from './engine/druide';
-import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, companionDamage, companionTarget, markBonus, trapVictim } from './engine/chasseur';
+import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, actionOrder, companionDamage, companionTarget, markBonus, trapDotBonus, trapTargetBlock } from './engine/chasseur';
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
-import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, Posture, RunState } from './engine/types';
+import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, PlayerCurse, Posture, RunState, Trap } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
@@ -272,10 +274,11 @@ const RARITY_FRAME: Record<string, string> = {
   depart: 'depart', commune: 'commune', peu_commune: 'peu_commune', rare: 'rare', epique: 'epique', statut: 'statut',
 };
 
-const POSTURES: { id: Posture; label: string; aide: string }[] = [
-  { id: 'combat', label: 'Combat', aide: 'Cartes à rage : +3 dégâts' },
-  { id: 'berserker', label: 'Berserker', aide: '+1 rage par Attaque, +20 % de dégâts subis' },
-  { id: 'defensive', label: 'Défensive', aide: '+3 blocage, rage même bloqué, −20 % dégâts' },
+// 27 novembre 2026 : chaque posture dit aussi ce que fera la pleine rage (fiche du Guerrier §12).
+const POSTURES: { id: Posture; label: string; aide: string; pleine: string }[] = [
+  { id: 'combat', label: 'Combat', aide: 'Cartes à rage : +3 dégâts', pleine: '+6 dégâts' },
+  { id: 'berserker', label: 'Berserker', aide: '+1 rage par Attaque, +20 % de dégâts subis', pleine: '+3, et la moitié du coup à tous les autres' },
+  { id: 'defensive', label: 'Défensive', aide: '+3 blocage, rage même bloqué, −20 % dégâts', pleine: '+8 blocage' },
 ];
 
 // ---------- Rendu d'une carte ----------
@@ -286,11 +289,18 @@ const SCHOOL_LABEL = { arcane: 'Arcane', feu: 'Feu', givre: 'Givre', sacre: 'Sac
  * Le texte d'une carte : mots-clés soulignés (infobulles) et, en combat, le chiffre de dégâts corrigé
  * (Puissance, posture, objets, cible…), en vert s'il monte et en rouge s'il baisse.
  */
-function cardText(text: string, hit: number | null | undefined): string {
+function cardText(text: string, hit: number | null | undefined, block?: number | null): string {
+  // Le blocage corrigé (Robustesse, posture, objets…), dans la partie du texte qui le contient.
+  const withBlock = (part: string): string => {
+    const b = placeBlock(part, block);
+    if (!b) return markKeywords(part);
+    const cls = block! > b.base ? 'plus' : block! < b.base ? 'moins' : '';
+    return `${markKeywords(b.before)}<span class="valeur ${cls}">${block}</span>${markKeywords(b.after)}`;
+  };
   const place = placeHit(text, hit);
-  if (!place) return markKeywords(text);
+  if (!place) return withBlock(text);
   const cls = hit! > place.base ? 'plus' : hit! < place.base ? 'moins' : '';
-  return `${markKeywords(place.before)}<span class="valeur ${cls}">${hit}</span>${markKeywords(place.after)}`;
+  return `${withBlock(place.before)}<span class="valeur ${cls}">${hit}</span>${withBlock(place.after)}`;
 }
 
 /** Le texte amélioré, avec ce qui change en vert (aperçu de l'amélioration). */
@@ -300,7 +310,7 @@ function diffText(base: string, up: string): string {
     .split(DIFF_CLOSE).join('</span>');
 }
 
-function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; disguise?: boolean; reason?: string | null; ready?: boolean; diffFrom?: string } = {}): string {
+function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; block?: number | null; disguise?: boolean; reason?: string | null; ready?: boolean; diffFrom?: string } = {}): string {
   // Acte 3 : dans la main, une Hallucination a l'apparence de la carte qu'elle imite (cadre violacé, texte qui tremble).
   const fake = !!opts.disguise && real.id === 'hallucination' && !!real.mimic && !!CARDS[real.mimic];
   const card = fake ? { ...real, id: real.mimic! } : real;
@@ -328,7 +338,7 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     ${totemEl ? `<span class="pastille-element" title="Totem de ${ELEMENT_NAME[totemEl]}">${ICON_ELEMENT[totemEl]}</span>` : ''}
     <span class="type" ${ribbon ? `data-type="${def.type}"` : ''}>${totemEl ? `Totem · ${ELEMENT_NAME[totemEl]}` : ribbon ?? `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
-    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${opts.diffFrom !== undefined ? diffText(opts.diffFrom, text) : cardText(text, opts.hit)}</span></span>
+    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${opts.diffFrom !== undefined ? diffText(opts.diffFrom, text) : cardText(text, opts.hit, opts.block)}</span></span>
   </button>`;
 }
 
@@ -440,6 +450,11 @@ const EQUIP_LAYOUT: Record<SlotKey, [string, number]> = {
   arme: ['g', 1], bague1: ['g', 2], bijou1: ['g', 3], amulette: ['d', 1], bague2: ['d', 2], bijou2: ['d', 3],
 };
 
+/** Le nom d'un emplacement : avec Deux armes (Guerrier Fureur), le 2e bijou devient une main gauche. */
+function slotLabel(run: RunState, k: SlotKey): string {
+  return k === 'bijou2' && hasOffhand(run) ? 'Main gauche' : SLOT_LABEL[k];
+}
+
 /** L'équipement : le héros entouré de ses 6 emplacements, la barre de sorts dessous, et la fiche de la case touchée à droite. */
 function equipmentOverlay(run: RunState): string {
   const hero = classInfo(run.classId);
@@ -450,8 +465,8 @@ function equipmentOverlay(run: RunState): string {
     const broken = run.broken.includes(k);
     const [col, row] = EQUIP_LAYOUT[k];
     const cls = id ? `${ITEMS[id].rarity}${broken ? ' brise' : ''}` : 'vide';
-    return `<button type="button" class="case-equipement ${cls} ${sel === k ? 'choisie' : ''}" style="grid-area:${row} / ${col === 'g' ? 1 : 3}" data-action="equip-voir" data-id="${k}" aria-label="${SLOT_LABEL[k]}${id ? ` : ${ITEMS[id].name}` : ' : vide'}">
-      ${SLOT_ICON[slotOf(k)]}${broken ? '<span class="pastille-brise">!</span>' : ''}<span class="nom-case">${k === heirloomSlot(run) ? 'Coffre' : SLOT_LABEL[k]}</span></button>`;
+    return `<button type="button" class="case-equipement ${cls} ${sel === k ? 'choisie' : ''}" style="grid-area:${row} / ${col === 'g' ? 1 : 3}" data-action="equip-voir" data-id="${k}" aria-label="${slotLabel(run, k)}${id ? ` : ${ITEMS[id].name}` : ' : vide'}">
+      ${SLOT_ICON[id ? ITEMS[id].slot : slotOf(k)]}${broken ? '<span class="pastille-brise">!</span>' : ''}<span class="nom-case">${k === heirloomSlot(run) ? 'Coffre' : slotLabel(run, k)}</span></button>`;
   }).join('');
   const spells = Array.from({ length: cap }, (_, i) => {
     const id = run.spells[i];
@@ -529,7 +544,7 @@ function equipChoices(run: RunState, id: string, action: string, leave: string):
   const slots = allowedSlots(run, id);
   const buttons = slots.map((k) => {
     const current = run.equipment[k];
-    const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}${k === carried ? ' <span class="mention-coffre">· Coffre</span>' : ''}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
+    const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}${k === carried ? ' <span class="mention-coffre">· Coffre</span>' : ''}` : `Équiper (${slotLabel(run, k).toLowerCase()} libre)`;
     return `<button type="button" class="bouton-objet" ${action} data-slot="${k}">${label}</button>`;
   }).join('');
   // L'effet des objets qui seraient remplacés, pour comparer.
@@ -988,7 +1003,7 @@ function intentShort(i: Intent): string {
 }
 
 /** Ce que fait une malédiction, en une phrase. */
-function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
+function curseText(i: PlayerCurse): string {
   const parts: string[] = [];
   if (i.demoralise) parts.push(`Démoralisé ${i.demoralise} tours (tes Attaques −25 %)`);
   if (i.impie) parts.push(`ta 1re carte de chaque tour coûte 1 de plus (${i.impie} tours)`);
@@ -1002,6 +1017,18 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   if (i.sableHand) parts.push(`${i.sableHand} Sable dans ta main`);
   if (i.hallucinations) parts.push(`${i.hallucinations} Hallucinations dans ta main`);
   if (i.domination) parts.push('pendant ton prochain tour, ta première Attaque te frappera toi-même');
+  if (i.toxine) parts.push(`Toxine ${i.toxine} tours (2 dégâts au début de ton tour)`);
+  if (i.peste) parts.push(`Peste ${i.peste} tours (tes soins réduits de moitié)`);
+  if (i.ralenti) parts.push(`Ralenti ${i.ralenti} tour${i.ralenti > 1 ? 's' : ''} (25 % de blocage en moins)`);
+  if (i.fracasse) parts.push(`Armure fracassée ${i.fracasse} tours (tu subis 50 % de dégâts en plus)`);
+  if (i.ombre) parts.push(`+${i.ombre} Ombre rongeuse (+2 dégâts à chaque attaque reçue, tout le combat)`);
+  if (i.discard) parts.push(`${i.discard} carte${i.discard > 1 ? 's' : ''} défaussée${i.discard > 1 ? 's' : ''} au hasard au début de ton tour`);
+  if (i.cendres) parts.push(`${i.cendres} Cendres dans ta main`);
+  if (i.energyLoss) parts.push(`${i.energyLoss} énergie de moins au prochain tour`);
+  if (i.affliction) parts.push('une Affliction de sang au hasard (à 5, tu es Transformé)');
+  if (i.petStun) parts.push(`ton compagnon ou ton familier est étourdi ${i.petStun} tour`);
+  if (i.regard) parts.push(`Regard sombre ${i.regard} tours : mets-toi à couvert ou subis des dégâts`);
+  if (i.swallow) parts.push('il t\'avale : 2 tours dans ses entrailles');
   if (i.lignee) {
     const cls = ui.run?.classId;
     parts.push(cls === 'mage' ? 'Malédiction de lignée : 1 carte de moins en main pendant 2 tours'
@@ -1018,6 +1045,46 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** Un texte sûr dans un attribut HTML (title). */
+function attr(t: string): string {
+  return t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/** Ce que l'attaque fait en plus des dégâts, en une phrase (vide si rien). */
+function attackExtraText(i: Extract<Intent, { kind: 'attack' }>): string {
+  const parts: string[] = [];
+  if (i.pierce) parts.push('ignore ton blocage');
+  if (i.addZone) parts.push(`${i.addZone > 1 ? `${i.addZone} Zones` : 'une Zone'} de feu dans ta main (joue-la pour Bouger, sinon 6 dégâts en fin de tour)`);
+  if (i.stealGold) parts.push(`te vole ${i.stealGold} or s'il te blesse`);
+  if (i.drawPenalty) parts.push(`tu pioches ${i.drawPenalty} cartes de moins`);
+  if (i.grow) parts.push(`+${i.grow} dégâts à chaque fois`);
+  if (i.effect) {
+    const t = curseText(i.effect);
+    if (t) parts.push(t.charAt(0).toLowerCase() + t.slice(1));
+  }
+  return parts.join(' ; ');
+}
+
+/** Ce que fait une incantation à la fin du tour. */
+function castEffectText(c: CombatState, e: EnemyState, i: Intent): string {
+  switch (i.kind) {
+    case 'attack': {
+      const extra = attackExtraText({ ...i, drawPenalty: undefined });
+      return `${previewIntentDamage(c, e)} dégâts à la fin de ce tour${i.drawPenalty ? `, et tu pioches ${i.drawPenalty} cartes de moins` : ''}${extra ? `. En plus : ${extra}` : ''}`;
+    }
+    case 'heal': return `${i.all ? 'Soigne tous ses alliés' : 'Soigne un allié'} de ${i.amount} PV à la fin de ce tour`;
+    case 'potion': return `${GRIZZIK_POTIONS[i.potion].split(' : ')[1]}, à la fin de ce tour`;
+    case 'hatch': return 'Tous les Œufs éclosent à la fin de ce tour';
+    case 'curse': return curseText(i);
+    case 'buff': return `À la fin de ce tour : Puissance +${i.puissance} ${i.target === 'allies' ? 'à tous ses alliés (+' + i.puissance + ' dégâts par attaque)' : 'pour lui (+' + i.puissance + ' dégâts par attaque)'}`;
+    case 'block': return `À la fin de ce tour : +${i.amount} blocage`;
+    case 'summon': return `À la fin de ce tour : ${i.label}`;
+    case 'blink': return i.flight ? 'À la fin de ce tour, il s\'envole : tes Attaques à cible unique ne pourront plus le viser' : 'À la fin de ce tour, il Cligne : tu ne pourras plus le cibler pendant ton prochain tour';
+    case 'burrow': return `À la fin de ce tour, il s'enfouit dans le sable${i.turns > 1 ? ` pendant ${i.turns} tours` : ''}`;
+    default: return 'Prend effet à la fin de ce tour';
+  }
+}
+
 function intentHtml(c: CombatState, e: EnemyState): string {
   const next = c.gear?.seeTwoIntents || c.seeAll ? `<div class="intention-suivante">Ensuite : ${intentShort(intentAt(ENEMIES[e.defId], e.step + 1, e.phase ?? 1, e.hp < e.maxHp / 2))}</div>` : '';
   return intentNow(c, e) + next;
@@ -1031,17 +1098,10 @@ function intentNow(c: CombatState, e: EnemyState): string {
   if (e.gele === 'skip') return `<div class="intention interrompu gele">Gelé : passe son tour</div>`;
   if (e.interrupted) return `<div class="intention interrompu">Interrompu</div>`;
   if (i.cast) {
-    const effet =
-      i.kind === 'attack'
-        ? `${previewIntentDamage(c, e)} dégâts à la fin de ce tour${i.drawPenalty ? `, et tu pioches ${i.drawPenalty} cartes de moins` : ''}`
-        : i.kind === 'heal' ? `${i.all ? 'Soigne tous ses alliés' : 'Soigne un allié'} de ${i.amount} PV à la fin de ce tour`
-        : i.kind === 'potion' ? `${GRIZZIK_POTIONS[i.potion].split(' : ')[1]}, à la fin de ce tour`
-        : i.kind === 'hatch' ? 'Tous les Œufs éclosent à la fin de ce tour'
-        : i.kind === 'curse' ? curseText(i)
-        : 'Prend effet à la fin de ce tour';
+    const effet = castEffectText(c, e, i);
     const locked = !isInterruptible(i);
-    // Au-dessus de l'ennemi, une étiquette ; le cadre complet (jauge, effet) passe sous sa barre de vie.
-    return `<div class="intention ${locked ? '' : 'soutien'} incante">${ICON.sablier}<span>${i.cast}</span></div><!--detail--><div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
+    // Au-dessus de l'ennemi, une étiquette (son effet en bulle) ; le cadre complet (jauge, effet) passe sous sa barre de vie.
+    return `<div class="intention ${locked ? '' : 'soutien'} incante aide" title="${attr(`${i.cast} : ${effet}.`)}">${ICON.sablier}<span>${i.cast}</span></div><!--detail--><div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
   }
   switch (i.kind) {
     case 'attack': {
@@ -1053,12 +1113,15 @@ function intentNow(c: CombatState, e: EnemyState): string {
       const extra = i.effect && i.effect.label !== i.label ? ` + ${i.effect.label}` : '';
       // Le nom de l'attaque en infobulle (une ligne de plus repousserait l'intention hors de l'écran).
       const name = i.label ? `${i.label}${i.madBonus ? ` : +${i.madBonus} dégâts si tu as 5 Folie ou plus` : ''}` : '';
-      return `<div class="intention" ${name ? `title="${name}"` : ''}>${ICON.epee}<span>${dmg}${times}${zone}${extra}</span></div>`;
+      // L'explication de l'effet en plus (Zone de feu, Saignement…) : en bulle, au survol ou à l'appui long.
+      const more = hidden ? '' : attackExtraText(i);
+      const help = [name, more ? more.charAt(0).toUpperCase() + more.slice(1) : ''].filter(Boolean).join('. ');
+      return `<div class="intention ${help ? 'aide' : ''}" ${help ? `title="${attr(help + '.')}"` : ''}>${ICON.epee}<span>${dmg}${times}${zone}${extra}</span></div>`;
     }
     case 'block':
-      return `<div class="intention defense">${ICON.bouclier}<span>+${i.amount}</span></div>`;
+      return `<div class="intention defense aide" title="Gagne ${i.amount} blocage.">${ICON.bouclier}<span>+${i.amount}</span></div>`;
     case 'buff':
-      return `<div class="intention soutien">${ICON.hausse}<span>Puissance +${i.puissance}</span></div>`;
+      return `<div class="intention soutien aide" title="${i.target === 'allies' ? 'Tous ses alliés gagnent' : 'Il gagne'} Puissance +${i.puissance} : +${i.puissance} dégâts à chaque attaque.">${ICON.hausse}<span>Puissance +${i.puissance}</span></div>`;
     case 'heal':
       return `<div class="intention soutien">${ICON.coeur}<span>Soin ${i.amount}</span></div>`;
     case 'curse':
@@ -1378,25 +1441,39 @@ function druidResource(c: CombatState): string {
     <div class="aide-posture"><b>${FORMS[form].short}</b> : ${FORMS[form].text}${why}</div>`;
 }
 
-/** Le compagnon, l'Esprit et les Pièges du Chasseur : une rangée de tuiles (maquette C). */
+/** Les cartes qui posent un Piège. */
+const TRAP_CARD_IDS = ['piege_givrant', 'piege_immolation', 'piege_venin', 'piege_explosif', 'champ_pieges'];
+
+/** Le chiffre d'un Piège posé (Pièges améliorés compris). */
+function trapShown(c: CombatState, t: Trap): number {
+  return t.id === 'explosif' ? t.value + (c.gear?.trapBonus ?? 0) : t.value + trapDotBonus(c.gear);
+}
+
+/** Ce que fera un Piège posé, pour sa bulle. */
+function trapDescription(c: CombatState, t: Trap): string {
+  const n = trapShown(c, t);
+  switch (t.id) {
+    case 'explosif': return `Piège explosif : ${n} dégâts à cet ennemi quand il agit, ${Math.ceil(n / 2)} aux autres.`;
+    case 'venin': return `Piège à venin : DoT ${n} pendant 3 tours à tous les ennemis, quand il agit.`;
+    case 'immolation': return `Piège immolation : DoT ${n} pendant 3 tours à cet ennemi, quand il agit.`;
+    default: return 'Piège givrant : quand il agit, il perd son action (un boss : −50 %).';
+  }
+}
+
+/** Le compagnon et l'Esprit du Chasseur : une rangée de tuiles (maquette C) ; les Pièges sont sous les ennemis. */
 function hunterResource(c: CombatState): string {
   const comp = COMPANIONS[c.companion ?? 'loup'];
   const aspect = c.aspect ? ASPECTS[c.aspect] : null;
-  const traps = c.traps ?? [];
-  const victim = trapVictim(c);
+  const trapped = c.enemies.some((e) => !e.dead && e.traps?.length);
   const away = (c.player.debuffs?.lignee ?? 0) > 0 || (c.petStunned ?? 0) > 0;
   const tiles = [
     `<div class="chs-tuile aide actif ${away ? 'absent' : ''}" title="${comp.name} : ${comp.text}">${ICON_HUNT.patte}<span>${comp.name} · ${companionDamage(c)}</span></div>`,
     `<div class="chs-tuile aide ${aspect ? 'actif' : ''}" title="${aspect ? `${aspect.name} : ${aspect.text}` : 'Joue une carte Esprit (un seul à la fois)'}">${aspect ? ICON_HUNT[c.aspect!] : ICON_HUNT.aigle}<span>${aspect ? aspect.short : 'Esprit'}</span></div>`,
-    ...Array.from({ length: 3 }, (_, i) => {
-      const t = traps[i];
-      return t
-        ? `<div class="chs-tuile aide piege" title="${TRAPS[t.id].name}">${ICON_HUNT[t.id]}<span>${TRAPS[t.id].short}</span></div>`
-        : '<div class="chs-tuile aide vide" title="Emplacement de Piège libre"><span>Piège</span></div>';
-    }),
   ].join('');
-  const help = traps.length && victim
-    ? `Les Pièges partent au début du tour ennemi, sur ${victim.name}.`
+  const sel = ui.selection?.kind === 'card' ? c.hand[ui.selection.index] : null;
+  const help = sel && TRAP_CARD_IDS.includes(sel.id) && sel.id !== 'champ_pieges'
+    ? `<b>${CARDS[sel.id].name}</b> : choisis l'ennemi à piéger.`
+    : trapped ? 'Tes Pièges partent quand l\'ennemi piégé agit (ordre : 1, 2, 3).'
     : away ? `Ton ${comp.name} ne fera rien à la fin de ce tour.` : `${comp.name} : ${comp.text.replace('Fin de ton tour : ', '')}`;
   return `<div class="ligne chs-tuiles">${tiles}</div>
     <div class="aide-posture">${help}</div>`;
@@ -1452,6 +1529,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const mage = run.classId === 'mage';
   const hero = classInfo(run.classId);
   const rage = Array.from({ length: p.maxRage }, (_, i) => `<i class="${i < p.rage ? 'plein' : ''}"></i>`).join('');
+  const fullRage = fullRageReady(c);
   const charges = Array.from({ length: p.maxCharges ?? 4 }, (_, i) => `<i class="${i < (p.charges ?? 0) ? 'plein' : ''} ${i >= 3 ? 'surcharge' : ''}"></i>`).join('');
   const resource = mage
     ? (!chargesUseful(c) ? '' : `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
@@ -1462,11 +1540,15 @@ function combatScreen(run: RunState, c: CombatState): string {
     const disabled = !actif && p.postureChanged;
     return `<button type="button" class="${actif ? 'actif' : ''}" data-action="posture" data-posture="${po.id}" ${disabled ? 'disabled' : ''} aria-pressed="${actif}">${po.label}</button>`;
   }).join('');
-  const aidePosture = POSTURES.find((po) => po.id === p.posture)?.aide ?? '';
+  const posture = POSTURES.find((po) => po.id === p.posture);
+  const aidePosture = !posture ? '' : fullRage
+    ? `<b class="pleine-rage">Pleine rage !</b> Ta prochaine Attaque : ${posture.pleine}.`
+    : `${posture.aide} · <span class="mot-pleine">Pleine rage</span> : ${posture.pleine}`;
 
   // Chasseur : la cible du compagnon et l'ennemi qui déclenchera les Pièges.
   const compTarget = c.companion ? companionTarget(c) : null;
-  const trapTarget = c.traps?.length ? trapVictim(c) : null;
+  const order = c.companion ? actionOrder(c) : null;
+  const selCard = ui.selection?.kind === 'card' ? c.hand[ui.selection.index] : null;
   const enemies = c.enemies.filter((e) => !e.dead && !e.submerged).map((e) => {
     const def0 = ENEMIES[e.defId];
     // Une Copie a l'aspect de l'original (taille, cadre, sprite).
@@ -1480,7 +1562,9 @@ function combatScreen(run: RunState, c: CombatState): string {
     const sprite = e.defId === 'vhaeryx' && (e.phase ?? 1) >= 2 ? 'ennemi_vhaeryx_dragon.png'
       : e.defId === 'yzhar' && (e.phase ?? 1) >= 2 ? 'ennemi_yzhar_corps.png' : `ennemi_${def.id}.png`;
     const pct = masked ? 100 : Math.max(0, (e.hp / e.maxHp) * 100);
-    const canTarget = targeting && !e.untargetable;
+    // Chasseur : un ennemi qui porte déjà ce type de Piège ne peut pas être visé.
+    const trapBlock = targeting && selCard ? trapTargetBlock(selCard.id, e) : null;
+    const canTarget = targeting && !e.untargetable && !trapBlock;
     const tag = canTarget ? 'button' : 'div';
     // Au-dessus du sprite, seulement le nom de l'intention ; son explication passe sous la barre de vie.
     const intentAll = intentHtml(c, e);
@@ -1491,13 +1575,14 @@ function combatScreen(run: RunState, c: CombatState): string {
       : { badge: detailMatch ? intentAll.replace(detailMatch[0], '') : intentAll, detail: detailMatch?.[0] ?? '' };
     // Un très grand seigneur avec une explication sous sa barre de vie : un peu plus petit, pour que tout tienne.
     const shown = intent.detail && size >= 192 ? size - 40 : size;
-    return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
+    return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''} ${trapBlock ? 'piege-bloque' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
       ${intent.badge}
       ${e === compTarget ? `<span class="chs-cible" title="Ton ${COMPANIONS[c.companion!].name} attaquera cet ennemi à la fin de ton tour">${ICON_HUNT.patte}cible</span>` : ''}
-      ${e === trapTarget ? `<span class="chs-ici" title="Il agit en premier : tes Pièges se déclencheront sur lui">${c.traps!.map((t) => ICON_HUNT[t.id]).join('')}ici</span>` : ''}
+      ${trapBlock ? `<span class="piege-deja">${trapBlock}</span>` : ''}
       <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${shown}" height="${shown}">
-      <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Gardien · ' : ''}${e.name}</span>
+      <span class="nom ${def.elite ? 'elite' : ''}">${order?.has(e.uid) ? `<span class="ordre" title="Il agit en ${order.get(e.uid) === 1 ? '1er' : `${order.get(e.uid)}e`}">${order.get(e.uid)}</span>` : ''}${def.elite ? 'Gardien · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
+      ${e.traps?.length ? `<div class="pieges">${e.traps.map((t) => `<span class="piege aide" title="${trapDescription(c, t)} Un seul de ce type sur cet ennemi.">${ICON_HUNT[t.id]}${TRAPS[t.id].short}${t.id === 'givrant' ? '' : ` ${trapShown(c, t)}`}</span>`).join('')}</div>` : ''}
       ${intent.detail}
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}${c.mark?.uid === e.uid ? `<span class="chip marque" title="Tes Attaques et ton compagnon lui infligent +${markBonus(c, e)} dégâts">Marqué +${markBonus(c, e)}</span>` : ''}</div>
       ${def.passive ? `<div class="passif-ennemi">${(e.phase ?? 1) >= 2 && def.passive2 ? def.passive2 : def.passive}</div>` : ''}
@@ -1525,6 +1610,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     selected: ui.selection?.kind === 'card' && ui.selection.index === i,
     combat: c,
     hit: cardHitValue(c, i),
+    block: cardBlockValue(c, i),
     disguise: true,
   })).join('');
 
@@ -1561,7 +1647,7 @@ function combatScreen(run: RunState, c: CombatState): string {
           <div class="bouclier-badge" title="Blocage"><svg width="32" height="32" viewBox="0 0 24 24" fill="#1d2633" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span>${p.block}</span></div>
           <div class="barre-pv"><div style="width:${hpPct}%"></div><span>${p.hp} / ${p.maxHp}</span></div>
         </div>
-        ${run.classId !== 'guerrier' ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
+        ${run.classId !== 'guerrier' ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage${fullRage ? ' pleine' : ''}" style="grid-template-columns: repeat(${p.maxRage}, minmax(0, 1fr))" title="À ${p.maxRage} rage : pleine rage, ta prochaine Attaque la libère.">${rage}</div><span class="rage-label" style="width:auto">${p.rage}/${p.maxRage}</span></div>
         <div class="postures" role="group" aria-label="Posture">${postures}</div>
         <div class="aide-posture">${aidePosture}${p.postureChanged ? ' · déjà changée ce tour' : ''}</div>`}
       </div>

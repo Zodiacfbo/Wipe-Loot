@@ -15,11 +15,11 @@ function fight(enemies: string[], hand: string[], fill = 'parade'): CombatState 
 }
 const play = (c: CombatState, id: string, target?: number) => playCard(c, c.hand.findIndex((k) => k.id === id), target);
 
-describe('les 52 cartes du Guerrier', () => {
-  it('toutes les cartes de la fiche existent (52 + le deck de départ)', () => {
+describe('les 54 cartes du Guerrier', () => {
+  it('toutes les cartes de la fiche existent (54 + le deck de départ)', () => {
     const classCards = Object.values(CARDS).filter((d) => ['commune', 'peu_commune', 'rare', 'epique'].includes(d.rarity) && !d.classId);
-    expect(classCards).toHaveLength(52);
-    expect(REWARD_POOL).toHaveLength(52);
+    expect(classCards).toHaveLength(54);
+    expect(REWARD_POOL).toHaveLength(54);
   });
 
   it('Coup de grâce : un ennemi achevé rend 1 énergie et 3 rage', () => {
@@ -158,13 +158,14 @@ describe('les 52 cartes du Guerrier', () => {
     expect(l.hp).toBe(30 - 6 - 5);
   });
 
-  it('Heurt de bouclier frappe aussi fort que ton blocage', () => {
+  it('Heurt de bouclier frappe aussi fort que le blocage gagné ce tour-ci', () => {
     const c = fight(['seigneur'], ['heurt_de_bouclier']);
-    c.player.block = 17;
+    c.player.block = 30; // le blocage gardé d'avant ne compte pas
+    c.player.blockGained = 17;
     c.player.rage = 2;
     const e = c.enemies[0];
     play(c, 'heurt_de_bouclier');
-    expect(e.hp).toBe(e.maxHp - (17 + 4) - 3); // blocage + 4, +3 de la posture de Combat
+    expect(e.hp).toBe(e.maxHp - (17 + 6) - 3); // blocage gagné + 6, +3 de la posture de Combat
   });
 });
 

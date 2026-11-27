@@ -14,6 +14,17 @@ import type { ItemEffects } from './items';
 import type { CombatState, EnemyState } from './types';
 import { CARDS } from './cards';
 
+/** Les cartes-statut qui aident le joueur : les sorts qui « nettoient » la main les laissent (bug du Cercle et du Regard sombre). */
+const HELPFUL_STATUS = new Set(['a_couvert', 'sceptre_domination', 'fiole_instable', 'cristal_obsidienne']);
+
+/** Retire de la main les cartes-statut gênantes (la Malédiction reste si `keepCurse`) et les renvoie. */
+function removeStatusCards(c: CombatState, keepCurse: boolean): CombatState['hand'] {
+  const gone = c.hand.filter((card) => CARDS[card.id].type === 'Statut' && !HELPFUL_STATUS.has(card.id) && !(keepCurse && card.id === 'malediction'));
+  c.hand = c.hand.filter((card) => !gone.includes(card));
+  c.exhaust.push(...gone);
+  return gone;
+}
+
 /** Nombre d'emplacements de la barre (un 4e viendra avec un talent). */
 export const BAR_SLOTS = 3;
 
@@ -121,6 +132,19 @@ export const SPELLS: Record<string, SpellDef> = {
       log(c, `Dernier rempart : tu récupères ${healed} PV.`);
     },
   },
+  regeneration_enragee: {
+    id: 'regeneration_enragee', name: 'Régénération enragée', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'coeur',
+    text: 'Dépense toute ta rage : soigne 2 PV par point. Une fois par combat.',
+    usable: (c) => c.player.rage > 0,
+    cast: (c) => {
+      const p = c.player;
+      const spent = p.rage;
+      p.rage = 0;
+      const healed = healPlayer(c, spent * 2);
+      fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+      log(c, `Régénération enragée : ${spent} rage, ${healed} PV.`);
+    },
+  },
   cri_commandement: {
     id: 'cri_commandement', name: 'Cri de commandement', cost: 1, cooldown: 4, needsTarget: false, icon: 'hausse',
     text: 'Tous les ennemis sont Démoralisés 2 tours. Gagne 1 Robustesse.',
@@ -179,9 +203,7 @@ const MAGE_SPELLS: SpellDef[] = [
     id: 'clignement', name: 'Clignement', cost: 0, cooldown: 4, needsTarget: false, icon: 'charge',
     text: 'Retire de ta main les cartes-statut (Zone de feu, Bombe vivante, Fardeau) sans subir leur effet. Gagne 4 blocage.',
     cast: (c) => {
-      const gone = c.hand.filter((card) => CARDS[card.id].type === 'Statut' && card.id !== 'malediction');
-      c.hand = c.hand.filter((card) => !gone.includes(card));
-      c.exhaust.push(...gone);
+      const gone = removeStatusCards(c, true);
       gainBlock(c, 4, false);
       log(c, gone.length > 0 ? `Tu te téléportes : ${gone.length} carte${gone.length > 1 ? 's' : ''}-statut retirée${gone.length > 1 ? 's' : ''}.` : 'Tu te téléportes.');
     },
@@ -315,9 +337,7 @@ const DEMONISTE_SPELLS: SpellDef[] = [
     id: 'cercle_teleportation', name: 'Cercle de téléportation', cost: 0, cooldown: 4, needsTarget: false, icon: 'charge',
     text: 'Retire de ta main les cartes-statut (Zone de feu, Bombe vivante, Fardeau, Cendres) sans subir leur effet.',
     cast: (c) => {
-      const gone = c.hand.filter((card) => CARDS[card.id].type === 'Statut' && card.id !== 'malediction');
-      c.hand = c.hand.filter((card) => !gone.includes(card));
-      c.exhaust.push(...gone);
+      const gone = removeStatusCards(c, true);
       log(c, `Tu traverses le cercle : ${gone.length} carte${gone.length > 1 ? 's' : ''}-statut retirée${gone.length > 1 ? 's' : ''}.`);
     },
   },
@@ -482,11 +502,9 @@ const VOLEUR_SPELLS: SpellDef[] = [
   },
   {
     id: 'pas_de_cote', name: 'Pas de côté', cost: 0, cooldown: 3, needsTarget: false, icon: 'charge',
-    text: 'Retire toutes les cartes-statut de ta main.',
+    text: 'Retire les cartes-statut gênantes de ta main.',
     cast: (c) => {
-      const statuses = c.hand.filter((k) => CARDS[k.id].type === 'Statut');
-      c.hand = c.hand.filter((k) => CARDS[k.id].type !== 'Statut');
-      c.exhaust.push(...statuses);
+      const statuses = removeStatusCards(c, false);
       if (statuses.length) log(c, `Tu esquives ${statuses.length} carte${statuses.length > 1 ? 's' : ''}-statut.`);
     },
   },

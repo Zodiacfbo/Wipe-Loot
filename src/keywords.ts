@@ -38,6 +38,8 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Armure fracassée', words: ['Armure fracassée', 'Armures fracassées'], text: 'Subit 50 % de dégâts en plus. Le nombre indique les tours restants.' },
   { name: 'Démoralisé', words: ['Démoralisé', 'Démoralisée', 'Démoralisés', 'Démoralisées'], text: 'Inflige 25 % de dégâts en moins. Le nombre indique les tours restants.' },
   { name: 'Ralenti', words: ['Ralenti', 'Ralentie', 'Ralentis', 'Ralenties'], text: 'Gagne 25 % de blocage en moins. Le nombre indique les tours restants.' },
+  { name: 'Pleine rage', words: ['pleine rage', 'Pleine rage'], text: 'Guerrier : à rage maximale, ta prochaine Attaque qui blesse vide ta rage. Combat : +6 dégâts. Berserker : +3, et la moitié du coup touche les autres ennemis. Défensive : +8 blocage.' },
+  { name: 'Cri', words: ['Cris'], text: 'Guerrier : les cartes de Cri touchent tous les ennemis ou te renforcent, et donnent de la rage. Voix de stentor les renforce.' },
   { name: 'Saignement', words: ['Saignement'], text: 'Perd ce nombre de PV au début de chacun de ses tours, en ignorant le blocage. Un nouveau Saignement s\'ajoute et relance la durée.' },
   { name: 'Boss', words: ['boss'], text: 'Un gardien ou un seigneur. Certains effets ne marchent pas, ou moins bien, sur eux.', discret: true },
   { name: 'DoT', words: ['DoT', 'DoTs'], text: 'Dégâts sur la durée : la cible perd des PV au début de chacun de ses tours.' },
@@ -109,7 +111,7 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Compagnon', words: ['compagnon'], text: 'Ton Loup, ton Ours ou ton Raptor. Il agit seul à la fin de chacun de tes tours, sur ta dernière cible. Il ne peut pas mourir.', discret: true },
   { name: 'Ordre', words: ['Ordre', 'Ordres'], text: 'Une carte qui fait agir ton compagnon tout de suite, ou autrement.' },
   { name: 'Esprit', words: ['Esprit'], text: 'Un seul Esprit animal actif à la fois : un nouveau remplace l\'ancien. Il dure jusqu\'à la fin du combat.' },
-  { name: 'Piège', words: ['Piège', 'Pièges'], text: '3 au plus. Il se déclenche au début du prochain tour ennemi, sur le premier ennemi qui agit (marqué « ici »).' },
+  { name: 'Piège', words: ['Piège', 'Pièges'], text: 'Se pose sur un ennemi, un seul de chaque type par ennemi. Part quand il agit (le numéro dit l\'ordre). S\'il survit, il agit quand même.' },
   { name: 'Marquée', words: ['Marquée', 'Marqué'], text: 'Une seule cible marquée à la fois, pour tout le combat : tes Attaques et ton compagnon lui infligent des dégâts en plus.' },
 ];
 

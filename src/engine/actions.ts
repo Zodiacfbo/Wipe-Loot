@@ -155,6 +155,7 @@ export function gainBlock(c: CombatState, amount: number, fromCard = true): void
   const d = p.debuffs;
   if ((d?.ralenti ?? 0) > 0 || d?.afflictions?.includes('bronze')) total = Math.floor(total * 0.75);
   p.block += Math.max(0, total);
+  if (total > 0) p.blockGained = (p.blockGained ?? 0) + total;
   if (total > 0) fx(c, { kind: 'block', who: 'player', amount: total });
 }
 
@@ -215,6 +216,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
   if (opts.rageCard) dmg += power(c, 'maitre_armes');
+  // Pleine rage (Guerrier) : le premier coup de l'Attaque qui la libère.
+  if (c.fullRage && c.fullRage.first === undefined && c.playing?.type === 'Attaque') dmg += c.fullRage.bonus;
   dmg += p.enrageReady ?? 0;
   if (p.posture === 'defensive') dmg *= 0.8;
   if (p.temerite) dmg *= 1.5;
@@ -248,6 +251,10 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
 export function playerAttack(c: CombatState, target: EnemyState, base: number, opts: AttackOptions = {}): number {
   if (target.dead || target.submerged) return 0;
   const dmg = attackDamage(c, target, base, opts);
+  if (c.fullRage && c.fullRage.first === undefined && c.playing?.type === 'Attaque') {
+    c.fullRage.first = dmg;
+    c.fullRage.targetUid = target.uid;
+  }
   const blockBefore = target.block;
   fx(c, { kind: 'hit', from: 'player', to: target.uid, amount: dmg, blocked: 0, ranged: false });
   const ev = c.fx![c.fx!.length - 1] as { blocked: number };
@@ -433,7 +440,8 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
       damageEnemy(c, other, onKill, false);
     }
   }
-  if (target.defId === 'etincelle' || target.defId === 'eclat') {
+  // Le dernier ennemi tombé : le combat est gagné, l'explosion ne compte plus.
+  if ((target.defId === 'etincelle' || target.defId === 'eclat') && livingEnemies(c).length > 0) {
     const boom = 4;
     log(c, `${target.name} explose !`);
     fx(c, { kind: 'tick', who: 'player', amount: boom, label: 'Explosion' });
@@ -491,6 +499,10 @@ export function deathSaves(c: CombatState): void {
 
 export function damagePlayer(c: CombatState, amount: number, isAttack: boolean): number {
   const p = c.player;
+  // L'animation annoncée juste avant (« -4 Explosion ») montre ce qui est vraiment perdu : le blocage d'abord, puis les PV.
+  const last = c.fx?.[c.fx.length - 1];
+  const tick = last?.kind === 'tick' && last.who === 'player' && last.amount === amount ? last : null;
+  if (tick) { tick.amount = 0; tick.blocked = 0; }
   if (p.iceBlock) return 0; // Carapace de glace
   if (!isAttack) amount -= c.gear?.nonAttackReduce ?? 0;
   if (p.rempart) amount = Math.floor(amount / 2);
@@ -500,6 +512,7 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
   // Le Prêtre : l'Égide encaisse après le blocage.
   const hpLoss = absorbAegis(c, amount - absorbed);
   p.hp -= hpLoss;
+  if (tick) { tick.amount = hpLoss; tick.blocked = absorbed; }
   // Dernier serment (Paladin) : sous 20 % des PV max, une fois par combat.
   if (hpLoss > 0) lastOath(c);
   // Ange gardien : une fois par combat, on reste à 1 PV et on est soigné.
@@ -522,6 +535,12 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
     }
   }
   return hpLoss;
+}
+
+/** Armure fracassée posée par le Guerrier (Brise-armure : 1 tour de plus). */
+export function applyFracture(c: CombatState, target: EnemyState, turns: number): void {
+  if (target.dead) return;
+  target.buffs.armureFracassee += turns + (c.gear?.fractureDuration ?? 0);
 }
 
 export function applySaignement(target: EnemyState, amount: number, c?: CombatState): void {

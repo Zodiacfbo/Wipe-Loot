@@ -200,6 +200,10 @@ export interface CombatMods {
 
 export interface EnemyState {
   uid: number;
+  /** Chasseur : les Pièges posés sur cet ennemi (un seul de chaque type), dans l'ordre où ils partiront. */
+  traps?: Trap[];
+  /** Chasseur : pris par un Piège givrant, il perd l'action qu'il commençait. */
+  trapFrozen?: boolean;
   defId: string;
   name: string;
   hp: number;
@@ -323,6 +327,8 @@ export interface PlayerState {
   riposte?: number;
   /** Enragé : bonus de dégâts de la prochaine Attaque. */
   enrageReady?: number;
+  /** Guerrier : blocage gagné ce tour-ci (Heurt de bouclier). */
+  blockGained?: number;
   /** Mage — charges arcaniques (0 à `maxCharges`). */
   charges?: number;
   maxCharges?: number;
@@ -357,7 +363,7 @@ export type FxTarget = 'player' | number;
 /** Événements produits par le moteur pour que l'interface puisse les animer. */
 export type FxEvent =
   | { kind: 'hit'; from: FxTarget; to: FxTarget; amount: number; blocked: number; ranged: boolean }
-  | { kind: 'tick'; who: FxTarget; amount: number; label: string }
+  | { kind: 'tick'; who: FxTarget; amount: number; label: string; /** Part encaissée par le blocage (joueur). */ blocked?: number }
   | { kind: 'block'; who: FxTarget; amount: number }
   | { kind: 'buff'; who: FxTarget; label: string }
   | { kind: 'heal'; from: FxTarget; to: FxTarget; amount: number }
@@ -424,6 +430,8 @@ export interface CombatState {
   /** Balayage : Attaques restantes qui touchent aussi un 2e ennemi, et l'Attaque en cours en profite-t-elle ? */
   cleave?: number;
   cleaving?: boolean;
+  /** Guerrier : la pleine rage libérée par l'Attaque en cours (bonus du premier coup, coup en zone du Berserker). */
+  fullRage?: { posture: Posture; bonus: number; first?: number; targetUid?: number };
   /** Or volé par le Gobelin mimique. */
   goldStolen?: number;
   /** Les contraintes de difficulté qui touchent les ennemis. */
@@ -553,8 +561,6 @@ export interface CombatState {
   /** Corde-des-anciens : tours où la Flèche des anciens est restée en main (+5 dégâts chacun, 15 au plus). */
   flecheCharge?: number;
   aspect?: AspectId | null;
-  /** Les Pièges posés (3 au plus), dans l'ordre où ils se déclencheront. */
-  traps?: Trap[];
   /** Marque de la proie : l'ennemi marqué (uid) et le bonus de base de la Marque. */
   mark?: { uid: number; value: number } | null;
   /** Bête intérieure : tes Attaques +X ce tour-ci. Concentration : ta prochaine Attaque ce tour-ci +X. */
@@ -663,7 +669,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 27;
+  version: 28;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;
