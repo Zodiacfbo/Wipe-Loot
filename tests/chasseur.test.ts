@@ -31,8 +31,25 @@ describe('le Chasseur : la run', () => {
     expect(run.maxHp).toBe(70);
     expect(run.spells).toEqual(['tir_arcanique']);
     expect(run.deck.filter((k) => k.id === 'tir')).toHaveLength(4);
-    expect(run.deck.filter((k) => k.id === 'repli')).toHaveLength(4);
+    expect(run.deck.filter((k) => k.id === 'repli')).toHaveLength(3);
     expect(run.deck.some((k) => k.id === 'ordre_attaque')).toBe(true);
+    expect(run.deck.some((k) => k.id === 'piege_explosif')).toBe(true);
+  });
+
+  it('le paquet de départ suit l\'arbre principal (27 novembre 2026)', () => {
+    const deckOf = (tree: string) => {
+      const alloc = emptyAlloc('chasseur');
+      toggleTalent(alloc, tree as never, 0, 'A', 10, 'chasseur');
+      return newRun(1, null, talentIds(alloc, 'chasseur'), 0, 'chasseur').deck.map((k) => k.id);
+    };
+    const count = (d: string[], id: string) => d.filter((x) => x === id).length;
+    expect(count(deckOf('precision'), 'tir_ajuste')).toBe(2);
+    expect(count(deckOf('precision'), 'ordre_attaque')).toBe(0);
+    expect(count(deckOf('betes'), 'ordre_attaque')).toBe(2);
+    expect(count(deckOf('betes'), 'tir_ajuste')).toBe(0);
+    expect(count(deckOf('survie'), 'piege_venin')).toBe(1);
+    expect(count(deckOf('survie'), 'piege_explosif')).toBe(1);
+    expect(count(deckOf('survie'), 'tir_ajuste')).toBe(0);
   });
 
   it('52 cartes en récompense (+ Tir et Repli), 14 par arbre (15 en Survie avec Coup dans le piège)', () => {
