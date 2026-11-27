@@ -12,19 +12,19 @@ export const MAX_HOLY = 5;
 /** Le coût d'une Dépense. */
 export const SPEND_COST = 3;
 /** La Puissance sacrée donnée par le Jugement (réglage d'équilibrage). */
-export const JUDGE_HOLY = Number(process.env.PAL_JUDGE ?? 1);
+export const JUDGE_HOLY = 2;
 
 export const AURA_IDS: AuraId[] = ['devotion', 'vindicte', 'concentration'];
 
 /** Les trois Auras (textes de l'interface). */
 export const AURAS: Record<AuraId, { name: string; short: string; gain: string; bonus: string; cost: string }> = {
   devotion: { name: 'Aura de dévotion', short: 'Dévotion', gain: '+1 PS quand une attaque est entièrement bloquée', bonus: 'Dépenses +4 blocage', cost: '' },
-  vindicte: { name: 'Aura de vindicte', short: 'Vindicte', gain: '+1 PS à ta 1re Attaque du tour', bonus: 'Dépenses +4 dégâts', cost: 'soins −30 %' },
-  concentration: { name: 'Aura de concentration', short: 'Concentration', gain: '+1 PS à ton 1er soin du tour', bonus: 'Dépenses +3 PV de soin', cost: 'Attaques −20 %' },
+  vindicte: { name: 'Aura de vindicte', short: 'Vindicte', gain: '+1 PS à ta 1re Attaque du tour', bonus: 'Dépenses +3 dégâts', cost: 'soins −30 %' },
+  concentration: { name: 'Aura de concentration', short: 'Concentration', gain: '+1 PS à ton 1er soin du tour', bonus: 'Dépenses +2 PV de soin', cost: 'Attaques −20 %' },
 };
 
 /** Le bonus d'Aura ajouté à chaque Dépense. */
-export const AURA_BONUS: Record<AuraId, number> = { devotion: 4, vindicte: 4, concentration: 3 };
+export const AURA_BONUS: Record<AuraId, number> = { devotion: 4, vindicte: 3, concentration: 2 };
 
 /** Le combat est-il celui d'un Paladin ? */
 export function isPaladin(c: CombatState): boolean {
@@ -52,7 +52,7 @@ export function auraOf(c: CombatState): AuraId {
 
 /** Le gain passif de l'Aura : 1 PS au plus par tour. */
 function auraGain(c: CombatState, aura: AuraId): void {
-  if (auraOf(c) !== aura || c.auraGained || process.env.PAL_NOAURA) return;
+  if (auraOf(c) !== aura || c.auraGained) return;
   c.auraGained = true;
   gainHoly(c, 1, AURAS[aura].short);
 }

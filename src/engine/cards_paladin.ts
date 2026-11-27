@@ -63,12 +63,12 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'parole_lumiere', name: 'Parole de lumière', type: 'Compétence', rarity: 'commune', ...SPEND, needsTarget: false, icon: 'pouvoir',
-    text: (up) => `Dépense : selon ton Aura, ${up ? 12 : 9} blocage, ${up ? 11 : 8} dégâts ou ${up ? 10 : 7} PV.`,
+    text: (up) => `Dépense : selon ton Aura, ${up ? 12 : 9} blocage, ${up ? 10 : 7} dégâts ou ${up ? 9 : 6} PV.`,
     play: (ctx) => {
       const aura = auraOf(ctx.c);
       if (aura === 'devotion') gainBlock(ctx.c, ctx.up ? 12 : 9);
-      else if (aura === 'vindicte') hit(ctx, ctx.up ? 11 : 8);
-      else palHeal(ctx.c, ctx.up ? 10 : 7);
+      else if (aura === 'vindicte') hit(ctx, ctx.up ? 10 : 7);
+      else palHeal(ctx.c, ctx.up ? 9 : 6);
     },
   },
   {
@@ -121,21 +121,21 @@ const LIST: PaladinCard[] = [
   // --- Arbre Vindicte : la croisade ---
   {
     id: 'verdict_templier', name: 'Verdict du templier', type: 'Attaque', rarity: 'commune', ...SPEND, needsTarget: true, icon: 'epee',
-    text: (up) => `Dépense : inflige ${up ? 24 : 18} dégâts.`,
-    play: (ctx) => hit(ctx, ctx.up ? 24 : 18),
+    text: (up) => `Dépense : inflige ${up ? 18 : 13} dégâts.`,
+    play: (ctx) => hit(ctx, ctx.up ? 18 : 13),
   },
   {
     id: 'tempete_divine', name: 'Tempête divine', type: 'Attaque', rarity: 'peu_commune', ...SPEND, aoeSpend: true, needsTarget: false, icon: 'epee',
-    text: (up) => `Dépense : inflige ${up ? 12 : 9} dégâts à tous les ennemis.`,
-    play: (ctx) => hitAll(ctx, ctx.up ? 12 : 9),
+    text: (up) => `Dépense : inflige ${up ? 9 : 7} dégâts à tous les ennemis.`,
+    play: (ctx) => hitAll(ctx, ctx.up ? 9 : 7),
   },
   {
     id: 'sentence', name: 'Sentence', type: 'Attaque', rarity: 'rare', ...SPEND, needsTarget: true, icon: 'epee',
-    text: (up) => `Dépense : ${up ? 16 : 12} dégâts, triplés si la cible a 20 % de PV ou moins.`,
+    text: (up) => `Dépense : ${up ? 12 : 9} dégâts, triplés si la cible a 20 % de PV ou moins.`,
     play: (ctx) => {
       const t = ctx.target;
       if (!t) return;
-      const n = ctx.up ? 16 : 12;
+      const n = ctx.up ? 12 : 9;
       hit(ctx, t.hp <= t.maxHp * 0.2 ? n * 3 : n);
     },
   },
@@ -307,23 +307,23 @@ const LIST: PaladinCard[] = [
   // --- Arbre Sacré : la lumière ---
   {
     id: 'mot_gloire', name: 'Mot de gloire', type: 'Compétence', healCard: true, rarity: 'commune', ...SPEND, needsTarget: false, icon: 'sang',
-    text: (up) => `Dépense : soigne ${up ? 18 : 14} PV.`,
-    play: (ctx) => palHeal(ctx.c, ctx.up ? 18 : 14),
+    text: (up) => `Dépense : soigne ${up ? 14 : 11} PV.`,
+    play: (ctx) => palHeal(ctx.c, ctx.up ? 14 : 11),
   },
   {
     id: 'aurore_sacree', name: 'Aurore sacrée', type: 'Compétence', healCard: true, rarity: 'peu_commune', ...SPEND, aoeSpend: true, needsTarget: false, icon: 'sang',
-    text: (up) => `Dépense : soigne ${up ? 10 : 8} PV, ${up ? 8 : 6} dégâts à tous (×2 Morts-vivants, Démons).`,
+    text: (up) => `Dépense : soigne ${up ? 8 : 6} PV, ${up ? 7 : 5} dégâts à tous (×2 Morts-vivants, Démons).`,
     play: (ctx) => {
-      palHeal(ctx.c, ctx.up ? 10 : 8);
-      const n = ctx.up ? 8 : 6;
+      palHeal(ctx.c, ctx.up ? 8 : 6);
+      const n = ctx.up ? 7 : 5;
       hitAll(ctx, (e) => (isUnholy(e) ? n * 2 : n));
     },
   },
   {
     id: 'egide_lumiere', name: 'Égide de lumière', type: 'Compétence', healCard: true, rarity: 'rare', ...SPEND, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Dépense : soigne ${up ? 11 : 8} PV et gagne autant de blocage.`,
+    text: (up) => `Dépense : soigne ${up ? 9 : 7} PV et gagne autant de blocage.`,
     play: (ctx) => {
-      const n = ctx.up ? 11 : 8;
+      const n = ctx.up ? 9 : 7;
       // Le blocage suit le soin prévu, même à PV pleins.
       const amount = paladinHealAmount(ctx.c, n);
       palHeal(ctx.c, n);
