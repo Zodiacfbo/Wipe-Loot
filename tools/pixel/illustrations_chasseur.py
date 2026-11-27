@@ -456,6 +456,14 @@ def coup_hachette():
     return s.render()
 
 
+def coup_dans_le_piege():
+    s = nouveau()
+    machoires(s, 20, 24, 9, ouvert=False)
+    eclat(s, 20, 15, 7, FEU, JAUNE)
+    hache(s, 3, 22, 13, 5)
+    return s.render()
+
+
 def desengagement():
     s = nouveau()
     vitesse(s, [(16, 8, 30, 8), (14, 16, 30, 16), (16, 24, 30, 24)], LOUP_C)
@@ -549,4 +557,5 @@ ILLUSTRATIONS_CHASSEUR = {name: fn for name, fn in list(globals().items()) if ca
     'tir_fatal', 'visee_assuree', 'salve', 'tir_precision', 'calme_absolu', 'maitre_tireur', 'tir_du_coeur',
     'piege_immolation', 'piege_venin', 'riposte_sauvage', 'coup_hachette', 'desengagement', 'lancer_filet', 'sens_aiguises',
     'piege_explosif', 'contre_attaque', 'dard_paralysant', 'instinct_survie', 'maitre_pieges', 'pieges_serie', 'champ_pieges',
+    'coup_dans_le_piege',
 }}

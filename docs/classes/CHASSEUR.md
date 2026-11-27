@@ -298,7 +298,9 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 ---
 
-## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, tranché le 27 novembre au soir)
+## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, Pièges codés le 27 novembre au soir, Loup solitaire mis de côté)
+
+**Fait le 27 novembre 2026 (soir)** : les Pièges posés sur les ennemis (§13.1 à 13.4, maquette A) et la carte **Coup dans le piège** (Attaque, 1 énergie, peu commune, arbre Survie : 6 dégâts, 9 améliorée, puis les Pièges de la cible partent tout de suite ; un Givrant déclenché ainsi lui fait perdre sa prochaine action). Bot : `EQUILIBRAGE.md` §27. **Le Loup solitaire (§13.5) est mis de côté** : la refonte des Pièges règle le problème (les groupes ne meurent plus avant d'agir) et le testeur Survie gagne déjà haut ; à reprendre si Survie faiblit au prochain export. Le Chasseur d'avant la refonte : commit `3892329` de `dev`.
 
 Deux changements pour un seul build : les Pièges posés sur les ennemis (§13.1 à 13.4) et le Loup solitaire, un Chasseur de mêlée sans compagnon (§13.5). Document Word de présentation : « Refonte de l'arbre Survie du Chasseur » (27 novembre 2026).
 

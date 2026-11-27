@@ -4,7 +4,7 @@ import { addPower, applySaignement, drawCards, fx, gainBlock, livingEnemies, log
 import { isInterruptible } from './enemies';
 import { applyDot } from './demoniste';
 import { delayCast, stun } from './voleur';
-import { companionAct, companionGuard, fatalThreshold, flecheDamage, markTarget, placeTrap, placeTrapAll, setAspect, trapDotBonus } from './chasseur';
+import { companionAct, companionGuard, fatalThreshold, flecheDamage, markTarget, placeTrap, placeTrapAll, setAspect, springTraps, trapDotBonus } from './chasseur';
 import type { CardDef, PlayContext } from './cards';
 import type { EnemyState } from './types';
 
@@ -373,6 +373,15 @@ const LIST: HunterCard[] = [
     id: 'piege_explosif', name: 'Piège explosif', type: 'Compétence', trap: true, rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'feu',
     text: (up, g) => `Piège : ${(up ? 12 : 8) + (g?.trapBonus ?? 0)} dégâts à l'ennemi piégé, la moitié aux autres.`,
     play: (ctx) => placeTrap(ctx.c, ctx.target, 'explosif', ctx.up ? 12 : 8),
+  },
+  {
+    // 27 novembre 2026 : le joueur choisit quand partent les Pièges d'un ennemi (fiche §13.5, sans le Loup solitaire).
+    id: 'coup_dans_le_piege', name: 'Coup dans le piège', type: 'Attaque', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'epee',
+    text: (up) => `Inflige ${up ? 9 : 6} dégâts. Déclenche tout de suite les Pièges de la cible.`,
+    play: (ctx) => {
+      hit(ctx, ctx.up ? 9 : 6);
+      if (ctx.target && !ctx.target.dead) springTraps(ctx.c, ctx.target, true);
+    },
   },
   {
     id: 'contre_attaque', name: 'Contre-attaque', type: 'Compétence', rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'bouclier',

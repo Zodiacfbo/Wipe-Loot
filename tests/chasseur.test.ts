@@ -35,10 +35,10 @@ describe('le Chasseur : la run', () => {
     expect(run.deck.some((k) => k.id === 'ordre_attaque')).toBe(true);
   });
 
-  it('51 cartes en récompense (+ Tir et Repli), 14 par arbre', () => {
-    expect(rewardPool('chasseur')).toHaveLength(51);
+  it('52 cartes en récompense (+ Tir et Repli), 14 par arbre (15 en Survie avec Coup dans le piège)', () => {
+    expect(rewardPool('chasseur')).toHaveLength(52);
     expect(starterCards('chasseur')).toEqual(['tir', 'repli']);
-    for (const tree of CHASSEUR_TREES) expect(tree.cards).toHaveLength(14);
+    for (const tree of CHASSEUR_TREES) expect(tree.cards).toHaveLength(tree.id === 'survie' ? 15 : 14);
     for (const tree of CHASSEUR_TREES) for (const id of tree.cards) expect(CARDS[id]?.classId).toBe('chasseur');
   });
 
@@ -266,6 +266,27 @@ describe('les Pièges', () => {
     expect(c.enemies[1].traps ?? []).toHaveLength(0);
     clearPlayerEffects(c, c.enemies[0]);
     expect(c.enemies[0].traps).toHaveLength(0);
+  });
+
+  it('Coup dans le piège : 6 dégâts, puis les Pièges de la cible partent tout de suite', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['piege_explosif', 'piege_givrant', 'coup_dans_le_piege']);
+    c.player.debuffs!.lignee = 5;
+    const [a, b] = c.enemies;
+    play(c, 'piege_explosif', a.uid);
+    play(c, 'piege_givrant', a.uid);
+    play(c, 'coup_dans_le_piege', a.uid);
+    expect(lost(c, 0)).toBe(6 + 8);
+    expect(lost(c, 1)).toBe(4);
+    expect(a.traps).toHaveLength(0);
+    // Le Givrant a pris : il perd sa prochaine action (seul le 2e Lieutenant frappe).
+    const hp = c.player.hp;
+    endTurn(c);
+    expect(a.trapFrozen).toBeFalsy();
+    const solo = fight(['lieutenant'], []);
+    solo.player.debuffs!.lignee = 5;
+    const hpSolo = solo.player.hp;
+    endTurn(solo);
+    expect(hp - c.player.hp).toBe(hpSolo - solo.player.hp);
   });
 
   it('une run sauvegardée avec les anciens Pièges : ils passent sur le premier ennemi', () => {

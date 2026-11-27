@@ -324,15 +324,16 @@ function springTrap(c: CombatState, trap: Trap, victim: EnemyState): void {
 /**
  * L'ennemi commence à agir : ses Pièges partent, dans l'ordre où ils ont été posés (deux fois avec Maître des pièges).
  * Renvoie false si l'ennemi ne peut plus agir (mort, ou Givré par un Piège).
+ * `now` : déclenchés par Coup dans le piège, pendant ton tour (un Givrant lui fera perdre sa prochaine action).
  */
-export function springTraps(c: CombatState, e: EnemyState): boolean {
-  if (!e.traps?.length) return !e.dead;
-  const traps = e.traps;
+export function springTraps(c: CombatState, e: EnemyState, now = false): boolean {
+  const traps = e.traps ?? [];
   e.traps = [];
   const times = power(c, 'maitre_pieges') ? 2 : 1;
   for (const trap of traps) {
     for (let i = 0; i < times && c.phase === 'player' && !e.dead; i++) springTrap(c, trap, e);
   }
+  if (now) return !e.dead;
   if (e.trapFrozen) {
     e.trapFrozen = false;
     if (!e.dead) log(c, `${e.name} est pris dans la glace : il perd son action.`);

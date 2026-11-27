@@ -396,7 +396,8 @@ export const CHASSEUR_TREES: TreeDef[] = [
       [t('t_champ_pieges', 'Champ de pièges', 'Carte épique : un exemplaire dans ton paquet de départ.', { card: 'champ_pieges' })],
     ],
     cards: ['piege_immolation', 'piege_venin', 'riposte_sauvage', 'coup_hachette', 'desengagement', 'lancer_filet', 'sens_aiguises',
-      'piege_explosif', 'contre_attaque', 'dard_paralysant', 'instinct_survie', 'maitre_pieges', 'pieges_serie', 'champ_pieges'],
+      'piege_explosif', 'contre_attaque', 'dard_paralysant', 'instinct_survie', 'maitre_pieges', 'pieges_serie', 'champ_pieges',
+      'coup_dans_le_piege'],
   },
 ];
 
