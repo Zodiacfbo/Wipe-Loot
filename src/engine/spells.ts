@@ -514,7 +514,7 @@ for (const d of VOLEUR_SPELLS) SPELLS[d.id] = { ...d, classId: 'voleur' };
 /** Les sorts de barre du Paladin. Référence : docs/classes/PALADIN.md (§6) */
 const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
   {
-    id: 'jugement', name: 'Jugement', cost: 0, cooldown: Number(process.env.PAL_JCD ?? 2), // SONDE needsTarget: true, icon: 'etoile',
+    id: 'jugement', name: 'Jugement', cost: 0, cooldown: 2, needsTarget: true, icon: 'etoile',
     text: 'Inflige 5 dégâts. Gagne 2 Puissance sacrée.',
     cast: (c, target) => judge(c, target),
   },

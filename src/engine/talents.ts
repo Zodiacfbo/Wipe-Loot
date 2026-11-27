@@ -307,7 +307,7 @@ export const PALADIN_TREES: TreeDef[] = [
       [t('lumiere_amelioree', 'Lumière améliorée', 'Tes cartes de soin rendent +1 PV.', { fx: { healBonus: Number(process.env.PAL_LA ?? 1) } }), // SONDE
         t('esprit_divin', 'Esprit divin', '+6 PV max.', { maxHp: 6 })],
       [t('purification_rapide', 'Purification rapide', 'Lumière purificatrice coûte 0.', { fx: { purifyFree: 1 } }),
-        t('sagesse_jugement', 'Sagesse', 'Le Jugement te soigne aussi de 2 PV.', { fx: { judgeHeal: Number(process.env.PAL_SAG ?? 2) } }) // SONDE],
+        t('sagesse_jugement', 'Sagesse', 'Le Jugement te soigne aussi de 2 PV.', { fx: { judgeHeal: Number(process.env.PAL_SAG ?? 2) } })], // SONDE
       [t('t_imposition_mains', 'Imposition des mains', 'Ajoute ce sort à ta barre : sous 30 % de tes PV, soigne 30 % de tes PV max, une fois par combat.', { spell: 'imposition_mains' }),
         t('t_purification_pal', 'Purification', 'Ajoute ce sort à ta barre : Dissipation (Magie, Poison, Maladie).', { spell: 'purification_pal' })],
       [t('lumiere_infusee', 'Lumière infusée', 'Ta 1re Dépense de chaque tour te rend 1 Puissance sacrée.', { fx: { spendRefund: 1 } }),
