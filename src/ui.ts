@@ -22,8 +22,8 @@ import { AFFLICTIONS, ENEMIES_ACTE2, ELITE_ENCOUNTERS_2, GRIZZIK_POTIONS } from 
 import { ELITE_ENCOUNTERS_3, ENEMIES_ACTE3, IREM, YZHAR } from './engine/enemies_acte3';
 import { turnsBeforeSwap } from './engine/irem';
 import { MUTATION_LABEL } from './engine/actions';
-import { cardHitValue } from './engine/preview';
-import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeHit, splitRibbon } from './cardtext';
+import { cardBlockValue, cardHitValue } from './engine/preview';
+import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeBlock, placeHit, splitRibbon } from './cardtext';
 import { afterRender, explainCard, initAides } from './aides';
 import { closeMini, combatTutoDone, howToPlayHtml, miniHtml, placeTuto, startCombatTuto, startHallTuto, tutoActive, tutoFinish, tutoHtml, tutoMove, tutoStop } from './tuto';
 import { cardReady, chargesUseful } from './engine/hints';
@@ -116,7 +116,7 @@ import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, actionOrder, companionDamage
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
-import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, Posture, RunState, Trap } from './engine/types';
+import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, PlayerCurse, Posture, RunState, Trap } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
@@ -289,11 +289,18 @@ const SCHOOL_LABEL = { arcane: 'Arcane', feu: 'Feu', givre: 'Givre', sacre: 'Sac
  * Le texte d'une carte : mots-clés soulignés (infobulles) et, en combat, le chiffre de dégâts corrigé
  * (Puissance, posture, objets, cible…), en vert s'il monte et en rouge s'il baisse.
  */
-function cardText(text: string, hit: number | null | undefined): string {
+function cardText(text: string, hit: number | null | undefined, block?: number | null): string {
+  // Le blocage corrigé (Robustesse, posture, objets…), dans la partie du texte qui le contient.
+  const withBlock = (part: string): string => {
+    const b = placeBlock(part, block);
+    if (!b) return markKeywords(part);
+    const cls = block! > b.base ? 'plus' : block! < b.base ? 'moins' : '';
+    return `${markKeywords(b.before)}<span class="valeur ${cls}">${block}</span>${markKeywords(b.after)}`;
+  };
   const place = placeHit(text, hit);
-  if (!place) return markKeywords(text);
+  if (!place) return withBlock(text);
   const cls = hit! > place.base ? 'plus' : hit! < place.base ? 'moins' : '';
-  return `${markKeywords(place.before)}<span class="valeur ${cls}">${hit}</span>${markKeywords(place.after)}`;
+  return `${withBlock(place.before)}<span class="valeur ${cls}">${hit}</span>${withBlock(place.after)}`;
 }
 
 /** Le texte amélioré, avec ce qui change en vert (aperçu de l'amélioration). */
@@ -303,7 +310,7 @@ function diffText(base: string, up: string): string {
     .split(DIFF_CLOSE).join('</span>');
 }
 
-function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; disguise?: boolean; reason?: string | null; ready?: boolean; diffFrom?: string } = {}): string {
+function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; block?: number | null; disguise?: boolean; reason?: string | null; ready?: boolean; diffFrom?: string } = {}): string {
   // Acte 3 : dans la main, une Hallucination a l'apparence de la carte qu'elle imite (cadre violacé, texte qui tremble).
   const fake = !!opts.disguise && real.id === 'hallucination' && !!real.mimic && !!CARDS[real.mimic];
   const card = fake ? { ...real, id: real.mimic! } : real;
@@ -331,7 +338,7 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     ${totemEl ? `<span class="pastille-element" title="Totem de ${ELEMENT_NAME[totemEl]}">${ICON_ELEMENT[totemEl]}</span>` : ''}
     <span class="type" ${ribbon ? `data-type="${def.type}"` : ''}>${totemEl ? `Totem · ${ELEMENT_NAME[totemEl]}` : ribbon ?? `${def.type}${def.school ? ` · ${SCHOOL_LABEL[def.school]}` : ''}`}</span>
-    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${opts.diffFrom !== undefined ? diffText(opts.diffFrom, text) : cardText(text, opts.hit)}</span></span>
+    <span class="texte ${text.length > 56 ? 'tres-long' : text.length > 42 ? 'long' : ''}"><span>${opts.diffFrom !== undefined ? diffText(opts.diffFrom, text) : cardText(text, opts.hit, opts.block)}</span></span>
   </button>`;
 }
 
@@ -996,7 +1003,7 @@ function intentShort(i: Intent): string {
 }
 
 /** Ce que fait une malédiction, en une phrase. */
-function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
+function curseText(i: PlayerCurse): string {
   const parts: string[] = [];
   if (i.demoralise) parts.push(`Démoralisé ${i.demoralise} tours (tes Attaques −25 %)`);
   if (i.impie) parts.push(`ta 1re carte de chaque tour coûte 1 de plus (${i.impie} tours)`);
@@ -1010,6 +1017,18 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   if (i.sableHand) parts.push(`${i.sableHand} Sable dans ta main`);
   if (i.hallucinations) parts.push(`${i.hallucinations} Hallucinations dans ta main`);
   if (i.domination) parts.push('pendant ton prochain tour, ta première Attaque te frappera toi-même');
+  if (i.toxine) parts.push(`Toxine ${i.toxine} tours (2 dégâts au début de ton tour)`);
+  if (i.peste) parts.push(`Peste ${i.peste} tours (tes soins réduits de moitié)`);
+  if (i.ralenti) parts.push(`Ralenti ${i.ralenti} tour${i.ralenti > 1 ? 's' : ''} (25 % de blocage en moins)`);
+  if (i.fracasse) parts.push(`Armure fracassée ${i.fracasse} tours (tu subis 50 % de dégâts en plus)`);
+  if (i.ombre) parts.push(`+${i.ombre} Ombre rongeuse (+2 dégâts à chaque attaque reçue, tout le combat)`);
+  if (i.discard) parts.push(`${i.discard} carte${i.discard > 1 ? 's' : ''} défaussée${i.discard > 1 ? 's' : ''} au hasard au début de ton tour`);
+  if (i.cendres) parts.push(`${i.cendres} Cendres dans ta main`);
+  if (i.energyLoss) parts.push(`${i.energyLoss} énergie de moins au prochain tour`);
+  if (i.affliction) parts.push('une Affliction de sang au hasard (à 5, tu es Transformé)');
+  if (i.petStun) parts.push(`ton compagnon ou ton familier est étourdi ${i.petStun} tour`);
+  if (i.regard) parts.push(`Regard sombre ${i.regard} tours : mets-toi à couvert ou subis des dégâts`);
+  if (i.swallow) parts.push('il t\'avale : 2 tours dans ses entrailles');
   if (i.lignee) {
     const cls = ui.run?.classId;
     parts.push(cls === 'mage' ? 'Malédiction de lignée : 1 carte de moins en main pendant 2 tours'
@@ -1026,6 +1045,46 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** Un texte sûr dans un attribut HTML (title). */
+function attr(t: string): string {
+  return t.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/** Ce que l'attaque fait en plus des dégâts, en une phrase (vide si rien). */
+function attackExtraText(i: Extract<Intent, { kind: 'attack' }>): string {
+  const parts: string[] = [];
+  if (i.pierce) parts.push('ignore ton blocage');
+  if (i.addZone) parts.push(`${i.addZone > 1 ? `${i.addZone} Zones` : 'une Zone'} de feu dans ta main (joue-la pour Bouger, sinon 6 dégâts en fin de tour)`);
+  if (i.stealGold) parts.push(`te vole ${i.stealGold} or s'il te blesse`);
+  if (i.drawPenalty) parts.push(`tu pioches ${i.drawPenalty} cartes de moins`);
+  if (i.grow) parts.push(`+${i.grow} dégâts à chaque fois`);
+  if (i.effect) {
+    const t = curseText(i.effect);
+    if (t) parts.push(t.charAt(0).toLowerCase() + t.slice(1));
+  }
+  return parts.join(' ; ');
+}
+
+/** Ce que fait une incantation à la fin du tour. */
+function castEffectText(c: CombatState, e: EnemyState, i: Intent): string {
+  switch (i.kind) {
+    case 'attack': {
+      const extra = attackExtraText({ ...i, drawPenalty: undefined });
+      return `${previewIntentDamage(c, e)} dégâts à la fin de ce tour${i.drawPenalty ? `, et tu pioches ${i.drawPenalty} cartes de moins` : ''}${extra ? `. En plus : ${extra}` : ''}`;
+    }
+    case 'heal': return `${i.all ? 'Soigne tous ses alliés' : 'Soigne un allié'} de ${i.amount} PV à la fin de ce tour`;
+    case 'potion': return `${GRIZZIK_POTIONS[i.potion].split(' : ')[1]}, à la fin de ce tour`;
+    case 'hatch': return 'Tous les Œufs éclosent à la fin de ce tour';
+    case 'curse': return curseText(i);
+    case 'buff': return `À la fin de ce tour : Puissance +${i.puissance} ${i.target === 'allies' ? 'à tous ses alliés (+' + i.puissance + ' dégâts par attaque)' : 'pour lui (+' + i.puissance + ' dégâts par attaque)'}`;
+    case 'block': return `À la fin de ce tour : +${i.amount} blocage`;
+    case 'summon': return `À la fin de ce tour : ${i.label}`;
+    case 'blink': return i.flight ? 'À la fin de ce tour, il s\'envole : tes Attaques à cible unique ne pourront plus le viser' : 'À la fin de ce tour, il Cligne : tu ne pourras plus le cibler pendant ton prochain tour';
+    case 'burrow': return `À la fin de ce tour, il s'enfouit dans le sable${i.turns > 1 ? ` pendant ${i.turns} tours` : ''}`;
+    default: return 'Prend effet à la fin de ce tour';
+  }
+}
+
 function intentHtml(c: CombatState, e: EnemyState): string {
   const next = c.gear?.seeTwoIntents || c.seeAll ? `<div class="intention-suivante">Ensuite : ${intentShort(intentAt(ENEMIES[e.defId], e.step + 1, e.phase ?? 1, e.hp < e.maxHp / 2))}</div>` : '';
   return intentNow(c, e) + next;
@@ -1039,17 +1098,10 @@ function intentNow(c: CombatState, e: EnemyState): string {
   if (e.gele === 'skip') return `<div class="intention interrompu gele">Gelé : passe son tour</div>`;
   if (e.interrupted) return `<div class="intention interrompu">Interrompu</div>`;
   if (i.cast) {
-    const effet =
-      i.kind === 'attack'
-        ? `${previewIntentDamage(c, e)} dégâts à la fin de ce tour${i.drawPenalty ? `, et tu pioches ${i.drawPenalty} cartes de moins` : ''}`
-        : i.kind === 'heal' ? `${i.all ? 'Soigne tous ses alliés' : 'Soigne un allié'} de ${i.amount} PV à la fin de ce tour`
-        : i.kind === 'potion' ? `${GRIZZIK_POTIONS[i.potion].split(' : ')[1]}, à la fin de ce tour`
-        : i.kind === 'hatch' ? 'Tous les Œufs éclosent à la fin de ce tour'
-        : i.kind === 'curse' ? curseText(i)
-        : 'Prend effet à la fin de ce tour';
+    const effet = castEffectText(c, e, i);
     const locked = !isInterruptible(i);
-    // Au-dessus de l'ennemi, une étiquette ; le cadre complet (jauge, effet) passe sous sa barre de vie.
-    return `<div class="intention ${locked ? '' : 'soutien'} incante">${ICON.sablier}<span>${i.cast}</span></div><!--detail--><div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
+    // Au-dessus de l'ennemi, une étiquette (son effet en bulle) ; le cadre complet (jauge, effet) passe sous sa barre de vie.
+    return `<div class="intention ${locked ? '' : 'soutien'} incante aide" title="${attr(`${i.cast} : ${effet}.`)}">${ICON.sablier}<span>${i.cast}</span></div><!--detail--><div class="cast ${locked ? 'bloque' : ''}"><div class="tete"><span>${i.cast}${e.delayed ? ' (retardé)' : ''}</span><b>${locked ? 'Impossible à interrompre' : 'Interruptible'}</b></div><div class="jauge"><div></div></div><div class="effet">${effet}</div></div>`;
   }
   switch (i.kind) {
     case 'attack': {
@@ -1061,12 +1113,15 @@ function intentNow(c: CombatState, e: EnemyState): string {
       const extra = i.effect && i.effect.label !== i.label ? ` + ${i.effect.label}` : '';
       // Le nom de l'attaque en infobulle (une ligne de plus repousserait l'intention hors de l'écran).
       const name = i.label ? `${i.label}${i.madBonus ? ` : +${i.madBonus} dégâts si tu as 5 Folie ou plus` : ''}` : '';
-      return `<div class="intention" ${name ? `title="${name}"` : ''}>${ICON.epee}<span>${dmg}${times}${zone}${extra}</span></div>`;
+      // L'explication de l'effet en plus (Zone de feu, Saignement…) : en bulle, au survol ou à l'appui long.
+      const more = hidden ? '' : attackExtraText(i);
+      const help = [name, more ? more.charAt(0).toUpperCase() + more.slice(1) : ''].filter(Boolean).join('. ');
+      return `<div class="intention ${help ? 'aide' : ''}" ${help ? `title="${attr(help + '.')}"` : ''}>${ICON.epee}<span>${dmg}${times}${zone}${extra}</span></div>`;
     }
     case 'block':
-      return `<div class="intention defense">${ICON.bouclier}<span>+${i.amount}</span></div>`;
+      return `<div class="intention defense aide" title="Gagne ${i.amount} blocage.">${ICON.bouclier}<span>+${i.amount}</span></div>`;
     case 'buff':
-      return `<div class="intention soutien">${ICON.hausse}<span>Puissance +${i.puissance}</span></div>`;
+      return `<div class="intention soutien aide" title="${i.target === 'allies' ? 'Tous ses alliés gagnent' : 'Il gagne'} Puissance +${i.puissance} : +${i.puissance} dégâts à chaque attaque.">${ICON.hausse}<span>Puissance +${i.puissance}</span></div>`;
     case 'heal':
       return `<div class="intention soutien">${ICON.coeur}<span>Soin ${i.amount}</span></div>`;
     case 'curse':
@@ -1555,6 +1610,7 @@ function combatScreen(run: RunState, c: CombatState): string {
     selected: ui.selection?.kind === 'card' && ui.selection.index === i,
     combat: c,
     hit: cardHitValue(c, i),
+    block: cardBlockValue(c, i),
     disguise: true,
   })).join('');
 

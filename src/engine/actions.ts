@@ -440,7 +440,8 @@ export function killEnemy(c: CombatState, target: EnemyState): void {
       damageEnemy(c, other, onKill, false);
     }
   }
-  if (target.defId === 'etincelle' || target.defId === 'eclat') {
+  // Le dernier ennemi tombé : le combat est gagné, l'explosion ne compte plus.
+  if ((target.defId === 'etincelle' || target.defId === 'eclat') && livingEnemies(c).length > 0) {
     const boom = 4;
     log(c, `${target.name} explose !`);
     fx(c, { kind: 'tick', who: 'player', amount: boom, label: 'Explosion' });
@@ -498,6 +499,10 @@ export function deathSaves(c: CombatState): void {
 
 export function damagePlayer(c: CombatState, amount: number, isAttack: boolean): number {
   const p = c.player;
+  // L'animation annoncée juste avant (« -4 Explosion ») montre ce qui est vraiment perdu : le blocage d'abord, puis les PV.
+  const last = c.fx?.[c.fx.length - 1];
+  const tick = last?.kind === 'tick' && last.who === 'player' && last.amount === amount ? last : null;
+  if (tick) { tick.amount = 0; tick.blocked = 0; }
   if (p.iceBlock) return 0; // Carapace de glace
   if (!isAttack) amount -= c.gear?.nonAttackReduce ?? 0;
   if (p.rempart) amount = Math.floor(amount / 2);
@@ -507,6 +512,7 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
   // Le Prêtre : l'Égide encaisse après le blocage.
   const hpLoss = absorbAegis(c, amount - absorbed);
   p.hp -= hpLoss;
+  if (tick) { tick.amount = hpLoss; tick.blocked = absorbed; }
   // Dernier serment (Paladin) : sous 20 % des PV max, une fois par combat.
   if (hpLoss > 0) lastOath(c);
   // Ange gardien : une fois par combat, on reste à 1 PV et on est soigné.

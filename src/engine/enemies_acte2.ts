@@ -81,7 +81,7 @@ export const ENEMIES_ACTE2: Record<string, EnemyDef> = {
   },
   ysolde: {
     id: 'ysolde', name: 'Ysolde la Rouge', hpMin: 160, hpMax: 160, elite: true, tags: ['dragon'], startHpRatio: 0.5,
-    passive: 'Adrénaline ardente : +3 énergie par tour, mais tu perds 3, 5, 7… PV à la fin de chacun de tes tours.',
+    passive: 'Blessée par ses chaînes, elle commence à la moitié de ses PV. Adrénaline ardente : +3 énergie par tour, mais tu perds 3, 5, 7… PV à la fin de chacun de tes tours.',
     cycle: [
       { kind: 'attack', dmg: 12 },
       { kind: 'attack', dmg: 15, cast: 'Souffle de flammes', uninterruptible: true, breath: true },
