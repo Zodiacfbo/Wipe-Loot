@@ -271,7 +271,7 @@ describe('les Pièges', () => {
   it('Coup dans le piège : 6 dégâts, puis les Pièges de la cible partent tout de suite', () => {
     const c = fight(['lieutenant', 'lieutenant'], ['piege_explosif', 'piege_givrant', 'coup_dans_le_piege']);
     c.player.debuffs!.lignee = 5;
-    const [a, b] = c.enemies;
+    const [a] = c.enemies;
     play(c, 'piege_explosif', a.uid);
     play(c, 'piege_givrant', a.uid);
     play(c, 'coup_dans_le_piege', a.uid);
