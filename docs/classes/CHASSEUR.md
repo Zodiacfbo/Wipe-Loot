@@ -298,7 +298,7 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 ---
 
-## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, à trancher)
+## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, tranché le 27 novembre au soir)
 
 Deux changements pour un seul build : les Pièges posés sur les ennemis (§13.1 à 13.4) et le Loup solitaire, un Chasseur de mêlée sans compagnon (§13.5). Document Word de présentation : « Refonte de l'arbre Survie du Chasseur » (27 novembre 2026).
 
@@ -347,6 +347,13 @@ C'est le point le plus important pour la lisibilité : chaque limite doit se voi
 | Instinct du chasseur (talent) | +1 énergie et +1 carte au tour suivant, 1 fois par tour | inchangé |
 
 ### 13.4 Les questions à trancher
+
+**Tranché le 27 novembre 2026 (soir) :**
+1. **Avant** : tous les Pièges partent quand l'ennemi piégé commence à agir. S'il survit, **son action a bien lieu** (le Piège ne l'annule pas). Seule exception, par son effet : le Piège givrant, qui lui fait perdre cette action (un boss : son action à −50 %).
+2. **Explosif : l'ennemi piégé prend tous les dégâts, les autres la moitié.**
+3. **Aucune limite au total** : un seul de chaque type par ennemi. Les 3 tuiles de Pièges sous le héros disparaissent.
+4. **Pastilles + numéros** : les Pièges en pastilles sous la barre de vie de l'ennemi, et un petit numéro d'ordre d'action au-dessus des ennemis (seulement pour le Chasseur). Maquettes sur le vrai écran avant de coder.
+
 
 1. **Avant ou après l'action de l'ennemi ?**
    - **A (conseillé) : avant**, pour tous les Pièges. Simple à expliquer (« il marche dessus »). L'ennemi peut mourir sans agir, mais un seul à la fois, plus tout le groupe.
