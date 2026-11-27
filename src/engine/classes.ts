@@ -66,7 +66,13 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'chasseur', name: 'Chasseur', color: '#6FB84A', playable: true, difficulty: 3, hp: 70,
-    starterDeck: ['tir', 'tir', 'tir', 'tir', 'repli', 'repli', 'repli', 'repli', 'tir_ajuste', 'ordre_attaque'],
+    // 27 novembre 2026 : un peu de chaque arbre au départ ; l'arbre principal renforce le sien.
+    starterDeck: ['tir', 'tir', 'tir', 'tir', 'repli', 'repli', 'repli', 'tir_ajuste', 'ordre_attaque', 'piege_explosif'],
+    starterSwaps: {
+      precision: { from: 'ordre_attaque', to: 'tir_ajuste', count: 1 },
+      betes: { from: 'tir_ajuste', to: 'ordre_attaque', count: 1 },
+      survie: { from: 'tir_ajuste', to: 'piege_venin', count: 1 },
+    },
     startSpell: 'tir_arcanique', sprite: 'chasseur.png',
     quote: 'Mon arc vise, ma bête mord. Toi, tu cours.',
     role: 'Tire de loin, et vient à bout des hordes', resource: 'Compagnon animal, pièges et esprits',

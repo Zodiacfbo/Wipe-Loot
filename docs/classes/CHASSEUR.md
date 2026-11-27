@@ -74,9 +74,12 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
 | **Tir** | 4 | 1 | Attaque | Inflige 6 dégâts. | 9 dégâts |
-| **Repli** | 4 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
+| **Repli** | 3 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
 | **Tir ajusté** | 1 | 2 | Attaque | Inflige 13 dégâts. | 18 dégâts |
 | **Ordre : Attaque** | 1 | 0 | Compétence (Ordre) | Ton compagnon agit immédiatement. | Pioche 1 carte |
+| **Piège explosif** | 1 | 1 | Compétence (Piège) | Voir l'arbre Survie. | |
+
+**Depuis le 27 novembre 2026 : un peu de chaque arbre au départ** (un Repli de moins pour le Piège explosif), et l'arbre principal (celui qui a strictement le plus de talents ; à égalité, rien ne change) renforce le sien (`starterSwaps` dans `classes.ts`) : **Précision** : l'Ordre d'attaque devient un 2ᵉ Tir ajusté ; **Bêtes** : le Tir ajusté devient un 2ᵉ Ordre d'attaque ; **Survie** : le Tir ajusté devient un Piège à venin. Sans passe du bot (à mon choix).
 
 ### 4.2 Sort de barre de départ
 
