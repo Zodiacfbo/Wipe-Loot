@@ -687,3 +687,17 @@ Toutes les morts du Chasseur sont maintenant en **phase 2** (tours 10 à 15 souv
 | Survie, Champ de pièges à 2 Pièges | 30 % | 6 % | 6,0 |
 
 **Conclusion** : Survie écrase les groupes et peine contre les seigneurs (chapitre III atteint dans 96 % des runs, 32 % de victoires). Réduire Champ de pièges ne change presque rien : on ne touche pas aux chiffres. Refonte notée pour plus tard (fiche du Chasseur §13, issue #1) : les Pièges posés sur les ennemis, un seul de chaque type par ennemi, et le talent Loup solitaire.
+
+## 27. Les Pièges posés sur les ennemis (27 novembre 2026, soir)
+
+Refonte codée (fiche du Chasseur §13) : un Piège se pose sur un ennemi, un seul de chaque type par ennemi, et part quand il agit ; l'Explosif frappe l'ennemi piégé en plein et les autres à moitié ; Champ de pièges pose un Piège explosif sur chaque ennemi. Le bot vise avec ses Pièges (`hunterValue` dans `bot.ts` : l'Explosif sur un ennemi solide, le Givrant sur celui qui frappe fort).
+
+**Sonde du bot** (jetable ; run complète, niveau 10, 50 runs par case, ± 14 points), comparée au §26 :
+
+| Arbre principal | Difficulté 0 | Difficulté 15 | PV perdus par gardien |
+|---|---|---|---|
+| Précision 7 + Bêtes 3 | 64 % (60) | 20 % (18) | 6,5 (7,0) |
+| Bêtes 7 + Survie 3 | 42 % (50) | 2 % (6) | 6,2 (10,0) |
+| Survie 7 + Bêtes 3 | 28 % (32) | 8 % (8) | 6,2 (4,0) |
+
+**Conclusion** : rien ne bouge au-delà de la marge. Survie perd un peu de sa facilité contre les gardiens (6,2 PV au lieu de 4,0 : les groupes ne meurent plus tous avant d'agir) sans perdre de victoires. Survie reste l'arbre le plus faible : la suite, c'est le Loup solitaire (fiche §13.5).
