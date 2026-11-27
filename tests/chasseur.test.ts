@@ -238,7 +238,7 @@ describe('les Pièges', () => {
     // Le texte dit vrai : un Piège explosif amélioré de 15 enlève 15 PV.
     const c = fight(['lieutenant'], ['piege_explosif'], g);
     c.hand[0].upgraded = true;
-    c.player.debuffs = { ...(c.player.debuffs ?? {}), lignee: 5 };
+    c.player.debuffs!.lignee = 5; // le compagnon ne compte pas ici
     play(c, 'piege_explosif');
     endTurn(c);
     expect(lost(c)).toBe(15);
