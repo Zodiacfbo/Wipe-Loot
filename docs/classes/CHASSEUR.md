@@ -63,6 +63,8 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 **L'intérêt :** les Pièges sont des effets **préparés à l'avance**. Le Chasseur doit anticiper quel ennemi va agir en premier.
 
+> **Projet (27 novembre 2026) :** les Pièges posés **sur un ennemi choisi**, un seul de chaque type par ennemi. Voir le §13, à trancher avant de coder.
+
 ---
 
 ## 4. Deck de départ et barre de sorts
@@ -278,13 +280,13 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 | Feindre la mort | les Attaques visent le compagnon, aucun dégât | **les attaques ennemies t'infligent 50 % de dégâts en moins** jusqu'à ton prochain tour (décidé avant le code) |
 | Fureur primitive (épique) | coût 2 (1) | **coût 1 (0)** |
 | Tir du cœur (épique) | 20 dégâts (26), double sur une cible Marquée | **pareil, et il Marque la cible** (le bot marquait trop rarement pour en profiter) |
-| Champ de pièges (épique) | coût 2 (1), 3 Pièges explosifs | **coût 1 (0), 2 Pièges explosifs, Épuisé** |
+| Champ de pièges (épique) | coût 2 (1), 3 Pièges explosifs | **coût 1 (0), 3 Pièges explosifs de 12, Épuisé** (2 de 8 du 20 au 22 novembre 2026) |
 | Pièges améliorés | +3 dégâts | **+3 au Piège explosif, +1 par tour aux Pièges à DoT** |
 | Maître tireur | la Marque passe de +3 à +5 | **la Marque donne 2 dégâts de plus** (le même effet, écrit pour toutes les Marques) |
 
 **Les règles précisées :**
 - **Le compagnon** se choisit sur un écran au départ de l'expédition, avant Brégan. Le dernier choisi est sélectionné par défaut. Il agit à la fin de ton tour sur ta dernière cible, ou sur le premier ennemi si elle est morte. Une étiquette « cible » le montre sur l'ennemi.
-- **Il ne meurt pas.** Le Rayon oculaire d'Yzhar l'étourdit, et la Malédiction de lignée de Vhaeryx le fait fuir pendant 2 tours.
+- **Il ne meurt pas.** Le Rayon oculaire d'Yzhar l'étourdit : il saute son action de fin de tour, mais les Ordres marchent toujours (26 novembre 2026), et la Malédiction de lignée de Vhaeryx le fait fuir pendant 2 tours.
 - **Ses bonus :** les bagues des alliés (`allyBonus`) et du familier (`petBonus`) valent pour lui. La Marque s'ajoute à ses attaques.
 - **Les Pièges :** 3 au plus. Un 4ᵉ remplace le plus ancien. Ils partent tous au début du tour ennemi, sur le premier ennemi vivant de la ligne, celui qui agit en premier. Une étiquette « ici » le montre. Le Piège givrant contrôle un ennemi normal et divise par deux la prochaine attaque d'un boss.
 - **Instinct du chasseur** donne son énergie au début de ton tour suivant, puisque les Pièges se déclenchent pendant le tour ennemi.
@@ -293,3 +295,89 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 - **Interface (maquette C) :** sous le héros, une rangée de tuiles avec le compagnon et ses dégâts, l'Esprit, puis 3 cases de Pièges.
 - **Sorts de loot :** Fusée éclairante, Appel du compagnon, et **Tir de dispersion** (3 dégâts à tous les ennemis, Démoralisés 1 tour, recharge 4).
 - **Quête de Corde-des-anciens :** le Bois ancien se trouve dans l'événement « Le campement du vieux trappeur » (un 3ᵉ choix réservé au Chasseur, l'événement passe en premier pour lui). Le Tendon de drake tombe des Trois Souffles, et l'arc se façonne au feu de camp à partir de l'acte 2.
+
+---
+
+## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, à trancher)
+
+Deux changements pour un seul build : les Pièges posés sur les ennemis (§13.1 à 13.4) et le Loup solitaire, un Chasseur de mêlée sans compagnon (§13.5). Document Word de présentation : « Refonte de l'arbre Survie du Chasseur » (27 novembre 2026).
+
+**Pourquoi.** Export playtest du 27 novembre 2026 : en Survie, 62 % des combats (hors seigneurs) sont finis au premier tour, 74 % sans perdre un PV. Les 3 Pièges partent tous ensemble au début du tour ennemi, avant que les ennemis jouent, et chacun frappe tous les ennemis : un seul Champ de pièges (3 Explosifs de 15 avec Pièges améliorés) tue le groupe de Saldris avant qu'il agisse. Pourtant l'arbre n'est pas trop fort au bot (Survie 32 % au niveau 10, le plus bas des 3 arbres) : il écrase les groupes et peine contre les seigneurs. Le but n'est donc pas d'affaiblir l'arbre, mais d'**étaler** les Pièges et de les rendre **tactiques**.
+
+### 13.1 La règle proposée
+
+1. **Une carte Piège vise un ennemi**, comme une Attaque. Le Piège reste sur lui : une icône sous sa barre de vie, comme le poison ou le Gel.
+2. **Un ennemi peut porter plusieurs Pièges, mais un seul de chaque type** (un Explosif, un à venin, un d'immolation, un givrant). Il n'y a plus de limite de 3 Pièges au total.
+3. **Le Piège se déclenche quand l'ennemi piégé agit**, au début de son action (« il marche dessus »). Les Pièges d'un même ennemi partent dans l'ordre où ils ont été posés. Un ennemi qui n'agit pas (étourdi, Contrôlé, enfoui dans le sable) ne le déclenche pas : le Piège attend.
+4. **Un Piège déclenché disparaît.** Un ennemi piégé qui meurt avant d'agir emporte ses Pièges (ils sont perdus).
+5. **Les seigneurs suivent la règle commune** (§ « Seigneurs et classes » du CLAUDE.md) : quand Yzhar change de corps, les Pièges posés sur l'Œil disparaissent avec les autres effets ; quand Vulkhar plonge, ses Pièges restent, figés. Un sbire appelé en combat arrive sans Piège.
+
+### 13.2 Ce qui ne se cumule pas (et comment le joueur le sait)
+
+C'est le point le plus important pour la lisibilité : chaque limite doit se voir **avant** de jouer la carte, jamais après.
+
+| Ce qui ne se cumule pas | Exemple | Ce que le jeu montre |
+|---|---|---|
+| **Deux Pièges du même type sur le même ennemi** | Un 2ᵉ Piège explosif sur un Molosse qui en porte déjà un | Pendant la visée, ce Molosse est **grisé** avec la bulle « Déjà un Piège explosif ». On ne peut pas le viser. |
+| **Une carte Piège quand tous les ennemis ont déjà ce type** | 3 Molosses avec chacun un Piège explosif | La carte est **grisée** ; la toucher dit « Tous les ennemis ont déjà un Piège explosif » (comme les autres cartes grisées, `cardBlockReason`). |
+| **Plusieurs Maîtres des pièges** | 2 copies jouées | Les Pièges partent **deux fois**, jamais trois. La pastille « Maître des pièges » ne montre pas de ×2. |
+| **Le même poison de Piège deux fois** | Le Piège à venin de deux ennemis touche le même ennemi | Les dégâts **ne s'additionnent pas** : il garde le plus fort et la plus longue durée (règle de tous les DoT). La pastille du DoT ne change que si c'est plus fort. |
+| **L'énergie d'Instinct du chasseur** | 3 Pièges déclenchés dans le même tour ennemi | **+1 énergie et +1 carte une seule fois** par tour. |
+
+**Ce qui se cumule (voulu) :** des Pièges de types différents sur le même ennemi (Explosif + Venin + Givrant) ; des Pièges du même type sur des ennemis différents ; la pioche de Pièges en série (1 carte par Piège déclenché).
+
+**Où c'est expliqué :**
+- le mot-clé **Piège** (`keywords.ts`, glossaire des archives et appui long) : « Se pose sur un ennemi. Un seul de chaque type par ennemi. Part quand il agit. » ;
+- la bulle du tutoriel du Chasseur sur les Pièges ;
+- les bulles de visée et la raison d'une carte grisée (tableau ci-dessus) ;
+- l'appui long sur l'icône d'un Piège posé : son effet, et « un seul de ce type sur cet ennemi ».
+
+### 13.3 Les cartes et talents touchés (textes proposés, 72 caractères au plus)
+
+| Carte ou talent | Aujourd'hui | Proposé |
+|---|---|---|
+| Piège explosif | 8 (12) dégâts à tous les ennemis | Voir la question 2 ci-dessous |
+| Piège à venin | DoT 2 (3) pendant 3 tours à tous les ennemis | inchangé (il part quand l'ennemi piégé agit) |
+| Piège immolation | DoT 4 (6) à l'ennemi qui le déclenche | DoT 4 (6) pendant 3 tours à l'ennemi piégé |
+| Piège givrant | Contrôlé 1 tour (boss : prochaine attaque −50 %) | L'ennemi piégé perd son action (boss : son action −50 %) |
+| Champ de pièges (épique) | Pose 3 Pièges explosifs. Épuisé. | **Pose un Piège explosif sur chaque ennemi. Épuisé.** |
+| Maître des pièges | Tes Pièges se déclenchent deux fois. | inchangé |
+| Pièges en série | Un Piège se déclenche : pioche 1 | inchangé |
+| Piégeur né (talent) | Un Piège explosif posé au début du combat | Un Piège explosif sur le premier ennemi au début du combat |
+| Instinct du chasseur (talent) | +1 énergie et +1 carte au tour suivant, 1 fois par tour | inchangé |
+
+### 13.4 Les questions à trancher
+
+1. **Avant ou après l'action de l'ennemi ?**
+   - **A (conseillé) : avant**, pour tous les Pièges. Simple à expliquer (« il marche dessus »). L'ennemi peut mourir sans agir, mais un seul à la fois, plus tout le groupe.
+   - B : avant pour le Givrant (sinon il ne sert à rien), après pour les autres : l'ennemi frappe toujours, le Piège devient une punition. Plus juste, mais deux règles à retenir.
+2. **Qui touche le Piège explosif ?**
+   - A : tous les ennemis, comme aujourd'hui (Champ de pièges sur 3 ennemis = 3 explosions à tous : le problème revient).
+   - B : l'ennemi piégé seul, plus fort (par exemple 14, 20 amélioré).
+   - **C (conseillé) : l'ennemi piégé prend tous les dégâts, les autres la moitié.** Le Piège garde son rôle contre les groupes sans tout raser d'un coup.
+3. **Une limite au total ?** Conseil : **non**, la règle « un de chaque type par ennemi » suffit. Les 3 tuiles de Pièges sous le héros disparaissent (voir les maquettes).
+4. **Qui joue en premier ?** Aujourd'hui, l'étiquette « ici » montre le premier ennemi qui agit. Avec des Pièges sur chaque ennemi, il faut savoir **l'ordre** des ennemis : un petit numéro d'ordre (1, 2, 3) au-dessus d'eux, seulement pour le Chasseur ? À voir avec les maquettes.
+
+### 13.5 Le Loup solitaire : un Chasseur de mêlée (accord de principe le 27 novembre 2026)
+
+- **Talent Loup solitaire** (palier 3 de Survie, face à Feindre la mort) : « Ton compagnon reste au campement. Tes Attaques au corps à corps infligent +3 dégâts et te donnent 2 blocage. » Chiffres à régler au bot : il doit valoir à peu près Piégeur né.
+- **Pas de compagnon** : pas d'écran de choix, pas de tuile, pas d'attaque en fin de tour. Les cartes qui parlent du compagnon (Ordres, Rappel, Lien sauvage…) ne sont plus proposées en récompense. Le paquet de départ remplace Ordre d'attaque par Coup d'épieu (`starterSwaps`, comme le Mage).
+- **Flèche apaisante** (l'ancien choix du palier 3) ne disparaît pas : elle devient un sort de barre des tables de butin du Chasseur.
+- **Un seul build, le Piégeur solitaire** : Pièges améliorés (1), Piégeur né (2), Loup solitaire (3), Instinct du chasseur (4), Champ de pièges (5). Sans ce talent, Survie se joue toujours avec le compagnon (build mixte Bêtes + Survie).
+- **Mot-clé « Corps à corps »** dans le bandeau : Riposte sauvage, Coup de hachette, et 3 nouvelles cartes de Survie :
+
+| Carte | Coût | Rareté | Effet | Amélioration |
+|---|---|---|---|---|
+| **Coup d'épieu** | 1 | Départ (Loup solitaire) | Corps à corps. Inflige 8 dégâts. | 11 dégâts |
+| **Coup dans le piège** | 1 | PC | Corps à corps. 6 dégâts. Déclenche tout de suite les Pièges de la cible. | 9 dégâts |
+| **Assaut du rôdeur** | 1 | C | Corps à corps. 6 dégâts, doublés si tu as 6 blocage ou plus. | 8 dégâts |
+
+- **Coup dans le piège** relie la mêlée et les Pièges (le joueur choisit quand ses Pièges partent) ; une seule carte, pas une règle générale.
+- **À vérifier** : la Marque (« tes Attaques et ton compagnon ») reste utile à moitié ; Esprits, Corde-des-anciens et Pièges restent compatibles ; sprite du Chasseur sans son Loup (et peut-être une pose de mêlée) ; le bot doit savoir jouer sans compagnon ; maquette du combat sans compagnon.
+
+### 13.6 Ensuite
+
+1. Trancher les questions 1 à 4 et choisir une maquette.
+2. Mesurer au bot (le bot doit apprendre à viser avec ses Pièges : l'ennemi qui frappe le plus fort pour le Givrant, le plus gros pour l'Explosif), difficultés 0 et 15, comparé au §17 d'`EQUILIBRAGE.md` et à la sonde du 27 novembre 2026 (Survie 32 % / 8 %, Bêtes 50 % / 6 %, Précision 60 % / 18 %, 50 runs).
+3. Coder : moteur (`chasseur.ts` : Pièges dans `EnemyState`, déclenchement dans le tour de chaque ennemi), cartes, mots-clés, tutoriel, interface, migration de la sauvegarde si une run est en cours, tests (dont `tests/seigneurs.test.ts`).
+4. Puis le Loup solitaire (§13.5) : talent, cartes de mêlée, maquette du combat sans compagnon, mesure au bot.

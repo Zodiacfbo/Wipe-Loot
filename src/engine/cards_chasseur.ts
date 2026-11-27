@@ -4,7 +4,7 @@ import { addPower, applySaignement, drawCards, fx, gainBlock, livingEnemies, log
 import { isInterruptible } from './enemies';
 import { applyDot } from './demoniste';
 import { delayCast, stun } from './voleur';
-import { companionAct, companionGuard, fatalThreshold, flecheDamage, markTarget, placeTrap, setAspect } from './chasseur';
+import { companionAct, companionGuard, fatalThreshold, flecheDamage, markTarget, placeTrap, setAspect, trapDotBonus } from './chasseur';
 import type { CardDef, PlayContext } from './cards';
 import type { EnemyState } from './types';
 
@@ -325,12 +325,12 @@ const LIST: HunterCard[] = [
   // --- Arbre Survie ---
   {
     id: 'piege_immolation', name: 'Piège immolation', type: 'Compétence', trap: true, rarity: 'commune', cost: 1, needsTarget: false, icon: 'feu',
-    text: (up) => `Piège : DoT ${up ? 6 : 4} pendant 3 tours à l'ennemi qui le déclenche.`,
+    text: (up, g) => `Piège : DoT ${(up ? 6 : 4) + trapDotBonus(g)} pendant 3 tours à l'ennemi qui le déclenche.`,
     play: (ctx) => placeTrap(ctx.c, 'immolation', ctx.up ? 6 : 4),
   },
   {
     id: 'piege_venin', name: 'Piège à venin', type: 'Compétence', trap: true, rarity: 'commune', cost: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Piège : DoT ${up ? 3 : 2} pendant 3 tours à tous les ennemis.`,
+    text: (up, g) => `Piège : DoT ${(up ? 3 : 2) + trapDotBonus(g)} pendant 3 tours à tous les ennemis.`,
     play: (ctx) => placeTrap(ctx.c, 'venin', ctx.up ? 3 : 2),
   },
   {
@@ -371,7 +371,7 @@ const LIST: HunterCard[] = [
   },
   {
     id: 'piege_explosif', name: 'Piège explosif', type: 'Compétence', trap: true, rarity: 'peu_commune', cost: 1, needsTarget: false, icon: 'feu',
-    text: (up) => `Piège : inflige ${up ? 12 : 8} dégâts à tous les ennemis.`,
+    text: (up, g) => `Piège : inflige ${(up ? 12 : 8) + (g?.trapBonus ?? 0)} dégâts à tous les ennemis.`,
     play: (ctx) => placeTrap(ctx.c, 'explosif', ctx.up ? 12 : 8),
   },
   {
@@ -416,7 +416,7 @@ const LIST: HunterCard[] = [
   },
   {
     id: 'champ_pieges', name: 'Champ de pièges', type: 'Compétence', rarity: 'epique', cost: 1, costUp: 0, needsTarget: false, exhaust: true, icon: 'feu',
-    text: () => 'Pose 3 Pièges explosifs (12 dégâts à tous les ennemis). Épuisé.',
+    text: (_up, g) => `Pose 3 Pièges explosifs (${12 + (g?.trapBonus ?? 0)} dégâts à tous les ennemis). Épuisé.`,
     play: (ctx) => {
       for (let i = 0; i < 3; i++) placeTrap(ctx.c, 'explosif', 12);
     },

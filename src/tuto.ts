@@ -53,7 +53,7 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
   mage: [
     { cible: ['.ennemis'], icone: 'boule_de_feu', texte: '**Brûlure** : la cible perd des PV à chaque tour, un peu moins à chaque fois.' },
     { cible: ['.ennemis'], icone: 'eclair_de_givre', texte: '**Gel** : au seuil indiqué, l\'ennemi est Gelé et perd son tour. **Fracasser** double ses dégâts sur une cible bien gelée.' },
-    { cible: ['.jauges .charges'], ligne: true, icone: 'explosion_des_arcanes', texte: '**Charges arcaniques** : chacune renforce tes Sorts arcaniques. À 4, attention à la **Surcharge**, qui te coûte des PV.' },
+    { cible: ['.jauges .charges', '.jauges'], ligne: true, icone: 'explosion_des_arcanes', texte: '**Charges arcaniques** : chacune renforce tes Sorts arcaniques. À 4, attention à la **Surcharge**, qui te coûte des PV. Leur jauge apparaît dès que ton paquet en donne.' },
     { cible: ['.barre-sorts'], icone: 'barriere_de_glace', texte: 'Tu as peu de PV : lis les intentions et garde **Carapace de glace** pour le gros coup.' },
   ],
   paladin: [

@@ -25,7 +25,7 @@ import { cardHitValue } from './engine/preview';
 import { DIFF_CLOSE, DIFF_OPEN, markDiff, placeHit, splitRibbon } from './cardtext';
 import { afterRender, explainCard, initAides } from './aides';
 import { closeMini, combatTutoDone, howToPlayHtml, miniHtml, placeTuto, startCombatTuto, startHallTuto, tutoActive, tutoFinish, tutoHtml, tutoMove, tutoStop } from './tuto';
-import { cardReady } from './engine/hints';
+import { cardReady, chargesUseful } from './engine/hints';
 import { GLOSSARY_EXTRA, KEYWORDS, markKeywords } from './keywords';
 import { ACTS, LAST_ACT, actDef } from './engine/acts';
 import { BLESSINGS, EVENTS, choiceView } from './engine/events';
@@ -1004,7 +1004,10 @@ function curseText(i: Extract<Intent, { kind: 'curse' }>): string {
   if (i.domination) parts.push('pendant ton prochain tour, ta première Attaque te frappera toi-même');
   if (i.lignee) {
     const cls = ui.run?.classId;
-    parts.push(cls === 'mage' ? 'Malédiction de lignée : ta prochaine main n\'a que 3 cartes'
+    parts.push(cls === 'mage' ? 'Malédiction de lignée : 1 carte de moins en main pendant 2 tours'
+      : cls === 'chaman' ? 'Malédiction de lignée : tes totems s\'effondrent, plus de totem pendant 2 tours'
+      : cls === 'druide' ? 'Malédiction de lignée : retour en forme normale, plus de changement pendant 2 tours'
+      : cls === 'chasseur' ? 'Malédiction de lignée : ton compagnon s\'enfuit 2 tours'
       : cls === 'demoniste' ? 'Malédiction de lignée : ton familier se retourne contre toi 2 tours'
       : cls === 'pretre' ? 'Malédiction de lignée : tes soins te blessent 2 tours'
       : cls === 'voleur' ? 'Malédiction de lignée : tes points de combo s\'envolent, plus de combo pendant 2 tours'
@@ -1451,8 +1454,8 @@ function combatScreen(run: RunState, c: CombatState): string {
   const rage = Array.from({ length: p.maxRage }, (_, i) => `<i class="${i < p.rage ? 'plein' : ''}"></i>`).join('');
   const charges = Array.from({ length: p.maxCharges ?? 4 }, (_, i) => `<i class="${i < (p.charges ?? 0) ? 'plein' : ''} ${i >= 3 ? 'surcharge' : ''}"></i>`).join('');
   const resource = mage
-    ? `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
-        <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`
+    ? (!chargesUseful(c) ? '' : `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
+        <div class="aide-posture">Chaque charge : +2 dégâts aux Sorts arcaniques.${(p.charges ?? 0) >= 4 && !c.gear?.noOverload ? ' <b class="alerte">Surcharge : −2 PV en fin de tour</b>' : ' Surcharge à 4 : −2 PV par tour.'}</div>`)
     : run.classId === 'demoniste' ? demonResource(c) : run.classId === 'pretre' ? priestResource(c) : run.classId === 'voleur' ? rogueResource(c) : run.classId === 'paladin' ? paladinResource(c) : run.classId === 'chasseur' ? hunterResource(c) : run.classId === 'druide' ? druidResource(c) : run.classId === 'chaman' ? shamanResource(c) : '';
   const postures = POSTURES.map((po) => {
     const actif = p.posture === po.id;
@@ -1558,7 +1561,7 @@ function combatScreen(run: RunState, c: CombatState): string {
           <div class="bouclier-badge" title="Blocage"><svg width="32" height="32" viewBox="0 0 24 24" fill="#1d2633" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span>${p.block}</span></div>
           <div class="barre-pv"><div style="width:${hpPct}%"></div><span>${p.hp} / ${p.maxHp}</span></div>
         </div>
-        ${resource ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
+        ${run.classId !== 'guerrier' ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
         <div class="postures" role="group" aria-label="Posture">${postures}</div>
         <div class="aide-posture">${aidePosture}${p.postureChanged ? ' · déjà changée ce tour' : ''}</div>`}
       </div>
@@ -1568,9 +1571,28 @@ function combatScreen(run: RunState, c: CombatState): string {
     <div class="barre-sorts"><span class="titre">SORTS</span>${spells}${selSpell ? spellInfo : ''}</div>
     <div class="energie ${p.energy === 0 ? 'vide' : ''}" aria-label="Énergie">${p.energy}/${p.maxEnergy}</div>
     <div class="piles"><button type="button" class="pile" data-action="pile" data-pile="draw">Pioche ${c.draw.length}</button><button type="button" class="pile" data-action="pile" data-pile="discard">Défausse ${c.discard.length}</button>${c.exhaust.length ? `<button type="button" class="pile" data-action="pile" data-pile="exhaust">Épuisées ${c.exhaust.length}</button>` : ''}</div>
-    <div class="main">${hand}</div>
+    <div class="main" style="--chevauche:-${handOverlap(c.hand.length)}px">${hand}</div>
     <div class="journal" aria-live="polite">${journal}</div>
     <button type="button" class="fin-tour" data-action="fin-tour" ${c.phase === 'player' ? '' : 'disabled'}>Fin du tour</button>`;
+}
+
+/** Chevauchement des cartes en main (px de chaque côté) : jusqu'à 5 cartes, comme avant ; au-delà, la main se resserre pour tenir dans sa zone (770 px), à droite des piles. */
+function handOverlap(n: number): number {
+  return Math.max(10, Math.ceil((n * 140 - 770) / (2 * Math.max(n, 1))));
+}
+
+/** Un ennemi très chargé (incantation, effets, passif) dépasserait sous la barre du haut et cacherait son intention : on réduit son sprite d'autant. */
+function fitEnemies(root: HTMLElement): void {
+  const zone = root.querySelector<HTMLElement>('.ennemis');
+  if (!zone) return;
+  for (const el of zone.querySelectorAll<HTMLElement>('.ennemi')) {
+    const over = el.offsetHeight - zone.clientHeight;
+    const img = el.querySelector<HTMLImageElement>(':scope > img');
+    if (over <= 0 || !img) continue;
+    const size = Math.max(96, img.width - over);
+    img.width = size;
+    img.height = size;
+  }
 }
 
 // ---------- Autres écrans ----------
@@ -2826,6 +2848,7 @@ export function render(): void {
   if (tutoActive() && (tutoActive()!.kind !== 'combat' || run.screen !== 'combat' || ui.overlay)) tutoStop();
   const tuto = run.screen === 'combat' && !ui.overlay ? tutoHtml() + miniHtml(loadProfile(), run.classId) : '';
   stage.innerHTML = html + overlayHtml(run) + tuto;
+  if (run.screen === 'combat') fitEnemies(stage);
   restoreScroll(scroll);
   verifierTenue();
   afterRender();

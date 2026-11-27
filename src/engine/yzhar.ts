@@ -1,7 +1,8 @@
 // Acte 3 : Yzhar, le Dieu dormant (le boss final d'Irem).
 // Référence : docs/actes/ACTE3_IREM.md (§7)
 // - Pendant tout le combat : 1 Folie au début de chacun de ses tours.
-// - Phase 1, l'Œil (200 PV) : Rayon oculaire (il rebondit sur ton familier, étourdi 1 tour), Regard sombre
+// - Phase 1, l'Œil (200 PV) : Rayon oculaire (il rebondit sur ton familier : il saute sa prochaine action de fin de tour,
+//   les Ordres marchent encore ; les totems sautent leur prochain tour), Regard sombre
 //   (3 tours : des dégâts à la fin de ton tour si tu ne joues pas « Se mettre à couvert »),
 //   un Tentacule oculaire tous les 2 tours. Quand l'Œil se ferme, ses Tentacules aussi, et le Corps se réveille.
 // - Phase 2, le Corps : Carapace divine (dégâts réduits), Tentacule géant tous les 2 tours,
@@ -24,6 +25,32 @@ export function carapaceDamage(c: CombatState, target: EnemyState, amount: numbe
   return Math.max(amount > 0 ? 1 : 0, Math.floor(amount * YZHAR.carapace));
 }
 
+/**
+ * Le Corps est un nouvel ennemi : tout ce que tu avais posé sur l'Œil disparaît, quelle que soit ta classe
+ * (Brûlure, Gel, Saignement, DoT, Malédictions, Poison, Censure, Marque, maléfices courts…). Ses propres bienfaits restent.
+ */
+export function clearPlayerEffects(c: CombatState, e: EnemyState): void {
+  const b = e.buffs;
+  Object.assign(b, { demoralise: 0, ralenti: 0, armureFracassee: 0, saignement: 0, saignementTours: 0, peur: 0, brulure: 0, gel: 0, poison: 0, censure: 0 });
+  e.dots = [];
+  e.curses = [];
+  e.fatigue = 0;
+  e.fatigueTurns = 0;
+  e.elements = 0;
+  e.elementsTurns = 0;
+  e.tongues = 0;
+  e.haunted = 0;
+  e.enslaved = 0;
+  e.gele = undefined;
+  e.mouton = 0;
+  e.stun = 0;
+  e.sap = 0;
+  e.vendetta = false;
+  e.noHeal = false;
+  e.disarmed = false;
+  if (c.mark?.uid === e.uid) c.mark = null;
+}
+
 /** L'Œil tombe à 0 PV : il se referme, et le Corps se réveille (les Tentacules restent). Renvoie true si c'est le cas. */
 export function yzharAwakens(c: CombatState, e: EnemyState): boolean {
   if (!isYzhar(e) || (e.phase ?? 1) !== 1 || e.hp > 0) return false;
@@ -35,10 +62,7 @@ export function yzharAwakens(c: CombatState, e: EnemyState): boolean {
   e.intent = intentAt(ENEMIES.yzhar, 0, 2);
   e.interrupted = false;
   e.delayed = false;
-  e.buffs.brulure = 0;
-  e.buffs.saignement = 0;
-  e.buffs.saignementTours = 0;
-  e.dots = [];
+  clearPlayerEffects(c, e);
   c.regard = 0;
   // Les Tentacules oculaires sont les yeux de l'Œil : ils se ferment avec lui.
   for (const t of c.enemies.filter((o) => o.defId === 'tentacule' && !o.dead)) {

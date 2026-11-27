@@ -110,6 +110,38 @@ describe('Yzhar, le Dieu dormant', () => {
     expect(c.petStunned).toBe(1);
   });
 
+  it('étourdi, le familier du Démoniste obéit encore aux Ordres mais saute son action de fin de tour', () => {
+    const c = fight('demoniste');
+    endTurn(c); // Rayon oculaire
+    const y = yzhar(c);
+    c.hand.push({ uid: 9001, id: 'ordre_assaut', upgraded: false });
+    c.player.energy = 5;
+    const before = y.hp + y.block;
+    playCard(c, c.hand.length - 1, y.uid);
+    expect(c.petStunned).toBe(1); // l'Ordre ne consomme pas l'étourdissement
+    expect(y.hp + y.block).toBeLessThan(before);
+    endTurn(c); // fin de tour sautée, puis nouveau Rayon
+    expect(c.log.some((l) => l.includes('étourdi : il ne fait rien à la fin du tour'))).toBe(true);
+  });
+
+  it('étourdi, le compagnon du Chasseur obéit encore aux Ordres mais saute son action de fin de tour', () => {
+    const c = createCombat(BOSS_ENCOUNTER_3, deckOf(Array(12).fill('repli')), 300, 300, 5, 1, {}, ['tir_arcanique'], undefined, 'chasseur', undefined, 'loup');
+    endTurn(c); // Rayon oculaire
+    expect(c.petStunned).toBe(1);
+    const y = yzhar(c);
+    c.hand.push({ uid: 9002, id: 'ordre_attaque', upgraded: false });
+    const before = y.hp;
+    playCard(c, c.hand.length - 1, y.uid);
+    expect(y.hp).toBeLessThan(before); // l'Ordre : Attaque marche
+    y.buffs.saignement = 0; // le Saignement du Loup coulerait pendant le tour ennemi
+    y.buffs.saignementTours = 0;
+    const afterOrder = y.hp;
+    c.hand = [];
+    endTurn(c);
+    expect(y.hp).toBe(afterOrder); // pas d'action de fin de tour
+    expect(c.petStunned).toBe(1); // le Rayon suivant l'étourdit de nouveau
+  });
+
   it('se joue sans erreur jusqu\'au bout', () => {
     for (const cls of ['guerrier', 'mage', 'demoniste', 'pretre', 'voleur', 'paladin']) {
       const c = fight(cls, 999);

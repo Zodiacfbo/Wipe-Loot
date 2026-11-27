@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CHARGE_CARDS, chargesUseful } from '../src/engine/hints';
 import { CARDS, rewardPool, starterCards } from '../src/engine/cards';
 import { createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
@@ -277,5 +278,33 @@ describe('le Mage : Cœur de glace', () => {
     endTurn(c);
     // −1 à la fin du tour ennemi, +1 au début du tour suivant.
     expect(c.enemies.filter((e) => !e.dead).map((e) => e.buffs.gel)).toEqual([1, 1]);
+  });
+});
+
+describe('le Mage : la jauge des charges (27 novembre 2026)', () => {
+  it('CHARGE_CARDS contient exactement les cartes du Mage qui donnent des charges', () => {
+    const found: string[] = [];
+    for (const def of Object.values(CARDS).filter((d) => d.classId === 'mage')) {
+      for (const up of [false, true]) {
+        const c = fight(['lieutenant'], [def.id]);
+        c.hand[0].upgraded = up;
+        c.player.charges = 0;
+        play(c, def.id, c.enemies[0].uid);
+        if (c.powers?.esprit_vif) endTurn(c);
+        if ((c.player.charges ?? 0) > 0 && !found.includes(def.id)) found.push(def.id);
+      }
+    }
+    expect(found.sort()).toEqual([...CHARGE_CARDS].sort());
+  });
+
+  it('cachée sans source de charges (Feu, Givre), visible avec une carte Arcane, un talent ou des charges', () => {
+    const c = fight(['lieutenant'], ['boule_de_feu', 'eclair_de_givre', 'trait_de_magie']);
+    expect(chargesUseful(c)).toBe(false);
+    c.discard.push({ uid: 9000, id: 'projectiles_arcaniques', upgraded: false });
+    expect(chargesUseful(c)).toBe(true);
+    expect(chargesUseful(fight(['lieutenant'], ['boule_de_feu'], { startCharges: 3 }))).toBe(true);
+    const d = fight(['lieutenant'], ['boule_de_feu']);
+    d.player.charges = 1;
+    expect(chargesUseful(d)).toBe(true);
   });
 });

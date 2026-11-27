@@ -210,7 +210,7 @@ const ENEMIES_ACTE1: Record<string, EnemyDef> = {
   },
   vulkhar: {
     id: 'vulkhar', name: 'Vulkhar', hpMin: 225, hpMax: 225, boss: true,
-    passive: 'À 50 % de PV, plonge dans la lave et appelle des Rejetons.',
+    passive: 'À 50 % de PV, plonge dans la lave et appelle des Rejetons. Tes effets sur lui restent, figés sous la lave.',
     cycle: [
       { kind: 'attack', dmg: 12 },
       { kind: 'attack', dmg: 6, addZone: 2 },

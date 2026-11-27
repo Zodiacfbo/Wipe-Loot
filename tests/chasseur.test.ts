@@ -218,6 +218,32 @@ describe('les Pièges', () => {
     expect(lost(c)).toBe(72); // 3 Pièges de 12 (Champ de pièges), déclenchés deux fois
   });
 
+  it('un Piège chassé par le 4e est annoncé (27 novembre 2026)', () => {
+    const c = fight(['lieutenant'], ['piege_venin', 'champ_pieges'], { startTrap: 1 });
+    play(c, 'piege_venin');
+    play(c, 'champ_pieges');
+    expect(c.traps!.map((t) => t.id)).toEqual(['explosif', 'explosif', 'explosif']);
+    expect(c.log.filter((l) => / retiré : 3 Pièges au plus/.test(l))).toHaveLength(2);
+    expect(c.log.some((l) => l.startsWith('Piège à venin retiré'))).toBe(true);
+  });
+
+  it('les textes des Pièges comptent Pièges améliorés (27 novembre 2026)', () => {
+    const g = { trapBonus: 3 };
+    expect(CARDS.piege_explosif.text(false, g)).toContain('11 dégâts');
+    expect(CARDS.piege_explosif.text(true, g)).toContain('15 dégâts');
+    expect(CARDS.champ_pieges.text(false, g)).toContain('(15 dégâts');
+    expect(CARDS.champ_pieges.text(false, {})).toContain('(12 dégâts');
+    expect(CARDS.piege_immolation.text(false, g)).toContain('DoT 5');
+    expect(CARDS.piege_venin.text(true, g)).toContain('DoT 4');
+    // Le texte dit vrai : un Piège explosif amélioré de 15 enlève 15 PV.
+    const c = fight(['lieutenant'], ['piege_explosif'], g);
+    c.hand[0].upgraded = true;
+    c.player.debuffs!.lignee = 5; // le compagnon ne compte pas ici
+    play(c, 'piege_explosif');
+    endTurn(c);
+    expect(lost(c)).toBe(15);
+  });
+
   it('le Piège givrant contrôle un ennemi normal', () => {
     const c = fight(['lieutenant'], ['piege_givrant']);
     play(c, 'piege_givrant');

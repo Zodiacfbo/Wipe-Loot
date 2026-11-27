@@ -658,3 +658,32 @@ Le bot est un plancher : les joueurs humains font mieux (le Chasseur du playtest
 
 Le niveau 1 bouge peu au bot (il joue mal la boucle) ; les trois arbres du niveau 10 se rapprochent (55 à 66 %). **En réserve** si un débutant bloque encore : le Sceau de droiture actif au début de chaque combat.
 
+
+## 25. Yzhar : le compagnon étourdi obéit encore aux Ordres (26 novembre 2026)
+
+Retour d'un testeur Chasseur : le Rayon oculaire (2 tours sur 3 en phase 1) rendait le compagnon inutile, Ordres compris. Désormais, étourdi, le compagnon (Chasseur) ou le familier (Démoniste) saute **seulement son action de fin de tour** ; les Ordres marchent. Avant, un Ordre du Démoniste consommait l'étourdissement.
+
+`tools/balance/yzhar.sim.ts` (le combat seul, PV pleins, 15 runs du bot de niveau 10 ; deux profils Chasseur ajoutés) :
+
+| Profil | Avant | Après |
+|---|---|---|
+| Chasseur Bêtes 7 + Survie 3 | 4/15 | 6/15 |
+| Chasseur Précision 7 + Bêtes 3 | 6/15 | 7/15 |
+| Démoniste (Démonologie) | 12/15 | 11/15 |
+
+Toutes les morts du Chasseur sont maintenant en **phase 2** (tours 10 à 15 souvent, Corps à 150-226/260, PV max 58 à 70). Mis de côté (issue #1) : la phase 2 contre le Chasseur.
+
+## 26. Le Chasseur Survie et les Pièges (27 novembre 2026)
+
+**Le constat (export playtest du 27 novembre, journal des choix)** : en Survie, 62 % des combats hors seigneurs sont finis au premier tour et 74 % sans perdre un PV (Bêtes : 26 % au premier tour ; autres classes : 0 à 14 %). Les Pièges partent tous au début du tour ennemi, avant que les ennemis jouent : un seul Champ de pièges (3 × 15 avec Pièges améliorés) tue le groupe de Saldris (5 ennemis, 168 PV) avant qu'il agisse.
+
+**Sonde du bot** (jetable, non gardée ; run complète, niveau 10, 50 runs par case, ± 14 points) :
+
+| Arbre principal | Difficulté 0 | Difficulté 15 | PV perdus par gardien |
+|---|---|---|---|
+| Précision 7 + Bêtes 3 | 60 % | 18 % | 7,0 |
+| Bêtes 7 + Survie 3 | 50 % | 6 % | 10,0 |
+| Survie 7 + Bêtes 3 | 32 % | 8 % | 4,0 |
+| Survie, Champ de pièges à 2 Pièges | 30 % | 6 % | 6,0 |
+
+**Conclusion** : Survie écrase les groupes et peine contre les seigneurs (chapitre III atteint dans 96 % des runs, 32 % de victoires). Réduire Champ de pièges ne change presque rien : on ne touche pas aux chiffres. Refonte notée pour plus tard (fiche du Chasseur §13, issue #1) : les Pièges posés sur les ennemis, un seul de chaque type par ennemi, et le talent Loup solitaire.

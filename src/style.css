@@ -101,8 +101,9 @@ img[data-anime] {
 .enrage.actif { background: #5a1a10; color: #fff; border-color: #ff6a3a; }
 
 /* Héros */
-.heros { position: absolute; left: 70px; top: 150px; width: 300px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.heros .buffs { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 6px; min-height: 22px; max-width: 340px; }
+.heros { position: absolute; left: 70px; top: 180px; width: 300px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+/* Les badges poussent vers le haut, au-dessus du sprite : beaucoup de badges ne font plus descendre le héros ni ses jauges. */
+.heros .buffs { position: absolute; left: -60px; right: -60px; bottom: calc(100% + 8px); display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-end; gap: 5px 6px; }
 .heros .buffs .chip { white-space: nowrap; }
 .chip { padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #3a2417; border: 1px solid var(--accent); color: var(--accent-clair); }
 .chip.debuff { background: #2c2433; border-color: #7a6a8e; color: #d6c8e6; }
@@ -144,7 +145,7 @@ img[data-anime] {
 .aide-posture { font-size: 10px; color: var(--texte-2); text-align: center; min-height: 13px; }
 
 /* Ennemis */
-.ennemis { position: absolute; left: 520px; right: 30px; top: 92px; height: 340px; display: flex; align-items: flex-end; justify-content: center; gap: 22px; }
+.ennemis { position: absolute; left: 520px; right: 30px; top: 62px; height: 370px; display: flex; align-items: flex-end; justify-content: center; gap: 22px; }
 .ennemi {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px; border-radius: 12px;
   border: 2px solid transparent; background: transparent;
@@ -159,7 +160,7 @@ img[data-anime] {
 .intention.soutien { background: #1f2a17; border-color: #5f8a3e; color: #b8e08a; }
 .intention.interrompu { background: #222; border-color: #555; color: #aaa; }
 .cast {
-  width: 170px; padding: 6px 8px; border-radius: 9px; background: #1f1a10; border: 1px solid var(--or); display: flex; flex-direction: column; gap: 4px;
+  width: 200px; padding: 6px 8px; border-radius: 9px; background: #1f1a10; border: 1px solid var(--or); display: flex; flex-direction: column; gap: 4px;
 }
 .cast .tete { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--or-clair); }
 .cast .tete b { color: var(--vert); }
@@ -192,12 +193,14 @@ img[data-anime] {
 .sort.choisi { box-shadow: 0 0 0 4px #4a3a1a; }
 .sort:disabled:not(.recharge) { border-color: var(--bordure); opacity: 0.55; filter: grayscale(0.6); }
 
-.main { position: absolute; left: 150px; right: 260px; bottom: 6px; height: 230px; display: flex; justify-content: center; align-items: flex-end; }
+/* La main commence après la colonne du héros (énergie, piles, jauges) ; une grande main se resserre (--chevauche, ui.ts). */
+.main { position: absolute; left: 250px; right: 260px; bottom: 6px; height: 230px; display: flex; justify-content: center; align-items: flex-end; }
 
 .carte {
   position: relative; width: 140px; height: 196px; flex: none; margin: 0 -10px; padding: 0; border: none; background: none;
   font-family: Nunito, system-ui, sans-serif; color: var(--texte); transition: transform 0.12s ease; text-align: center;
 }
+.main .carte { margin: 0 var(--chevauche, -10px); }
 .main .carte:hover:not(:disabled), .main .carte.choisie { transform: translateY(-40px) scale(1.25); z-index: 5; }
 .carte.injouable { filter: brightness(0.6) saturate(0.6); }
 .contenu-archives.glossaire { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; align-content: start; }
@@ -672,8 +675,8 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .rage.eclats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .rage.eclats i { width: 12px; height: 12px; justify-self: center; border-radius: 2px; transform: rotate(45deg); background: #2a1e38; border: 1px solid #5a3a7e; }
 .rage.eclats i.plein { background: #b07af0; box-shadow: 0 0 6px #a066e8; }
-.heros .familier { position: absolute; left: -48px; top: 150px; width: 72px; height: 72px; }
-.heros .seigneur-infernal { position: absolute; left: 196px; top: 70px; width: 120px; height: 120px; }
+.heros .familier { position: absolute; left: -48px; top: 120px; width: 72px; height: 72px; }
+.heros .seigneur-infernal { position: absolute; left: 196px; top: 40px; width: 120px; height: 120px; }
 .chip.ombre { background: #241a33; border-color: #8a5ac8; color: #dcc8ff; }
 .stat.eclats { color: #c8a0ff; }
 
@@ -729,7 +732,7 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .chs-cible svg, .chs-ici svg { width: 14px; height: 14px; }
 .chip.marque { border-color: #8fd49a; color: #cfeec0; }
 .heros .compagnon.enfui { opacity: 0.3; filter: grayscale(1); }
-.heros .loup-spectral { left: -40px; top: 60px; opacity: 0.55; filter: hue-rotate(160deg) brightness(1.4); }
+.heros .loup-spectral { left: -40px; top: 30px; opacity: 0.55; filter: hue-rotate(160deg) brightness(1.4); }
 .choix-compagnons { display: flex; gap: 12px; width: min(900px, 96%); }
 .choix-compagnon { flex: 1; min-width: 0; }
 .choix-compagnon > img { width: 72px; height: 72px; }

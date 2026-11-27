@@ -172,7 +172,7 @@ export const ENEMIES_ACTE3: Record<string, EnemyDef> = {
   // --- Le boss final (§7) : la mécanique est dans yzhar.ts ---
   yzhar: {
     id: 'yzhar', name: 'L\'Œil d\'Yzhar', hpMin: 200, hpMax: 200, boss: true, tags: ['aberration'],
-    passive: 'Te donne 1 Folie à chacun de ses tours. Tous les 2 tours, un Tentacule oculaire. Quand l\'Œil se ferme, ses Tentacules aussi, et le Corps se réveille.',
+    passive: 'Te donne 1 Folie à chacun de ses tours. Tous les 2 tours, un Tentacule oculaire. Quand l\'Œil se ferme, ses Tentacules aussi, et le Corps se réveille : tes effets sur l\'Œil disparaissent.',
     passive2: 'Quand il t\'avale, tue les 2 Tentacules intérieurs : sa Carapace divine tombe 3 tours (double dégâts).',
     cycle: [
       { kind: 'attack', dmg: 8, label: 'Rayon oculaire', effect: { label: 'Rayon oculaire', petStun: 1 } },

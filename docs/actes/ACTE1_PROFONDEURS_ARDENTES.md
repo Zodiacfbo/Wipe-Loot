@@ -377,6 +377,7 @@ Le Marteau des flammes ne peut pas être interrompu. Le joueur doit **se prépar
 
 - Vulkhar **disparaît pendant 2 tours** : il ne peut pas être ciblé ni blessé.
 - **6 Rejetons de flamme** apparaissent (12 PV chacun, ils attaquent pour 4).
+- **Tes effets sur lui restent, figés** (26 novembre 2026, la même règle pour toutes les classes) : Brûlure, Gel, Saignement, DoT, Poison, Censure, Marque… ne frappent pas et ne diminuent pas sous la lave, puis reprennent à son retour.
 - **Quand Vulkhar revient**, il **absorbe** les Rejetons encore en vie : il se soigne de **10 PV par Rejeton absorbé**.
 
 C'est le moment des effets de zone : Explosion des arcanes, Tourbillon, Flèches multiples, Chaîne d'éclairs, Pluie de feu…

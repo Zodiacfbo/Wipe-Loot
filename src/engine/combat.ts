@@ -331,6 +331,8 @@ export function startPlayerTurn(c: CombatState): void {
     p.energy += 1;
     p.distortion = false;
   }
+  // Malédiction de lignée du Mage : 1 carte de moins à chacun des 2 tours.
+  if (c.classId === 'mage' && (p.debuffs?.lignee ?? 0) > 0) p.drawPenalty += 1;
   drawCards(c, Math.max(0, 5 + manaDraw + distortion + wisdomDraw + aspectDraw + ancestorsDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
   // Chaman : les totems agissent au début du tour.
@@ -833,7 +835,7 @@ export function endTurn(c: CombatState): void {
   if (isPaladin(c)) paladinEndTurn(c);
   if (c.phase !== 'player') return;
   // Le familier agit, puis le Seigneur infernal ; le Molosse guette les incantations.
-  petAct(c);
+  petAct(c, 1, true);
   if (c.infernal && c.phase === 'player') {
     for (const e of livingEnemies(c)) {
       if (e.submerged || c.phase !== 'player') continue;
@@ -1401,8 +1403,8 @@ function lineageCurse(c: CombatState): void {
   const d = (c.player.debuffs ??= emptyDebuffs());
   d.lignee = 2;
   if ((c.classId ?? 'guerrier') === 'mage') {
-    c.player.drawPenalty += 2;
-    log(c, 'Malédiction de lignée : tu es métamorphosé, ta prochaine main n\'aura que 3 cartes.');
+    // La carte en moins est retirée au début de chacun des 2 tours (startTurn).
+    log(c, 'Malédiction de lignée : tu es métamorphosé, tu pioches 1 carte de moins pendant 2 tours.');
   } else if (c.classId === 'voleur') {
     c.combo = 0;
     log(c, 'Malédiction de lignée : tes points de combo s\'envolent, et tu n\'en gagnes plus pendant 2 tours.');
@@ -1413,7 +1415,7 @@ function lineageCurse(c: CombatState): void {
     log(c, 'Malédiction de lignée : ton Sceau se brise, et tu ne peux plus en activer pendant 2 tours.');
   } else if (c.classId === 'chaman') {
     clearTotems(c);
-    log(c, 'Malédiction de lignée : tes totems s\'effondrent.');
+    log(c, 'Malédiction de lignée : tes totems s\'effondrent, et tu ne peux plus en poser pendant 2 tours.');
   } else if (c.classId === 'druide') {
     setForm(c, 'normale');
     log(c, 'Malédiction de lignée : tu reprends ta forme normale, et tu ne peux plus en changer pendant 2 tours.');

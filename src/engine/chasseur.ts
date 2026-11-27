@@ -83,15 +83,10 @@ function companionStrike(c: CombatState, t: EnemyState, base?: number): void {
 
 /**
  * Le compagnon agit `times` fois (à la fin de ton tour, ou sur ordre). `base` : les dégâts d'un Ordre (Égorge).
- * Renvoie false s'il n'a rien pu faire (étourdi, enfui, pas de cible).
+ * Renvoie false s'il n'a rien pu faire (enfui, pas de cible). L'étourdissement ne bloque que l'action de fin de tour.
  */
 export function companionAct(c: CombatState, times = 1, base?: number): boolean {
   if (!isHunter(c) || c.phase !== 'player') return false;
-  // Rayon oculaire d'Yzhar : le compagnon est étourdi.
-  if ((c.petStunned ?? 0) > 0) {
-    log(c, `Ton ${COMPANIONS[c.companion!].name} est étourdi et ne fait rien.`);
-    return false;
-  }
   // Malédiction de lignée : le compagnon s'est enfui.
   if ((c.player.debuffs?.lignee ?? 0) > 0) {
     log(c, `Ton ${COMPANIONS[c.companion!].name} s'est enfui : il ne fait rien.`);
@@ -117,8 +112,11 @@ export function companionGuard(c: CombatState, n: number): void {
 export function hunterEndTurn(c: CombatState): void {
   if (!isHunter(c)) return;
   const times = 1 + (power(c, 'fureur_primitive') ? 1 : 0);
-  companionAct(c, times);
-  if (c.petStunned) c.petStunned -= 1;
+  // Rayon oculaire d'Yzhar : étourdi, le compagnon saute son action de fin de tour (les Ordres marchent encore).
+  if ((c.petStunned ?? 0) > 0) {
+    c.petStunned! -= 1;
+    log(c, `Ton ${COMPANIONS[c.companion!].name} est étourdi : il ne fait rien à la fin du tour.`);
+  } else companionAct(c, times);
   if (c.spectral && c.phase === 'player') {
     const t = companionTarget(c);
     if (t) {
@@ -226,9 +224,19 @@ export function fatalThreshold(c: CombatState): number {
 // --- Les Pièges ---
 
 /** Pose un Piège (le plus ancien part si les 3 places sont prises). */
+/** Le bonus des Pièges à DoT (Pièges améliorés : +3 aux dégâts, donc +1 par tour). */
+export function trapDotBonus(g?: { trapBonus?: number }): number {
+  return Math.ceil((g?.trapBonus ?? 0) / 3);
+}
+
 export function placeTrap(c: CombatState, id: TrapId, value: number): void {
   const traps = (c.traps ??= []);
-  if (traps.length >= MAX_TRAPS) traps.shift();
+  if (traps.length >= MAX_TRAPS) {
+    // Le plus ancien part : on le dit (avant, il disparaissait sans rien dire, 27 novembre 2026).
+    const gone = traps.shift()!;
+    fx(c, { kind: 'buff', who: 'player', label: `${TRAPS[gone.id].name} retiré` });
+    log(c, `${TRAPS[gone.id].name} retiré : ${MAX_TRAPS} Pièges au plus.`);
+  }
   traps.push({ id, value });
   fx(c, { kind: 'buff', who: 'player', label: TRAPS[id].name });
 }
@@ -251,11 +259,11 @@ function springTrap(c: CombatState, trap: Trap, victim: EnemyState): void {
       }
       break;
     case 'immolation':
-      applyDot(c, victim, 'piege_immolation', trap.value + Math.ceil(bonus / 3), 3);
+      applyDot(c, victim, 'piege_immolation', trap.value + trapDotBonus(c.gear), 3);
       fx(c, { kind: 'buff', who: victim.uid, label: name });
       break;
     case 'venin':
-      for (const e of livingEnemies(c)) if (!e.submerged) applyDot(c, e, 'piege_venin', trap.value + Math.ceil(bonus / 3), 3);
+      for (const e of livingEnemies(c)) if (!e.submerged) applyDot(c, e, 'piege_venin', trap.value + trapDotBonus(c.gear), 3);
       fx(c, { kind: 'buff', who: victim.uid, label: name });
       break;
     case 'explosif':

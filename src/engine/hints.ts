@@ -30,3 +30,15 @@ export function cardReady(c: CombatState, index: number): boolean {
   }
   return false;
 }
+
+/** Les cartes qui donnent des charges arcaniques (liste vérifiée par tests/mage.test.ts, qui joue chaque carte du Mage). */
+export const CHARGE_CARDS = new Set(['projectiles_arcaniques', 'deflagration_arcanique', 'focalisation', 'flux_arcanique', 'rayon_arcanique', 'presence_esprit', 'esprit_vif']);
+
+/**
+ * Mage : la jauge des charges arcaniques ne s'affiche que si elle sert dans ce combat (27 novembre 2026).
+ * Un Mage Feu ou Givre sans carte Arcane n'en gagne jamais : la jauge vide et sa Surcharge ne faisaient que gêner.
+ */
+export function chargesUseful(c: CombatState): boolean {
+  if ((c.player.charges ?? 0) > 0 || (c.gear?.startCharges ?? 0) > 0) return true;
+  return [c.hand, c.draw, c.discard, c.exhaust].some((pile) => pile.some((k) => CHARGE_CARDS.has(k.id)));
+}
