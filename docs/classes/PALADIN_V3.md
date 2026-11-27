@@ -1,6 +1,6 @@
 # Classe : le Paladin (refonte « Puissance sacrée »)
 
-> Wipe & Loot · Fiche de classe · **Version 0.3, concept à tester** (26 novembre 2026)
+> Wipe & Loot · Fiche de classe · **Version 0.3, concept à tester** (26 novembre 2026 ; points tranchés le 27 novembre 2026)
 > Cette fiche remplace, si le test est concluant, la version 0.2 (`PALADIN.md`, Sceaux et Jugement), qui reste la référence du jeu actuel.
 > Les chiffres sont **indicatifs** : ils serviront de base au test de concept et aux passes du bot.
 
@@ -65,7 +65,7 @@ Le **tag d'ennemi Mort-vivant / Démon** est conservé, sans changement.
 
 **En quoi c'est différent :**
 - **Voleur** : ses finishers consomment *tous* les points de combo. Ici le coût est fixe (3), et la Dépense peut protéger autant qu'attaquer.
-- **Guerrier** : la rage s'ajoute au coût en énergie et se gagne en encaissant. Ici les Dépenses ne coûtent pas d'énergie, et la PS se gagne selon l'Aura (bloquer, frapper ou soigner).
+- **Guerrier** : la rage s'ajoute au coût en énergie et se gagne en encaissant ; la pleine rage se vide d'un coup. Ici les Dépenses ne coûtent pas d'énergie, leur coût est fixe, et la PS se gagne selon l'Aura (bloquer, frapper ou soigner).
 
 ---
 
@@ -82,7 +82,7 @@ Le Paladin a **toujours une Aura active** parmi trois. Elles sont toutes disponi
 **Changer d'Aura :**
 - avec le bouton d'Aura à côté du héros ;
 - le **1er changement de chaque tour est gratuit** ; **chaque changement de plus ce tour-ci coûte 1 énergie** ;
-- **la PS est conservée** quand on change d'Aura (différence avec le Guerrier, qui plafonne sa rage) ;
+- **la PS est conservée** quand on change d'Aura (comme la rage du Guerrier depuis le 27 novembre 2026) ;
 - le bonus d'une Aura s'applique à toute Dépense jouée pendant qu'elle est active, quelle que soit la Dépense.
 
 **Le bonus s'ajoute à l'effet de la Dépense, en plus.** Exemple : *Verdict du templier* (18 dégâts) sous Dévotion inflige 18 dégâts **et** donne 4 blocage ; sous Vindicte, il inflige 22 dégâts.
@@ -101,6 +101,14 @@ Le Paladin a **toujours une Aura active** parmi trois. Elles sont toutes disponi
 | **Parade** | 3 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
 | **Frappe du croisé** | 2 | 1 | Attaque | Inflige 6 dégâts. ✦1 | 9 dégâts |
 | **Parole de lumière** | 1 | 0 + 3 PS | Dépense | Selon l'Aura : 9 blocage, 8 dégâts ou 7 PV de soin. | 12 / 11 / 10 |
+
+**Selon l'arbre principal (décidé le 27 novembre 2026, comme le Guerrier)** : l'arbre qui a strictement le plus de points choisit l'Aura de départ et change une carte du paquet (`starterSwaps`, et une Aura de départ sur le modèle de `startPosture`). Sans arbre principal (aucun talent ou égalité) : Dévotion et le paquet ci-dessus.
+
+| Arbre principal | Aura de départ | Carte changée |
+|---|---|---|
+| Vindicte | Vindicte | 1 Parade → Ferveur |
+| Protection | Dévotion | 1 Frappe → Pavois sacré |
+| Sacré | Concentration | 1 Frappe → Horion sacré |
 
 **Parole de lumière** est la carte emblème : la seule Dépense « universelle ». Sous Dévotion elle donne du blocage, sous Vindicte elle inflige des dégâts, sous Concentration elle soigne (le bonus d'Aura s'ajoute : 13 blocage, 12 dégâts ou 10 PV). Elle demande une cible seulement sous Vindicte.
 
@@ -308,7 +316,7 @@ Si une spécialisation est trop forte, on ne touche qu'**un chiffre** : le bonus
 
 - **Trop de souplesse ?** Changer d'Aura sans perdre de PS peut rendre le Paladin bon partout. Le coût de 1 énergie dès le 2e changement du tour devrait suffire ; sinon, le 1er changement fera perdre 1 PS.
 - **Dépenses à 0 énergie :** avec beaucoup de génération (Courroux vengeur, Art de la guerre, Ferveur), surveiller le nombre de Dépenses par tour. Le plafond à 5 limite déjà à deux Dépenses d'affilée ; si besoin, limite de 2 Dépenses par tour.
-- **Fin de l'ère + Faveur divine :** les deux doublent la même Dépense (×4). À tester ; si c'est trop fort, ils ne se cumulent pas.
+- **Fin de l'ère + Faveur divine (décidé le 27 novembre 2026) :** pas de cumul. Une Dépense n'est doublée qu'une fois ; si Fin de l'ère la double déjà, Faveur divine reste en attente pour la Dépense suivante du tour (elle se perd en fin de tour). L'aperçu de la carte le montre.
 - **Juste châtiment** reste à surveiller après un gros tour de blocage (il était déjà signalé en 0.2).
 - **Les 3 Dépenses par arbre** donnent de la diversité : chaque arbre a une Dépense de base, une de zone ou de durée, et une rare plus situationnelle. Avec Parole de lumière, un paquet a jusqu'à 4 Dépenses possibles, et le choix des récompenses compte.
 - **Ce qui disparaît** par rapport à la 0.2 : les 6 Sceaux, la Censure, Double sceau, Inquisition, Exaltation, Science du combat, Bénédiction royale, Aube purificatrice, Bouclier du croisé, Verdict des cieux, les Auras en Pouvoir (Dévotion, Résistance, Épines sacrées).
@@ -322,4 +330,5 @@ Si une spécialisation est trop forte, on ne touche qu'**un chiffre** : le bonus
 3. Les 51 cartes, les 6 sorts, les 15 talents (`classes.ts`, cartes, `spells.ts`, `talents.ts`, `talent_icons.ts`).
 4. Tutoriel du Paladin (`CLASS_STEPS`) : 3 bulles (la jauge, les Dépenses, le bouton d'Aura).
 5. Bot : valeur de la PS et choix de l'Aura, puis 200 runs par profil (Vindicte, Protection, Sacré, et un hybride), notées dans `EQUILIBRAGE.md`.
-6. Une sauvegarde en cours de run avec l'ancien Paladin (Sceaux) devra être convertie ou abandonnée proprement.
+6. **Conversion (décidé le 27 novembre 2026)** : une expédition en cours avec l'ancien Paladin est convertie (étape de `migrate()` dans `save.ts`). Chaque ancienne carte devient sa plus proche cousine, amélioration gardée : Sceaux de droiture, du croisé → Parole de lumière ; Sceau du rempart → Bouclier du vertueux ; Sceau de vengeance → Verdict du templier ; Sceaux de lumière, de sagesse → Mot de gloire ; Auras de dévotion, d'épines sacrées → Rempart de lumière ; Aura de résistance → Résistance sacrée ; Inquisition, Exaltation → Prière du croisé ; Science du combat → Art de la guerre ; Bénédiction royale → Bénédiction de puissance ; Aube purificatrice → Aurore sacrée ; Bouclier du croisé → Gardien des rois ; Verdict des cieux → Courroux vengeur. Les sorts disparus quittent la barre, et les points de talent du Paladin sont rendus (profil), avec le message « Le Paladin a changé : replace tes talents ».
+7. **Publication (décidé le 27 novembre 2026)** : sur `dev` et `playtest` ensemble, dès que les tests sont verts et qu'une première passe du bot (niveau 1 contre Vulkhar, 50 runs) ne montre rien d'aberrant ; news pour les testeurs. Les réglages fins suivront leurs retours.
