@@ -187,7 +187,6 @@ export function startPosture(talents: string[]): Posture {
 
 /** L'Aura de départ du Paladin, selon son arbre principal (Dévotion sans arbre principal). */
 export function startAura(talents: string[]): AuraId {
-  if (process.env.PAL_AURA) return process.env.PAL_AURA as AuraId; // SONDE
   const tree = mainTree('paladin', talents);
   return tree === 'vindicte' ? 'vindicte' : tree === 'sacre_pal' ? 'concentration' : 'devotion';
 }

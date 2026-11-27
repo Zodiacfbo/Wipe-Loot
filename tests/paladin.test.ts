@@ -108,7 +108,7 @@ describe('la Puissance sacrée', () => {
     const e = c.enemies[0];
     const energy = c.player.energy;
     play(c, 'verdict_templier', e.uid);
-    expect(200 - e.hp).toBe(18);
+    expect(200 - e.hp).toBe(13);
     expect(c.player.block).toBe(4); // Dévotion : +4 blocage
     expect(c.holy).toBe(1);
     expect(c.player.energy).toBe(energy);
@@ -136,19 +136,19 @@ describe('les Auras', () => {
     const vin = fight(['lieutenant'], ['parole_lumiere'], {}, ['jugement'], 'vindicte', 3);
     expect(cardNeedsTarget(vin, 'parole_lumiere')).toBe(true);
     play(vin, 'parole_lumiere', vin.enemies[0].uid);
-    expect(200 - vin.enemies[0].hp).toBe(8 + 4);
+    expect(200 - vin.enemies[0].hp).toBe(7 + 3);
 
     const con = fight(['lieutenant'], ['parole_lumiere'], {}, ['jugement'], 'concentration', 3);
     con.player.hp = 40;
     play(con, 'parole_lumiere');
-    expect(con.player.hp).toBe(40 + 7 + 3);
+    expect(con.player.hp).toBe(40 + 6 + 2);
   });
 
   it('Vindicte : une Dépense de zone donne son bonus à tous, sans cible', () => {
     const c = fight(['lieutenant', 'lieutenant'], ['tempete_divine'], {}, ['jugement'], 'vindicte', 3);
     expect(cardNeedsTarget(c, 'tempete_divine')).toBe(false);
     play(c, 'tempete_divine');
-    expect(c.enemies.map((e) => 200 - e.hp)).toEqual([13, 13]);
+    expect(c.enemies.map((e) => 200 - e.hp)).toEqual([10, 10]);
   });
 
   it('les contreparties : Vindicte soigne moins, Concentration frappe moins fort (Dépenses d\'Attaque comprises)', () => {
@@ -200,7 +200,7 @@ describe('les Dépenses doublées', () => {
     const c = fight(['lieutenant'], ['faveur_divine', 'verdict_templier'], {}, ['jugement'], 'devotion', 3);
     play(c, 'faveur_divine');
     play(c, 'verdict_templier', c.enemies[0].uid);
-    expect(200 - c.enemies[0].hp).toBe(36);
+    expect(200 - c.enemies[0].hp).toBe(26);
     expect(c.favor).toBe(false);
   });
 
@@ -209,12 +209,12 @@ describe('les Dépenses doublées', () => {
     const e = c.enemies[0];
     play(c, 'faveur_divine');
     play(c, 'verdict_templier', e.uid);
-    expect(200 - e.hp).toBe(36);
+    expect(200 - e.hp).toBe(26);
     expect(c.holy).toBe(0);
     expect(c.favor).toBe(true);
     c.holy = 3;
     play(c, 'verdict_templier', e.uid);
-    expect(200 - e.hp).toBe(72);
+    expect(200 - e.hp).toBe(52);
     expect(c.favor).toBe(false);
   });
 
@@ -235,7 +235,7 @@ describe('les cartes et talents des arbres', () => {
     expect(c.holy).toBe(3);
     const hp = e.hp;
     play(c, 'verdict_templier', e.uid);
-    expect(hp - e.hp).toBe(22);
+    expect(hp - e.hp).toBe(17);
   });
 
   it('Juste châtiment rend les dégâts bloqués ; Rétribution le fait coûter 2', () => {
@@ -288,7 +288,7 @@ describe('les cartes et talents des arbres', () => {
   it('Égide de lumière : le blocage suit le soin, même à PV pleins', () => {
     const c = fight(['lieutenant'], ['egide_lumiere'], {}, ['jugement'], 'devotion', 3);
     play(c, 'egide_lumiere');
-    expect(c.player.block).toBe(8 + 4);
+    expect(c.player.block).toBe(7 + 4);
   });
 
   it('Exorcisme double contre un Démon', () => {
@@ -387,7 +387,7 @@ describe('l\'Aurore ardente', () => {
     c.player.hp = 50;
     const e = c.enemies[0];
     play(c, 'verdict_templier', e.uid);
-    expect(200 - e.hp).toBe(36);
+    expect(200 - e.hp).toBe(26);
     expect(c.player.hp).toBe(55);
   });
 });
