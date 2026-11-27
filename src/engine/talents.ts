@@ -304,10 +304,10 @@ export const PALADIN_TREES: TreeDef[] = [
   {
     id: 'sacre_pal', name: 'Sacré', theme: 'Soins et lumière',
     tiers: [
-      [t('lumiere_amelioree', 'Lumière améliorée', 'Tes cartes de soin rendent +2 PV.', { fx: { healBonus: 2 } }),
+      [t('lumiere_amelioree', 'Lumière améliorée', 'Tes cartes de soin rendent +1 PV.', { fx: { healBonus: 1 } }),
         t('esprit_divin', 'Esprit divin', '+6 PV max.', { maxHp: 6 })],
       [t('purification_rapide', 'Purification rapide', 'Lumière purificatrice coûte 0.', { fx: { purifyFree: 1 } }),
-        t('sagesse_jugement', 'Sagesse', 'Le Jugement te soigne aussi de 3 PV.', { fx: { judgeHeal: 3 } })],
+        t('sagesse_jugement', 'Sagesse', 'Le Jugement te soigne aussi de 2 PV.', { fx: { judgeHeal: 2 } })],
       [t('t_imposition_mains', 'Imposition des mains', 'Ajoute ce sort à ta barre : sous 30 % de tes PV, soigne 30 % de tes PV max, une fois par combat.', { spell: 'imposition_mains' }),
         t('t_purification_pal', 'Purification', 'Ajoute ce sort à ta barre : Dissipation (Magie, Poison, Maladie).', { spell: 'purification_pal' })],
       [t('lumiere_infusee', 'Lumière infusée', 'Ta 1re Dépense de chaque tour te rend 1 Puissance sacrée.', { fx: { spendRefund: 1 } }),
@@ -338,9 +338,9 @@ export const PALADIN_TREES: TreeDef[] = [
     tiers: [
       [t('pa_precision', 'Précision', 'Commence chaque combat avec 1 Puissance.', { fx: { startPuissance: 1 } }),
         t('elan_sacre', 'Élan sacré', 'Commence chaque combat avec 1 Puissance sacrée.', { fx: { startHoly: 1 } })],
-      [t('conviction', 'Conviction', 'Tes Attaques infligent +3 dégâts aux Morts-vivants et aux Démons.', { fx: { holyBonus: 3 } }),
+      [t('conviction', 'Conviction', 'Tes Attaques infligent +2 dégâts aux Morts-vivants et aux Démons.', { fx: { holyBonus: 2 } }),
         t('jugement_aiguise', 'Jugement aiguisé', 'Le Jugement inflige 8 dégâts (au lieu de 5).', { fx: { judgeDmg: 3 } })],
-      [t('t_ailes_justice', 'Ailes de justice', 'Ajoute ce sort à ta barre : +2 Puissance pendant 3 tours, 1 Puissance sacrée.', { spell: 'ailes_justice' }),
+      [t('t_ailes_justice', 'Ailes de justice', 'Ajoute ce sort à ta barre : +2 Puissance pendant 3 tours.', { spell: 'ailes_justice' }),
         t('t_marteau_jugement_v', 'Marteau du jugement', 'Ajoute ce sort à ta barre (si tu ne l\'as pas déjà) : Interruption, 6 dégâts, Contrôle 1 tour.', { spell: 'marteau_jugement' })],
       [t('fin_ere', 'Fin de l\'ère', 'Une Dépense jouée à 5 Puissance sacrée les prend toutes et double son effet.', { fx: { finEre: 1 } }),
         t('vengeance_divine', 'Vengeance divine', 'Après un Jugement, ta prochaine Attaque inflige +4 dégâts.', { fx: { vengeanceDivine: 4 } })],

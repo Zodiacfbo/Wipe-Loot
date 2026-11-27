@@ -514,7 +514,7 @@ for (const d of VOLEUR_SPELLS) SPELLS[d.id] = { ...d, classId: 'voleur' };
 /** Les sorts de barre du Paladin. Référence : docs/classes/PALADIN.md (§6) */
 const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
   {
-    id: 'jugement', name: 'Jugement', cost: 0, cooldown: 2, needsTarget: true, icon: 'etoile',
+    id: 'jugement', name: 'Jugement', cost: 0, cooldown: Number(process.env.PAL_JCD ?? 2), // SONDE needsTarget: true, icon: 'etoile',
     text: 'Inflige 5 dégâts. Gagne 2 Puissance sacrée.',
     cast: (c, target) => judge(c, target),
   },
@@ -560,11 +560,10 @@ const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
   },
   {
     id: 'ailes_justice', name: 'Ailes de justice', cost: 0, cooldown: 6, needsTarget: false, icon: 'hausse',
-    text: 'Gagne 2 Puissance pendant 3 tours. Gagne 1 Puissance sacrée.',
+    text: 'Gagne 2 Puissance pendant 3 tours.',
     cast: (c) => {
       if ((c.wings ?? 0) === 0) c.player.puissance += 2;
       c.wings = 3;
-      gainHoly(c, 1);
       fx(c, { kind: 'buff', who: 'player', label: 'Ailes de justice' });
     },
   },
