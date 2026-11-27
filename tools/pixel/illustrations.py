@@ -307,6 +307,27 @@ def frappe_du_colosse():
     return s.render()
 
 
+def frappe_brutale():
+    """Frappe brutale (Armes) : une grande épée qui s'abat, traînée rouge et impact."""
+    s = nouveau()
+    arc(s, 16, 16, 13, 200, 300, ROUGE, 2)
+    epee(s, 6, 6, 24, 26)
+    s.line([(18, 29), (22, 25), (26, 29), (30, 24)], '#FF8A2A', glow=True)
+    etoile(s, 25, 26, 4)
+    return s.render()
+
+
+def brise_guerre():
+    """Brise-guerre (Armes) : un marteau de guerre qui fend le sol, éclats d'armure de tous côtés."""
+    s = nouveau()
+    s.line([(2, 28), (9, 25), (16, 29), (23, 24), (30, 28)], '#FF8A2A', glow=True)
+    for (x, y) in [(5, 18), (27, 17), (9, 12), (23, 11)]:
+        s.poly([(x, y), (x + 3, y - 1), (x + 2, y + 3)], '#C9D2DE')
+    marteau(s, 8, 4, 18, 22, tete='#6E6458')
+    etoile(s, 17, 25, 5)
+    return s.render()
+
+
 def tempete_acier():
     s = nouveau()
     for a in range(0, 360, 90):
@@ -626,6 +647,7 @@ ILLUSTRATIONS = {
     'entaille_profonde': entaille_profonde, 'cri_intimidation': cri_intimidation,
     'concentration_martiale': concentration_martiale, 'frappe_du_colosse': frappe_du_colosse,
     'tempete_acier': tempete_acier, 'maitre_armes': maitre_armes, 'frappe_mortelle': frappe_mortelle,
+    'frappe_brutale': frappe_brutale, 'brise_guerre': brise_guerre,
     'coup_de_folie': coup_de_folie, 'rage_sanglante': rage_sanglante, 'frappe_frenetique': frappe_frenetique,
     'hurlement_furieux': hurlement_furieux, 'soif_de_bataille': soif_de_bataille, 'ruee_sanguinaire': ruee_sanguinaire,
     'tourbillon': tourbillon, 'enrage': enrage, 'rafale': rafale, 'ambidextrie': ambidextrie, 'main_gauche': main_gauche,

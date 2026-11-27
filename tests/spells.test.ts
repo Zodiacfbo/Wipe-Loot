@@ -18,8 +18,8 @@ function fight(enemies: string[], spells: string[], cards = FRAPPES): CombatStat
 const idx = (c: CombatState, id: string) => c.spells.findIndex((s) => s.id === id);
 
 describe('la barre de sorts du Guerrier', () => {
-  it('9 sorts, et le combat reçoit la barre de la run', () => {
-    expect(Object.keys(SPELLS).filter((id) => spellClass(id) === 'guerrier')).toHaveLength(9);
+  it('10 sorts, et le combat reçoit la barre de la run', () => {
+    expect(Object.keys(SPELLS).filter((id) => spellClass(id) === 'guerrier')).toHaveLength(10);
     const c = fight(['lieutenant'], ['charge', 'rempart']);
     expect(c.spells.map((s) => s.id)).toEqual(['charge', 'rempart']);
   });

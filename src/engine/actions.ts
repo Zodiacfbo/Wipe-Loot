@@ -155,6 +155,7 @@ export function gainBlock(c: CombatState, amount: number, fromCard = true): void
   const d = p.debuffs;
   if ((d?.ralenti ?? 0) > 0 || d?.afflictions?.includes('bronze')) total = Math.floor(total * 0.75);
   p.block += Math.max(0, total);
+  if (total > 0) p.blockGained = (p.blockGained ?? 0) + total;
   if (total > 0) fx(c, { kind: 'block', who: 'player', amount: total });
 }
 
@@ -215,6 +216,8 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (target.hp < target.maxHp * 0.5) dmg += g.lowHpBonus ?? 0;
   if (opts.rageCard && p.posture === 'combat') dmg += 3;
   if (opts.rageCard) dmg += power(c, 'maitre_armes');
+  // Pleine rage (Guerrier) : le premier coup de l'Attaque qui la libère.
+  if (c.fullRage && c.fullRage.first === undefined && c.playing?.type === 'Attaque') dmg += c.fullRage.bonus;
   dmg += p.enrageReady ?? 0;
   if (p.posture === 'defensive') dmg *= 0.8;
   if (p.temerite) dmg *= 1.5;
@@ -248,6 +251,10 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
 export function playerAttack(c: CombatState, target: EnemyState, base: number, opts: AttackOptions = {}): number {
   if (target.dead || target.submerged) return 0;
   const dmg = attackDamage(c, target, base, opts);
+  if (c.fullRage && c.fullRage.first === undefined && c.playing?.type === 'Attaque') {
+    c.fullRage.first = dmg;
+    c.fullRage.targetUid = target.uid;
+  }
   const blockBefore = target.block;
   fx(c, { kind: 'hit', from: 'player', to: target.uid, amount: dmg, blocked: 0, ranged: false });
   const ev = c.fx![c.fx!.length - 1] as { blocked: number };
@@ -522,6 +529,12 @@ export function damagePlayer(c: CombatState, amount: number, isAttack: boolean):
     }
   }
   return hpLoss;
+}
+
+/** Armure fracassée posée par le Guerrier (Brise-armure : 1 tour de plus). */
+export function applyFracture(c: CombatState, target: EnemyState, turns: number): void {
+  if (target.dead) return;
+  target.buffs.armureFracassee += turns + (c.gear?.fractureDuration ?? 0);
 }
 
 export function applySaignement(target: EnemyState, amount: number, c?: CombatState): void {

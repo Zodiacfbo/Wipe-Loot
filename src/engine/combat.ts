@@ -5,6 +5,7 @@ import {
   applyBrulure,
   applyGel,
   applySaignement,
+  applyFracture,
   gainCharges,
   isBossEnemy,
   emptyDebuffs,
@@ -311,6 +312,7 @@ export function startPlayerTurn(c: CombatState): void {
   felhunterStart(c, () => purifyOne(c));
   p.postureChanged = false;
   p.ignorerDouleur = false;
+  p.blockGained = 0;
   c.bleedDoneThisTurn = false;
   if (c.turn > 1) {
     for (const s of c.spells) s.cooldown = Math.max(0, s.cooldown - 1);
@@ -558,6 +560,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   else if (c.freeNextSpell && def.type === 'Sort') c.freeNextSpell = false;
   c.cardsThisTurn = (c.cardsThisTurn ?? 0) + 1;
   c.firstCardDone = true;
+  // Guerrier : une Attaque jouée à rage maximale libère la pleine rage (§12 de la fiche).
+  const releasing = def.type === 'Attaque' && isWarrior(c) && p.maxRage > 0 && p.rage >= p.maxRage;
   let rageSpent = 0;
   if (def.rageCost === 'all') {
     rageSpent = p.rage;
@@ -596,6 +600,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     return true;
   }
   if (card.id === 'hallucination') dreamEnergy(c);
+  if (releasing) c.fullRage = { posture: p.posture, bonus: FULL_RAGE_BONUS[p.posture] };
   const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent, comboSpent };
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
@@ -643,8 +648,10 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     if (c.attacksThisTurn === 3 && power(c, 'rafale')) drawCards(c, power(c, 'rafale'));
     // Frénésie : la 3e Attaque du tour rend de l'énergie.
     if (c.attacksThisTurn === 3 && c.gear?.frenzyEnergy) p.energy += c.gear.frenzyEnergy;
-    // Entaille : les Attaques à 2 énergie ou plus font saigner.
-    if (cost >= 2 && ctx.dealt && target && !target.dead && c.gear?.heavyBleed) applySaignement(target, c.gear.heavyBleed, c);
+    // Entaille : les Attaques à 2 énergie ou plus fracassent l'armure.
+    if (cost >= 2 && ctx.dealt && target && !target.dead && c.gear?.heavyFracture) applyFracture(c, target, c.gear.heavyFracture);
+    // Soif de sang : frapper un ennemi qui Saigne soigne.
+    if (ctx.dealt && target && target.buffs.saignement > 0 && c.gear?.bleedLeech) healPlayer(c, c.gear.bleedLeech);
     // Entaille profonde : les Attaques à rage qui touchent font saigner.
     if (def.rageCost !== undefined && ctx.dealt && target && !target.dead && power(c, 'entaille_profonde')) {
       applySaignement(target, power(c, 'entaille_profonde'), c);
@@ -682,6 +689,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     }
     if (g.healOnAttack) healPlayer(c, g.healOnAttack);
   }
+  if (releasing) releaseFullRage(c, ctx.dealt);
   // Sceptre de Brannoc : la version incantation soigne quand un Sort touche.
   if (def.type === 'Sort' && ctx.dealt && c.gear?.healOnAttack) healPlayer(c, c.gear.healOnAttack);
   if (def.type === 'Attaque' || def.type === 'Sort') c.firstAttackDone = true;
@@ -732,13 +740,50 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   return true;
 }
 
+/** Pleine rage : le bonus du premier coup selon la posture (le Berserker frappe aussi tous les autres ennemis). */
+export const FULL_RAGE_BONUS: Record<Posture, number> = { combat: 10, berserker: 5, defensive: 0 };
+/** Pleine rage en posture Défensive : le blocage gagné. */
+export const FULL_RAGE_BLOCK = 12;
+
+const isWarrior = (c: CombatState) => (c.classId ?? 'guerrier') === 'guerrier';
+
+/** La pleine rage est-elle prête (la prochaine Attaque qui touche la libère) ? */
+export function fullRageReady(c: CombatState): boolean {
+  return isWarrior(c) && c.player.maxRage > 0 && c.player.rage >= c.player.maxRage;
+}
+
+/** Après l'Attaque qui libère la pleine rage : le coup en zone (Berserker), le blocage (Défensive), puis la rage se vide.
+ * Une Attaque qui n'a touché personne ne libère rien : la rage reste pleine. */
+function releaseFullRage(c: CombatState, dealt: boolean): void {
+  const fr = c.fullRage;
+  c.fullRage = undefined;
+  if (!fr || !dealt) return;
+  const p = c.player;
+  if (fr.posture === 'berserker' && fr.first !== undefined && fr.first > 0) {
+    for (const e of livingEnemies(c)) {
+      if (e.uid === fr.targetUid || e.submerged) continue;
+      fx(c, { kind: 'hit', from: 'player', to: e.uid, amount: fr.first, blocked: Math.min(e.block, fr.first), ranged: false });
+      damageEnemy(c, e, fr.first);
+    }
+  }
+  if (fr.posture === 'defensive') {
+    p.block += FULL_RAGE_BLOCK;
+    p.blockGained = (p.blockGained ?? 0) + FULL_RAGE_BLOCK;
+    fx(c, { kind: 'block', who: 'player', amount: FULL_RAGE_BLOCK });
+  }
+  p.rage = 0;
+  fx(c, { kind: 'buff', who: 'player', label: 'Pleine rage !' });
+  log(c, fr.posture === 'combat' ? `Pleine rage : +${FULL_RAGE_BONUS.combat} dégâts.`
+    : fr.posture === 'berserker' ? 'Pleine rage : le coup frappe tous les ennemis.'
+      : `Pleine rage : +${FULL_RAGE_BLOCK} blocage.`);
+}
+
 export function changePosture(c: CombatState, posture: Posture): boolean {
   const p = c.player;
   if (c.phase !== 'player' || p.postureChanged || p.posture === posture) return false;
   if ((p.debuffs?.lignee ?? 0) > 0) return false; // Malédiction de lignée : forcé en Berserker
   p.posture = posture;
   p.postureChanged = true;
-  p.rage = Math.min(p.rage, c.gear?.postureRage ?? 3);
   log(c, `Posture : ${posture === 'combat' ? 'Combat' : posture === 'berserker' ? 'Berserker' : 'Défensive'}.`);
   return true;
 }

@@ -121,6 +121,11 @@ img[data-anime] {
 .rage { flex: 1; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 3px; }
 .rage i { height: 10px; border-radius: 2px; background: #3a2621; }
 .rage i.plein { background: var(--rage); }
+/* Pleine rage (Guerrier) : la jauge s'allume. */
+.rage.pleine i.plein { background: #ff7a3a; box-shadow: 0 0 6px #ff6a2a; animation: pleine-rage 0.8s ease-in-out infinite alternate; }
+@keyframes pleine-rage { from { filter: brightness(1); } to { filter: brightness(1.35); } }
+.aide-posture .pleine-rage { color: #ff8a4a; }
+.aide-posture .mot-pleine { color: #f0a07a; }
 .charges-label { width: auto; color: #9fc3ff; }
 .rage.charges { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .rage.charges i { height: 14px; border-radius: 50%; background: #1e2a3d; border: 1px solid #3c5a86; }

@@ -46,9 +46,9 @@ export const COMBAT_END: TutoStep = { cible: ['.topbar [data-action="tuto"]'], t
 export const CLASS_STEPS: Record<string, TutoStep[]> = {
   guerrier: [
     { cible: ['.jauges .rage'], ligne: true, icone: 'cri_de_guerre', texte: 'Ta **rage**, de 0 à 10 : +1 quand tu joues une Attaque ou que tu perds des PV. Elle repart à 0 à chaque combat.' },
-    { cible: ['.main .carte:has(.cout-rage)', '.main'], icone: 'frappe_heroique', texte: 'Certaines cartes coûtent aussi de la **rage** (le chiffre rouge). Les plus fortes en demandent beaucoup.' },
-    { cible: ['.postures'], icone: 'coup_de_bouclier', texte: '**Combat** : +3 dégâts aux cartes à rage. **Berserker** : plus de rage, mais tu prends plus cher. **Défensive** : plus de blocage, moins de dégâts.' },
-    { cible: ['.postures'], icone: 'concentration_martiale', texte: 'Changer de **posture** est gratuit, une fois par tour. Mais ta rage redescend alors à 3.' },
+    { cible: ['.jauges .rage'], ligne: true, icone: 'execution', texte: 'À 10, c\'est la **pleine rage** : ta prochaine Attaque la libère, avec un bonus qui dépend de ta posture. Puis la jauge se vide.' },
+    { cible: ['.main .carte:has(.cout-rage)', '.main'], icone: 'frappe_heroique', texte: 'Tu peux aussi dépenser ta **rage** plus tôt, avec les cartes qui en coûtent (le chiffre rouge).' },
+    { cible: ['.postures'], icone: 'coup_de_bouclier', texte: '**Combat** : pleine rage +10 dégâts. **Berserker** : elle frappe tous les ennemis. **Défensive** : +12 blocage. Changer est gratuit, une fois par tour.' },
   ],
   mage: [
     { cible: ['.ennemis'], icone: 'boule_de_feu', texte: '**Brûlure** : la cible perd des PV à chaque tour, un peu moins à chaque fois.' },

@@ -327,6 +327,8 @@ export interface PlayerState {
   riposte?: number;
   /** Enragé : bonus de dégâts de la prochaine Attaque. */
   enrageReady?: number;
+  /** Guerrier : blocage gagné ce tour-ci (Heurt de bouclier). */
+  blockGained?: number;
   /** Mage — charges arcaniques (0 à `maxCharges`). */
   charges?: number;
   maxCharges?: number;
@@ -428,6 +430,8 @@ export interface CombatState {
   /** Balayage : Attaques restantes qui touchent aussi un 2e ennemi, et l'Attaque en cours en profite-t-elle ? */
   cleave?: number;
   cleaving?: boolean;
+  /** Guerrier : la pleine rage libérée par l'Attaque en cours (bonus du premier coup, coup en zone du Berserker). */
+  fullRage?: { posture: Posture; bonus: number; first?: number; targetUid?: number };
   /** Or volé par le Gobelin mimique. */
   goldStolen?: number;
   /** Les contraintes de difficulté qui touchent les ennemis. */

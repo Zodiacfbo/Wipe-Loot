@@ -7,6 +7,7 @@ import {
   canUseSpell,
   cardBlockReason,
   changePosture,
+  fullRageReady,
   cardNeedsTarget,
   changeForm,
   choosePet,
@@ -71,6 +72,7 @@ import {
   LEGENDARY_MIN_ACT,
   retryAfterWipe,
   allowedSlots,
+  hasOffhand,
   wornSlot,
   defaultBreakSlot,
   retryHp,
@@ -272,10 +274,11 @@ const RARITY_FRAME: Record<string, string> = {
   depart: 'depart', commune: 'commune', peu_commune: 'peu_commune', rare: 'rare', epique: 'epique', statut: 'statut',
 };
 
-const POSTURES: { id: Posture; label: string; aide: string }[] = [
-  { id: 'combat', label: 'Combat', aide: 'Cartes à rage : +3 dégâts' },
-  { id: 'berserker', label: 'Berserker', aide: '+1 rage par Attaque, +20 % de dégâts subis' },
-  { id: 'defensive', label: 'Défensive', aide: '+3 blocage, rage même bloqué, −20 % dégâts' },
+// 27 novembre 2026 : chaque posture dit aussi ce que fera la pleine rage (fiche du Guerrier §12).
+const POSTURES: { id: Posture; label: string; aide: string; pleine: string }[] = [
+  { id: 'combat', label: 'Combat', aide: 'Cartes à rage : +3 dégâts', pleine: '+10 dégâts' },
+  { id: 'berserker', label: 'Berserker', aide: '+1 rage par Attaque, +20 % de dégâts subis', pleine: '+5 et frappe tous les ennemis' },
+  { id: 'defensive', label: 'Défensive', aide: '+3 blocage, rage même bloqué, −20 % dégâts', pleine: '+12 blocage' },
 ];
 
 // ---------- Rendu d'une carte ----------
@@ -440,6 +443,11 @@ const EQUIP_LAYOUT: Record<SlotKey, [string, number]> = {
   arme: ['g', 1], bague1: ['g', 2], bijou1: ['g', 3], amulette: ['d', 1], bague2: ['d', 2], bijou2: ['d', 3],
 };
 
+/** Le nom d'un emplacement : avec Deux armes (Guerrier Fureur), le 2e bijou devient une main gauche. */
+function slotLabel(run: RunState, k: SlotKey): string {
+  return k === 'bijou2' && hasOffhand(run) ? 'Main gauche' : SLOT_LABEL[k];
+}
+
 /** L'équipement : le héros entouré de ses 6 emplacements, la barre de sorts dessous, et la fiche de la case touchée à droite. */
 function equipmentOverlay(run: RunState): string {
   const hero = classInfo(run.classId);
@@ -450,8 +458,8 @@ function equipmentOverlay(run: RunState): string {
     const broken = run.broken.includes(k);
     const [col, row] = EQUIP_LAYOUT[k];
     const cls = id ? `${ITEMS[id].rarity}${broken ? ' brise' : ''}` : 'vide';
-    return `<button type="button" class="case-equipement ${cls} ${sel === k ? 'choisie' : ''}" style="grid-area:${row} / ${col === 'g' ? 1 : 3}" data-action="equip-voir" data-id="${k}" aria-label="${SLOT_LABEL[k]}${id ? ` : ${ITEMS[id].name}` : ' : vide'}">
-      ${SLOT_ICON[slotOf(k)]}${broken ? '<span class="pastille-brise">!</span>' : ''}<span class="nom-case">${k === heirloomSlot(run) ? 'Coffre' : SLOT_LABEL[k]}</span></button>`;
+    return `<button type="button" class="case-equipement ${cls} ${sel === k ? 'choisie' : ''}" style="grid-area:${row} / ${col === 'g' ? 1 : 3}" data-action="equip-voir" data-id="${k}" aria-label="${slotLabel(run, k)}${id ? ` : ${ITEMS[id].name}` : ' : vide'}">
+      ${SLOT_ICON[id ? ITEMS[id].slot : slotOf(k)]}${broken ? '<span class="pastille-brise">!</span>' : ''}<span class="nom-case">${k === heirloomSlot(run) ? 'Coffre' : slotLabel(run, k)}</span></button>`;
   }).join('');
   const spells = Array.from({ length: cap }, (_, i) => {
     const id = run.spells[i];
@@ -529,7 +537,7 @@ function equipChoices(run: RunState, id: string, action: string, leave: string):
   const slots = allowedSlots(run, id);
   const buttons = slots.map((k) => {
     const current = run.equipment[k];
-    const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}${k === carried ? ' <span class="mention-coffre">· Coffre</span>' : ''}` : `Équiper (${SLOT_LABEL[k].toLowerCase()} libre)`;
+    const label = current ? `Remplacer : ${ITEMS[current].name}${run.broken.includes(k) ? ' (brisé)' : ''}${k === carried ? ' <span class="mention-coffre">· Coffre</span>' : ''}` : `Équiper (${slotLabel(run, k).toLowerCase()} libre)`;
     return `<button type="button" class="bouton-objet" ${action} data-slot="${k}">${label}</button>`;
   }).join('');
   // L'effet des objets qui seraient remplacés, pour comparer.
@@ -1466,6 +1474,7 @@ function combatScreen(run: RunState, c: CombatState): string {
   const mage = run.classId === 'mage';
   const hero = classInfo(run.classId);
   const rage = Array.from({ length: p.maxRage }, (_, i) => `<i class="${i < p.rage ? 'plein' : ''}"></i>`).join('');
+  const fullRage = fullRageReady(c);
   const charges = Array.from({ length: p.maxCharges ?? 4 }, (_, i) => `<i class="${i < (p.charges ?? 0) ? 'plein' : ''} ${i >= 3 ? 'surcharge' : ''}"></i>`).join('');
   const resource = mage
     ? (!chargesUseful(c) ? '' : `<div class="ligne"><span class="rage-label charges-label">CHARGES</span><div class="rage charges">${charges}</div><span class="rage-label" style="width:auto">${p.charges ?? 0}</span></div>
@@ -1476,7 +1485,10 @@ function combatScreen(run: RunState, c: CombatState): string {
     const disabled = !actif && p.postureChanged;
     return `<button type="button" class="${actif ? 'actif' : ''}" data-action="posture" data-posture="${po.id}" ${disabled ? 'disabled' : ''} aria-pressed="${actif}">${po.label}</button>`;
   }).join('');
-  const aidePosture = POSTURES.find((po) => po.id === p.posture)?.aide ?? '';
+  const posture = POSTURES.find((po) => po.id === p.posture);
+  const aidePosture = !posture ? '' : fullRage
+    ? `<b class="pleine-rage">Pleine rage !</b> Ta prochaine Attaque : ${posture.pleine}.`
+    : `${posture.aide} · <span class="mot-pleine">Pleine rage</span> : ${posture.pleine}`;
 
   // Chasseur : la cible du compagnon et l'ennemi qui déclenchera les Pièges.
   const compTarget = c.companion ? companionTarget(c) : null;
@@ -1579,7 +1591,7 @@ function combatScreen(run: RunState, c: CombatState): string {
           <div class="bouclier-badge" title="Blocage"><svg width="32" height="32" viewBox="0 0 24 24" fill="#1d2633" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg><span>${p.block}</span></div>
           <div class="barre-pv"><div style="width:${hpPct}%"></div><span>${p.hp} / ${p.maxHp}</span></div>
         </div>
-        ${run.classId !== 'guerrier' ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage">${rage}</div><span class="rage-label" style="width:auto">${p.rage}</span></div>
+        ${run.classId !== 'guerrier' ? resource : `<div class="ligne"><span class="rage-label">RAGE</span><div class="rage${fullRage ? ' pleine' : ''}" style="grid-template-columns: repeat(${p.maxRage}, minmax(0, 1fr))" title="À ${p.maxRage} rage : pleine rage, ta prochaine Attaque la libère.">${rage}</div><span class="rage-label" style="width:auto">${p.rage}/${p.maxRage}</span></div>
         <div class="postures" role="group" aria-label="Posture">${postures}</div>
         <div class="aide-posture">${aidePosture}${p.postureChanged ? ' · déjà changée ce tour' : ''}</div>`}
       </div>

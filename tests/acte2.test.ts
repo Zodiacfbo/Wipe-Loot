@@ -143,7 +143,7 @@ describe('les ennemis de l\'acte 2', () => {
     c.hand = [{ uid: 1, id: 'sanguinaire', upgraded: true }];
     c.player.rage = 5;
     play(c, 'sanguinaire', c.enemies[0].uid);
-    expect(c.player.hp).toBe(52);
+    expect(c.player.hp).toBe(53); // Sanguinaire+ soigne 7, moitié moins sous la Peste
   });
 
   it('un Œuf de dragon éclôt au bout de 3 tours', () => {

@@ -4,16 +4,16 @@
 import type { TalentDef } from './talents';
 
 export const TALENT_ICONS: Record<string, string> = {
-  // Guerrier
-  lame_aiguisee: 'carte_frappe_heroique', maitrise_tactique: 'carte_concentration_martiale',
-  plaies_profondes: 'carte_taillade', entaille: 'carte_entaille_profonde',
+  // Guerrier (arbres revus le 27 novembre 2026)
+  lame_aiguisee: 'carte_frappe_heroique', colere_interieure: 'carte_enrage',
+  brise_armure: 'carte_fracasser_armure', entaille: 'carte_frappe_du_colosse',
   t_coup_de_pommeau: 'carte_assommer', impact: 'carte_execution',
   implacable: 'carte_coup_de_grace', arme_lourde: 'carte_frappe_ecrasante',
-  cruaute: 'carte_rage_sanglante', colere_interieure: 'carte_enrage',
-  voix_de_stentor: 'carte_cri_de_guerre', main_gauche_talent: 'carte_main_gauche',
-  t_rage_du_berserker: 'carte_hurlement_furieux', fureur_sans_fin: 'carte_furie_inextinguible',
+  cruaute: 'carte_rage_sanglante', robuste: 'carte_peau_de_fer',
+  plaies_profondes: 'carte_taillade', soif_de_sang: 'carte_pourfendre',
+  deux_armes: 'carte_main_gauche', t_regeneration_enragee: 'carte_sanguinaire',
   t_temerite: 'carte_ruee_sanguinaire', frenesie: 'carte_frappe_frenetique',
-  bouclier_lourd: 'carte_coup_de_bouclier', robuste: 'carte_peau_de_fer',
+  bouclier_lourd: 'carte_coup_de_bouclier', voix_de_stentor: 'carte_cri_de_guerre',
   garde_haute: 'carte_garde_de_fer', presence_menacante: 'carte_cri_demoralisant',
   t_rempart: 'carte_bastion', t_cri_de_defi: 'carte_provocation',
   t_dernier_rempart: 'carte_ignorer_la_douleur', quatrieme_emplacement: 'talent_emplacement',
@@ -133,7 +133,9 @@ export const TALENT_REFS: Record<string, { cards?: string[]; spells?: string[] }
   // Guerrier
   lame_aiguisee: { cards: ['frappe', 'frappe_heroique'] },
   impact: { cards: ['execution'] },
-  voix_de_stentor: { cards: ['hurlement_furieux'] },
+  brise_armure: { cards: ['fracasser_armure', 'frappe_du_colosse', 'brise_guerre'] },
+  voix_de_stentor: { cards: ['cri_demoralisant', 'cri_intimidation', 'cri_de_ralliement', 'hurlement_furieux'] },
+  soif_de_sang: { cards: ['taillade', 'pourfendre'] },
   // Mage
   esprit_clair: { cards: ['barrage_arcanique'] },
   m_impact: { cards: ['boule_de_feu'] },

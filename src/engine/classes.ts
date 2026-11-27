@@ -29,7 +29,9 @@ export interface ClassInfo {
 export const CLASSES: ClassInfo[] = [
   {
     id: 'guerrier', name: 'Guerrier', color: '#C8402A', playable: true, difficulty: 1, hp: 80,
-    starterDeck: ['frappe', 'frappe', 'frappe', 'frappe', 'parade', 'parade', 'parade', 'parade', 'frappe_heroique', 'cri_de_guerre'],
+    // 27 novembre 2026 (fiche §12) : 2 Frappes héroïques, et le paquet suit l'arbre principal.
+    starterDeck: ['frappe', 'frappe', 'frappe', 'parade', 'parade', 'parade', 'parade', 'frappe_heroique', 'frappe_heroique', 'cri_de_guerre'],
+    starterSwaps: { fureur: { from: 'frappe', to: 'coup_de_folie', count: 2 }, protection: { from: 'parade', to: 'levee_de_bouclier', count: 2 } },
     startSpell: 'charge', sprite: 'guerrier.png',
     quote: 'Chaque coup reçu me rend plus fort. Chaque coup donné rapproche la fin.',
     role: 'Frappe fort, ou encaisse tout', resource: 'Rage (0 à 10) et postures',

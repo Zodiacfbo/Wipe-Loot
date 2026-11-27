@@ -38,6 +38,8 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Armure fracassée', words: ['Armure fracassée', 'Armures fracassées'], text: 'Subit 50 % de dégâts en plus. Le nombre indique les tours restants.' },
   { name: 'Démoralisé', words: ['Démoralisé', 'Démoralisée', 'Démoralisés', 'Démoralisées'], text: 'Inflige 25 % de dégâts en moins. Le nombre indique les tours restants.' },
   { name: 'Ralenti', words: ['Ralenti', 'Ralentie', 'Ralentis', 'Ralenties'], text: 'Gagne 25 % de blocage en moins. Le nombre indique les tours restants.' },
+  { name: 'Pleine rage', words: ['pleine rage', 'Pleine rage'], text: 'Guerrier : à rage maximale, ta prochaine Attaque qui blesse la libère et vide ta rage. Combat : +10 dégâts. Berserker : +5 et elle frappe tous les ennemis. Défensive : +12 blocage.' },
+  { name: 'Cri', words: ['Cris'], text: 'Guerrier : les cartes de Cri touchent tous les ennemis ou te renforcent, et donnent de la rage. Voix de stentor les renforce.' },
   { name: 'Saignement', words: ['Saignement'], text: 'Perd ce nombre de PV au début de chacun de ses tours, en ignorant le blocage. Un nouveau Saignement s\'ajoute et relance la durée.' },
   { name: 'Boss', words: ['boss'], text: 'Un gardien ou un seigneur. Certains effets ne marchent pas, ou moins bien, sur eux.', discret: true },
   { name: 'DoT', words: ['DoT', 'DoTs'], text: 'Dégâts sur la durée : la cible perd des PV au début de chacun de ses tours.' },

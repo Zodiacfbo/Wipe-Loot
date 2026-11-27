@@ -197,9 +197,10 @@ export interface ItemEffects {
   iceBlockCd?: number; // recharge de Carapace de glace −X
   // Effets des talents
   strikeBonus?: number; // Frappe et Frappe héroïque : +X dégâts
-  postureRage?: number; // rage conservée en changeant de posture (3 par défaut)
   bleedDuration?: number; // les Saignements durent X tours de plus
-  heavyBleed?: number; // les Attaques à 2 énergie ou plus appliquent Saignement X
+  heavyFracture?: number; // les Attaques à 2 énergie ou plus appliquent Armure fracassée X tours (Entaille)
+  fractureDuration?: number; // Armure fracassée du Guerrier : X tours de plus (Brise-armure)
+  bleedLeech?: number; // Attaque sur un ennemi qui Saigne : soigne X PV (Soif de sang)
   executeThreshold?: number; // seuil (en %) du bonus d'Exécution (30 par défaut)
   killRage?: number; // tuer un ennemi : +X rage
   killDraw?: number; // tuer un ennemi : pioche X cartes

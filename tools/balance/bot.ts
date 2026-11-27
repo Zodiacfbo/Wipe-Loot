@@ -2,17 +2,17 @@
 // En combat, il essaie chaque action possible sur une copie de l'état et garde la meilleure
 // (une évaluation simple : dégâts infligés, dégâts qu'il va encaisser, ressources, ennemis vaincus).
 import { CARDS, energyCost } from '../../src/engine/cards';
-import { canPlayCard, canUseSpell, cardNeedsTarget, changeForm, choosePet, endTurn, playCard, useSpell } from '../../src/engine/combat';
+import { FULL_RAGE_BLOCK, FULL_RAGE_BONUS, canPlayCard, canUseSpell, cardNeedsTarget, changeForm, changePosture, choosePet, endTurn, fullRageReady, playCard, useSpell } from '../../src/engine/combat';
 import { trapTargetBlock } from '../../src/engine/chasseur';
 import { FORM_IDS, canShift } from '../../src/engine/druide';
-import type { FormId } from '../../src/engine/types';
+import type { FormId, Posture } from '../../src/engine/types';
 import { ENEMIES } from '../../src/engine/enemies';
 import { EVENTS } from '../../src/engine/events';
-import { ITEMS, slotsFor } from '../../src/engine/items';
+import { ITEMS } from '../../src/engine/items';
 import { reachable } from '../../src/engine/map';
 import { POTIONS } from '../../src/engine/potions';
 import {
-  afterCombatAction, barCapacity, buyCard, buyItem, servicePrice, startEncounter, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
+  afterCombatAction, allowedSlots, barCapacity, buyCard, buyItem, servicePrice, startEncounter, buyPotion, buyRemoval, buyUpgrade, campfireReforge, campfireRest, campfireUpgrade,
   canDrink, chooseBlessing, chooseNode, chooseReward, drinkPotion, equipPending, eventChoiceLock, leaveEvent, leavePending,
   leaveShop, learnSpell, newRun, offerBlessing, resolveEvent, retryAfterWipe, takePotion,
   campfireBindStaff, canBindStaff, canRest, startNextAct, campfireEquinoxe, campfireAurore, campfireCorde, campfireBindStaffDruid, druidOfferings,
@@ -93,12 +93,35 @@ function evaluate(c: CombatState): number {
   const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0)
     + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0)
     // Voleur : les points de combo, le Camouflage (s'il reste une Ouverture en main), le Poison d'arme, Danse des lames.
-    + rogueValue(c) + paladinValue(c) + hunterValue(c) + druidValue(c) + shamanValue(c)
+    + rogueValue(c) + paladinValue(c) + hunterValue(c) + druidValue(c) + shamanValue(c) + warriorValue(c, incoming)
     // Prêtre : la Forme d'Ombre n'est pas dans c.powers, elle vaut un Pouvoir posé (sinon le bot ne la joue jamais).
     + (c.shadowForm ? 8 : 0)
     // Égide des anciens : le renvoi rapporte à chaque coup absorbé, tant qu'il reste de l'Égide.
     + (c.aegisThorns ? 4 + Math.min(4, Math.ceil((c.aegis ?? 0) / 6)) * c.aegisThorns : 0);
   return p.hp * 1.4 - unblocked * 1.5 - enemyHp - threat + charges + shards + p.rage * 0.5 + p.puissance * 5 + p.robustesse * 3 + powers * 8 + p.energy * 0.1;
+}
+
+/** Guerrier : la pleine rage en réserve, et ce que la posture rapportera avec la main en cours. */
+function warriorValue(c: CombatState, incoming: number): number {
+  if ((c.classId ?? 'guerrier') !== 'guerrier') return 0;
+  const p = c.player;
+  const living = c.enemies.filter((e) => !e.dead && !e.submerged).length;
+  const hand = c.hand.map((k) => CARDS[k.id]);
+  const attacks = hand.filter((d) => d.type === 'Attaque').length;
+  const rageCards = hand.filter((d) => d.rageCost !== undefined).length;
+  const blockCards = hand.filter((d) => d.type !== 'Attaque' && d.text(false).includes('blocage')).length;
+  let v = 0;
+  // La pleine rage prête vaut le bonus qu'elle donnera (la rage elle-même compte déjà 0,5 par point).
+  if (fullRageReady(c)) {
+    v += p.posture === 'combat' ? FULL_RAGE_BONUS.combat * 0.9
+      : p.posture === 'berserker' ? FULL_RAGE_BONUS.berserker * 0.9 + 8 * Math.max(0, living - 1) * 0.8
+        : FULL_RAGE_BLOCK * (incoming > p.block ? 0.9 : 0.3);
+  }
+  // La posture, avec les cartes en main.
+  if (p.posture === 'combat') v += rageCards * 2.5;
+  else if (p.posture === 'berserker') v += attacks * 0.5 + (living > 1 ? 2 : 0);
+  else v += blockCards * (incoming > p.block ? 2.5 : 0.5) - attacks * 1.2;
+  return v;
 }
 
 function rogueValue(c: CombatState): number {
@@ -197,7 +220,7 @@ function damageDealt(before: CombatState, after: CombatState): number {
   return sum;
 }
 
-interface Action { kind: 'card' | 'spell' | 'form'; index: number; target?: number; form?: FormId }
+interface Action { kind: 'card' | 'spell' | 'form' | 'posture'; index: number; target?: number; form?: FormId; posture?: Posture }
 
 function candidates(c: CombatState): Action[] {
   const list: Action[] = [];
@@ -217,11 +240,16 @@ function candidates(c: CombatState): Action[] {
   });
   // Druide : changer de forme.
   if (c.form !== undefined) for (const f of FORM_IDS) if (canShift(c, f)) list.push({ kind: 'form', index: -1, form: f });
+  // Guerrier : changer de posture (une fois par tour, pas sous la Malédiction de lignée).
+  if ((c.classId ?? 'guerrier') === 'guerrier' && !c.player.postureChanged && !(c.player.debuffs?.lignee ?? 0)) {
+    for (const po of ['combat', 'berserker', 'defensive'] as Posture[]) if (po !== c.player.posture) list.push({ kind: 'posture', index: -1, posture: po });
+  }
   return list;
 }
 
 function apply(c: CombatState, a: Action): boolean {
   if (a.kind === 'form') return changeForm(c, a.form!);
+  if (a.kind === 'posture') return changePosture(c, a.posture!);
   return a.kind === 'card' ? playCard(c, a.index, a.target) : useSpell(c, a.index, a.target);
 }
 
@@ -402,7 +430,7 @@ function handleReward(run: RunState): void {
       let done = false;
       for (let alt = 0; alt < options.length && !done; alt++) {
         const id = options[alt];
-        for (const slot of slotsFor(id)) {
+        for (const slot of allowedSlots(run, id)) {
           const current = run.equipment[slot];
           if (!current || RARITY_RANK[ITEMS[id].rarity] > RARITY_RANK[ITEMS[current].rarity]) {
             equipPending(run, slot, alt === 0 ? undefined : alt - 1);
@@ -414,7 +442,7 @@ function handleReward(run: RunState): void {
       if (!done) leavePending(run);
     } else {
       const moves: { alt?: number; slot: SlotKey }[] = [];
-      options.forEach((id, a) => slotsFor(id).forEach((slot) => moves.push({ alt: a === 0 ? undefined : a - 1, slot })));
+      options.forEach((id, a) => allowedSlots(run, id).forEach((slot) => moves.push({ alt: a === 0 ? undefined : a - 1, slot })));
       const i = bestOption(run, moves.map((m) => (r) => { equipPending(r, m.slot, m.alt); }));
       if (i >= 0) equipPending(run, moves[i].slot, moves[i].alt);
       else leavePending(run);
@@ -460,7 +488,7 @@ function handleShop(run: RunState): void {
     });
     shop.items.forEach((it, i) => {
       if (it.sold || run.gold - it.price < RESERVE) return;
-      for (const slot of slotsFor(it.id)) {
+      for (const slot of allowedSlots(run, it.id)) {
         buys.push({ apply: (r) => { r.screen = 'shop'; buyItem(r, i, slot); }, real: () => { buyItem(run, i, slot); } });
       }
     });

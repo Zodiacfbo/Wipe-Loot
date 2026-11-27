@@ -32,11 +32,11 @@ describe('rage et postures', () => {
     expect(c.player.rage).toBe(3);
   });
 
-  it('changer de posture plafonne la rage à 3, une seule fois par tour', () => {
+  it('changer de posture garde la rage, une seule fois par tour', () => {
     const c = combat(['lieutenant'], ['parade', 'parade', 'parade', 'parade', 'parade']);
     c.player.rage = 8;
     expect(changePosture(c, 'defensive')).toBe(true);
-    expect(c.player.rage).toBe(3);
+    expect(c.player.rage).toBe(8);
     expect(changePosture(c, 'combat')).toBe(false);
   });
 

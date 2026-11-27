@@ -121,6 +121,19 @@ export const SPELLS: Record<string, SpellDef> = {
       log(c, `Dernier rempart : tu récupères ${healed} PV.`);
     },
   },
+  regeneration_enragee: {
+    id: 'regeneration_enragee', name: 'Régénération enragée', cost: 0, cooldown: 0, once: true, needsTarget: false, icon: 'coeur',
+    text: 'Dépense toute ta rage : soigne 2 PV par point. Une fois par combat.',
+    usable: (c) => c.player.rage > 0,
+    cast: (c) => {
+      const p = c.player;
+      const spent = p.rage;
+      p.rage = 0;
+      const healed = healPlayer(c, spent * 2);
+      fx(c, { kind: 'heal', from: 'player', to: 'player', amount: healed });
+      log(c, `Régénération enragée : ${spent} rage, ${healed} PV.`);
+    },
+  },
   cri_commandement: {
     id: 'cri_commandement', name: 'Cri de commandement', cost: 1, cooldown: 4, needsTarget: false, icon: 'hausse',
     text: 'Tous les ennemis sont Démoralisés 2 tours. Gagne 1 Robustesse.',

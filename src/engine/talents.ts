@@ -39,42 +39,45 @@ const t = (id: string, name: string, text: string, extra: Omit<TalentDef, 'id' |
 /** Les arbres du Guerrier. */
 export const TREES: TreeDef[] = [
   {
-    id: 'armes', name: 'Armes', theme: 'Gros coups et saignements',
+    // 27 novembre 2026 : le champion, l'exécuteur (fiche du Guerrier §12). Posture : Combat.
+    id: 'armes', name: 'Armes', theme: 'Le champion : gros coups et Exécution',
     tiers: [
       [t('lame_aiguisee', 'Lame aiguisée', 'Frappe et Frappe héroïque infligent +3 dégâts.', { fx: { strikeBonus: 3 } }),
-        t('maitrise_tactique', 'Maîtrise tactique', 'Changer de posture conserve jusqu\'à 6 rage (au lieu de 3).', { fx: { postureRage: 6 } })],
-      [t('plaies_profondes', 'Plaies profondes', 'Tes Saignements durent 1 tour de plus.', { fx: { bleedDuration: 1 } }),
-        t('entaille', 'Entaille', 'Tes Attaques qui coûtent 2 énergie ou plus appliquent Saignement 3.', { fx: { heavyBleed: 3 } })],
+        t('colere_interieure', 'Colère intérieure', 'Gagne 2 rage au début de chaque tour.', { fx: { turnRage: 2 } })],
+      [t('brise_armure', 'Brise-armure', 'Ton Armure fracassée dure 1 tour de plus.', { fx: { fractureDuration: 1 } }),
+        t('entaille', 'Entaille', 'Tes Attaques à 2 énergie ou plus appliquent Armure fracassée 1 tour.', { fx: { heavyFracture: 1 } })],
       [t('t_coup_de_pommeau', 'Coup de pommeau', 'Ajoute ce sort à ta barre : Interruption, 2 dégâts.', { spell: 'coup_de_pommeau' }),
         t('impact', 'Impact', 'Exécution passe au bonus de dégâts à 40 % de PV de la cible au lieu de 30 %.', { fx: { executeThreshold: 40 } })],
       [t('implacable', 'Implacable', 'Quand tu tues un ennemi, gagne 3 rage et pioche 1 carte.', { fx: { killRage: 3, killDraw: 1 } }),
         t('arme_lourde', 'Arme lourde', 'Tes Attaques qui coûtent 2 énergie ou plus infligent +6 dégâts.', { fx: { heavyAttackBonus: 6 } })],
       [t('t_frappe_mortelle', 'Frappe mortelle', 'Carte épique : un exemplaire dans ton paquet de départ.', { card: 'frappe_mortelle' })],
     ],
-    cards: ['taillade', 'pourfendre', 'fulgurance', 'frappe_ecrasante', 'parade_ripostee', 'coup_de_grace', 'balayage',
-      'entaille_profonde', 'cri_intimidation', 'concentration_martiale', 'frappe_du_colosse', 'tempete_acier', 'maitre_armes', 'frappe_mortelle'],
+    cards: ['execution', 'fracasser_armure', 'fulgurance', 'frappe_ecrasante', 'coup_de_grace', 'balayage', 'concentration_martiale',
+      'frappe_du_colosse', 'tempete_acier', 'maitre_armes', 'frappe_mortelle', 'frappe_brutale', 'brise_guerre'],
   },
   {
-    id: 'fureur', name: 'Fureur', theme: 'Attaques en rafale et rage illimitée',
+    // 27 novembre 2026 : le barbare à deux armes, qui saigne et se soigne en tapant. Posture : Berserker.
+    id: 'fureur', name: 'Fureur', theme: 'Le barbare : saignements, deux armes et soins',
     tiers: [
       [t('cruaute', 'Cruauté', 'Commence chaque combat avec 1 Puissance.', { fx: { startPuissance: 1 } }),
-        t('colere_interieure', 'Colère intérieure', 'Gagne 2 rage au début de chaque tour.', { fx: { turnRage: 2 } })],
-      [t('voix_de_stentor', 'Voix de stentor', 'Tes Cris (et Hurlement furieux) donnent 1 rage de plus, et leurs Démoralisés durent 1 tour de plus.', { fx: { shoutBonus: 1 } }),
-        t('main_gauche_talent', 'Main gauche', 'Tes Attaques qui coûtent 0 énergie infligent +2 dégâts.', { fx: { zeroCostBonus: 2 } })],
-      [t('t_rage_du_berserker', 'Rage du berserker', 'Ajoute ce sort à ta barre : +5 rage, immunisé aux cartes Paniquées.', { spell: 'rage_berserker' }),
-        t('fureur_sans_fin', 'Fureur sans fin', 'Ta rage maximale passe à 15, et tu commences chaque combat avec 3 rage.', { fx: { maxRage: 15, startRage: 3 } })],
+        t('robuste', 'Robuste', '+10 PV max.', { maxHp: 10 })],
+      [t('plaies_profondes', 'Plaies profondes', 'Tes Saignements durent 1 tour de plus.', { fx: { bleedDuration: 1 } }),
+        t('soif_de_sang', 'Soif de sang', 'Tes Attaques sur un ennemi qui Saigne te soignent 1 PV.', { fx: { bleedLeech: 1 } })],
+      [t('deux_armes', 'Deux armes', 'Ton 2e bijou devient une main gauche : il peut porter une arme.'),
+        t('t_regeneration_enragee', 'Régénération enragée', 'Ajoute ce sort à ta barre : dépense ta rage, soigne 2 PV par point (1 fois par combat).', { spell: 'regeneration_enragee' })],
       [t('t_temerite', 'Témérité', 'Ajoute ce sort à ta barre : Attaques +50 % ce tour-ci, tu subis +25 %.', { spell: 'temerite' }),
         t('frenesie', 'Frénésie', 'Quand tu joues ta 3e Attaque d\'un tour, gagne 1 énergie (1 fois par tour).', { fx: { frenzyEnergy: 1 } })],
       [t('t_sanguinaire', 'Sanguinaire', 'Carte épique : un exemplaire dans ton paquet de départ.', { card: 'sanguinaire' })],
     ],
-    cards: ['coup_de_folie', 'rage_sanglante', 'frappe_frenetique', 'hurlement_furieux', 'soif_de_bataille', 'ruee_sanguinaire',
+    cards: ['taillade', 'pourfendre', 'entaille_profonde', 'coup_de_folie', 'rage_sanglante', 'frappe_frenetique', 'ruee_sanguinaire',
       'tourbillon', 'enrage', 'rafale', 'ambidextrie', 'furie_croissante', 'fureur_suicidaire', 'furie_inextinguible', 'sanguinaire'],
   },
   {
-    id: 'protection', name: 'Protection', theme: 'Blocage et contre-attaque',
+    // 27 novembre 2026 : le tank, bouclier et Cris. Posture : Défensive.
+    id: 'protection', name: 'Protection', theme: 'Le tank : blocage, bouclier et Cris',
     tiers: [
       [t('bouclier_lourd', 'Bouclier lourd', 'Tes cartes de blocage donnent +1 blocage.', { fx: { blockBonus: 1 } }),
-        t('robuste', 'Robuste', '+8 PV max.', { maxHp: 8 })],
+        t('voix_de_stentor', 'Voix de stentor', 'Tes Cris (et Hurlement furieux) donnent 1 rage de plus, et leurs Démoralisés durent 1 tour de plus.', { fx: { shoutBonus: 1 } })],
       [t('garde_haute', 'Garde haute', 'Commence chaque combat avec 5 blocage.', { fx: { startBlock: 5 } }),
         t('presence_menacante', 'Présence menaçante', 'Au début de chaque combat, tous les ennemis sont Démoralisés 1 tour.', { fx: { startDemoralise: 1 } })],
       [t('t_rempart', 'Rempart', 'Ajoute ce sort à ta barre (1 énergie) : dégâts subis divisés par deux jusqu\'au prochain tour.', { spell: 'rempart' }),
@@ -83,8 +86,8 @@ export const TREES: TreeDef[] = [
         t('quatrieme_emplacement', 'Quatrième emplacement', 'Ta barre de sorts gagne un 4e emplacement.', { barSlots: 1 })],
       [t('t_heurt_de_bouclier', 'Heurt de bouclier', 'Carte épique : un exemplaire dans ton paquet de départ.', { card: 'heurt_de_bouclier' })],
     ],
-    cards: ['levee_de_bouclier', 'inebranlable', 'coup_de_semonce', 'vengeance', 'resolution', 'provocation', 'desarmement',
-      'charge_du_bouclier', 'tenacite', 'peau_de_fer', 'cri_de_ralliement', 'riposte_bouclier', 'garde_de_fer', 'bastion', 'heurt_de_bouclier'],
+    cards: ['coup_de_bouclier', 'cri_demoralisant', 'cri_intimidation', 'cri_de_ralliement', 'levee_de_bouclier', 'vengeance', 'provocation',
+      'charge_du_bouclier', 'tenacite', 'peau_de_fer', 'riposte_bouclier', 'garde_de_fer', 'bastion', 'heurt_de_bouclier'],
   },
 ];
 
