@@ -13,7 +13,7 @@ import { EPIC_CARDS, TALENTS, treesFor } from './talents';
 import { difficultyMods } from './difficulty';
 import { random } from './rng';
 import { logChoice, stepOf } from './choices';
-import type { CardInstance, CompanionId, Posture, Rarity, RunState, ShopCard } from './types';
+import type { AuraId, CardInstance, CompanionId, Posture, Rarity, RunState, ShopCard } from './types';
 
 export const MAX_WIPES = 3;
 export const SAVE_VERSION = 25;
@@ -39,7 +39,7 @@ export function newRun(seed: number = Date.now() % 2147483647, heirloom: string 
   let uid = 1;
   const deck: CardInstance[] = starterDeckFor(classId, talents).map((id) => ({ uid: uid++, id, upgraded: false }));
   const run: RunState = {
-    version: 28, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
+    version: 29, classId: info.id, seed, rng: seed, maxHp: info.hp, hp: info.hp, deck, wipesLeft: mods.wipes, gold: 99, rewardGold: 0, difficulty, maxWipes: mods.wipes, kills: {},
     removals: 0, upgradesBought: 0, shop: null, equipment: emptyEquipment(), pendingItem: null, pendingAlts: [], broken: [], heirloom, chestDone: false, chestDeposit: null, retreated: false, choix: [],
     potions: Array.from({ length: POTION_SLOTS }, () => null), pendingPotion: null, spells: [info.startSpell ?? 'charge'], pendingSpell: null, screen: 'map',
     map: { floors: 0, lanes: 0, nodes: [] }, position: null, path: [], encounter: null, combat: null, entry: null,
@@ -183,6 +183,12 @@ export function mainTree(classId: string, talents: string[]): string | null {
 export function startPosture(talents: string[]): Posture {
   const tree = mainTree('guerrier', talents);
   return tree === 'fureur' ? 'berserker' : tree === 'protection' ? 'defensive' : 'combat';
+}
+
+/** L'Aura de départ du Paladin, selon son arbre principal (Dévotion sans arbre principal). */
+export function startAura(talents: string[]): AuraId {
+  const tree = mainTree('paladin', talents);
+  return tree === 'vindicte' ? 'vindicte' : tree === 'sacre_pal' ? 'concentration' : 'devotion';
 }
 
 /** Le paquet de départ, adapté à l'arbre principal (`starterSwaps` de la classe). */
@@ -355,6 +361,7 @@ export function startEncounter(run: RunState, encounter: Encounter): void {
   run.combat = createCombat(encounter, run.deck, run.hp, run.maxHp, run.rng, run.nextUid, runGear(run), run.spells, difficultyMods(run.difficulty ?? 0), run.classId, { shards: run.shards ?? 0, pet: run.pet ?? 'diablotin' }, run.companion ?? 'loup', !run.reincarnated);
   // Guerrier : le combat commence dans la posture de l'arbre principal.
   if (run.classId === 'guerrier') run.combat.player.posture = startPosture(run.talents ?? []);
+  if (run.classId === 'paladin') run.combat.aura = startAura(run.talents ?? []);
   run.screen = 'combat';
 }
 

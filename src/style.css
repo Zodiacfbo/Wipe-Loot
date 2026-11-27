@@ -687,6 +687,12 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 
 /* --- Prêtre --- */
 .carte .cout-foi { background: #a8842a; border: 1px solid #ffe08a; border-radius: 50%; text-shadow: none; }
+/* Paladin (refonte du 27 novembre 2026) : la Puissance sacrée et le coût des Dépenses. */
+.carte .cout-ps { background: #f0d27a; color: #3a2a08; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); text-shadow: none; }
+.ps-label { width: auto; color: #ffe08a; }
+.rage.ps { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.rage.ps i { width: 12px; height: 12px; justify-self: center; border-radius: 2px; transform: rotate(45deg); background: #2a2414; border: 1px solid #6a5a2a; }
+.rage.ps i.plein { background: #ffe08a; box-shadow: 0 0 6px #ffd23a; }
 .foi-label { width: auto; color: #ffe08a; }
 .rage.foi i { height: 10px; border-radius: 50%; background: #2e281a; border: 1px solid #6a5a2a; }
 .rage.foi i.plein { background: #ffd45e; box-shadow: 0 0 5px #ffc83a; }
@@ -705,10 +711,6 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .heros img.camoufle-sprite { opacity: 0.55; filter: drop-shadow(0 0 6px #6a4ab8); }
 
 /* Paladin : Sceaux et Aura */
-.pal-tuiles { align-items: stretch; }
-.pal-tuile { width: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 2px; border-radius: 8px; border: 1px dashed #5a4d33; color: #6d624f; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
-.pal-tuile.actif { border: 1px solid var(--or); background: #3a2e17; color: var(--or-clair); box-shadow: 0 0 10px #e6c36a55; }
-.pal-tuile.aura.actif { border-color: #f0e6c0; background: #34302a; color: #fff6dc; }
 .chs-tuiles { align-items: stretch; gap: 4px; }
 .chs-tuile { width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px 2px; border-radius: 8px; border: 1px dashed #4d5a33; color: #626d4f; font-size: 9px; font-weight: 700; text-align: center; line-height: 1.1; }
 .chs-tuile .renfort { font-style: normal; margin-left: 2px; color: #ffd36a; }
@@ -748,9 +750,6 @@ button.pile:hover { border-color: var(--or); color: var(--texte); }
 .choix-compagnon { flex: 1; min-width: 0; }
 .choix-compagnon > img { width: 72px; height: 72px; }
 .choix-compagnon small { font-weight: 400; opacity: 0.75; }
-.pal-jugement { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; background: #241d12; border: 1px solid #5a4d33; }
-.pal-jugement small { font-size: 9px; color: #c9a95a; font-weight: 700; letter-spacing: 1px; }
-.pal-jugement b { font-size: 12px; color: var(--or-clair); }
 .chip.sacre { background: #3a2e17; border-color: var(--or); color: var(--or-clair); }
 .chip.impie { background: #2a1a2e; border-color: #9a6ab8; color: #e0c8f0; }
 

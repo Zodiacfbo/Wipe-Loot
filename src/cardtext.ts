@@ -56,7 +56,7 @@ export function placeBlock(text: string, block: number | null | undefined): HitT
 }
 
 /** Les mots qui passent du début du texte au bandeau de la carte. */
-const RIBBON_PREFIX = /^(Coup final|Sceau|Aura|Ouverture|Poison d'arme|Piège|Esprit|Ours|Félin|Astrale|Totem|Arme)[\s\u00a0]*:[\s\u00a0]*/;
+const RIBBON_PREFIX = /^(Coup final|Dépense|Ouverture|Poison d'arme|Piège|Esprit|Ours|Félin|Astrale|Totem|Arme)[\s\u00a0]*:[\s\u00a0]*/;
 
 /** « Coup final : inflige… » → bandeau « Coup final », texte « Inflige… » (de la place sur téléphone). */
 export function splitRibbon(full: string): { ribbon: string | null; text: string } {

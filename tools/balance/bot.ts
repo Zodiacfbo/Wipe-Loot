@@ -5,7 +5,8 @@ import { CARDS, energyCost } from '../../src/engine/cards';
 import { FULL_RAGE, canPlayCard, canUseSpell, cardNeedsTarget, changeForm, changePosture, choosePet, endTurn, fullRageReady, playCard, useSpell } from '../../src/engine/combat';
 import { trapTargetBlock } from '../../src/engine/chasseur';
 import { FORM_IDS, canShift } from '../../src/engine/druide';
-import type { FormId, Posture } from '../../src/engine/types';
+import type { AuraId, FormId, Posture } from '../../src/engine/types';
+import { AURA_IDS, auraChangeCost, canChangeAura, changeAura, isPaladin } from '../../src/engine/paladin';
 import { ENEMIES } from '../../src/engine/enemies';
 import { EVENTS } from '../../src/engine/events';
 import { ITEMS } from '../../src/engine/items';
@@ -93,7 +94,7 @@ function evaluate(c: CombatState): number {
   const shards = (c.shards ?? 0) * 3 + (c.infernal ?? 0) * 2 + (c.soulstone && big ? 10 : 0)
     + (c.aegis ?? 0) * 0.6 + (c.faith ?? 0) * 1.5 + (c.renew ? c.renew.amount * c.renew.turns : 0)
     // Voleur : les points de combo, le Camouflage (s'il reste une Ouverture en main), le Poison d'arme, Danse des lames.
-    + rogueValue(c) + paladinValue(c) + hunterValue(c) + druidValue(c) + shamanValue(c) + warriorValue(c, incoming)
+    + rogueValue(c) + paladinValue(c, incoming) + hunterValue(c) + druidValue(c) + shamanValue(c) + warriorValue(c, incoming)
     // Prêtre : la Forme d'Ombre n'est pas dans c.powers, elle vaut un Pouvoir posé (sinon le bot ne la joue jamais).
     + (c.shadowForm ? 8 : 0)
     // Égide des anciens : le renvoi rapporte à chaque coup absorbé, tant qu'il reste de l'Égide.
@@ -133,12 +134,29 @@ function rogueValue(c: CombatState): number {
     + (c.player.evasion ? 8 : 0);
 }
 
-function paladinValue(c: CombatState): number {
-  if (c.seals === undefined) return 0;
-  let v = c.seals.length * 5 + (c.aura ? 8 : 0) + (c.favor ? 4 : 0) + (c.judgeBonus ?? 0) + (c.pavois ?? 0) + (c.crusaderShield ? 8 : 0);
+/**
+ * Paladin (refonte « Puissance sacrée ») : la jauge, et ce que l'Aura rapportera avec la main en cours
+ * (son bonus sur les Dépenses à venir, son gain passif, sa contrepartie).
+ */
+function paladinValue(c: CombatState, incoming: number): number {
+  if (c.holy === undefined) return 0;
+  const p = c.player;
+  const hand = c.hand.map((k) => CARDS[k.id]);
+  const spends = hand.filter((d) => d.holyCost !== undefined).length;
+  const attacks = hand.filter((d) => d.type === 'Attaque' && d.holyCost === undefined).length;
+  const heals = hand.filter((d) => d.healCard && d.holyCost === undefined).length;
+  const hurt = p.hp < p.maxHp * 0.6;
+  // La jauge : 3 par point (le 5e vaut moins, le surplus serait perdu).
+  let v = Math.min(c.holy, 4) * 3 + (c.holy >= 5 ? 2 : 0);
+  // Les Dépenses jouables bientôt profitent du bonus d'Aura.
+  const soon = Math.min(spends, c.holy >= 3 ? 1 + (c.holy >= 6 ? 1 : 0) : 0.4);
+  const aura = c.aura ?? 'devotion';
+  if (aura === 'devotion') v += soon * (incoming > p.block ? 4 : 1.5) + (incoming > 0 && !c.auraGained ? 1.5 : 0);
+  else if (aura === 'vindicte') v += soon * 3.6 + (attacks > 0 && !c.auraGained ? 2.5 : 0) - heals * 1.5 - (hurt ? 2 : 0);
+  else v += soon * (hurt ? 3 : 0.8) + (heals > 0 && !c.auraGained ? 2.5 : 0) - attacks * 1.5;
+  v += (c.favor ? 4 : 0) + (c.judgeBonus ?? 0) + (c.courroux ?? 0) * 3 + (c.holyResist ?? 0) * 2;
   const living = c.enemies.filter((e) => !e.dead).length;
   if (c.consecration) v += c.consecration.dmg * c.consecration.turns * living * 0.8;
-  for (const e of c.enemies) if (!e.dead) v += (e.buffs.censure ?? 0) * 2.5;
   return v;
 }
 
@@ -220,7 +238,7 @@ function damageDealt(before: CombatState, after: CombatState): number {
   return sum;
 }
 
-interface Action { kind: 'card' | 'spell' | 'form' | 'posture'; index: number; target?: number; form?: FormId; posture?: Posture }
+interface Action { kind: 'card' | 'spell' | 'form' | 'posture' | 'aura'; index: number; target?: number; form?: FormId; posture?: Posture; aura?: AuraId }
 
 function candidates(c: CombatState): Action[] {
   const list: Action[] = [];
@@ -244,10 +262,13 @@ function candidates(c: CombatState): Action[] {
   if ((c.classId ?? 'guerrier') === 'guerrier' && !c.player.postureChanged && !(c.player.debuffs?.lignee ?? 0)) {
     for (const po of ['combat', 'berserker', 'defensive'] as Posture[]) if (po !== c.player.posture) list.push({ kind: 'posture', index: -1, posture: po });
   }
+  // Paladin : changer d'Aura, seulement quand c'est gratuit (le premier changement du tour).
+  if (isPaladin(c) && auraChangeCost(c) === 0) for (const au of AURA_IDS) if (canChangeAura(c, au)) list.push({ kind: 'aura', index: -1, aura: au });
   return list;
 }
 
 function apply(c: CombatState, a: Action): boolean {
+  if (a.kind === 'aura') return changeAura(c, a.aura!);
   if (a.kind === 'form') return changeForm(c, a.form!);
   if (a.kind === 'posture') return changePosture(c, a.posture!);
   return a.kind === 'card' ? playCard(c, a.index, a.target) : useSpell(c, a.index, a.target);

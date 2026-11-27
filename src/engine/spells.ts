@@ -4,7 +4,7 @@ import { applyBrulure, applyGel, drawCards, fx, gainBlock, gainRage, healPlayer,
 import { loseHp, petAct } from './demoniste';
 import { dispelMagic, dispelPoison, gainAegis } from './pretre';
 import { applyPoison, enterStealth, stun } from './voleur';
-import { activateSeal, dispelAll, judge, palHeal } from './paladin';
+import { dispelAll, gainHoly, judge, palHeal } from './paladin';
 import { companionAct, companionGuard } from './chasseur';
 import { gainCatCombo } from './druide';
 import { clearTotems, placeTotem } from './chaman';
@@ -514,8 +514,8 @@ for (const d of VOLEUR_SPELLS) SPELLS[d.id] = { ...d, classId: 'voleur' };
 /** Les sorts de barre du Paladin. Référence : docs/classes/PALADIN.md (§6) */
 const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
   {
-    id: 'jugement', name: 'Jugement', cost: 0, cooldown: 3, needsTarget: true, icon: 'etoile',
-    text: 'Consomme ton Sceau actif et déclenche son effet de Jugement. Sans Sceau actif, inflige 6 dégâts.',
+    id: 'jugement', name: 'Jugement', cost: 0, cooldown: 2, needsTarget: true, icon: 'etoile',
+    text: 'Inflige 5 dégâts. Gagne 2 Puissance sacrée.',
     cast: (c, target) => judge(c, target),
   },
   {
@@ -560,10 +560,11 @@ const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
   },
   {
     id: 'ailes_justice', name: 'Ailes de justice', cost: 0, cooldown: 6, needsTarget: false, icon: 'hausse',
-    text: 'Gagne 2 Puissance pendant 3 tours.',
+    text: 'Gagne 2 Puissance pendant 3 tours. Gagne 1 Puissance sacrée.',
     cast: (c) => {
       if ((c.wings ?? 0) === 0) c.player.puissance += 2;
       c.wings = 3;
+      gainHoly(c, 1);
       fx(c, { kind: 'buff', who: 'player', label: 'Ailes de justice' });
     },
   },
@@ -578,10 +579,10 @@ const PALADIN_SPELLS: Omit<SpellDef, 'classId'>[] = [
   },
   {
     id: 'charge_sacree', name: 'Charge sacrée', cost: 0, cooldown: 3, needsTarget: true, icon: 'charge',
-    text: 'Inflige 8 dégâts et active le Sceau du croisé.',
+    text: 'Inflige 8 dégâts. Gagne 1 Puissance sacrée.',
     cast: (c, target) => {
       if (target) playerAttack(c, target, 8);
-      activateSeal(c, 'croise');
+      gainHoly(c, 1);
     },
   },
   {
@@ -885,7 +886,6 @@ export function spellCooldown(def: SpellDef, g: ItemEffects | undefined): number
   let cd = def.cooldown;
   if (def.id === 'combustion' || def.id === 'souffle_ardent') cd -= g?.fireSpellCd ?? 0;
   if (def.id === 'carapace_de_glace') cd -= g?.iceBlockCd ?? 0;
-  if (def.id === 'jugement') cd -= g?.judgeCd ?? 0; // Jugements rapides
   return Math.max(1, cd);
 }
 

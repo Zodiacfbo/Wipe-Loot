@@ -136,18 +136,18 @@ export interface ItemEffects {
   evadeBonus?: number; // Esquive et Esquive agile +X blocage
   longStealth?: number; // le Camouflage de début de combat dure 2 tours
   stormblade?: number; // le légendaire du Voleur
-  // Talents du Paladin
-  wisdomBonus?: number; // le Jugement du Sceau de sagesse donne +X énergie
+  // Talents du Paladin (refonte « Puissance sacrée », 27 novembre 2026)
   purifyFree?: number; // Lumière purificatrice coûte 0
-  blessedHealBlock?: number; // chaque soin donne la moitié de son montant en blocage
-  devotionBonus?: number; // Aura de dévotion +X Robustesse
-  consecrationLong?: number; // Consécration dure X tour de plus
-  retributionFree?: number; // Juste châtiment coûte 0
-  judgeCd?: number; // la recharge de Jugement baisse de X
-  sealsFree?: number; // les Sceaux coûtent 0
+  judgeHeal?: number; // Sagesse : le Jugement soigne X PV
+  spendRefund?: number; // Lumière infusée : la 1re Dépense du tour rend X Puissance sacrée
+  judgeBlock?: number; // Jugement du croisé : le Jugement donne X blocage
+  spendRobustesse?: number; // Ardent défenseur : chaque Dépense donne X Robustesse jusqu'à la fin du tour
+  retributionCost?: number; // Rétribution : Juste châtiment coûte X Puissance sacrée de moins
+  startHoly?: number; // Élan sacré : commence chaque combat avec X Puissance sacrée
+  judgeDmg?: number; // Jugement aiguisé : le Jugement inflige +X dégâts
+  finEre?: number; // Fin de l'ère : à 5 PS, une Dépense les prend toutes et double son effet
   holyBonus?: number; // tes Attaques +X dégâts aux Morts-vivants et aux Démons
   vengeanceDivine?: number; // après un Jugement, la prochaine Attaque +X dégâts
-  doubleSeal?: number; // deux Sceaux actifs à la fois
   aurore?: number; // le légendaire du Paladin
   // Talents du Chasseur
   compBonus?: number; // ton compagnon inflige +X dégâts
@@ -415,7 +415,7 @@ Object.assign(ITEMS, Object.fromEntries([
   // Légendaire du Mage
   item('baton_veilleur', 'Bâton du Veilleur', 'arme', 'legendaire', 'Le premier Sort de chaque tour coûte 0.', { firstSpellFree: 1 }),
   item('equinoxe', 'Équinoxe', 'arme', 'legendaire', 'Dans la Lumière : tes soins rendent +3 PV et chaque soin te donne 1 Foi. En Forme d\'Ombre : tes DoT infligent +2 dégâts et chacun de leurs ticks te soigne de 1 PV.', { equinoxe: 1 }),
-  item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Jugements infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
+  item('aurore_ardente', 'L\'Aurore ardente', 'arme', 'legendaire', 'Tes Dépenses infligent double dégâts aux Morts-vivants et aux Démons, et te soignent de 5 PV.', { aurore: 1 }),
   item('baton_veilleur_druide', 'Bâton du Veilleur (Druide)', 'arme', 'legendaire', 'Changer de forme avec le bouton ne coûte plus d\'énergie.', { freeShiftAll: 1 }),
   item('marteau_ancetres', 'Le Marteau des ancêtres', 'arme', 'legendaire', 'Tes totems agissent deux fois au début de chacun de tes tours.', { marteauAncetres: 1 }),
   item('corde_anciens', 'Corde-des-anciens', 'arme', 'legendaire', 'Début de ton tour : une Flèche des anciens en main (5 dégâts). Gardée, elle se tend : +5 par tour, 15 au plus.', { cordeAnciens: 1 }),
@@ -584,7 +584,7 @@ for (const k of ['startRage', 'rageOnHpLoss', 'executeAlways', 'maxRage', 'turnR
 // Les bonus aux Attaques servent au Guerrier, au Voleur et au Paladin.
 // Les effets secondaires des armes (sous 50 %, premier coup, Brûlure, Dragons…) valent pour les Attaques et les Sorts : seuls ces bonus-ci restent propres aux Attaques.
 for (const k of ['attackBonus', 'bleedFirstAttack', 'bleedBonus', 'pierceBonus'] as const) KEY_CLASSES[k] = ['guerrier', 'voleur', 'paladin', 'chasseur', 'chaman', 'druide'];
-for (const k of ['wisdomBonus', 'purifyFree', 'blessedHealBlock', 'devotionBonus', 'consecrationLong', 'retributionFree', 'judgeCd', 'sealsFree', 'holyBonus', 'vengeanceDivine', 'doubleSeal', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
+for (const k of ['purifyFree', 'judgeHeal', 'spendRefund', 'judgeBlock', 'spendRobustesse', 'retributionCost', 'startHoly', 'judgeDmg', 'finEre', 'holyBonus', 'vengeanceDivine', 'aurore'] as const) KEY_CLASSES[k] = ['paladin'];
 for (const k of ['sinisterBonus', 'poisonBonus', 'finisherBonus', 'kidneyDelay', 'ruthless', 'startCombo', 'weaponMaster', 'openerBonus', 'openerCombo', 'evadeBonus', 'longStealth', 'stormblade'] as const) KEY_CLASSES[k] = ['voleur'];
 for (const k of ['startCharges', 'burnBonus', 'firstSpellFree', 'chargeBonus'] as const) KEY_CLASSES[k] = ['mage'];
 KEY_CLASSES.spellBonus = ['mage', 'demoniste', 'pretre', 'paladin', 'chaman', 'druide'];
