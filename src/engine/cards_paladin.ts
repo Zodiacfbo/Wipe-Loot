@@ -58,8 +58,8 @@ const LIST: PaladinCard[] = [
   // --- Tronc commun ---
   {
     id: 'frappe_croise', name: 'Frappe du croisé', type: 'Attaque', rarity: 'commune', cost: 1, holyGain: 1, needsTarget: true, icon: 'epee',
-    text: (up) => `Inflige ${up ? 9 : 6} dégâts. ✦1`,
-    play: (ctx) => hit(ctx, ctx.up ? 9 : 6),
+    text: (up) => `Inflige ${up ? 7 : 4} dégâts. ✦1`,
+    play: (ctx) => hit(ctx, ctx.up ? 7 : 4),
   },
   {
     id: 'parole_lumiere', name: 'Parole de lumière', type: 'Compétence', rarity: 'commune', ...SPEND, needsTarget: false, icon: 'pouvoir',
@@ -73,13 +73,13 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'bouclier_foi', name: 'Bouclier de la foi', type: 'Compétence', rarity: 'commune', cost: 1, holyGain: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 9 : 6} blocage. ✦1`,
-    play: (ctx) => gainBlock(ctx.c, ctx.up ? 9 : 6),
+    text: (up) => `Gagne ${up ? 7 : 4} blocage. ✦1`,
+    play: (ctx) => gainBlock(ctx.c, ctx.up ? 7 : 4),
   },
   {
     id: 'lumiere_bienfaisante', name: 'Lumière bienfaisante', type: 'Compétence', healCard: true, rarity: 'commune', cost: 1, holyGain: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Soigne ${up ? 8 : 5} PV. ✦1`,
-    play: (ctx) => palHeal(ctx.c, ctx.up ? 8 : 5),
+    text: (up) => `Soigne ${up ? 6 : 4} PV. ✦1`,
+    play: (ctx) => palHeal(ctx.c, ctx.up ? 6 : 4),
   },
   {
     id: 'exorcisme', name: 'Exorcisme', type: 'Sort', school: 'sacre', rarity: 'commune', cost: 1, needsTarget: true, icon: 'feu',
@@ -141,15 +141,15 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'lame_justice', name: 'Lame de justice', type: 'Attaque', rarity: 'commune', cost: 2, holyGain: 2, needsTarget: true, icon: 'epee',
-    text: (up) => `Inflige ${up ? 16 : 12} dégâts. ✦2`,
-    play: (ctx) => hit(ctx, ctx.up ? 16 : 12),
+    text: (up) => `Inflige ${up ? 12 : 9} dégâts. ✦2`,
+    play: (ctx) => hit(ctx, ctx.up ? 12 : 9),
   },
   {
     id: 'ferveur', name: 'Ferveur', type: 'Attaque', rarity: 'commune', cost: 1, holyGain: 1, needsTarget: true, icon: 'epee',
-    text: (up) => `Inflige ${up ? 6 : 4} dégâts 2 fois. ✦1`,
+    text: (up) => `Inflige ${up ? 5 : 3} dégâts 2 fois. ✦1`,
     play: (ctx) => {
-      hit(ctx, ctx.up ? 6 : 4);
-      hit(ctx, ctx.up ? 6 : 4);
+      hit(ctx, ctx.up ? 5 : 3);
+      hit(ctx, ctx.up ? 5 : 3);
     },
   },
   {
@@ -159,8 +159,8 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'tourbillon_sacre', name: 'Tourbillon sacré', type: 'Attaque', rarity: 'commune', cost: 2, holyGain: 1, needsTarget: false, icon: 'epee',
-    text: (up) => `Inflige ${up ? 9 : 6} dégâts à tous les ennemis. ✦1`,
-    play: (ctx) => hitAll(ctx, ctx.up ? 9 : 6),
+    text: (up) => `Inflige ${up ? 7 : 5} dégâts à tous les ennemis. ✦1`,
+    play: (ctx) => hitAll(ctx, ctx.up ? 7 : 5),
   },
   {
     id: 'marteau_courroux', name: 'Marteau de courroux', type: 'Attaque', rarity: 'peu_commune', cost: 1, needsTarget: true, icon: 'epee',
@@ -236,8 +236,8 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'pavois_sacre', name: 'Pavois sacré', type: 'Compétence', rarity: 'commune', cost: 1, holyGain: 1, needsTarget: false, icon: 'bouclier',
-    text: (up) => `Gagne ${up ? 10 : 7} blocage. ✦1`,
-    play: (ctx) => gainBlock(ctx.c, ctx.up ? 10 : 7),
+    text: (up) => `Gagne ${up ? 8 : 5} blocage. ✦1`,
+    play: (ctx) => gainBlock(ctx.c, ctx.up ? 8 : 5),
   },
   {
     id: 'bouclier_beni', name: 'Bouclier béni', type: 'Compétence', rarity: 'commune', cost: 2, needsTarget: false, icon: 'bouclier',
@@ -246,10 +246,10 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'marteau_piete', name: 'Marteau de piété', type: 'Attaque', rarity: 'commune', cost: 1, holyGain: 1, needsTarget: false, icon: 'epee',
-    text: (up) => `Inflige ${up ? 7 : 5} dégâts à tous les ennemis. Gagne ${up ? 5 : 4} blocage. ✦1`,
+    text: (up) => `Inflige ${up ? 6 : 4} dégâts à tous les ennemis. Gagne ${up ? 4 : 3} blocage. ✦1`,
     play: (ctx) => {
-      hitAll(ctx, ctx.up ? 7 : 5);
-      gainBlock(ctx.c, ctx.up ? 5 : 4);
+      hitAll(ctx, ctx.up ? 6 : 4);
+      gainBlock(ctx.c, ctx.up ? 4 : 3);
     },
   },
   {
@@ -275,9 +275,9 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'bouclier_lance', name: 'Bouclier lancé', type: 'Attaque', rarity: 'peu_commune', cost: 1, holyGain: 1, needsTarget: true, icon: 'bouclier',
-    text: (up) => `Interruption. ${up ? 10 : 7} dégâts à la cible, puis à 2 autres ennemis. ✦1`,
+    text: (up) => `Interruption. ${up ? 9 : 6} dégâts à la cible, puis à 2 autres ennemis. ✦1`,
     play: (ctx) => {
-      const n = ctx.up ? 10 : 7;
+      const n = ctx.up ? 9 : 6;
       interrupt(ctx, ctx.target);
       hit(ctx, n);
       for (const e of livingEnemies(ctx.c).filter((x) => x !== ctx.target && !x.submerged).slice(0, 2)) hit(ctx, n, e);
@@ -332,9 +332,9 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'horion_sacre', name: 'Horion sacré', type: 'Sort', school: 'sacre', healCard: true, rarity: 'commune', cost: 1, holyGain: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Sous la moitié de tes PV : soigne ${up ? 10 : 7} PV. Sinon : ${up ? 10 : 7} dégâts. ✦1`,
+    text: (up) => `Sous la moitié de tes PV : soigne ${up ? 8 : 5} PV. Sinon : ${up ? 8 : 5} dégâts. ✦1`,
     play: (ctx) => {
-      const n = ctx.up ? 10 : 7;
+      const n = ctx.up ? 8 : 5;
       const p = ctx.c.player;
       if (p.hp < p.maxHp / 2) palHeal(ctx.c, n);
       else hit(ctx, n);
@@ -342,15 +342,15 @@ const LIST: PaladinCard[] = [
   },
   {
     id: 'lumiere_sacree', name: 'Lumière sacrée', type: 'Compétence', healCard: true, rarity: 'commune', cost: 2, holyGain: 1, needsTarget: false, icon: 'sang',
-    text: (up) => `Soigne ${up ? 19 : 14} PV. ✦1`,
-    play: (ctx) => palHeal(ctx.c, ctx.up ? 19 : 14),
+    text: (up) => `Soigne ${up ? 16 : 12} PV. ✦1`,
+    play: (ctx) => palHeal(ctx.c, ctx.up ? 16 : 12),
   },
   {
     id: 'eclair_foi', name: 'Éclair de foi', type: 'Sort', school: 'sacre', healCard: true, rarity: 'commune', cost: 1, holyGain: 1, needsTarget: true, icon: 'pouvoir',
-    text: (up) => `Inflige ${up ? 9 : 6} dégâts. Soigne ${up ? 4 : 3} PV. ✦1`,
+    text: (up) => `Inflige ${up ? 7 : 5} dégâts. Soigne ${up ? 3 : 2} PV. ✦1`,
     play: (ctx) => {
-      hit(ctx, ctx.up ? 9 : 6);
-      palHeal(ctx.c, ctx.up ? 4 : 3);
+      hit(ctx, ctx.up ? 7 : 5);
+      palHeal(ctx.c, ctx.up ? 3 : 2);
     },
   },
   {
