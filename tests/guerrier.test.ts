@@ -1,6 +1,6 @@
 // Le Guerrier revu le 27 novembre 2026 (fiche §12) : la pleine rage, les postures, les arbres.
 import { describe, expect, it } from 'vitest';
-import { changePosture, createCombat, FULL_RAGE_BLOCK, fullRageReady, playCard, useSpell } from '../src/engine/combat';
+import { changePosture, createCombat, FULL_RAGE, fullRageReady, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
 import { allowedSlots, newRun, startEncounter, startPosture, starterDeckFor } from '../src/engine/run';
 import { emptyAlloc, talentIds, type TalentAlloc } from '../src/engine/talents';
@@ -50,7 +50,7 @@ describe('la pleine rage', () => {
     c.player.posture = 'defensive';
     c.player.rage = 10;
     play(c, 'frappe');
-    expect(c.player.block).toBe(FULL_RAGE_BLOCK);
+    expect(c.player.block).toBe(FULL_RAGE.block);
     expect(c.player.rage).toBe(0);
   });
 

@@ -600,7 +600,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     return true;
   }
   if (card.id === 'hallucination') dreamEnergy(c);
-  if (releasing) c.fullRage = { posture: p.posture, bonus: FULL_RAGE_BONUS[p.posture] };
+  if (releasing) c.fullRage = { posture: p.posture, bonus: p.posture === 'combat' ? FULL_RAGE.combat : p.posture === 'berserker' ? FULL_RAGE.berserker : 0 };
   const ctx: PlayContext = { c, target, up: card.upgraded, rageSpent, dealt: false, shardsSpent, faithSpent, comboSpent };
   const attack = def.type === 'Attaque';
   c.cleaving = attack && (c.cleave ?? 0) > 0;
@@ -740,10 +740,9 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
   return true;
 }
 
-/** Pleine rage : le bonus du premier coup selon la posture (le Berserker frappe aussi tous les autres ennemis). */
-export const FULL_RAGE_BONUS: Record<Posture, number> = { combat: 10, berserker: 5, defensive: 0 };
-/** Pleine rage en posture Défensive : le blocage gagné. */
-export const FULL_RAGE_BLOCK = 12;
+/** Les chiffres de la pleine rage : le bonus du premier coup (Combat, Berserker), la part de ce coup portée aux
+ * autres ennemis en Berserker, et le blocage en Défensive. Un objet (et non des constantes) pour que les sondes du bot les règlent. */
+export const FULL_RAGE = { combat: 10, berserker: 5, splash: 1, block: 12 };
 
 const isWarrior = (c: CombatState) => (c.classId ?? 'guerrier') === 'guerrier';
 
@@ -759,23 +758,24 @@ function releaseFullRage(c: CombatState, dealt: boolean): void {
   c.fullRage = undefined;
   if (!fr || !dealt) return;
   const p = c.player;
-  if (fr.posture === 'berserker' && fr.first !== undefined && fr.first > 0) {
+  const splash = Math.floor((fr.first ?? 0) * FULL_RAGE.splash);
+  if (fr.posture === 'berserker' && splash > 0) {
     for (const e of livingEnemies(c)) {
       if (e.uid === fr.targetUid || e.submerged) continue;
-      fx(c, { kind: 'hit', from: 'player', to: e.uid, amount: fr.first, blocked: Math.min(e.block, fr.first), ranged: false });
-      damageEnemy(c, e, fr.first);
+      fx(c, { kind: 'hit', from: 'player', to: e.uid, amount: splash, blocked: Math.min(e.block, splash), ranged: false });
+      damageEnemy(c, e, splash);
     }
   }
   if (fr.posture === 'defensive') {
-    p.block += FULL_RAGE_BLOCK;
-    p.blockGained = (p.blockGained ?? 0) + FULL_RAGE_BLOCK;
-    fx(c, { kind: 'block', who: 'player', amount: FULL_RAGE_BLOCK });
+    p.block += FULL_RAGE.block;
+    p.blockGained = (p.blockGained ?? 0) + FULL_RAGE.block;
+    fx(c, { kind: 'block', who: 'player', amount: FULL_RAGE.block });
   }
   p.rage = 0;
   fx(c, { kind: 'buff', who: 'player', label: 'Pleine rage !' });
-  log(c, fr.posture === 'combat' ? `Pleine rage : +${FULL_RAGE_BONUS.combat} dégâts.`
+  log(c, fr.posture === 'combat' ? `Pleine rage : +${FULL_RAGE.combat} dégâts.`
     : fr.posture === 'berserker' ? 'Pleine rage : le coup frappe tous les ennemis.'
-      : `Pleine rage : +${FULL_RAGE_BLOCK} blocage.`);
+      : `Pleine rage : +${FULL_RAGE.block} blocage.`);
 }
 
 export function changePosture(c: CombatState, posture: Posture): boolean {

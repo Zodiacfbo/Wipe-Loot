@@ -2,7 +2,7 @@
 // En combat, il essaie chaque action possible sur une copie de l'état et garde la meilleure
 // (une évaluation simple : dégâts infligés, dégâts qu'il va encaisser, ressources, ennemis vaincus).
 import { CARDS, energyCost } from '../../src/engine/cards';
-import { FULL_RAGE_BLOCK, FULL_RAGE_BONUS, canPlayCard, canUseSpell, cardNeedsTarget, changeForm, changePosture, choosePet, endTurn, fullRageReady, playCard, useSpell } from '../../src/engine/combat';
+import { FULL_RAGE, canPlayCard, canUseSpell, cardNeedsTarget, changeForm, changePosture, choosePet, endTurn, fullRageReady, playCard, useSpell } from '../../src/engine/combat';
 import { trapTargetBlock } from '../../src/engine/chasseur';
 import { FORM_IDS, canShift } from '../../src/engine/druide';
 import type { FormId, Posture } from '../../src/engine/types';
@@ -113,9 +113,9 @@ function warriorValue(c: CombatState, incoming: number): number {
   let v = 0;
   // La pleine rage prête vaut le bonus qu'elle donnera (la rage elle-même compte déjà 0,5 par point).
   if (fullRageReady(c)) {
-    v += p.posture === 'combat' ? FULL_RAGE_BONUS.combat * 0.9
-      : p.posture === 'berserker' ? FULL_RAGE_BONUS.berserker * 0.9 + 8 * Math.max(0, living - 1) * 0.8
-        : FULL_RAGE_BLOCK * (incoming > p.block ? 0.9 : 0.3);
+    v += p.posture === 'combat' ? FULL_RAGE.combat * 0.9
+      : p.posture === 'berserker' ? FULL_RAGE.berserker * 0.9 + 8 * FULL_RAGE.splash * Math.max(0, living - 1) * 0.8
+        : FULL_RAGE.block * (incoming > p.block ? 0.9 : 0.3);
   }
   // La posture, avec les cartes en main.
   if (p.posture === 'combat') v += rageCards * 2.5;
