@@ -319,9 +319,11 @@ export async function playFx(events: FxEvent[]): Promise<void> {
         await wait(220);
         break;
       case 'tick':
+        if (!ev.amount && !ev.blocked) break; // rien n'a passé (Carapace de glace…)
         shake(ev.who);
+        if (ev.blocked) shiftBlock(ev.who, -ev.blocked);
         shiftHp(ev.who, -ev.amount);
-        floatText(ev.who, `-${ev.amount} ${ev.label}`, ev.label === 'Saignement' ? '#ff5a6a' : '#ffa04a', 0, 20);
+        floatText(ev.who, ev.amount ? `-${ev.amount} ${ev.label}` : `${ev.label} bloqué`, ev.amount ? (ev.label === 'Saignement' ? '#ff5a6a' : '#ffa04a') : '#8fb8e8', 0, 20);
         await wait(320);
         break;
       case 'block':

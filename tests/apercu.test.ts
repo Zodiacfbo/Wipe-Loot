@@ -103,3 +103,22 @@ describe('lexique des infobulles', () => {
     }
   });
 });
+
+// Retour du 27 novembre 2026 : la Robustesse ne se voyait pas sur les cartes de blocage.
+describe('blocage corrigé sur les cartes', () => {
+  it('Parade avec 2 Robustesse : 7 au lieu de 5', async () => {
+    const { cardBlockValue } = await import('../src/engine/preview');
+    const { placeBlock } = await import('../src/cardtext');
+    const c = combat(['lieutenant'], Array(5).fill('parade'));
+    c.player.posture = 'combat';
+    c.player.robustesse = 2;
+    const before = JSON.stringify(c);
+    expect(cardBlockValue(c, 0)).toBe(7);
+    expect(JSON.stringify(c)).toBe(before);
+    expect(placeBlock('Gagne 5 blocage.', 7)).toEqual({ before: 'Gagne ', after: ' blocage.', base: 5 });
+    // Pas un gain immédiat, ou rien qui change : le texte reste tel quel.
+    expect(placeBlock('Dépense la moitié de ta rage : 3 blocage par point.', 5)).toBeNull();
+    expect(placeBlock('Début de ton tour : gagne 3 blocage.', 5)).toBeNull();
+    expect(placeBlock('Gagne 5 blocage.', 5)).toBeNull();
+  });
+});

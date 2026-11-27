@@ -363,7 +363,7 @@ export type FxTarget = 'player' | number;
 /** Événements produits par le moteur pour que l'interface puisse les animer. */
 export type FxEvent =
   | { kind: 'hit'; from: FxTarget; to: FxTarget; amount: number; blocked: number; ranged: boolean }
-  | { kind: 'tick'; who: FxTarget; amount: number; label: string }
+  | { kind: 'tick'; who: FxTarget; amount: number; label: string; /** Part encaissée par le blocage (joueur). */ blocked?: number }
   | { kind: 'block'; who: FxTarget; amount: number }
   | { kind: 'buff'; who: FxTarget; label: string }
   | { kind: 'heal'; from: FxTarget; to: FxTarget; amount: number }
