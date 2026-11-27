@@ -725,3 +725,17 @@ Refonte codée (fiche du Chasseur §13) : un Piège se pose sur un ennemi, un se
 | Niveau 10 Fureur 7 + Protection 3 | 59 % | 86 % | **70 %** | 100 % |
 
 **Conclusion** : le niveau 1 garde la même difficulté sur la run, mais bat Vulkhar bien plus souvent (le mur du débutant) ; les 3 arbres du niveau 10 se tiennent (65 à 70 %). Le niveau 5 reste au-dessus de la cible (comme avant, à la marge près). À relire au prochain export : les vrais joueurs face à Vulkhar, et la posture qu'ils utilisent.
+
+## 29. Le paquet de départ du Prêtre (27 novembre 2026)
+
+Paquet mixte (3 Châtiment, 3 Prière de garde, Soins rapides, Égide renforcée, Châtiment ardent, Murmure de douleur), renforcé par l'arbre principal (Discipline : 2ᵉ Égide renforcée ; Sacré : 2ᵉ Châtiment ardent ; Ombre : Attaque mentale). Avant et après mesurés côte à côte avec le même bot, 100 runs par profil (± 5 à 10 points), difficulté 0.
+
+| Profil | Avant | Après | Vulkhar vaincu (avant → après) |
+|---|---|---|---|
+| Niveau 1 (aucun talent) | 10 % | 7 % | 31 → 36 % |
+| Niveau 5 (Discipline 3, Sacré 2) | 18 % | 20 % | 77 → 82 % |
+| Niveau 10 Discipline 7 + Sacré 3 | 49 % | **59 %** | 99 → 100 % |
+| Niveau 10 Ombre 7 + Sacré 3 | 59 % | 64 % | 98 → 100 % |
+| Niveau 10 Sacré 7 + Discipline 3 | 46 % | 42 % | 96 → 98 % |
+
+**Conclusion** : rien ne bouge au-delà de la marge, sauf Discipline qui remonte (+10 points, à la limite de la marge) : la 2ᵉ Égide renforcée sert l'arbre de l'Égide dès le départ. Les trois arbres restent dans la cible (42 à 64 %) ; Sacré est maintenant le plus bas, à relire si les joueurs le trouvent faible. Le niveau 1 bat un peu plus souvent Vulkhar.
