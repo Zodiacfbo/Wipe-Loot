@@ -18,13 +18,13 @@ const play = (c: CombatState, id: string, target?: number) => playCard(c, c.hand
 const alloc = (a: Partial<TalentAlloc>) => talentIds({ ...emptyAlloc('guerrier'), ...a } as TalentAlloc, 'guerrier');
 
 describe('la pleine rage', () => {
-  it('Combat : à rage maximale, la prochaine Attaque fait +10 dégâts et vide la rage', () => {
+  it('Combat : à rage maximale, la prochaine Attaque fait +6 dégâts et vide la rage', () => {
     const c = fight(['frappe', 'frappe']);
     const e = c.enemies[0];
     c.player.rage = 10;
     expect(fullRageReady(c)).toBe(true);
     play(c, 'frappe');
-    expect(e.maxHp - e.hp).toBe(6 + 10);
+    expect(e.maxHp - e.hp).toBe(6 + 6);
     expect(c.player.rage).toBe(0);
     // Sous le maximum : rien de plus.
     const hp = e.hp;
@@ -33,19 +33,19 @@ describe('la pleine rage', () => {
     expect(c.player.rage).toBe(1);
   });
 
-  it('Berserker : le coup (+5) frappe aussi tous les autres ennemis', () => {
+  it('Berserker : le coup (+3) frappe aussi tous les autres ennemis, à moitié', () => {
     const c = fight(['frappe'], ['etincelle', 'lieutenant', 'lieutenant']);
     c.player.posture = 'berserker';
     c.player.rage = 10;
     const [a, b, d] = c.enemies;
     play(c, 'frappe', b.uid);
-    expect(b.maxHp - b.hp).toBe(11);
-    expect(a.maxHp - a.hp).toBe(Math.min(a.maxHp, 11));
-    expect(d.maxHp - d.hp).toBe(11);
+    expect(b.maxHp - b.hp).toBe(9);
+    expect(a.maxHp - a.hp).toBe(Math.min(a.maxHp, 4));
+    expect(d.maxHp - d.hp).toBe(4);
     expect(c.player.rage).toBe(0);
   });
 
-  it('Défensive : le coup donne 12 blocage', () => {
+  it('Défensive : le coup donne 8 blocage', () => {
     const c = fight(['frappe']);
     c.player.posture = 'defensive';
     c.player.rage = 10;
@@ -59,7 +59,7 @@ describe('la pleine rage', () => {
     const e = c.enemies[0];
     c.player.rage = 10;
     play(c, 'execution');
-    expect(e.maxHp - e.hp).toBe(Math.min(e.maxHp, 10 * 4 + 3 + 10)); // 4 par point, +3 posture de Combat, +10 pleine rage
+    expect(e.maxHp - e.hp).toBe(Math.min(e.maxHp, 10 * 4 + 3 + 6)); // 4 par point, +3 posture de Combat, +6 pleine rage
   });
 
   it('une carte à rage paie son coût, puis la pleine rage vide le reste', () => {
@@ -67,7 +67,7 @@ describe('la pleine rage', () => {
     const e = c.enemies[0];
     c.player.rage = 10;
     play(c, 'frappe_heroique');
-    expect(e.maxHp - e.hp).toBe(14 + 3 + 10);
+    expect(e.maxHp - e.hp).toBe(14 + 3 + 6);
     expect(c.player.rage).toBe(0);
   });
 
@@ -112,11 +112,11 @@ describe('les postures et le départ', () => {
     expect(count(base, 'frappe_heroique')).toBe(2);
     expect(count(base, 'frappe')).toBe(3);
     const fureur = starterDeckFor('guerrier', alloc({ fureur: ['A'] }));
-    expect(count(fureur, 'coup_de_folie')).toBe(2);
-    expect(count(fureur, 'frappe')).toBe(1);
+    expect(count(fureur, 'coup_de_folie')).toBe(1);
+    expect(count(fureur, 'frappe')).toBe(2);
     const prot = starterDeckFor('guerrier', alloc({ protection: ['A'] }));
-    expect(count(prot, 'levee_de_bouclier')).toBe(2);
-    expect(count(prot, 'parade')).toBe(2);
+    expect(count(prot, 'levee_de_bouclier')).toBe(1);
+    expect(count(prot, 'parade')).toBe(3);
   });
 });
 

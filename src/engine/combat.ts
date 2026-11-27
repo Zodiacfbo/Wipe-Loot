@@ -742,7 +742,8 @@ export function useSpell(c: CombatState, index: number, targetUid?: number): boo
 
 /** Les chiffres de la pleine rage : le bonus du premier coup (Combat, Berserker), la part de ce coup portée aux
  * autres ennemis en Berserker, et le blocage en Défensive. Un objet (et non des constantes) pour que les sondes du bot les règlent. */
-export const FULL_RAGE = { combat: 10, berserker: 5, splash: 1, block: 12 };
+// 27 novembre 2026 : +10 / +5 et tout le coup / 12 rendaient le Guerrier trop fort au bot (EQUILIBRAGE §28).
+export const FULL_RAGE = { combat: 6, berserker: 3, splash: 0.5, block: 8 };
 
 const isWarrior = (c: CombatState) => (c.classId ?? 'guerrier') === 'guerrier';
 

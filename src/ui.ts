@@ -276,9 +276,9 @@ const RARITY_FRAME: Record<string, string> = {
 
 // 27 novembre 2026 : chaque posture dit aussi ce que fera la pleine rage (fiche du Guerrier §12).
 const POSTURES: { id: Posture; label: string; aide: string; pleine: string }[] = [
-  { id: 'combat', label: 'Combat', aide: 'Cartes à rage : +3 dégâts', pleine: '+10 dégâts' },
-  { id: 'berserker', label: 'Berserker', aide: '+1 rage par Attaque, +20 % de dégâts subis', pleine: '+5 et frappe tous les ennemis' },
-  { id: 'defensive', label: 'Défensive', aide: '+3 blocage, rage même bloqué, −20 % dégâts', pleine: '+12 blocage' },
+  { id: 'combat', label: 'Combat', aide: 'Cartes à rage : +3 dégâts', pleine: '+6 dégâts' },
+  { id: 'berserker', label: 'Berserker', aide: '+1 rage par Attaque, +20 % de dégâts subis', pleine: '+3, et la moitié du coup à tous les autres' },
+  { id: 'defensive', label: 'Défensive', aide: '+3 blocage, rage même bloqué, −20 % dégâts', pleine: '+8 blocage' },
 ];
 
 // ---------- Rendu d'une carte ----------
