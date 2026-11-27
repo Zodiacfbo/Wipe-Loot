@@ -224,9 +224,19 @@ export function fatalThreshold(c: CombatState): number {
 // --- Les Pièges ---
 
 /** Pose un Piège (le plus ancien part si les 3 places sont prises). */
+/** Le bonus des Pièges à DoT (Pièges améliorés : +3 aux dégâts, donc +1 par tour). */
+export function trapDotBonus(g?: { trapBonus?: number }): number {
+  return Math.ceil((g?.trapBonus ?? 0) / 3);
+}
+
 export function placeTrap(c: CombatState, id: TrapId, value: number): void {
   const traps = (c.traps ??= []);
-  if (traps.length >= MAX_TRAPS) traps.shift();
+  if (traps.length >= MAX_TRAPS) {
+    // Le plus ancien part : on le dit (avant, il disparaissait sans rien dire, 27 novembre 2026).
+    const gone = traps.shift()!;
+    fx(c, { kind: 'buff', who: 'player', label: `${TRAPS[gone.id].name} retiré` });
+    log(c, `${TRAPS[gone.id].name} retiré : ${MAX_TRAPS} Pièges au plus.`);
+  }
   traps.push({ id, value });
   fx(c, { kind: 'buff', who: 'player', label: TRAPS[id].name });
 }
@@ -249,11 +259,11 @@ function springTrap(c: CombatState, trap: Trap, victim: EnemyState): void {
       }
       break;
     case 'immolation':
-      applyDot(c, victim, 'piege_immolation', trap.value + Math.ceil(bonus / 3), 3);
+      applyDot(c, victim, 'piege_immolation', trap.value + trapDotBonus(c.gear), 3);
       fx(c, { kind: 'buff', who: victim.uid, label: name });
       break;
     case 'venin':
-      for (const e of livingEnemies(c)) if (!e.submerged) applyDot(c, e, 'piege_venin', trap.value + Math.ceil(bonus / 3), 3);
+      for (const e of livingEnemies(c)) if (!e.submerged) applyDot(c, e, 'piege_venin', trap.value + trapDotBonus(c.gear), 3);
       fx(c, { kind: 'buff', who: victim.uid, label: name });
       break;
     case 'explosif':
