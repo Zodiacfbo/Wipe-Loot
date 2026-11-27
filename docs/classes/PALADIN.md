@@ -352,3 +352,13 @@ Si une spécialisation est trop forte, on ne touche qu'**un chiffre** : le bonus
 - **Interface** : sous la barre de PV, la jauge « SACRÉE » (5 losanges), les 3 boutons d'Aura (comme les Postures) et une ligne d'aide ; un losange doré montre le coût en PS sur les Dépenses ; pastilles Faveur divine, Courroux, Résistance, Ardent défenseur. Tuto : 3 bulles (jauge, Dépense, Aura).
 - **Conversion** : la carte la plus proche (§13), amélioration gardée, aussi dans un combat en cours (PS à 0, Dévotion) ; les talents de la run suivent (Double sceau → Fin de l'ère…). Le profil rend les points de talent du Paladin ; un message « Le Paladin a changé » s'affiche une fois dans le hall.
 - **Le bot** : la PS vaut environ 3 par point ; il change d'Aura seulement quand c'est gratuit, selon sa main (Dépenses à venir, Attaques, soins, coup annoncé).
+
+**Les chiffres retenus après le bot (27 novembre 2026, `EQUILIBRAGE.md` §30)** — ils remplacent ceux des §4 à §7 :
+
+| Élément | Fiche | En jeu |
+|---|---|---|
+| Cartes ✦ (elles « paient » leur Puissance sacrée) | Frappe du croisé 6, Bouclier de la foi 6, Lumière bienfaisante 5, Lame de justice 12, Ferveur 4 × 2, Tourbillon 6, Pavois 7, Marteau de piété 5 et 4, Bouclier lancé 7, Horion 7, Lumière sacrée 14, Éclair de foi 6 et 3 | **4, 4, 4, 9, 3 × 2, 5, 5, 4 et 3, 6, 5, 12, 5 et 2** (améliorées en proportion) |
+| Dépenses de dégâts et de soin | Verdict 18, Tempête 9, Sentence 12, Mot de gloire 14, Aurore 8 et 6, Égide 8, Parole 8 dégâts ou 7 PV | **13, 7, 9, 11, 6 et 5, 7, 7 ou 6** (les Dépenses de blocage ne changent pas) |
+| Bonus d'Aura | Dévotion +4, Vindicte +4, Concentration +3 | **+4, +3, +2** |
+| Ailes de justice | +2 Puissance et 1 Puissance sacrée | **+2 Puissance seulement** (la Puissance sacrée en plus portait le niveau 5 et Vindicte au-dessus de 80 %) |
+| Jugement | 5 dégâts, ✦2, recharge 2 | inchangé (✦1 ou recharge 3 : le niveau 1 tombait à 0-10 % sans calmer le niveau 5) |

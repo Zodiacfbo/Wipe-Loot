@@ -155,7 +155,7 @@ describe('les Auras', () => {
     const vin = fight(['lieutenant'], ['lumiere_sacree'], {}, ['jugement'], 'vindicte');
     vin.player.hp = 40;
     play(vin, 'lumiere_sacree');
-    expect(vin.player.hp).toBe(40 + Math.floor(14 * 0.7));
+    expect(vin.player.hp).toBe(40 + Math.floor(12 * 0.7));
     const con = fight(['lieutenant'], ['frappe_pal'], {}, ['jugement'], 'concentration');
     play(con, 'frappe_pal', con.enemies[0].uid);
     expect(200 - con.enemies[0].hp).toBeLessThan(6);
