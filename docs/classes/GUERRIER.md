@@ -293,3 +293,102 @@ Si Krâgg n'est pas présent sur la carte de cette run, la quête ne peut pas ê
   - **Heurt de bouclier : +1 point** (contre +15 pour 3 talents). Jouée souvent, mais avec **3,6 blocage** en moyenne au moment du jeu : environ 15 dégâts. Un bot qui monte son blocage avant de la jouer fait pire (−8) : il la garde en main pour rien. **C'est la carte :** le blocage du Guerrier disparaît à chaque tour et sert déjà à encaisser, il monte rarement assez haut dans un même tour. Note : Protection est déjà l'arbre le plus fort (70 % sans la carte).
   - **Piste :** compter le blocage **gagné ce tour-ci** plutôt que le blocage actuel, ou ajouter un plancher (« au moins 12 dégâts »), ou ne pas consommer la rage quand on a 10 blocage ou plus.
   - **Décision (novembre 2026) :** rien n'est changé pour le Guerrier. Ses arbres sont déjà à peu près équivalents (meilleur build 7 + 3 : Armes 71 %, Fureur 57 %, Protection 71 %, sur 150 runs), et Protection tient même avec un Heurt de bouclier faible.
+
+---
+
+## 12. Projet : la pleine rage, les postures et des arbres plus nets (27 novembre 2026, à trancher)
+
+**Pourquoi.** Export playtest du 27 novembre 2026 : **0 victoire sur 14 runs** de Guerrier (3 joueurs), 13 chutes sur 17 combats contre Vulkhar, en **14 tours en moyenne** (son déchaînement arrive au tour 14 ; Chasseur 7 tours, Voleur 8). Contre les monstres ordinaires : 11 PV perdus et 3,8 tours par combat (Chasseur : 3 PV, 1,7 tour). Comme le Paladin avant son §24 de l'équilibrage, le Guerrier **tient mais ne tape pas assez**.
+
+**Ce que montre le code et le bot** (sonde jetable, bot de niveau 1 contre Vulkhar, PV pleins, 40 combats par posture) :
+
+| Posture tenue tout le combat | Victoires | Tours | Tours commencés à 10 rage | PV restants (victoires) |
+|---|---|---|---|---|
+| Combat | 15/40 | 7,6 | **62 %** | 19 |
+| Berserker | **5/40** | 9,8 | 74 % | 15 |
+| Défensive | 12/40 | 11,0 | 65 % | 33 |
+
+1. **La rage déborde.** Beaucoup de sources (chaque Attaque, chaque coup reçu, Charge, Cri de guerre, une dizaine de cartes), très peu de dépenses : la Frappe héroïque au départ, puis seulement Exécution (rare), Fulgurance (1 rage) et les 3 épiques. Le bot commence 62 % de ses tours à 10 rage : tout ce qu'il gagne ensuite est perdu. Les joueurs le sentent : Fulgurance prise 5 fois sur 5.
+2. **La posture de Combat ne se sent pas** : son +3 ne touche que les cartes à rage, environ une par combat.
+3. **La posture Berserker est un piège** : elle donne encore plus d'une ressource qui déborde, et +20 % de dégâts subis.
+4. **Changer de posture est puni** (rage ramenée à 3) : on ne s'en sert pas.
+5. La fiche (§3) annonce des cartes qui changent de posture : **aucune n'existe**.
+6. **Le bot ne change jamais de posture** : toutes les mesures du Guerrier sont faites en posture de Combat.
+7. **Les arbres ne collent pas à leur idée** : les saignements sont en Armes alors qu'ils vont au barbare, Exécution n'appartient à aucun arbre, le Fureur n'a presque aucun soin (Sanguinaire : 2 PV) et beaucoup de « tu subis plus de dégâts », les Cris sont éparpillés sur les 3 arbres (et le talent des Cris, Voix de stentor, est en Fureur).
+
+### 12.1 L'idée : une boucle simple, comme Sceau puis Jugement
+
+> **Je remplis ma rage. À pleine rage, mon prochain coup la libère, et ma posture décide comment.**
+
+Chaque arbre a **sa posture** (comme dans le WoW d'origine), ce qui guide le débutant sans empêcher de changer en combat :
+
+| Arbre | Fantasme | Posture | La pleine rage… |
+|---|---|---|---|
+| ⚔️ Armes | Le champion, l'exécuteur : peu de coups, mais énormes | Combat | …ajoute **+10 dégâts** au coup |
+| 🔥 Fureur | Le barbare : il encaisse, fait saigner, se soigne en tapant | Berserker | …**te soigne** (8 PV, chiffre à mesurer) |
+| 🛡️ Protection | Le tank : blocage, bouclier, Cris | Défensive | …donne **12 blocage** |
+
+### 12.2 Les règles proposées
+
+1. **Pleine rage.** Quand ta rage atteint son maximum (10, ou 15 avec Furie inextinguible), la jauge s'allume. **Ta prochaine Attaque qui inflige des dégâts vide toute ta rage** et ajoute l'effet de ta posture (§12.1). La rage ne déborde donc plus jamais.
+2. **Dépenser tôt reste possible.** Frappe héroïque, Fulgurance, Exécution et les épiques dépensent la rage avant le maximum. Le choix du joueur : dépenser maintenant, ou attendre la pleine rage.
+3. **Changer de posture ne fait plus perdre de rage.** Le changement reste gratuit, une fois par tour. Le choix vient des postures elles-mêmes, plus d'une punition.
+4. **Les postures** (effet permanent + pleine rage) :
+
+| Posture | Tant qu'elle est active | Contrepartie | Pleine rage |
+|---|---|---|---|
+| ⚔️ Combat | Cartes à rage : +3 dégâts (inchangé) | Aucune | +10 dégâts |
+| 🔥 Berserker | +1 rage par Attaque (inchangé : sert enfin, la jauge se remplit plus vite) | Tu subis 20 % de dégâts en plus | Soigne 8 PV |
+| 🛡️ Défensive | +3 blocage, rage même si l'attaque est bloquée (inchangé) | Attaques −20 % | 12 blocage |
+
+5. **Deck de départ (décidé le 27 novembre 2026) : une deuxième Frappe héroïque**, à la place d'une Frappe. Il devient : Frappe ×3, Parade ×4, Frappe héroïque ×2, Cri de guerre ×1.
+6. **Interface** : la jauge de rage montre le maximum et brille à pleine rage ; l'aide sous les postures dit ce que fera la pleine rage (« Pleine rage : +10 dégâts »). Les bulles du tuto (`CLASS_STEPS`) sont réécrites : la bulle « ta rage redescend à 3 » disparaît.
+
+### 12.3 Les arbres : surtout des déplacements
+
+**Les cartes** (le tronc commun passe de 9 à 5 cartes : Enchaînement, Coup de tonnerre, Interception, Ignorer la douleur, Cri de bataille) :
+
+| Carte | Aujourd'hui | Proposé | Raison |
+|---|---|---|---|
+| Exécution | Tronc commun | **Armes** | La carte de l'exécuteur |
+| Fracasser armure | Tronc commun | **Armes** | Prépare le gros coup (avec Frappe du colosse) |
+| Taillade, Pourfendre, Entaille profonde | Armes | **Fureur** | Le barbare fait saigner |
+| Parade ripostée | Armes | **Protection** | Une carte de défense |
+| Cri d'intimidation | Armes | **Protection** | Les Cris vont au tank |
+| Coup de bouclier, Cri démoralisant | Tronc commun | **Protection** | Le tank à bouclier et à Cris |
+| Sanguinaire (épique) | Fureur, soigne 2 | Fureur, **soigne 5** (+ : 7) | Se soigner en tapant |
+
+Résultat : Armes 11 cartes, Fureur 17, Protection 19 (à équilibrer, voir §12.5).
+
+**Les Cris (Protection).** Mot-clé **Cri** (`keywords.ts`) : une Compétence qui touche tous les ennemis (ou te renforce) et **donne 1 rage**. Cri démoralisant, Cri d'intimidation, Cri de ralliement, Cri de défi (sort), Cri de commandement (sort de loot) ; Cri de bataille et Cri de guerre restent communs. Voix de stentor (+1 rage, débuffs +1 tour) passe en Protection.
+
+**Les talents :**
+
+| Palier | ⚔️ Armes | 🔥 Fureur | 🛡️ Protection |
+|---|---|---|---|
+| 1 | Lame aiguisée · **Colère intérieure** (vient de Fureur : la rage plus vite pour Exécution) | Cruauté · **Robuste** (vient de Protection, passe à +10 PV max) | Bouclier lourd · **Voix de stentor** (vient de Fureur) |
+| 2 | **Brise-armure** (nouveau : Armure fracassée dure 1 tour de plus) · **Entaille revue** (Attaques à 2 énergie ou plus : Armure fracassée 1 tour, au lieu de Saignement 3) | **Plaies profondes** (vient d'Armes) · **Soif de sang** (nouveau : tes Attaques sur un ennemi qui Saigne te soignent 1 PV) | Garde haute · Présence menaçante |
+| 3 | Coup de pommeau · Impact | Rage du berserker · **Régénération enragée** (nouveau sort, remplace Fureur sans fin : dépense toute ta rage, soigne 2 PV par point, 1 fois par combat) | Rempart · Cri de défi |
+| 4 | Implacable · Arme lourde | Témérité · Frénésie | Dernier rempart · Quatrième emplacement |
+| 5 | Frappe mortelle | Sanguinaire | Heurt de bouclier (à revoir, §11 : compter le blocage gagné ce tour-ci) |
+
+**Talents qui sortent** : Maîtrise tactique (inutile si changer de posture ne coûte plus de rage), Main gauche, Fureur sans fin (un maximum à 15 retarde la pleine rage ; Furie inextinguible garde ce rôle en carte).
+
+### 12.4 Ce qui ne change pas
+
+Les gains de rage, Charge, les chiffres des cartes (sauf Sanguinaire), les sorts de barre (sauf Régénération enragée), Brisemonts et sa quête, la Malédiction de lignée (forcé en Berserker 2 tours).
+
+### 12.5 Les questions à trancher
+
+1. **La pleine rage s'ajoute-t-elle à Exécution ?** (Exécution vide déjà toute la rage.) Proposé : oui, c'est le fantasme de l'exécuteur ; à plafonner si le bot montre des excès.
+2. **Les chiffres de la pleine rage** (+10 dégâts, 8 PV, 12 blocage) : à mesurer.
+3. **Les trois talents qui sortent** : d'accord pour les retirer, ou on leur cherche une place (Main gauche pour un build Fureur à Attaques gratuites) ?
+4. **Armes n'a que 11 cartes** contre 17 et 19 : lui créer 2 ou 3 cartes de champion (par exemple une Fulgurance plus forte, un « Coup de maître » qui coûte de la rage), ou rendre Coup de bouclier au tronc commun ?
+5. **Faut-il des cartes qui changent de posture** (annoncées au §3) ? Proposé : non pour l'instant, la règle de la pleine rage suffit à une classe ⭐.
+
+### 12.6 Ensuite
+
+1. Apprendre au bot à changer de posture (une action de plus dans ses choix) et refaire la mesure actuelle avec lui, pour avoir un vrai point de départ.
+2. Coder la pleine rage, les postures, la 2ᵉ Frappe héroïque et les déplacements, puis mesurer : niveau 1 (cible : Vulkhar battu en moins de 12 tours), niveau 5, et les 3 arbres au niveau 10 (qu'ils restent proches, 55 à 70 %).
+3. Mettre à jour §2 à §9 de cette fiche, les textes des cartes et le tuto.
+4. Même démarche ensuite pour le Paladin (classe ⭐ elle aussi, même profil dans l'export).
