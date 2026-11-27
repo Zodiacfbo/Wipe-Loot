@@ -420,7 +420,9 @@ Les chiffres du projet (+10, +5, 12) se sont révélés trop forts au bot. **Ret
 
 Les gains de rage, Charge, les autres cartes et sorts, Brisemonts et sa quête, la Malédiction de lignée (forcé en Berserker 2 tours : elle déclenche maintenant aussi la pleine rage en zone, à vérifier au test).
 
-### 12.7 La mise en route (prévue avec le Paladin et le Chasseur Survie)
+### 12.7 La mise en route (faite le 27 novembre 2026)
+
+Codé, testé (`tests/guerrier.test.ts`) et mesuré (`EQUILIBRAGE.md` §28) : niveau 1 6 % (Vulkhar battu 46 %, contre 34 % avant), niveau 5 48 %, niveau 10 Protection 65 %, Armes 70 %, Fureur 70 %. Le plan d'origine, gardé pour mémoire :
 
 1. **Bot d'abord** : il apprend à changer de posture (une action de plus dans `candidates`) et à valoir la pleine rage dans `evaluate()` (sinon il ne l'attend jamais). Refaire la mesure actuelle avec lui (point de départ).
 2. **Moteur** : pleine rage (`gainRage`, `playCard`, `actions.ts`), postures sans plafond de rage (`changePosture`, clé `postureRage` retirée d'`ItemEffects`), posture de départ (`createCombat`), `starterSwaps` du Guerrier, talents (`talents.ts`, `talent_icons.ts`, `TALENT_REFS`), cartes (`cards.ts` : 2 nouvelles, déplacements d'arbre, Sanguinaire, Heurt de bouclier, Cris), sorts (`spells.ts` : Régénération enragée ; Rage du berserker dans `lootSpells`), Deux armes (`items.ts`, `allowedSlots` dans `run.ts`, équipement dans `ui.ts`). Migration `save.ts` seulement si un champ de run change.

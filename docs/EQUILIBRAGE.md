@@ -701,3 +701,27 @@ Refonte codée (fiche du Chasseur §13) : un Piège se pose sur un ennemi, un se
 | Survie 7 + Bêtes 3 | 28 % (32) | 8 % (8) | 6,2 (4,0) |
 
 **Conclusion** : rien ne bouge au-delà de la marge. Survie perd un peu de sa facilité contre les gardiens (6,2 PV au lieu de 4,0 : les groupes ne meurent plus tous avant d'agir) sans perdre de victoires. Survie reste l'arbre le plus faible : la suite, c'est le Loup solitaire (fiche §13.5).
+
+## 28. Le nouveau Guerrier : pleine rage et postures (27 novembre 2026)
+
+**Le constat** (export playtest du 27 novembre, fiche du Guerrier §12) : Guerrier 0/14, Vulkhar en 14 tours. Sonde du bot (niveau 1, Vulkhar seul, 40 combats) : 62 % des tours commencent à 10 rage (la rage déborde), la posture Berserker est un piège (5/40 contre 15/40 en Combat), et **le bot ne changeait jamais de posture**.
+
+**Ce qui est codé** : la pleine rage (à rage maximale, la prochaine Attaque qui blesse vide la jauge et ajoute l'effet de la posture), la rage gardée en changeant de posture, posture et paquet de départ selon l'arbre principal, 2 Frappes héroïques au départ, les arbres revus (Brise-armure, Entaille, Soif de sang, Deux armes, Régénération enragée ; Frappe brutale et Brise-guerre). Le bot change maintenant de posture (`candidates`) et compte la pleine rage prête (`warriorValue`).
+
+**Sonde Vulkhar** (niveau 1, 40 combats, chiffres du projet) : Vulkhar battu 15/40 → 26/40, tours commencés à rage maximale 62 % → 17 %, PV restants 19 → 30.
+
+**Runs complètes avec les chiffres du projet** (+10, +5 et tout le coup en zone, 12 blocage, 2 cartes changées par arbre ; 100 runs) : niveau 1 19 %, niveau 5 68 %, niveau 10 Protection 69 %, Armes 74 %, **Fureur 86 %** : trop fort. Sondes (Fureur 7 + Protection 3, 100 runs) : sans Deux armes 82 %, sans Soif de sang 85 %, départ en Combat 80 %, Sanguinaire à 2 PV 84 %, **sans les 2 Coups de folie 67 %**, 1 seul Coup de folie 70 %. C'est le piège connu : un Coup de folie (0 énergie, 2 coups, +1 rage) fait mieux qu'une Frappe sans rien coûter.
+
+**Point de départ refait avec la même sonde** (l'ancien Guerrier de `dev`, 100 runs) : niveau 1 6 % (Vulkhar 34 %), niveau 5 38 %, Fureur 7 + Protection 3 59 %.
+
+**Retenu** : pleine rage **Combat +6, Berserker +3 et la moitié du coup aux autres ennemis, Défensive 8 blocage** (`FULL_RAGE` dans `combat.ts`), et **une seule carte changée** dans le paquet de départ (1 Coup de folie en Fureur, 1 Levée de bouclier en Protection). 100 runs par profil :
+
+| Profil | Ancien Guerrier (même sonde) | Projet | Retenu | Vulkhar vaincu (retenu) |
+|---|---|---|---|---|
+| Niveau 1 | 6 % | 19 % | **6 %** | 46 % (34 % avant) |
+| Niveau 5 (Protection 3, Fureur 2) | 38 % | 68 % | **48 %** | 99 % |
+| Niveau 10 Protection 7 + Fureur 3 | — | 69 % | **65 %** | 99 % |
+| Niveau 10 Armes 7 + Fureur 3 | — | 74 % | **70 %** | 88 % |
+| Niveau 10 Fureur 7 + Protection 3 | 59 % | 86 % | **70 %** | 100 % |
+
+**Conclusion** : le niveau 1 garde la même difficulté sur la run, mais bat Vulkhar bien plus souvent (le mur du débutant) ; les 3 arbres du niveau 10 se tiennent (65 à 70 %). Le niveau 5 reste au-dessus de la cible (comme avant, à la marge près). À relire au prochain export : les vrais joueurs face à Vulkhar, et la posture qu'ils utilisent.
