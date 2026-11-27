@@ -11,6 +11,8 @@ import type { AuraId, CombatState, EnemyState } from './types';
 export const MAX_HOLY = 5;
 /** Le coût d'une Dépense. */
 export const SPEND_COST = 3;
+/** La Puissance sacrée donnée par le Jugement (réglage d'équilibrage). */
+export const JUDGE_HOLY = Number(process.env.PAL_JUDGE ?? 1);
 
 export const AURA_IDS: AuraId[] = ['devotion', 'vindicte', 'concentration'];
 
@@ -50,7 +52,7 @@ export function auraOf(c: CombatState): AuraId {
 
 /** Le gain passif de l'Aura : 1 PS au plus par tour. */
 function auraGain(c: CombatState, aura: AuraId): void {
-  if (auraOf(c) !== aura || c.auraGained) return;
+  if (auraOf(c) !== aura || c.auraGained || process.env.PAL_NOAURA) return;
   c.auraGained = true;
   gainHoly(c, 1, AURAS[aura].short);
 }
@@ -149,7 +151,7 @@ export function paladinOnHeal(c: CombatState, healed: number, attempted = healed
 export function judge(c: CombatState, target: EnemyState | null): void {
   const g = c.gear ?? {};
   if (target && !target.dead) playerAttack(c, target, 5 + (g.judgeDmg ?? 0));
-  gainHoly(c, 2, 'Jugement');
+  gainHoly(c, JUDGE_HOLY, 'Jugement');
   if (g.judgeHeal) palHeal(c, g.judgeHeal);
   if (g.judgeBlock) gainBlock(c, g.judgeBlock, false);
   if (g.vengeanceDivine) c.judgeBonus = g.vengeanceDivine;
