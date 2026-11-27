@@ -298,7 +298,9 @@ Le Chasseur combat **à distance**, accompagné d'un **compagnon animal** fidèl
 
 ---
 
-## 13. Projet : les Pièges posés sur les ennemis (27 novembre 2026, à trancher)
+## 13. Projet : refonte de l'arbre Survie, le Piégeur solitaire (27 novembre 2026, à trancher)
+
+Deux changements pour un seul build : les Pièges posés sur les ennemis (§13.1 à 13.4) et le Loup solitaire, un Chasseur de mêlée sans compagnon (§13.5). Document Word de présentation : « Refonte de l'arbre Survie du Chasseur » (27 novembre 2026).
 
 **Pourquoi.** Export playtest du 27 novembre 2026 : en Survie, 62 % des combats (hors seigneurs) sont finis au premier tour, 74 % sans perdre un PV. Les 3 Pièges partent tous ensemble au début du tour ennemi, avant que les ennemis jouent, et chacun frappe tous les ennemis : un seul Champ de pièges (3 Explosifs de 15 avec Pièges améliorés) tue le groupe de Saldris avant qu'il agisse. Pourtant l'arbre n'est pas trop fort au bot (Survie 32 % au niveau 10, le plus bas des 3 arbres) : il écrase les groupes et peine contre les seigneurs. Le but n'est donc pas d'affaiblir l'arbre, mais d'**étaler** les Pièges et de les rendre **tactiques**.
 
@@ -356,8 +358,26 @@ C'est le point le plus important pour la lisibilité : chaque limite doit se voi
 3. **Une limite au total ?** Conseil : **non**, la règle « un de chaque type par ennemi » suffit. Les 3 tuiles de Pièges sous le héros disparaissent (voir les maquettes).
 4. **Qui joue en premier ?** Aujourd'hui, l'étiquette « ici » montre le premier ennemi qui agit. Avec des Pièges sur chaque ennemi, il faut savoir **l'ordre** des ennemis : un petit numéro d'ordre (1, 2, 3) au-dessus d'eux, seulement pour le Chasseur ? À voir avec les maquettes.
 
-### 13.5 Ensuite
+### 13.5 Le Loup solitaire : un Chasseur de mêlée (accord de principe le 27 novembre 2026)
+
+- **Talent Loup solitaire** (palier 3 de Survie, face à Feindre la mort) : « Ton compagnon reste au campement. Tes Attaques au corps à corps infligent +3 dégâts et te donnent 2 blocage. » Chiffres à régler au bot : il doit valoir à peu près Piégeur né.
+- **Pas de compagnon** : pas d'écran de choix, pas de tuile, pas d'attaque en fin de tour. Les cartes qui parlent du compagnon (Ordres, Rappel, Lien sauvage…) ne sont plus proposées en récompense. Le paquet de départ remplace Ordre d'attaque par Coup d'épieu (`starterSwaps`, comme le Mage).
+- **Flèche apaisante** (l'ancien choix du palier 3) ne disparaît pas : elle devient un sort de barre des tables de butin du Chasseur.
+- **Un seul build, le Piégeur solitaire** : Pièges améliorés (1), Piégeur né (2), Loup solitaire (3), Instinct du chasseur (4), Champ de pièges (5). Sans ce talent, Survie se joue toujours avec le compagnon (build mixte Bêtes + Survie).
+- **Mot-clé « Corps à corps »** dans le bandeau : Riposte sauvage, Coup de hachette, et 3 nouvelles cartes de Survie :
+
+| Carte | Coût | Rareté | Effet | Amélioration |
+|---|---|---|---|---|
+| **Coup d'épieu** | 1 | Départ (Loup solitaire) | Corps à corps. Inflige 8 dégâts. | 11 dégâts |
+| **Coup dans le piège** | 1 | PC | Corps à corps. 6 dégâts. Déclenche tout de suite les Pièges de la cible. | 9 dégâts |
+| **Assaut du rôdeur** | 1 | C | Corps à corps. 6 dégâts, doublés si tu as 6 blocage ou plus. | 8 dégâts |
+
+- **Coup dans le piège** relie la mêlée et les Pièges (le joueur choisit quand ses Pièges partent) ; une seule carte, pas une règle générale.
+- **À vérifier** : la Marque (« tes Attaques et ton compagnon ») reste utile à moitié ; Esprits, Corde-des-anciens et Pièges restent compatibles ; sprite du Chasseur sans son Loup (et peut-être une pose de mêlée) ; le bot doit savoir jouer sans compagnon ; maquette du combat sans compagnon.
+
+### 13.6 Ensuite
 
 1. Trancher les questions 1 à 4 et choisir une maquette.
 2. Mesurer au bot (le bot doit apprendre à viser avec ses Pièges : l'ennemi qui frappe le plus fort pour le Givrant, le plus gros pour l'Explosif), difficultés 0 et 15, comparé au §17 d'`EQUILIBRAGE.md` et à la sonde du 27 novembre 2026 (Survie 32 % / 8 %, Bêtes 50 % / 6 %, Précision 60 % / 18 %, 50 runs).
 3. Coder : moteur (`chasseur.ts` : Pièges dans `EnemyState`, déclenchement dans le tour de chaque ennemi), cartes, mots-clés, tutoriel, interface, migration de la sauvegarde si une run est en cours, tests (dont `tests/seigneurs.test.ts`).
+4. Puis le Loup solitaire (§13.5) : talent, cartes de mêlée, maquette du combat sans compagnon, mesure au bot.
