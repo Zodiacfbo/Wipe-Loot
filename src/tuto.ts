@@ -74,7 +74,7 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
   ],
   pretre: [
     { cible: ['.barre-egide'], ligne: true, icone: 'egide_renforcee', texte: 'L\'**Égide** est un bouclier qui reste d\'un tour à l\'autre, jusqu\'à 30. Les soins en trop deviennent de l\'Égide.' },
-    { cible: ['.jauges .foi'], ligne: true, icone: 'courroux_celeste', texte: '**Foi**, de 0 à 10 : +1 à chaque soin ou Égide. Certaines cartes la dépensent pour frapper fort.' },
+    { cible: ['.jauges .foi'], ligne: true, icone: 'courroux_celeste', texte: '**Foi**, de 0 à 10 : chaque carte qui soigne ou donne de l\'Égide rapporte 1 Foi. D\'autres la dépensent pour frapper fort.' },
     { cible: ['.main'], icone: 'soins_rapides', texte: 'Soigne-toi et protège-toi tôt : ta puissance vient de là.' },
   ],
   demoniste: [

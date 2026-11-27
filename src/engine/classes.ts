@@ -80,7 +80,13 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'pretre', name: 'Prêtre', color: '#E0E0E8', playable: true, difficulty: 2, hp: 70,
-    starterDeck: ['chatiment', 'chatiment', 'chatiment', 'chatiment', 'priere_garde', 'priere_garde', 'priere_garde', 'priere_garde', 'soins_rapides', 'murmure_douleur'],
+    // 27 novembre 2026 : un peu de chaque arbre au départ (de l'Égide et de la Foi dès le premier combat) ; l'arbre principal renforce le sien.
+    starterDeck: ['chatiment', 'chatiment', 'chatiment', 'priere_garde', 'priere_garde', 'priere_garde', 'soins_rapides', 'egide_renforcee', 'chatiment_ardent', 'murmure_douleur'],
+    starterSwaps: {
+      discipline: { from: 'priere_garde', to: 'egide_renforcee', count: 1 },
+      sacre: { from: 'chatiment', to: 'chatiment_ardent', count: 1 },
+      ombre: { from: 'chatiment', to: 'attaque_mentale', count: 1 },
+    },
     startSpell: 'egide_sacree', sprite: 'pretre.png',
     quote: 'La lumière protège. L\'ombre dévore. Je porte les deux.',
     role: 'Protège par la lumière, ou ronge par l\'ombre', resource: 'Foi (0 à 10) et Égide',

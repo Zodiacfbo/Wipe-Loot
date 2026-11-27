@@ -3,7 +3,7 @@ import { healPlayer } from '../src/engine/actions';
 import { CARDS, rewardPool, starterCards } from '../src/engine/cards';
 import { canPlayCard, createCombat, endTurn, playCard, useSpell } from '../src/engine/combat';
 import type { Encounter } from '../src/engine/enemies';
-import { campfireEquinoxe, canForgeEquinoxe, newRun, resolveEvent } from '../src/engine/run';
+import { campfireEquinoxe, canForgeEquinoxe, newRun, resolveEvent, starterDeckFor } from '../src/engine/run';
 import { lootSpells } from '../src/engine/spells';
 import { PRETRE_TREES, emptyAlloc, talentIds, toggleTalent } from '../src/engine/talents';
 import type { ItemEffects } from '../src/engine/items';
@@ -25,7 +25,25 @@ describe('le Prêtre : la run', () => {
     const run = newRun(1, null, [], 0, 'pretre');
     expect(run.maxHp).toBe(70);
     expect(run.spells).toEqual(['egide_sacree']);
-    expect(run.deck.filter((k) => k.id === 'chatiment')).toHaveLength(4);
+    expect(run.deck.filter((k) => k.id === 'chatiment')).toHaveLength(3);
+  });
+
+  it('le paquet de départ : un peu de chaque arbre, et il suit l\'arbre principal', () => {
+    const count = (d: string[], id: string) => d.filter((x) => x === id).length;
+    const alloc = (tree: string) => {
+      const a = emptyAlloc('pretre');
+      toggleTalent(a, tree, 0, 'A', 10, 'pretre');
+      return talentIds(a, 'pretre');
+    };
+    const base = starterDeckFor('pretre', []);
+    expect(base).toHaveLength(10);
+    expect([count(base, 'egide_renforcee'), count(base, 'chatiment_ardent'), count(base, 'murmure_douleur')]).toEqual([1, 1, 1]);
+    const disc = starterDeckFor('pretre', alloc('discipline'));
+    expect([count(disc, 'egide_renforcee'), count(disc, 'priere_garde')]).toEqual([2, 2]);
+    const sacre = starterDeckFor('pretre', alloc('sacre'));
+    expect([count(sacre, 'chatiment_ardent'), count(sacre, 'chatiment')]).toEqual([2, 2]);
+    const ombre = starterDeckFor('pretre', alloc('ombre'));
+    expect([count(ombre, 'attaque_mentale'), count(ombre, 'chatiment')]).toEqual([1, 2]);
   });
 
   it('52 cartes en récompense (+ Prière de garde), 14 par arbre', () => {
