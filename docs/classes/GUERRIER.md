@@ -56,9 +56,9 @@ Le Guerrier est toujours dans **une posture** parmi trois. **Chaque arbre a la s
 
 | Posture | Arbre | Tant qu'elle est active | Contrepartie | Pleine rage |
 |---|---|---|---|---|
-| ⚔️ **Combat** | Armes (et sans talent) | Tes Attaques qui coûtent de la rage infligent **+3 dégâts**. | Aucune. | **+10 dégâts** au premier coup |
-| 🔥 **Berserker** | Fureur | **+1 rage supplémentaire** chaque fois que tu joues une Attaque. | Tu subis **20 % de dégâts en plus**. | **+5 dégâts**, et le premier coup frappe aussi **tous les autres ennemis** |
-| 🛡️ **Défensive** | Protection | Tes cartes de blocage donnent **+3 blocage**. Tu gagnes 1 rage à chaque attaque reçue, **même si elle est entièrement bloquée**. | Tes Attaques infligent **20 % de dégâts en moins**. | **+12 blocage** |
+| ⚔️ **Combat** | Armes (et sans talent) | Tes Attaques qui coûtent de la rage infligent **+3 dégâts**. | Aucune. | **+6 dégâts** au premier coup |
+| 🔥 **Berserker** | Fureur | **+1 rage supplémentaire** chaque fois que tu joues une Attaque. | Tu subis **20 % de dégâts en plus**. | **+3 dégâts**, et **la moitié** du premier coup frappe aussi **tous les autres ennemis** |
+| 🛡️ **Défensive** | Protection | Tes cartes de blocage donnent **+3 blocage**. Tu gagnes 1 rage à chaque attaque reçue, **même si elle est entièrement bloquée**. | Tes Attaques infligent **20 % de dégâts en moins**. | **+8 blocage** |
 
 **Changer de posture :** **une fois par tour, gratuitement**, avec les boutons sous la jauge. **La rage est gardée** (avant le 27 novembre 2026, elle retombait à 3). Aucune carte ne change la posture. La Malédiction de lignée force le Berserker 2 tours.
 
@@ -77,7 +77,7 @@ Le Guerrier est toujours dans **une posture** parmi trois. **Chaque arbre a la s
 | **Frappe héroïque** | 2 | 1 + 3 rage | Attaque | Inflige 14 dégâts. | 18 dégâts |
 | **Cri de guerre** | 1 | 0 | Compétence | Gagne 2 rage. Pioche 1 carte. | Gagne 3 rage |
 
-**Le paquet suit l'arbre principal** (`starterSwaps`, comme le Mage) : Fureur → 2 Frappes deviennent 2 **Coups de folie** ; Protection → 2 Parades deviennent 2 **Levées de bouclier** ; Armes ou aucun arbre : paquet de base.
+**Le paquet suit l'arbre principal** (`starterSwaps`, comme le Mage) : Fureur → 1 Frappe devient 1 **Coup de folie** ; Protection → 1 Parade devient 1 **Levée de bouclier** (2 au départ du projet : trop fort au bot, `EQUILIBRAGE.md` §28) ; Armes ou aucun arbre : paquet de base.
 
 ### 4.2 Sort de barre de départ
 
@@ -336,7 +336,7 @@ Chaque arbre a **sa posture** (comme dans le WoW d'origine). Le combat commence 
 | 🔥 Fureur | Le barbare à deux armes : il encaisse, fait saigner, se soigne en tapant | Berserker | …fait toucher le coup à **tous les ennemis** |
 | 🛡️ Protection | Le tank : blocage, bouclier, Cris | Défensive | …donne **12 blocage** |
 
-Les chiffres (+10, 12) sont indicatifs : le bot les fixera.
+Les chiffres du projet (+10, +5, 12) se sont révélés trop forts au bot. **Retenus le 27 novembre 2026 : Combat +6 ; Berserker +3, et la moitié du coup aux autres ennemis ; Défensive 8 blocage** (`FULL_RAGE` dans `combat.ts`, `EQUILIBRAGE.md` §28).
 
 ### 12.2 Les règles
 
