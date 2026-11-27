@@ -3,6 +3,7 @@
 // (une évaluation simple : dégâts infligés, dégâts qu'il va encaisser, ressources, ennemis vaincus).
 import { CARDS, energyCost } from '../../src/engine/cards';
 import { canPlayCard, canUseSpell, cardNeedsTarget, changeForm, choosePet, endTurn, playCard, useSpell } from '../../src/engine/combat';
+import { trapTargetBlock } from '../../src/engine/chasseur';
 import { FORM_IDS, canShift } from '../../src/engine/druide';
 import type { FormId } from '../../src/engine/types';
 import { ENEMIES } from '../../src/engine/enemies';
@@ -123,11 +124,15 @@ function hunterValue(c: CombatState): number {
   if (c.companion === undefined) return 0;
   const living = c.enemies.filter((e) => !e.dead).length;
   let v = 0;
-  for (const t of c.traps ?? []) {
-    if (t.id === 'explosif') v += t.value * living * 0.9;
-    else if (t.id === 'venin') v += t.value * 3 * living * 0.6;
-    else if (t.id === 'immolation') v += t.value * 3 * 0.7;
-    else v += 7;
+  // Les Pièges posés sur les ennemis : l'Explosif vaut plus sur un ennemi solide, le Givrant sur celui qui frappe fort.
+  for (const e of c.enemies) {
+    if (e.dead) continue;
+    for (const t of e.traps ?? []) {
+      if (t.id === 'explosif') v += Math.min(t.value, e.hp) * 0.9 + t.value * 0.5 * (living - 1) * 0.8;
+      else if (t.id === 'venin') v += t.value * 3 * living * 0.6;
+      else if (t.id === 'immolation') v += Math.min(t.value * 3, e.hp) * 0.7;
+      else v += 3 + (e.intent.kind === 'attack' ? e.intent.dmg * (e.intent.times ?? 1) * 0.8 : 2);
+    }
   }
   if (c.aspect) v += c.aspect === 'aigle' ? 8 : c.aspect === 'tortue' ? 6 : 5;
   if (c.mark && c.enemies.some((e) => e.uid === c.mark!.uid && !e.dead)) v += 4 + c.mark.value * 2;
@@ -196,10 +201,12 @@ interface Action { kind: 'card' | 'spell' | 'form'; index: number; target?: numb
 
 function candidates(c: CombatState): Action[] {
   const list: Action[] = [];
-  const targets = c.enemies.filter((e) => !e.dead && !e.submerged && !e.untargetable).map((e) => e.uid);
+  const pool = c.enemies.filter((e) => !e.dead && !e.submerged && !e.untargetable);
+  const targets = pool.map((e) => e.uid);
   c.hand.forEach((card, i) => {
     if (!canPlayCard(c, i)) return;
-    if (cardNeedsTarget(c, card.id)) targets.forEach((t) => list.push({ kind: 'card', index: i, target: t }));
+    // Chasseur : pas de cible qui porte déjà ce type de Piège.
+    if (cardNeedsTarget(c, card.id)) pool.filter((e) => !trapTargetBlock(card.id, e)).forEach((e) => list.push({ kind: 'card', index: i, target: e.uid }));
     else list.push({ kind: 'card', index: i });
   });
   c.spells.forEach((s, i) => {

@@ -109,7 +109,7 @@ export const KEYWORDS: Keyword[] = [
   { name: 'Compagnon', words: ['compagnon'], text: 'Ton Loup, ton Ours ou ton Raptor. Il agit seul à la fin de chacun de tes tours, sur ta dernière cible. Il ne peut pas mourir.', discret: true },
   { name: 'Ordre', words: ['Ordre', 'Ordres'], text: 'Une carte qui fait agir ton compagnon tout de suite, ou autrement.' },
   { name: 'Esprit', words: ['Esprit'], text: 'Un seul Esprit animal actif à la fois : un nouveau remplace l\'ancien. Il dure jusqu\'à la fin du combat.' },
-  { name: 'Piège', words: ['Piège', 'Pièges'], text: '3 au plus. Il se déclenche au début du prochain tour ennemi, sur le premier ennemi qui agit (marqué « ici »).' },
+  { name: 'Piège', words: ['Piège', 'Pièges'], text: 'Se pose sur un ennemi, un seul de chaque type par ennemi. Part quand il agit (le numéro dit l\'ordre). S\'il survit, il agit quand même.' },
   { name: 'Marquée', words: ['Marquée', 'Marqué'], text: 'Une seule cible marquée à la fois, pour tout le combat : tes Attaques et ton compagnon lui infligent des dégâts en plus.' },
 ];
 

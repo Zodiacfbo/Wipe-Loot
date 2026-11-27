@@ -110,11 +110,11 @@ import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetCl
 import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
 import { ELEMENTS, ELEMENT_NAME, IMBUES, TOTEMS, totemDescription } from './engine/chaman';
 import { FORMS, FORM_IDS, MAX_BEAR_RAGE, MAX_CAT_COMBO, canShift, shiftCost } from './engine/druide';
-import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, companionDamage, companionTarget, markBonus, trapVictim } from './engine/chasseur';
+import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, actionOrder, companionDamage, companionTarget, markBonus, trapDotBonus, trapTargetBlock } from './engine/chasseur';
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
-import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, Posture, RunState } from './engine/types';
+import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, Posture, RunState, Trap } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
@@ -1378,25 +1378,39 @@ function druidResource(c: CombatState): string {
     <div class="aide-posture"><b>${FORMS[form].short}</b> : ${FORMS[form].text}${why}</div>`;
 }
 
-/** Le compagnon, l'Esprit et les Pièges du Chasseur : une rangée de tuiles (maquette C). */
+/** Les cartes qui posent un Piège. */
+const TRAP_CARD_IDS = ['piege_givrant', 'piege_immolation', 'piege_venin', 'piege_explosif', 'champ_pieges'];
+
+/** Le chiffre d'un Piège posé (Pièges améliorés compris). */
+function trapShown(c: CombatState, t: Trap): number {
+  return t.id === 'explosif' ? t.value + (c.gear?.trapBonus ?? 0) : t.value + trapDotBonus(c.gear);
+}
+
+/** Ce que fera un Piège posé, pour sa bulle. */
+function trapDescription(c: CombatState, t: Trap): string {
+  const n = trapShown(c, t);
+  switch (t.id) {
+    case 'explosif': return `Piège explosif : ${n} dégâts à cet ennemi quand il agit, ${Math.ceil(n / 2)} aux autres.`;
+    case 'venin': return `Piège à venin : DoT ${n} pendant 3 tours à tous les ennemis, quand il agit.`;
+    case 'immolation': return `Piège immolation : DoT ${n} pendant 3 tours à cet ennemi, quand il agit.`;
+    default: return 'Piège givrant : quand il agit, il perd son action (un boss : −50 %).';
+  }
+}
+
+/** Le compagnon et l'Esprit du Chasseur : une rangée de tuiles (maquette C) ; les Pièges sont sous les ennemis. */
 function hunterResource(c: CombatState): string {
   const comp = COMPANIONS[c.companion ?? 'loup'];
   const aspect = c.aspect ? ASPECTS[c.aspect] : null;
-  const traps = c.traps ?? [];
-  const victim = trapVictim(c);
+  const trapped = c.enemies.some((e) => !e.dead && e.traps?.length);
   const away = (c.player.debuffs?.lignee ?? 0) > 0 || (c.petStunned ?? 0) > 0;
   const tiles = [
     `<div class="chs-tuile aide actif ${away ? 'absent' : ''}" title="${comp.name} : ${comp.text}">${ICON_HUNT.patte}<span>${comp.name} · ${companionDamage(c)}</span></div>`,
     `<div class="chs-tuile aide ${aspect ? 'actif' : ''}" title="${aspect ? `${aspect.name} : ${aspect.text}` : 'Joue une carte Esprit (un seul à la fois)'}">${aspect ? ICON_HUNT[c.aspect!] : ICON_HUNT.aigle}<span>${aspect ? aspect.short : 'Esprit'}</span></div>`,
-    ...Array.from({ length: 3 }, (_, i) => {
-      const t = traps[i];
-      return t
-        ? `<div class="chs-tuile aide piege" title="${TRAPS[t.id].name}">${ICON_HUNT[t.id]}<span>${TRAPS[t.id].short}</span></div>`
-        : '<div class="chs-tuile aide vide" title="Emplacement de Piège libre"><span>Piège</span></div>';
-    }),
   ].join('');
-  const help = traps.length && victim
-    ? `Les Pièges partent au début du tour ennemi, sur ${victim.name}.`
+  const sel = ui.selection?.kind === 'card' ? c.hand[ui.selection.index] : null;
+  const help = sel && TRAP_CARD_IDS.includes(sel.id) && sel.id !== 'champ_pieges'
+    ? `<b>${CARDS[sel.id].name}</b> : choisis l'ennemi à piéger.`
+    : trapped ? 'Tes Pièges partent quand l\'ennemi piégé agit (ordre : 1, 2, 3).'
     : away ? `Ton ${comp.name} ne fera rien à la fin de ce tour.` : `${comp.name} : ${comp.text.replace('Fin de ton tour : ', '')}`;
   return `<div class="ligne chs-tuiles">${tiles}</div>
     <div class="aide-posture">${help}</div>`;
@@ -1466,7 +1480,8 @@ function combatScreen(run: RunState, c: CombatState): string {
 
   // Chasseur : la cible du compagnon et l'ennemi qui déclenchera les Pièges.
   const compTarget = c.companion ? companionTarget(c) : null;
-  const trapTarget = c.traps?.length ? trapVictim(c) : null;
+  const order = c.companion ? actionOrder(c) : null;
+  const selCard = ui.selection?.kind === 'card' ? c.hand[ui.selection.index] : null;
   const enemies = c.enemies.filter((e) => !e.dead && !e.submerged).map((e) => {
     const def0 = ENEMIES[e.defId];
     // Une Copie a l'aspect de l'original (taille, cadre, sprite).
@@ -1480,7 +1495,9 @@ function combatScreen(run: RunState, c: CombatState): string {
     const sprite = e.defId === 'vhaeryx' && (e.phase ?? 1) >= 2 ? 'ennemi_vhaeryx_dragon.png'
       : e.defId === 'yzhar' && (e.phase ?? 1) >= 2 ? 'ennemi_yzhar_corps.png' : `ennemi_${def.id}.png`;
     const pct = masked ? 100 : Math.max(0, (e.hp / e.maxHp) * 100);
-    const canTarget = targeting && !e.untargetable;
+    // Chasseur : un ennemi qui porte déjà ce type de Piège ne peut pas être visé.
+    const trapBlock = targeting && selCard ? trapTargetBlock(selCard.id, e) : null;
+    const canTarget = targeting && !e.untargetable && !trapBlock;
     const tag = canTarget ? 'button' : 'div';
     // Au-dessus du sprite, seulement le nom de l'intention ; son explication passe sous la barre de vie.
     const intentAll = intentHtml(c, e);
@@ -1491,13 +1508,14 @@ function combatScreen(run: RunState, c: CombatState): string {
       : { badge: detailMatch ? intentAll.replace(detailMatch[0], '') : intentAll, detail: detailMatch?.[0] ?? '' };
     // Un très grand seigneur avec une explication sous sa barre de vie : un peu plus petit, pour que tout tienne.
     const shown = intent.detail && size >= 192 ? size - 40 : size;
-    return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
+    return `<${tag} ${canTarget ? 'type="button"' : ''} class="ennemi ${canTarget ? 'ciblable' : ''} ${e.untargetable ? 'insaisissable' : ''} ${trapBlock ? 'piege-bloque' : ''}" data-action="cible" data-uid="${e.uid}" aria-label="${e.name}${masked ? '' : `, ${e.hp} PV`}">
       ${intent.badge}
       ${e === compTarget ? `<span class="chs-cible" title="Ton ${COMPANIONS[c.companion!].name} attaquera cet ennemi à la fin de ton tour">${ICON_HUNT.patte}cible</span>` : ''}
-      ${e === trapTarget ? `<span class="chs-ici" title="Il agit en premier : tes Pièges se déclencheront sur lui">${c.traps!.map((t) => ICON_HUNT[t.id]).join('')}ici</span>` : ''}
+      ${trapBlock ? `<span class="piege-deja">${trapBlock}</span>` : ''}
       <img class="px" data-fx="${e.uid}" ${spriteAttrs(sprite, e.uid)} alt="" width="${shown}" height="${shown}">
-      <span class="nom ${def.elite ? 'elite' : ''}">${def.elite ? 'Gardien · ' : ''}${e.name}</span>
+      <span class="nom ${def.elite ? 'elite' : ''}">${order?.has(e.uid) ? `<span class="ordre" title="Il agit en ${order.get(e.uid) === 1 ? '1er' : `${order.get(e.uid)}e`}">${order.get(e.uid)}</span>` : ''}${def.elite ? 'Gardien · ' : ''}${e.name}</span>
       <div class="barre-pv"><div style="width:${pct}%"></div><span>${masked ? '? / ?' : `${e.hp} / ${e.maxHp}`}</span></div>
+      ${e.traps?.length ? `<div class="pieges">${e.traps.map((t) => `<span class="piege aide" title="${trapDescription(c, t)} Un seul de ce type sur cet ennemi.">${ICON_HUNT[t.id]}${TRAPS[t.id].short}${t.id === 'givrant' ? '' : ` ${trapShown(c, t)}`}</span>`).join('')}</div>` : ''}
       ${intent.detail}
       <div class="infos">${e.block > 0 ? `<span class="bloc">${ICON.bouclier} ${e.block}</span>` : ''}${masked ? '<span class="chip" title="Le vrai Méhkar ou une Copie ? Il se révèle quand il est touché">Lequel est le vrai ?</span>' : enemyChips(e)}${c.mark?.uid === e.uid ? `<span class="chip marque" title="Tes Attaques et ton compagnon lui infligent +${markBonus(c, e)} dégâts">Marqué +${markBonus(c, e)}</span>` : ''}</div>
       ${def.passive ? `<div class="passif-ennemi">${(e.phase ?? 1) >= 2 && def.passive2 ? def.passive2 : def.passive}</div>` : ''}

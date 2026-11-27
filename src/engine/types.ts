@@ -200,6 +200,10 @@ export interface CombatMods {
 
 export interface EnemyState {
   uid: number;
+  /** Chasseur : les Pièges posés sur cet ennemi (un seul de chaque type), dans l'ordre où ils partiront. */
+  traps?: Trap[];
+  /** Chasseur : pris par un Piège givrant, il perd l'action qu'il commençait. */
+  trapFrozen?: boolean;
   defId: string;
   name: string;
   hp: number;
@@ -553,8 +557,6 @@ export interface CombatState {
   /** Corde-des-anciens : tours où la Flèche des anciens est restée en main (+5 dégâts chacun, 15 au plus). */
   flecheCharge?: number;
   aspect?: AspectId | null;
-  /** Les Pièges posés (3 au plus), dans l'ordre où ils se déclencheront. */
-  traps?: Trap[];
   /** Marque de la proie : l'ennemi marqué (uid) et le bonus de base de la Marque. */
   mark?: { uid: number; value: number } | null;
   /** Bête intérieure : tes Attaques +X ce tour-ci. Concentration : ta prochaine Attaque ce tour-ci +X. */
@@ -663,7 +665,7 @@ export interface ShopState {
 }
 
 export interface RunState {
-  version: 27;
+  version: 28;
   /** La classe jouée pendant cette run. */
   classId: string;
   seed: number;

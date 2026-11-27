@@ -69,7 +69,7 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
   chasseur: [
     { cible: ['.familier.compagnon', '.chs-tuiles'], icone: 'ordre_attaque', texte: 'Ton **compagnon** agit seul à la fin de chacun de tes tours, sur ta dernière cible. Il ne peut pas mourir. Les cartes **Ordre** le font agir tout de suite.' },
     { cible: ['.ennemis'], icone: 'marque_proie', texte: '**Marque** une cible : tes Attaques et ton compagnon lui font plus mal. Une seule à la fois.' },
-    { cible: ['.chs-tuiles'], icone: 'piege_givrant', texte: 'Les **Pièges** (3 au plus) se déclenchent sur le premier ennemi qui agit, marqué « ici ».' },
+    { cible: ['.ennemi .pieges', '.ennemi .ordre', '.ennemi'], icone: 'piege_givrant', texte: 'Les **Pièges** se posent sur un ennemi (un seul de chaque type) et partent quand il agit. Le numéro dit qui agit en premier.' },
     { cible: ['.chs-tuiles .chs-tuile:nth-child(2)', '.chs-tuiles'], icone: 'esprit_aigle', texte: 'Un **Esprit** animal te renforce tout le combat. Un seul à la fois.' },
   ],
   pretre: [

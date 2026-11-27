@@ -165,7 +165,17 @@ export function migrate(raw: unknown): RunState | null {
     run.choix = [];
     run.version = 27;
   }
-  return run.version === 27 ? (run as unknown as RunState) : null;
+  if (run.version === 27) {
+    // Chasseur (27 novembre 2026) : les Pièges se posent sur un ennemi. Ceux d'un combat en cours vont sur le premier ennemi.
+    const c = run.combat as { traps?: unknown[]; enemies: { dead?: boolean; submerged?: number; traps?: unknown[] }[] } | null;
+    if (c?.traps?.length) {
+      const first = c.enemies.find((e) => !e.dead && !e.submerged);
+      if (first) for (const t of c.traps as { id: string }[]) if (!(first.traps ??= []).some((o) => (o as { id: string }).id === t.id)) first.traps.push(t);
+    }
+    if (c) delete c.traps;
+    run.version = 28;
+  }
+  return run.version === 28 ? (run as unknown as RunState) : null;
 }
 
 /** Prévenu à chaque écriture locale (run ou profil) : sert à la sauvegarde en ligne. */

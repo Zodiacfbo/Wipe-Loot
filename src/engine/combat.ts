@@ -30,7 +30,7 @@ import { addHallucination, folieStartTurn, gainFolie } from './folie';
 import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
 import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
 import { afterPaladinCard, censureTick, hasSeal, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn, SEAL_JUDGE_TARGET } from './paladin';
-import { afterHunterCard, flecheStartTurn, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps } from './chasseur';
+import { afterHunterCard, flecheStartTurn, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps, trapCardBlock, trapTargetBlock } from './chasseur';
 import { afterDruidCard, druidDamageTaken, druidEndTurn, druidOnAttacked, druidStartCombat, druidStartTurn, enterForm, isDruid, setForm } from './druide';
 import { afterShamanCard, clearTotems, isShaman, shamanOnAttacked, shamanStartCombat, shamanStartTurn, totemsAct, windfuryExtra } from './chaman';
 import { SPELLS, spellCooldown } from './spells';
@@ -495,6 +495,8 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return false;
   // Voleur : une Ouverture ne se joue qu'en Camouflage.
   if (def.opener && !stealthed(c, def.type === 'Attaque')) return false;
+  // Chasseur : une carte Piège sans ennemi libre pour ce type.
+  if (trapCardBlock(c, card.id)) return false;
   return true;
 }
 
@@ -513,7 +515,9 @@ export function cardBlockReason(c: CombatState, handIndex: number): string | nul
   const shards = shardCost(c, card.id, card.upgraded);
   if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return shards === 'all' ? 'Il te faut au moins 1 éclat d\'âme.' : `Pas assez d'éclats d'âme : il en faut ${shards}.`;
   if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return def.faithCost === 'all' ? 'Il te faut de la Foi.' : `Pas assez de Foi : il en faut ${def.faithCost}.`;
-  if (def.opener) return 'Une Ouverture ne se joue que Camouflé.';
+  if (def.opener && !stealthed(c, def.type === 'Attaque')) return 'Une Ouverture ne se joue que Camouflé.';
+  const trap = trapCardBlock(c, card.id);
+  if (trap) return trap;
   return 'Cette carte ne peut pas être jouée maintenant.';
 }
 
@@ -533,6 +537,8 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   const def = CARDS[card.id];
   const target = resolveTarget(c, cardNeedsTarget(c, card.id), targetUid, def.type === 'Attaque');
   if (target === 'invalid') return false;
+  // Chasseur : un seul Piège de chaque type par ennemi.
+  if (target && trapTargetBlock(card.id, target)) return false;
 
   const p = c.player;
   const cost = energyCost(c, card.id, card.upgraded);
@@ -1095,8 +1101,6 @@ function enemyTurn(c: CombatState): void {
 }
 
 function enemyTurnInner(c: CombatState): void {
-  // Chasseur : les Pièges se déclenchent sur le premier ennemi qui agit.
-  springTraps(c);
   for (const e of [...c.enemies]) {
     c.dotTicking = false;
     if (c.phase !== 'player') break;
@@ -1241,6 +1245,9 @@ function enemyTurnInner(c: CombatState): void {
       c.orbUsed = true;
       fx(c, { kind: 'interrupt', who: e.uid });
       log(c, `L'Orbe de distorsion annule ${e.intent.cast} !`);
+    } else if (!springTraps(c, e)) {
+      // Chasseur : ses Pièges sont partis quand il a commencé à agir, et l'ont tué ou Givré.
+      if (c.phase !== 'player') break;
     } else {
       resolveIntent(c, e, e.intent);
       // Potion de vitesse : Grizzik agit une deuxième fois.

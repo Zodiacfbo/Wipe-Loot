@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CARDS, energyCost, rewardPool, starterCards } from '../src/engine/cards';
-import { createCombat, endTurn, isEnraged, playCard, useSpell } from '../src/engine/combat';
-import { flecheDamage, flecheStartTurn } from '../src/engine/chasseur';
+import { canPlayCard, cardBlockReason, createCombat, endTurn, isEnraged, playCard, useSpell } from '../src/engine/combat';
+import { flecheDamage, flecheStartTurn, trapTargetBlock } from '../src/engine/chasseur';
+import { clearPlayerEffects } from '../src/engine/yzhar';
 import type { Encounter } from '../src/engine/enemies';
 import { afterCombatAction, campfireCorde, canForgeCorde, chooseCompanion, newRun, offerCompanion, resolveEvent } from '../src/engine/run';
 import { lootSpells } from '../src/engine/spells';
@@ -19,7 +20,7 @@ function fight(enemies: string[], hand: string[], gear: ItemEffects = {}, compan
   for (const e of c.enemies) e.hp = e.maxHp = 200;
   return c;
 }
-const play = (c: CombatState, id: string, target?: number) => playCard(c, c.hand.findIndex((k) => k.id === id), target);
+const play = (c: CombatState, id: string, target?: number): boolean => playCard(c, c.hand.findIndex((k) => k.id === id), target);
 const spell = (c: CombatState, id: string, target?: number) => useSpell(c, c.spells.findIndex((s) => s.id === id), target);
 /** Fin du tour sans que les ennemis ne fassent de dégâts gênants (on regarde seulement leurs PV). */
 const lost = (c: CombatState, i = 0) => 200 - c.enemies[i].hp;
@@ -69,7 +70,7 @@ describe('le Chasseur : la run', () => {
     delete run.companion;
     delete run.corde;
     const m = migrate(run)!;
-    expect(m.version).toBe(27);
+    expect(m.version).toBe(28);
     expect(m.companion).toBe('loup');
     expect(m.corde).toBeNull();
   });
@@ -194,37 +195,90 @@ describe('les Esprits et la Marque', () => {
 });
 
 describe('les Pièges', () => {
-  it('un Piège explosif frappe tous les ennemis au début de leur tour', () => {
+  it('un Piège se pose sur un ennemi et part quand il agit : plein sur lui, moitié aux autres (27 novembre 2026)', () => {
     const c = fight(['lieutenant', 'lieutenant'], ['piege_explosif']);
-    play(c, 'piege_explosif');
-    expect(c.traps).toHaveLength(1);
-    endTurn(c);
-    expect(c.traps).toHaveLength(0);
-    // 8 dégâts du Piège, et le Loup sur le premier ennemi.
-    expect(lost(c, 1)).toBe(8);
-    expect(lost(c, 0)).toBe(13);
-  });
-
-  it('3 Pièges au plus ; Maître des pièges les déclenche deux fois', () => {
-    const c = fight(['lieutenant'], ['champ_pieges', 'piege_explosif', 'piege_venin', 'maitre_pieges']);
-    play(c, 'piege_venin');
-    play(c, 'piege_explosif');
-    play(c, 'champ_pieges');
-    expect(c.traps!.map((t) => t.id)).toEqual(['explosif', 'explosif', 'explosif']);
-    play(c, 'maitre_pieges');
-    c.companion = 'loup';
     c.player.debuffs!.lignee = 5; // le compagnon ne compte pas ici
+    const [a, b] = c.enemies;
+    play(c, 'piege_explosif', b.uid);
+    expect(b.traps!.map((t) => t.id)).toEqual(['explosif']);
+    expect(a.traps ?? []).toHaveLength(0);
+    const hp = c.player.hp;
     endTurn(c);
-    expect(lost(c)).toBe(72); // 3 Pièges de 12 (Champ de pièges), déclenchés deux fois
+    expect(b.traps).toHaveLength(0);
+    expect(lost(c, 1)).toBe(8);
+    expect(lost(c, 0)).toBe(4);
+    // Il survit : son action a bien lieu (les deux Lieutenants frappent).
+    expect(c.player.hp).toBeLessThan(hp);
   });
 
-  it('un Piège chassé par le 4e est annoncé (27 novembre 2026)', () => {
-    const c = fight(['lieutenant'], ['piege_venin', 'champ_pieges'], { startTrap: 1 });
-    play(c, 'piege_venin');
+  it('un seul Piège de chaque type par ennemi, et ce qui ne se cumule pas se voit avant de jouer', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['piege_explosif', 'piege_explosif', 'piege_explosif', 'piege_venin']);
+    const [a, b] = c.enemies;
+    play(c, 'piege_explosif', a.uid);
+    expect(trapTargetBlock('piege_explosif', a)).toBe('Déjà un Piège explosif');
+    expect(trapTargetBlock('piege_venin', a)).toBeNull();
+    expect(play(c, 'piege_explosif', a.uid)).toBe(false);
+    expect(play(c, 'piege_explosif', b.uid)).toBe(true);
+    // Tous les ennemis en ont un : la carte est grisée et dit pourquoi.
+    const i = c.hand.findIndex((k) => k.id === 'piege_explosif');
+    expect(canPlayCard(c, i)).toBe(false);
+    expect(cardBlockReason(c, i)).toBe('Tous les ennemis ont déjà un Piège explosif.');
+    // Un autre type se pose toujours.
+    expect(play(c, 'piege_venin', a.uid)).toBe(true);
+    expect(a.traps!.map((t) => t.id)).toEqual(['explosif', 'venin']);
+  });
+
+  it('Champ de pièges : un Piège explosif sur chaque ennemi qui n\'en a pas ; Maître des pièges les déclenche deux fois', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['champ_pieges', 'piege_explosif', 'maitre_pieges']);
+    c.player.debuffs!.lignee = 5;
+    const [a, b] = c.enemies;
+    play(c, 'piege_explosif', a.uid);
     play(c, 'champ_pieges');
-    expect(c.traps!.map((t) => t.id)).toEqual(['explosif', 'explosif', 'explosif']);
-    expect(c.log.filter((l) => / retiré : 3 Pièges au plus/.test(l))).toHaveLength(2);
-    expect(c.log.some((l) => l.startsWith('Piège à venin retiré'))).toBe(true);
+    expect(a.traps!.map((t) => t.value)).toEqual([8]); // déjà piégé : sauté
+    expect(b.traps!.map((t) => t.value)).toEqual([12]);
+    play(c, 'maitre_pieges');
+    endTurn(c);
+    // a : 8 ×2 sur lui, puis 6 ×2 du Piège de b ; b : 4 ×2 du Piège de a, puis 12 ×2.
+    expect(lost(c, 0)).toBe(16 + 12);
+    expect(lost(c, 1)).toBe(8 + 24);
+  });
+
+  it('un ennemi qui n\'agit pas ne déclenche pas son Piège ; un ennemi tué avant d\'agir l\'emporte', () => {
+    const c = fight(['lieutenant', 'lieutenant'], ['piege_explosif', 'piege_venin']);
+    c.player.debuffs!.lignee = 5;
+    const [a, b] = c.enemies;
+    play(c, 'piege_explosif', a.uid);
+    a.stun = 1;
+    endTurn(c);
+    expect(a.traps!.map((t) => t.id)).toEqual(['explosif']); // il attend
+    expect(lost(c, 1)).toBe(0);
+    c.hand = [{ uid: 7000, id: 'piege_venin', upgraded: false }];
+    c.player.energy = 5;
+    play(c, 'piege_venin', b.uid);
+    b.dead = true;
+    endTurn(c);
+    expect(c.enemies[0].dots?.some((d) => d.id === 'piege_venin') ?? false).toBe(false);
+  });
+
+  it('Piégeur né : un Piège explosif sur le premier ennemi ; Yzhar qui change de corps efface les Pièges', () => {
+    const c = fight(['lieutenant', 'lieutenant'], [], { startTrap: 1 });
+    expect(c.enemies[0].traps!.map((t) => t.id)).toEqual(['explosif']);
+    expect(c.enemies[1].traps ?? []).toHaveLength(0);
+    clearPlayerEffects(c, c.enemies[0]);
+    expect(c.enemies[0].traps).toHaveLength(0);
+  });
+
+  it('une run sauvegardée avec les anciens Pièges : ils passent sur le premier ennemi', () => {
+    const run = newRun(1, null, [], 0, 'chasseur');
+    const c = fight(['lieutenant', 'lieutenant'], []);
+    run.combat = c;
+    const old = JSON.parse(JSON.stringify(run));
+    old.version = 27;
+    old.combat.traps = [{ id: 'explosif', value: 8 }, { id: 'explosif', value: 12 }, { id: 'venin', value: 2 }];
+    const m = migrate(old)!;
+    expect(m.version).toBe(28);
+    expect(m.combat!.enemies[0].traps!.map((t) => t.id)).toEqual(['explosif', 'venin']);
+    expect((m.combat as unknown as { traps?: unknown }).traps).toBeUndefined();
   });
 
   it('les textes des Pièges comptent Pièges améliorés (27 novembre 2026)', () => {
@@ -244,12 +298,14 @@ describe('les Pièges', () => {
     expect(lost(c)).toBe(15);
   });
 
-  it('le Piège givrant contrôle un ennemi normal', () => {
+  it('le Piège givrant : l\'ennemi piégé perd son action', () => {
     const c = fight(['lieutenant'], ['piege_givrant']);
+    c.player.debuffs!.lignee = 5;
     play(c, 'piege_givrant');
     const hp = c.player.hp;
     endTurn(c);
     expect(c.player.hp).toBe(hp);
+    expect(c.enemies[0].trapFrozen).toBeFalsy();
   });
 
   it('Instinct du chasseur : +1 énergie et +1 carte au tour qui suit un Piège', () => {

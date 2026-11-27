@@ -48,6 +48,8 @@ export function clearPlayerEffects(c: CombatState, e: EnemyState): void {
   e.vendetta = false;
   e.noHeal = false;
   e.disarmed = false;
+  e.traps = [];
+  e.trapFrozen = false;
   if (c.mark?.uid === e.uid) c.mark = null;
 }
 
