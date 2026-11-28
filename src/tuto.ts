@@ -57,9 +57,9 @@ export const CLASS_STEPS: Record<string, TutoStep[]> = {
     { cible: ['.barre-sorts'], icone: 'barriere_de_glace', texte: 'Tu as peu de PV : lis les intentions et garde **Carapace de glace** pour le gros coup.' },
   ],
   paladin: [
-    { cible: ['.pal-tuile:not(.aura)', '.pal-tuiles'], icone: 'sceau_croise', texte: 'Un **Sceau** à la fois : un nouveau remplace l\'ancien. Rejoue un Sceau déjà actif : il est jugé.' },
-    { cible: ['.pal-jugement', '.barre-sorts'], icone: 'verdict_cieux', texte: 'Le sort **Jugement** consomme ton Sceau pour déclencher son effet. Pose, juge, recommence.' },
-    { cible: ['.pal-tuile.aura', '.pal-tuiles'], icone: 'aura_devotion', texte: 'Les **Auras** sont des pouvoirs qui durent tout le combat. Une seule à la fois.' },
+    { cible: ['.jauges .ps', '.jauges'], ligne: true, icone: 'frappe_croise', texte: 'Les cartes marquées **✦** et le sort **Jugement** remplissent ta **Puissance sacrée**, jusqu\'à 5. Elle reste d\'un tour à l\'autre.' },
+    { cible: ['.main', '.jauges'], icone: 'verdict_templier', texte: 'Une **Dépense** coûte 3 Puissance sacrée et 0 énergie : des dégâts, du soin ou du blocage, au moment que tu choisis.' },
+    { cible: ['.jauges .auras', '.jauges'], icone: 'parole_lumiere', texte: 'Ton **Aura** renforce chaque Dépense et te donne 1 Puissance sacrée par tour. Le premier changement du tour est gratuit.' },
   ],
   voleur: [
     { cible: ['.jauges .combo'], ligne: true, icone: 'evisceration', texte: 'Tes Attaques donnent des **points de combo**, jusqu\'à 5. Les **coups finaux** les dépensent tous : plus tu en as, plus ils frappent fort.' },

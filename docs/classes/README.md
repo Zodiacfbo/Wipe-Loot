@@ -115,7 +115,7 @@ Pour que les classes restent lisibles, leurs mécaniques reprennent quelques **f
 | Famille | Classes concernées |
 |---|---|
 | **Ressource qui se construit puis se dépense** | Guerrier (rage), Voleur (combo), Prêtre (Foi), Druide (rage et combo selon la forme), Mage (charges arcaniques) |
-| **État à choisir (posture, forme, sceau…)** | Guerrier (postures), Druide (formes), Paladin (sceaux et auras), Chasseur (esprits) |
+| **État à choisir (posture, forme, sceau…)** | Guerrier (postures), Druide (formes), Paladin (auras), Chasseur (esprits) |
 | **Entités alliées** | Démoniste (familier), Chasseur (compagnon), Chaman (totems) |
 | **Effets sur la durée** | Démoniste et Prêtre (DoT), Mage (Brûlure), Voleur (Poison), Guerrier Armes (Saignement) |
 | **Défense persistante** | Prêtre (Égide), Paladin (blocage renvoyé) |

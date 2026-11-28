@@ -87,7 +87,7 @@ describe('le Chasseur : la run', () => {
     delete run.companion;
     delete run.corde;
     const m = migrate(run)!;
-    expect(m.version).toBe(28);
+    expect(m.version).toBe(29);
     expect(m.companion).toBe('loup');
     expect(m.corde).toBeNull();
   });
@@ -314,7 +314,7 @@ describe('les Pièges', () => {
     old.version = 27;
     old.combat.traps = [{ id: 'explosif', value: 8 }, { id: 'explosif', value: 12 }, { id: 'venin', value: 2 }];
     const m = migrate(old)!;
-    expect(m.version).toBe(28);
+    expect(m.version).toBe(29);
     expect(m.combat!.enemies[0].traps!.map((t) => t.id)).toEqual(['explosif', 'venin']);
     expect((m.combat as unknown as { traps?: unknown }).traps).toBeUndefined();
   });

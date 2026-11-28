@@ -7,7 +7,7 @@ import { absorbAegis, gainAegis, gainFaith } from './pretre';
 import { onRogueHit, rogueOnDeath } from './voleur';
 import { afterEnemyDamaged, immuneTo, onIremDeath, slimeDamage } from './irem';
 import { carapaceDamage, yzharAwakens } from './yzhar';
-import { isPaladin, lastOath, onPaladinHit, paladinAttackBonus, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
+import { isPaladin, lastOath, paladinAttackBonus, paladinDamageMult, paladinHealAmount, paladinOnDeath, paladinOnHeal } from './paladin';
 import { hunterAttackBonus, isHunter } from './chasseur';
 import { druidDamageBonus, druidDamageMult, druidHealAmount, druidOnHeal, isDruid } from './druide';
 import { isShaman, reincarnate, shamanDamageBonus, shamanHealAmount, shamanOnHeal } from './chaman';
@@ -107,7 +107,7 @@ export function healPlayer(c: CombatState, amount: number): number {
   if (c.gear?.healCut) heal = Math.floor(heal * Math.max(0, 1 - c.gear.healCut / 100));
   const healed = Math.max(0, Math.min(heal, p.maxHp - p.hp));
   p.hp += healed;
-  if (paladin) paladinOnHeal(c, healed);
+  if (paladin) paladinOnHeal(c, healed, heal);
   if (druid) druidOnHeal(c, healed);
   if (shaman) shamanOnHeal(c, healed);
   if (priest && heal > 0) {
@@ -203,9 +203,10 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
     if (c.playing!.opener || c.playing!.id === 'coup_dans_le_dos') dmg += g.openerBonus ?? 0; // Maître de la discrétion
     if ((target.stun ?? 0) > 0 || (target.sap ?? 0) > 0 || (target.buffs.peur ?? 0) > 0 || (target.mouton ?? 0) > 0) dmg += power(c, 'opportuniste');
   }
-  // Paladin : les Sceaux, Croisade, Conviction, Vengeance divine.
+  // Paladin : Croisade, Conviction, Vengeance divine ; Courroux vengeur (+4 aux Dépenses).
   const paladinAttack = isPaladin(c) && c.playing?.type === 'Attaque';
   if (paladinAttack) dmg += paladinAttackBonus(c, target);
+  if (isPaladin(c) && c.spending && (c.courroux ?? 0) > 0) dmg += 4;
   // Chasseur : Esprit de l'aigle, Marque de la proie, Bête intérieure, Concentration…
   if (isHunter(c) && c.playing?.type === 'Attaque') dmg += hunterAttackBonus(c, target);
   // Druide : les bonus de forme (Félin, Astrale), Fureur du tigre, Férocité, Cœur sauvage.
@@ -233,7 +234,7 @@ export function attackDamage(c: CombatState, target: EnemyState, base: number, o
   if (rogueAttack && c.coldBlood) dmg *= 2;
   if (rogueAttack && c.stealth && power(c, 'seigneur_ombres')) dmg *= 1.5; // Seigneur des ombres
   if (paladinAttack && p.divineShield) dmg *= 0.5; // Bouclier divin
-  if (spell && c.favor && isPaladin(c)) dmg *= 2; // Faveur divine
+  if (isPaladin(c)) dmg *= paladinDamageMult(c, target); // Aura de concentration, l'Aurore ardente
   if (target.buffs.armureFracassee > 0) dmg *= 1.5;
   // Acte 3 : Résistance aux Attaques ou aux Sorts.
   const resist = ENEMIES[target.defId]?.resist;
@@ -269,8 +270,6 @@ export function playerAttack(c: CombatState, target: EnemyState, base: number, o
   if (spell && dmg >= 10 && power(c, 'embrasement') && !target.dead) applyBrulure(c, target, power(c, 'embrasement'));
   // Voleur : le Poison de la cible, puis le Poison d'arme.
   if (c.combo !== undefined && c.playing?.type === 'Attaque') onRogueHit(c, target);
-  // Paladin : le Sceau de vengeance applique la Censure.
-  if (isPaladin(c) && c.playing?.type === 'Attaque') onPaladinHit(c, target);
   return dmg;
 }
 

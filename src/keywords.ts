@@ -93,14 +93,14 @@ export const KEYWORDS: Keyword[] = [
   // Démoniste
   { name: 'Éclats d\'âme', words: ['éclats d\'âme', 'éclat d\'âme', 'Éclats d\'âme'], text: 'De 0 à 5, gardés d\'un combat à l\'autre. +1 quand un ennemi meurt avec un de tes DoT ou une de tes Malédictions. Certaines cartes les dépensent.' },
   // Paladin
-  { name: 'Sceau', words: ['Sceau', 'Sceaux'], text: 'Un seul Sceau actif à la fois : un nouveau remplace l\'ancien. Le sort Jugement le consomme pour déclencher son effet. Rejoue un Sceau déjà actif : il est jugé.' },
-  { name: 'Jugement', words: ['Jugement'], text: 'Sort de barre du Paladin : consomme le Sceau actif pour déclencher son effet de Jugement.' },
+  { name: 'Puissance sacrée', words: ['Puissance sacrée', '✦'], text: 'La ressource du Paladin, de 0 à 5, gardée d\'un tour à l\'autre. ✦1 sur une carte : elle en donne 1. Les Dépenses la consomment.' },
+  { name: 'Dépense', words: ['Dépense', 'Dépenses'], text: 'Une carte du Paladin qui coûte 3 Puissance sacrée et 0 énergie. Ton Aura y ajoute son bonus.' },
+  { name: 'Jugement', words: ['Jugement'], text: 'Sort de barre du Paladin : 5 dégâts et 2 Puissance sacrée.' },
   { name: 'Mouton', words: ['mouton'], text: 'Ne fait rien pendant le nombre de tours indiqué, et reprend sa forme dès qu\'il est blessé.' },
   { name: 'Invocation', words: ['Invoque'], text: 'Ton familier est remplacé par celui-ci pour le reste du combat, et il agit tout de suite.' },
   { name: 'Forme d\'Ombre', words: ['Forme d\'Ombre'], text: 'Jusqu\'à la fin du combat : Sorts d\'Ombre +30 %, DoT +1. Tes soins sont réduits de 25 %, et tu ne gagnes plus de Foi.' },
   { name: 'Poison d\'arme', words: ['Poison d\'arme'], text: 'Tes Attaques appliquent cet effet jusqu\'à la fin du combat. Un seul Poison d\'arme à la fois : le nouveau remplace l\'ancien.' },
-  { name: 'Aura', words: ['Aura', 'Auras'], text: 'Un Pouvoir du Paladin. Une seule Aura active à la fois : une nouvelle remplace l\'ancienne.' },
-  { name: 'Censure', words: ['Censure'], text: 'Inflige ce nombre de dégâts au début du tour de la cible. Le Jugement du Sceau de vengeance la consomme.' },
+  { name: 'Aura', words: ['Aura', 'Auras'], text: 'Le Paladin a toujours une Aura : Dévotion (blocage), Vindicte (dégâts) ou Concentration (soin). Elle renforce ses Dépenses. Le 1er changement du tour est gratuit, puis 1 énergie.' },
   // Chaman
   { name: 'Totem', words: ['Totem', 'Totems', 'totem', 'totems'], text: '4 emplacements : Terre, Feu, Eau, Air. Un autre totem remplace celui de son élément ; le même est renforcé (+50 %, 2 fois au plus). Il agit à chacun de tes tours.' },
   { name: 'Résonance', words: ['Résonance', 'Résonances'], text: 'Un effet en plus si tu as un totem de l\'élément indiqué en jeu.' },

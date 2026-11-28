@@ -73,15 +73,26 @@ def parade_pal():
 
 # ---------- Tronc commun ----------
 
-def sceau_droiture():
+def parole_lumiere():
     s = nouveau()
-    sceau(s, 16, 16, 13, '#C8A050', lambda s, x, y: epee(s, x - 6, y + 6, x + 6, y - 6))
+    # Un livre saint ouvert, d'où monte la Lumière.
+    s.poly([(3, 20), (16, 24), (16, 29), (3, 25)], BLANC)
+    s.poly([(29, 20), (16, 24), (16, 29), (29, 25)], '#D8D0BC')
+    s.line([(16, 24), (16, 29)], LUM_F)
+    s.rect(3, 25, 29, 26, '#8A5A2A')
+    rayon(s, 16, 4, 21, w=5)
+    soleil(s, 16, 9, 4, rayons=8)
     return s.render()
 
 
-def sceau_croise():
+def tempete_divine():
     s = nouveau()
-    sceau(s, 16, 16, 13, '#B83A2A', lambda s, x, y: (epee(s, x - 6, y + 6, x + 6, y - 6), epee(s, x + 6, y + 6, x - 6, y - 6)))
+    # Des éclairs de Lumière tombent du ciel sur toute la ligne.
+    s.rect(0, 0, 31, 5, '#4A4058')
+    for x in (6, 16, 26):
+        s.poly([(x + 2, 4), (x - 2, 14), (x + 1, 14), (x - 2, 25), (x + 4, 11), (x + 1, 11), (x + 4, 4)], LUM, glow=True)
+    s.rect(0, 27, 31, 31, '#4A3A28')
+    s.dots([(4, 26), (14, 26), (24, 26), (28, 26)], LUM_C, glow=True)
     return s.render()
 
 
@@ -108,20 +119,23 @@ def lumiere_bienfaisante():
     return s.render()
 
 
-def aura_devotion():
+def rempart_lumiere():
     s = nouveau()
     halo(s, 16, 7, 9, 3)
     bouclier_or(s, 9, 11, 23, 30)
     return s.render()
 
 
-def sceau_lumiere():
+def mot_gloire():
     s = nouveau()
-    sceau(s, 16, 16, 13, '#E8D8A0', lambda s, x, y: soin(s, x, y, 5))
+    # Un grand cœur de lumière, la croix de soin au centre.
+    halo(s, 16, 16, 14, 14, LUM_F)
+    coeur(s, 6, 7, 20, '#F0D070')
+    soin(s, 16, 15, 4)
     return s.render()
 
 
-def aura_resistance():
+def resistance_sacree():
     s = nouveau()
     halo(s, 16, 16, 13, 13, '#F0E6C0')
     flamme_de(s, 10, 9, 12, 16)
@@ -146,7 +160,7 @@ def lumiere_sacree():
     return s.render()
 
 
-def onde_sacree():
+def horion_sacre():
     s = nouveau()
     ondes(s, 4, 16, LUM, n=4, a0=-60, a1=60)
     s.ellipse(1, 13, 7, 19, LUM_C, glow=True)
@@ -176,9 +190,12 @@ def eclair_foi():
     return s.render()
 
 
-def sceau_sagesse():
+def egide_lumiere():
     s = nouveau()
-    sceau(s, 16, 16, 13, '#4A6AB8', lambda s, x, y: (s.ellipse(x - 5, y - 3, x + 5, y + 3, LUM_C, glow=True), s.ellipse(x - 2, y - 2, x + 2, y + 2, '#2A3A6A')))
+    # Un bouclier de lumière qui soigne.
+    halo(s, 16, 16, 14, 14)
+    bouclier_or(s, 7, 4, 25, 29)
+    soin(s, 16, 18, 4)
     return s.render()
 
 
@@ -220,7 +237,7 @@ def illumination():
     return s.render()
 
 
-def benediction_royale():
+def benediction_puissance():
     s = nouveau()
     s.poly([(5, 22), (5, 10), (10, 16), (16, 6), (22, 16), (27, 10), (27, 22)], OR)
     s.rect(5, 22, 27, 26, LUM_F)
@@ -228,7 +245,7 @@ def benediction_royale():
     return s.render()
 
 
-def aube_purificatrice():
+def aurore_sacree():
     s = nouveau()
     s.rect(0, 22, 31, 31, '#3A2E40')
     soleil(s, 16, 22, 7)
@@ -301,9 +318,12 @@ def bouclier_lance():
     return s.render()
 
 
-def sceau_rempart():
+def bouclier_foi():
     s = nouveau()
-    sceau(s, 16, 16, 13, '#6A7A8A', lambda s, x, y: bouclier_or(s, x - 5, y - 6, x + 5, y + 6))
+    # Un écu simple marqué du losange de la Puissance sacrée.
+    bouclier(s, 7, 4, 25, 29, bord=ACIER, fond='#5A6A80', centre=False)
+    s.poly([(16, 9), (21, 15), (16, 21), (11, 15)], LUM, glow=True)
+    s.poly([(16, 12), (18, 15), (16, 18), (14, 15)], LUM_C, glow=True)
     return s.render()
 
 
@@ -316,19 +336,19 @@ def sanctuaire():
     return s.render()
 
 
-def fervent():
+def ferveur_gardien():
     s = nouveau()
     bouclier_or(s, 4, 6, 20, 28)
     s.poly([(25, 4), (20, 15), (24, 15), (21, 26), (29, 12), (25, 12), (28, 4)], LUM, glow=True)
     return s.render()
 
 
-def aura_epines():
+def gardien_rois():
     s = nouveau()
-    halo(s, 16, 16, 12, 12)
-    for i in range(8):
-        a = i / 8 * math.pi * 2
-        s.poly([(16 + math.cos(a) * 12, 16 + math.sin(a) * 12), (16 + math.cos(a + 0.2) * 15, 16 + math.sin(a + 0.2) * 15), (16 + math.cos(a + 0.35) * 12, 16 + math.sin(a + 0.35) * 12)], LUM_F)
+    # La couronne des anciens rois au-dessus d'un grand bouclier.
+    bouclier_or(s, 6, 9, 26, 31)
+    s.poly([(8, 8), (8, 2), (12, 5), (16, 0), (20, 5), (24, 2), (24, 8)], OR)
+    s.dots([(12, 6), (16, 3), (20, 6)], '#C83A4A', glow=True)
     return s.render()
 
 
@@ -348,7 +368,7 @@ def juste_chatiment():
     return s.render()
 
 
-def bouclier_croise():
+def bouclier_vertueux():
     s = nouveau()
     bouclier_or(s, 6, 2, 26, 30)
     epee(s, 4, 28, 28, 4)
@@ -379,11 +399,13 @@ def frappe_divine():
     return s.render()
 
 
-def inquisition():
+def priere_croise():
     s = nouveau()
-    sceau(s, 13, 18, 10, '#C8A050', lambda s, x, y: soleil(s, x, y, 2, rayons=0))
-    arc(s, 13, 18, 13, 200, 340, LUM, width=2)
-    s.poly([(24, 4), (29, 8), (23, 10)], LUM, glow=True)
+    # Une bougie de prière, et sa petite flamme de Lumière.
+    halo(s, 16, 9, 7, 7, LUM_F)
+    flamme_de(s, 13, 4, 6, 9, ext=LUM_F, mil=LUM, coeur=LUM_C)
+    s.rect(12, 13, 20, 27, BLANC)
+    s.rect(9, 27, 23, 29, OR)
     return s.render()
 
 
@@ -395,13 +417,17 @@ def tourbillon_sacre():
     return s.render()
 
 
-def sceau_vengeance():
+def sentence():
     s = nouveau()
-    sceau(s, 16, 16, 13, '#7A1A2A', lambda s, x, y: goutte_de(s, x, y - 6, 12, '#E8C860'))
+    # La hache du bourreau, lame dorée.
+    s.line([(8, 30), (22, 6)], '#6A4426', width=2)
+    s.poly([(18, 4), (29, 6), (27, 16), (21, 12)], LUM_F)
+    s.poly([(20, 6), (27, 8), (25, 14)], LUM_C, glow=True)
+    s.dots([(5, 6), (9, 3), (4, 12)], '#D8303A', glow=True)
     return s.render()
 
 
-def marteau_chatiment():
+def marteau_courroux():
     s = nouveau()
     marteau_sacre(s, 6, 29, 22, 9)
     s.rect(2, 2, 10, 4, '#3A1A1A')
@@ -415,18 +441,22 @@ def zele():
     return s.render()
 
 
-def science_combat():
+def art_guerre():
     s = nouveau()
-    epee(s, 3, 28, 20, 11)
-    soin(s, 24, 9, 5)
+    # Deux épées croisées, le losange de la Puissance sacrée au-dessus.
+    epee(s, 4, 29, 26, 7)
+    epee(s, 28, 29, 6, 7)
+    s.poly([(16, 1), (20, 5), (16, 9), (12, 5)], LUM, glow=True)
     return s.render()
 
 
-def exaltation():
+def courroux_vengeur():
     s = nouveau()
-    for x in (8, 16, 24):
-        s.poly([(x, 4), (x + 4, 12), (x - 4, 12)], LUM, glow=True)
-        s.rect(x - 1, 12, x + 1, 26, LUM_F)
+    # Une épée ailée, nimbée d'une colère dorée.
+    for side in (-1, 1):
+        s.poly([(16 + side * 2, 12), (16 + side * 15, 4), (16 + side * 13, 10), (16 + side * 15, 14), (16 + side * 3, 18)], LUM_C, glow=True)
+    epee(s, 16, 30, 16, 2, lame=LUM_C)
+    s.dots([(5, 24), (27, 24), (9, 29), (23, 29)], '#E8562A', glow=True)
     return s.render()
 
 
@@ -454,7 +484,7 @@ def croisade():
     return s.render()
 
 
-def verdict_cieux():
+def verdict_templier():
     s = nouveau()
     rayon(s, 16, 0, 31, w=7)
     epee(s, 16, 4, 16, 28, lame=LUM_C)
@@ -463,12 +493,12 @@ def verdict_cieux():
 
 
 ILLUSTRATIONS_PALADIN = {name: fn for name, fn in list(globals().items()) if callable(fn) and name in {
-    'frappe_pal', 'parade_pal', 'sceau_droiture', 'sceau_croise', 'frappe_croise', 'exorcisme', 'lumiere_bienfaisante',
-    'aura_devotion', 'sceau_lumiere', 'aura_resistance', 'colere_sacree',
-    'lumiere_sacree', 'onde_sacree', 'main_sacree', 'lueur_protectrice', 'eclair_foi', 'sceau_sagesse', 'faveur_divine',
-    'lumiere_purificatrice', 'rayonnement', 'grace_croise', 'illumination', 'benediction_royale', 'aube_purificatrice', 'avatar_lumiere',
+    'frappe_pal', 'parade_pal', 'parole_lumiere', 'tempete_divine', 'frappe_croise', 'exorcisme', 'lumiere_bienfaisante',
+    'rempart_lumiere', 'mot_gloire', 'resistance_sacree', 'colere_sacree',
+    'lumiere_sacree', 'horion_sacre', 'main_sacree', 'lueur_protectrice', 'eclair_foi', 'egide_lumiere', 'faveur_divine',
+    'lumiere_purificatrice', 'rayonnement', 'grace_croise', 'illumination', 'benediction_puissance', 'aurore_sacree', 'avatar_lumiere',
     'bouclier_beni', 'pavois_sacre', 'marteau_piete', 'resolution_sacree', 'garde_vigilante', 'consecration', 'bouclier_lance',
-    'sceau_rempart', 'sanctuaire', 'fervent', 'aura_epines', 'dernier_serment', 'juste_chatiment', 'bouclier_croise',
-    'lame_justice', 'ferveur', 'frappe_divine', 'inquisition', 'tourbillon_sacre', 'sceau_vengeance', 'marteau_chatiment',
-    'zele', 'science_combat', 'exaltation', 'repentance', 'vengeance_pal', 'croisade', 'verdict_cieux',
+    'bouclier_foi', 'sanctuaire', 'ferveur_gardien', 'gardien_rois', 'dernier_serment', 'juste_chatiment', 'bouclier_vertueux',
+    'lame_justice', 'ferveur', 'frappe_divine', 'priere_croise', 'tourbillon_sacre', 'sentence', 'marteau_courroux',
+    'zele', 'art_guerre', 'courroux_vengeur', 'repentance', 'vengeance_pal', 'croisade', 'verdict_templier',
 }}

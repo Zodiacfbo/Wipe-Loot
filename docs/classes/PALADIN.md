@@ -1,66 +1,93 @@
-# Classe : le Paladin
+# Classe : le Paladin (refonte « Puissance sacrée »)
 
-> Wipe & Loot · Fiche de classe · Version 0.2 (jouable dans le prototype)
-> Les chiffres sont **indicatifs** : ils serviront de base aux premiers tests d'équilibrage.
+> Wipe & Loot · Fiche de classe · **Version 0.3, concept à tester** (26 novembre 2026 ; points tranchés le 27 novembre 2026)
+> **En jeu depuis le 27 novembre 2026** (test de concept). Elle remplace la version 0.2 (Sceaux et Jugement), gardée dans `PALADIN_V2_SCEAUX.md`.
+> Les chiffres sont **indicatifs** : ils serviront de base au test de concept et aux passes du bot.
+
+---
+
+## 0. Pourquoi une refonte
+
+La version 0.2 empile quatre systèmes : 6 Sceaux (un bonus permanent et un effet de Jugement chacun), le Jugement qui les consomme, les Auras en Pouvoir et la Censure. Cela fait beaucoup de règles pour une classe ⭐, et un équilibrage difficile (Double sceau avec Verdict des cieux, Juste châtiment, cartes épiques à reprendre).
+
+La version 0.3 garde le thème (chevalier sacré, Jugement, Auras, tueur de Morts-vivants et de Démons) et le ramène à **une jauge et un choix d'Aura** :
+
+- **on dépense de l'énergie pour gagner de la Puissance sacrée** ;
+- **on dépense la Puissance sacrée pour infliger des dégâts, soigner ou bloquer** ;
+- **l'Aura (fixe, comme les Postures du Guerrier) décide de ce qui est renforcé**.
 
 ---
 
 ## 1. Identité
 
-> *« Par la lumière, je juge. Par l'acier, j'exécute la sentence. »*
+> *« La Lumière ne se prie pas. Elle se gagne, coup après coup. »*
 
-Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes de **Sceaux** de lumière, puis les libère dans un **Jugement**. Il est solide, se soigne lui-même, retire les maux qui l'affligent, et il est le pire ennemi des **morts-vivants** et des **démons**.
-
-- **Rôle :** hybride : dégâts, tank ou survie selon les talents.
+- **Rôle :** hybride : dégâts, tank ou soins selon les talents.
 - **Richesse du jeu :** ⭐ Simple.
 - **Déblocage :** par l'expérience.
-- **Fantasme de jeu :** un chevalier presque indestructible qui marche sur la Nécropole en frappant les morts-vivants à coups de Jugements.
+- **Fantasme de jeu :** remplir sa jauge de Lumière en frappant, bloquant ou soignant, puis la libérer au bon moment, sous la bonne Aura.
 
 | Statistique | Valeur |
 |---|---|
 | **PV max** | 80 |
 | **Énergie** | 3 par tour |
-| **Ressource de classe** | Sceau actif (un seul à la fois) |
-| **Aura** | Une seule aura active à la fois |
-| **Sort de barre de départ** | Jugement |
+| **Ressource de classe** | Puissance sacrée (0 à 5) |
+| **Aura de départ** | Aura de dévotion |
+| **Sort de barre de départ** | Jugement (générateur) |
 
-**Nouveau tag d'ennemi :** certains ennemis sont **Mort-vivant** ou **Démon**. Plusieurs cartes de Paladin sont plus fortes contre eux. Ces tags sont fréquents dans l'acte bonus (la Nécropole céleste).
-
----
-
-## 2. Mécanique 1 : les Sceaux et le Jugement
-
-- Une carte **Sceau** (1 énergie) active un **Sceau** sur le Paladin. Un seul Sceau à la fois : en activer un nouveau remplace l'ancien.
-- Tant qu'un Sceau est actif, il donne un **bonus permanent** aux Attaques.
-- Le sort de barre **Jugement** (recharge 2) **consomme** le Sceau actif pour déclencher son **effet de Jugement**. Il faut ensuite activer un nouveau Sceau.
-
-| Sceau | Bonus tant qu'il est actif | Effet du Jugement |
-|---|---|---|
-| **Sceau de droiture** (base) | Tes Attaques infligent +3 dégâts. | Inflige 10 dégâts. |
-| **Sceau du croisé** (base) | Tes Attaques infligent +1 dégât par Attaque déjà jouée ce tour. | La cible reçoit Armure fracassée 2 tours. |
-| **Sceau de lumière** (base) | Tes Attaques te soignent de 2 PV. | Soigne 8 PV. |
-| **Sceau de sagesse** (Sacré) | Pioche 1 carte de plus au début de ton tour. | Gagne 1 énergie. |
-| **Sceau du rempart** (Protection) | Tes Attaques te donnent 3 blocage. | Gagne 12 blocage. |
-| **Sceau de vengeance** (Vindicte) | Tes Attaques appliquent 1 cumul de **Censure** (Saignement 1 qui s'accumule). | Inflige 5 dégâts par cumul de Censure sur la cible. |
-
-**L'intérêt :** un cycle simple et satisfaisant : poser un Sceau, frapper avec, puis le juger au meilleur moment.
-
-**Rejouer un Sceau déjà actif (25 novembre 2026) :** la carte lance son Jugement (le sort Jugement n'est pas touché), puis le Sceau disparaît. Avant, elle ne faisait rien. Elle demande une cible si ce Jugement en a besoin (Droiture, Croisé, Vengeance). Avec Double sceau, seul le Sceau rejoué est jugé.
+Le **tag d'ennemi Mort-vivant / Démon** est conservé, sans changement.
 
 ---
 
-## 3. Mécanique 2 : les Auras
+## 2. Mécanique 1 : la Puissance sacrée (PS)
 
-- Les cartes **Aura** sont des Pouvoirs. **Une seule Aura active à la fois** : en jouer une nouvelle remplace l'ancienne.
-- Elles donnent un bonus passif pour tout le combat.
-
-| Aura | Effet |
+| Règle | Valeur |
 |---|---|
-| **Aura de dévotion** | Gagne 2 Robustesse. |
-| **Aura de résistance** | Les cartes Zone de feu et les DoT ennemis t'infligent 50 % de dégâts en moins. |
-| **Aura d'épines sacrées** | Chaque fois qu'un ennemi t'attaque, il subit 3 dégâts. |
+| Jauge | **0 à 5** (le surplus est perdu) |
+| Début du combat | 0 |
+| D'un tour à l'autre | elle reste, elle ne baisse pas |
+| Fin du combat | elle est perdue |
 
-**L'intérêt :** l'Aura s'adapte au combat. L'Aura de résistance est faite pour les Profondeurs Ardentes et leurs zones de feu.
+**La gagner :**
+
+| Source | Gain |
+|---|---|
+| Cartes **génératrices**, marquées **✦** sur la carte | ✦1 ou ✦2 |
+| Le sort de barre **Jugement** | ✦2 |
+| L'effet passif de l'**Aura active** (§3) | 1 par tour au plus |
+
+**La dépenser :** les cartes **Dépense** (bandeau doré, comme « Finisher » pour le Voleur).
+- Elles coûtent **toujours 3 PS et 0 énergie**.
+- Avec un plafond à 5, on peut garder 2 PS en réserve pour enchaîner deux Dépenses au tour suivant.
+- Une Dépense ne peut pas être jouée avec moins de 3 PS (carte grisée, raison : « Il faut 3 Puissance sacrée »).
+
+**L'intérêt :** l'énergie produit la PS, la PS produit l'effet. Chaque tour pose une question simple : « je dépense maintenant, ou je garde pour la prochaine attaque du boss ? ».
+
+**En quoi c'est différent :**
+- **Voleur** : ses finishers consomment *tous* les points de combo. Ici le coût est fixe (3), et la Dépense peut protéger autant qu'attaquer.
+- **Guerrier** : la rage s'ajoute au coût en énergie et se gagne en encaissant ; la pleine rage se vide d'un coup. Ici les Dépenses ne coûtent pas d'énergie, leur coût est fixe, et la PS se gagne selon l'Aura (bloquer, frapper ou soigner).
+
+---
+
+## 3. Mécanique 2 : les Auras (fixes)
+
+Le Paladin a **toujours une Aura active** parmi trois. Elles sont toutes disponibles dès le départ, comme les Postures du Guerrier.
+
+| Aura | Génération passive | Bonus des Dépenses | Contrepartie |
+|---|---|---|---|
+| 🛡️ **Dévotion** (départ) | +1 PS la 1re fois par tour qu'une attaque ennemie est **entièrement bloquée** | **+4 blocage** | Aucune |
+| ⚔️ **Vindicte** | +1 PS à ta **1re Attaque** de chaque tour | **+4 dégâts** | Tes soins sont réduits de 30 % |
+| ✨ **Concentration** | +1 PS à ton **1er soin** de chaque tour | **+3 PV de soin** | Tes Attaques infligent 20 % de dégâts en moins |
+
+**Changer d'Aura :**
+- avec le bouton d'Aura à côté du héros ;
+- le **1er changement de chaque tour est gratuit** ; **chaque changement de plus ce tour-ci coûte 1 énergie** ;
+- **la PS est conservée** quand on change d'Aura (comme la rage du Guerrier depuis le 27 novembre 2026) ;
+- le bonus d'une Aura s'applique à toute Dépense jouée pendant qu'elle est active, quelle que soit la Dépense.
+
+**Le bonus s'ajoute à l'effet de la Dépense, en plus.** Exemple : *Verdict du templier* (18 dégâts) sous Dévotion inflige 18 dégâts **et** donne 4 blocage ; sous Vindicte, il inflige 22 dégâts.
+
+**L'Aura de résistance** (Zones de feu) n'est plus une Aura : elle devient la carte *Résistance sacrée* du tronc commun (§5.1).
 
 ---
 
@@ -71,92 +98,112 @@ Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes d
 | Carte | Qté | Coût | Type | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
 | **Frappe** | 4 | 1 | Attaque | Inflige 6 dégâts. | 9 dégâts |
-| **Parade** | 3 | 1 | Compétence | Gagne 5 blocage. | 8 blocage |
-| **Sceau de droiture** | 2 | 1 | Compétence (Sceau) | Active le Sceau de droiture. | Coûte 0 |
-| **Lumière bienfaisante** | 1 | 1 | Compétence | Soigne 5 PV. | 8 PV |
+| **Parade** | 3 | 1 | Compétence | Gagne 6 blocage. | 9 blocage |
+| **Frappe du croisé** | 2 | 1 | Attaque | Inflige 6 dégâts. ✦1 | 9 dégâts |
+| **Parole de lumière** | 1 | 0 + 3 PS | Dépense | Selon l'Aura : 9 blocage, 8 dégâts ou 7 PV de soin. | 12 / 11 / 10 |
+
+**Selon l'arbre principal (décidé le 27 novembre 2026, comme le Guerrier)** : l'arbre qui a strictement le plus de points choisit l'Aura de départ et change une carte du paquet (`starterSwaps`, et une Aura de départ sur le modèle de `startPosture`). Sans arbre principal (aucun talent ou égalité) : Dévotion et le paquet ci-dessus.
+
+| Arbre principal | Aura de départ | Carte changée |
+|---|---|---|
+| Vindicte | Vindicte | 1 Parade → Ferveur |
+| Protection | Dévotion | 1 Frappe → Pavois sacré |
+| Sacré | Concentration | 1 Frappe → Horion sacré |
+
+**Parole de lumière** est la carte emblème : la seule Dépense « universelle ». Sous Dévotion elle donne du blocage, sous Vindicte elle inflige des dégâts, sous Concentration elle soigne (le bonus d'Aura s'ajoute : 13 blocage, 12 dégâts ou 10 PV). Elle demande une cible seulement sous Vindicte.
 
 ### 4.2 Sort de barre de départ
 
 | Sort | Coût | Recharge | Effet |
 |---|---|---|---|
-| **Jugement** | 0 | 2 tours | Consomme ton Sceau actif et déclenche son effet de Jugement. Sans Sceau actif, inflige seulement 4 dégâts. |
+| **Jugement** | 0 | 2 tours | Inflige 5 dégâts. ✦2 |
+
+**Ouverture typique (tour 1) :** Jugement (2 PS), Frappe du croisé (3 PS), Parole de lumière sous Dévotion (13 blocage), Frappe, Parade.
+
+**Rythme visé :** environ 3 à 4 PS par tour (Jugement 1 en moyenne, Aura 1, générateurs 1 à 2), soit **une Dépense par tour**, parfois deux.
 
 ---
 
 ## 5. Les cartes (51)
 
-**Légende des raretés :** C = Commune · PC = Peu commune · R = Rare · É = Épique (débloquée par le dernier palier de talent de son arbre).
+**Légende :** C = Commune · PC = Peu commune · R = Rare · É = Épique (palier 5). **✦n** = gagne n PS. Toutes les Dépenses coûtent **0 énergie + 3 PS** (sauf mention).
 
 ### 5.1 Tronc commun (9 cartes)
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Sceau de droiture** | 1 | Compétence (Sceau) | C | Active le Sceau de droiture. | Coûte 0 |
-| **Sceau du croisé** | 1 | Compétence (Sceau) | C | Active le Sceau du croisé. | Coûte 0 |
-| **Frappe du croisé** | 1 | Attaque | C | Inflige 8 dégâts. | 11 dégâts |
-| **Exorcisme** | 1 | Sort | C | Inflige 9 dégâts, ou 18 contre un Mort-vivant ou un Démon. | 12 / 24 |
-| **Lumière bienfaisante** | 1 | Compétence | C | Soigne 5 PV. | 8 PV |
-| **Aura de dévotion** | 1 | Pouvoir (Aura) | C | Gagne 2 Robustesse. | 3 Robustesse |
-| **Sceau de lumière** | 1 | Compétence (Sceau) | PC | Active le Sceau de lumière. | Coûte 0 |
-| **Aura de résistance** | 1 | Pouvoir (Aura) | PC | Les Zones de feu et les DoT ennemis t'infligent 50 % de dégâts en moins. | Coûte 0 |
-| **Colère sacrée** | 2 | Sort | PC | Inflige 6 dégâts à tous les ennemis, doublés contre les Morts-vivants et les Démons. | 9 dégâts |
+| **Frappe du croisé** | 1 | Attaque | C | Inflige 6 dégâts. ✦1 | 9 dégâts |
+| **Parole de lumière** | 3 PS | Dépense | C | Selon l'Aura : 9 blocage, 8 dégâts ou 7 PV de soin. | 12 / 11 / 10 |
+| **Bouclier de la foi** | 1 | Compétence | C | Gagne 6 blocage. ✦1 | 9 blocage |
+| **Lumière bienfaisante** | 1 | Compétence | C | Soigne 5 PV. ✦1 | 8 PV |
+| **Exorcisme** | 1 | Sort | C | Inflige 8 dégâts, 16 contre un Mort-vivant ou un Démon. | 11 / 22 |
+| **Prière du croisé** | 0 | Compétence | PC | ✦1. **Éphémère.** | Pioche aussi 1 carte |
+| **Colère sacrée** | 2 | Sort | PC | Inflige 6 dégâts à tous, doublés contre les Morts-vivants et les Démons. | 9 dégâts |
+| **Résistance sacrée** | 1 | Compétence | PC | 2 tours : Zones de feu et DoT ennemis t'infligent 50 % de moins. | Coûte 0 |
+| **Bénédiction de puissance** | 1 | Pouvoir | R | Ta 1re Dépense de chaque tour a +3 à son effet. | Inné |
 
-### 5.2 Arbre Sacré (14 cartes) : soins et lumière
+### 5.2 Arbre Vindicte (14 cartes) : la croisade
+
+**Dépenses :** dégâts sur une cible, dégâts de zone, exécution.
 
 | Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
 |---|---|---|---|---|---|
-| **Lumière sacrée** | 2 | Compétence | C | Soigne 14 PV. | 19 PV |
-| **Onde sacrée** | 1 | Sort | C | Au choix : inflige 8 dégâts **ou** soigne 8 PV. | 11 |
-| **Main sacrée** | 1 | Compétence | C | Gagne 6 blocage. Soigne 4 PV. | 8 et 6 |
-| **Lueur protectrice** | 0 | Compétence | C | Gagne 4 blocage. Pioche 1 carte. | 6 blocage |
-| **Éclair de foi** | 1 | Sort | C | Inflige 7 dégâts. Soigne 3 PV. | 10 / 4 |
-| **Sceau de sagesse** | 1 | Compétence (Sceau) | PC | Active le Sceau de sagesse. | Coûte 0 |
-| **Faveur divine** | 0 | Compétence | PC | Ta prochaine carte de soin ou ton prochain Sort ce tour-ci a son effet **doublé**. **Épuisé.** | N'est plus Épuisé |
+| **Verdict du templier** | 3 PS | Dépense | C | Inflige 18 dégâts. | 24 dégâts |
+| **Tempête divine** | 3 PS | Dépense | PC | Inflige 9 dégâts à tous les ennemis. | 12 dégâts |
+| **Sentence** | 3 PS | Dépense | R | Inflige 12 dégâts, triplés si la cible a 20 % de PV ou moins. | 16 dégâts |
+| **Lame de justice** | 2 | Attaque | C | Inflige 12 dégâts. ✦2 | 16 dégâts |
+| **Ferveur** | 1 | Attaque | C | Inflige 4 dégâts 2 fois. ✦1 | 6 × 2 |
+| **Frappe divine** | 2 | Attaque | C | Inflige 16 dégâts. | 21 dégâts |
+| **Tourbillon sacré** | 2 | Attaque | C | Inflige 6 dégâts à tous les ennemis. ✦1 | 9 dégâts |
+| **Marteau de courroux** | 1 | Attaque | PC | Inflige 8 dégâts. ✦2 si la cible a 20 % de PV ou moins. | 11 dégâts |
+| **Zèle** | 1 | Pouvoir | PC | Chaque Dépense te donne 1 Puissance (5 au plus). | Inné |
+| **Art de la guerre** | 1 | Pouvoir | PC | Après ta 2e Attaque de chaque tour, ✦1. | Coûte 0 |
+| **Repentance** | 1 | Compétence | R | La cible (sauf boss) est **Contrôlée** 2 tours. **Épuisé.** | 3 tours |
+| **Croisade** | 2 | Pouvoir | R | Tes Attaques infligent +2 dégâts, +4 contre Morts-vivants et Démons. | Coûte 1 |
+| **Vengeance** | 1 | Pouvoir | R | Quand tu tues un ennemi : gagne 1 Puissance. ✦1 | Coûte 0 |
+| **Courroux vengeur** | 2 | Compétence | É | 3 tours : tes cartes ✦ donnent 1 PS de plus, tes Dépenses +4 dégâts. **Épuisé.** | Coûte 1 |
+
+### 5.3 Arbre Protection (14 cartes) : le rempart
+
+**Dépenses :** blocage immédiat (avec dégâts), défense qui grandit pendant le combat, riposte.
+
+| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
+|---|---|---|---|---|---|
+| **Bouclier du vertueux** | 3 PS | Dépense | C | Gagne 14 blocage. Inflige 4 dégâts à tous les ennemis. | 18 / 6 |
+| **Rempart de lumière** | 3 PS | Dépense | PC | Gagne 6 blocage et 2 Robustesse (pour ce combat). | 9 / 3 |
+| **Juste châtiment** | 3 PS | Dépense | R | Inflige les dégâts que tu as bloqués depuis ton dernier tour. | +5 dégâts |
+| **Pavois sacré** | 1 | Compétence | C | Gagne 7 blocage. ✦1 | 10 blocage |
+| **Bouclier béni** | 2 | Compétence | C | Gagne 15 blocage. | 20 blocage |
+| **Marteau de piété** | 1 | Attaque | C | Inflige 5 dégâts à tous. Gagne 4 blocage. ✦1 | 7 / 5 |
+| **Résolution sacrée** | 1 | Compétence | C | Gagne 6 blocage. **Dissipation (Magie).** | 9 blocage |
+| **Garde vigilante** | 0 | Compétence | C | Gagne 4 blocage. **Éphémère.** | 6 blocage |
+| **Consécration** | 2 | Sort | PC | À la fin de ce tour et du suivant, inflige 5 dégâts à tous. | 7 dégâts |
+| **Bouclier lancé** | 1 | Attaque | PC | 7 dégâts, rebondit sur 2 ennemis. **Interruption** (1re cible). ✦1 | 10 dégâts |
+| **Sanctuaire** | 1 | Pouvoir | PC | Chaque attaque ennemie t'inflige 1 dégât de moins. | 2 de moins |
+| **Ferveur du gardien** | 1 | Pouvoir | PC | 1re attaque entièrement bloquée de chaque tour : ✦1 de plus. | Inné |
+| **Dernier serment** | 1 | Pouvoir | R | 1re fois du combat sous 20 % de tes PV max : soigne 15 PV. | Coûte 0 |
+| **Gardien des rois** | 2 | Pouvoir | É | Tes Dépenses donnent +6 blocage. Toute attaque bloquée renvoie 3 dégâts. | Coûte 1 |
+
+### 5.4 Arbre Sacré (14 cartes) : la lumière
+
+**Dépenses :** gros soin, soin et dégâts de zone, soin et blocage.
+
+| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
+|---|---|---|---|---|---|
+| **Mot de gloire** | 3 PS | Dépense | C | Soigne 14 PV. | 18 PV |
+| **Aurore sacrée** | 3 PS | Dépense | PC | Soigne 8 PV. Inflige 6 à tous (12 aux Morts-vivants et Démons). | 10 / 8 |
+| **Égide de lumière** | 3 PS | Dépense | R | Soigne 8 PV. Gagne autant de blocage que le soin. | 11 PV |
+| **Horion sacré** | 1 | Sort | C | Sous la moitié de tes PV : soigne 7 PV. Sinon : 7 dégâts. ✦1 | 10 |
+| **Lumière sacrée** | 2 | Compétence | C | Soigne 14 PV. ✦1 | 19 PV |
+| **Éclair de foi** | 1 | Sort | C | Inflige 6 dégâts. Soigne 3 PV. ✦1 | 9 / 4 |
+| **Main sacrée** | 1 | Compétence | C | Gagne 6 blocage. Soigne 4 PV. | 8 / 6 |
+| **Lueur protectrice** | 0 | Compétence | C | Gagne 3 blocage. Pioche 1 carte. | 5 blocage |
 | **Lumière purificatrice** | 1 | Compétence | PC | **Dissipation de tous les types.** Soigne 3 PV. | Coûte 0 |
+| **Faveur divine** | 0 | Compétence | PC | Ta prochaine Dépense ce tour-ci a son effet doublé. **Épuisé.** | ✦1 aussi |
 | **Rayonnement** | 1 | Pouvoir | PC | Chaque fois que tu te soignes, inflige 2 dégâts à tous les ennemis. | 3 dégâts |
 | **Grâce du croisé** | 1 | Pouvoir | PC | Au début de ton tour, soigne 2 PV. | 3 PV |
-| **Illumination** | 1 | Pouvoir | R | La première fois que tu te soignes à chaque tour, gagne 1 énergie. | Inné |
-| **Bénédiction royale** | 1 | Pouvoir | R | Gagne 1 Puissance, 1 Robustesse et 3 PV max (pour ce combat). | 2 / 2 / 5 |
-| **Aube purificatrice** | 2 | Sort | R | Soigne 10 PV. Inflige 10 dégâts à tous les Morts-vivants et Démons. | 14 / 14 |
-| **Avatar de lumière** | 2 | Pouvoir | É | Tes soins sont augmentés de 50 %. Chaque soin inflige le même montant de dégâts à un ennemi au hasard. | Coûte 1 |
-
-### 5.3 Arbre Protection (14 cartes) : le bouclier
-
-| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
-|---|---|---|---|---|---|
-| **Bouclier béni** | 2 | Compétence | C | Gagne 15 blocage. | 20 blocage |
-| **Pavois sacré** | 1 | Compétence | C | Gagne 8 blocage. Chaque attaque ennemie bloquée ce tour-ci inflige 3 dégâts à l'attaquant. | 11 / 4 |
-| **Marteau de piété** | 1 | Attaque | C | Inflige 6 dégâts à tous les ennemis. Gagne 4 blocage. | 8 / 6 |
-| **Résolution sacrée** | 1 | Compétence | C | Gagne 6 blocage. **Dissipation (Magie).** | 9 blocage |
-| **Garde vigilante** | 0 | Compétence | C | Gagne 5 blocage. **Éphémère.** | 7 blocage |
-| **Consécration** | 2 | Sort | PC | À la fin de ce tour et du suivant, inflige 5 dégâts à tous les ennemis. | 7 dégâts |
-| **Bouclier lancé** | 1 | Attaque | PC | Inflige 7 dégâts à la cible, puis rebondit sur 2 autres ennemis. **Interruption** sur la première cible. | 10 dégâts |
-| **Sceau du rempart** | 1 | Compétence (Sceau) | PC | Active le Sceau du rempart. | Coûte 0 |
-| **Sanctuaire** | 1 | Pouvoir | PC | Chaque attaque ennemie t'inflige 1 dégât de moins. | 2 de moins |
-| **Fervent** | 1 | Pouvoir | PC | Quand tu bloques entièrement une attaque, gagne 1 énergie à ton prochain tour (1 fois par tour). | Inné |
-| **Aura d'épines sacrées** | 1 | Pouvoir (Aura) | PC | Chaque fois qu'un ennemi t'attaque, il subit 3 dégâts. | 5 dégâts |
-| **Dernier serment** | 1 | Pouvoir | R | La première fois de ce combat que tu passerais sous 20 % de tes PV max, soigne 15 PV. | Coûte 0 |
-| **Juste châtiment** | 1 | Attaque | R | Inflige des dégâts égaux au **total des dégâts que tu as bloqués** depuis ton dernier tour. | Coûte 0 |
-| **Bouclier du croisé** | 2 | Compétence | É | Gagne 12 blocage. Jusqu'à la fin du combat, chaque attaque bloquée inflige 4 dégâts à l'attaquant et te soigne de 2 PV. | 16 blocage |
-
-### 5.4 Arbre Vindicte (14 cartes) : la croisade
-
-| Carte | Coût | Type | Rareté | Effet | Amélioration (+) |
-|---|---|---|---|---|---|
-| **Lame de justice** | 1 | Attaque | C | Inflige 9 dégâts, +3 si un Sceau est actif. | 12 / +4 |
-| **Ferveur** | 1 | Attaque | C | Inflige 5 dégâts 2 fois. | 7 × 2 |
-| **Frappe divine** | 2 | Attaque | C | Inflige 16 dégâts. | 21 dégâts |
-| **Inquisition** | 0 | Compétence | C | Active gratuitement un Sceau de base de ton choix. Pioche 1 carte. | Pioche 2 cartes |
-| **Tourbillon sacré** | 2 | Attaque | C | Inflige 7 dégâts à tous les ennemis. | 10 dégâts |
-| **Sceau de vengeance** | 1 | Compétence (Sceau) | PC | Active le Sceau de vengeance. | Coûte 0 |
-| **Marteau du châtiment** | 1 | Attaque | PC | Inflige 10 dégâts, **triplés** si la cible a 20 % de PV ou moins. | 13 dégâts |
-| **Zèle** | 1 | Pouvoir | PC | Chaque fois que tu actives un Sceau, gagne 1 Puissance (5 maximum). | Inné |
-| **Science du combat** | 1 | Pouvoir | PC | Après ta 2ᵉ Attaque de chaque tour, ta prochaine carte de soin coûte 0. | Coûte 0 |
-| **Exaltation** | 0 | Compétence | PC | Gagne 2 énergie. Ton Sceau actif est perdu (sans Jugement). | Gagne 3 énergie |
-| **Repentance** | 1 | Compétence | R | La cible (sauf boss) est **Contrôlée** 2 tours. **Épuisé.** | 3 tours |
-| **Vengeance** | 1 | Pouvoir | R | Chaque fois que tu tues un ennemi, gagne 1 Puissance. | Coûte 0 |
-| **Croisade** | 2 | Pouvoir | R | Tes Attaques infligent +2 dégâts, +4 contre les Morts-vivants et les Démons. | Coûte 1 |
-| **Verdict des cieux** | 2 | Attaque | É | Inflige 12 dégâts 2 fois. Déclenche l'effet de Jugement de ton Sceau actif **sans le consommer**. | 16 × 2 |
+| **Illumination** | 1 | Pouvoir | R | 1re Dépense de chaque tour : gagne 1 énergie. | Inné |
+| **Avatar de lumière** | 3 | Pouvoir | É | Tes soins +25 %. La moitié de chaque soin frappe un ennemi au hasard. | Coûte 2 |
 
 ---
 
@@ -164,76 +211,71 @@ Le Paladin est un **guerrier sacré** en armure lourde. Il imprègne ses armes d
 
 | Sort | Coût | Recharge | Effet | Source principale |
 |---|---|---|---|---|
-| **Jugement** | 0 | 2 tours | Consomme ton Sceau actif et déclenche son effet de Jugement. Sans Sceau actif, inflige seulement 4 dégâts. | Départ |
-| **Imposition des mains** | 0 | 1 fois par combat | Soigne 50 % de tes PV max. | Talent Sacré, palier 3 |
+| **Jugement** | 0 | 2 tours | Inflige 5 dégâts. ✦2 | Départ |
+| **Imposition des mains** | 0 | 1 fois par combat | Sous 30 % de tes PV : soigne 30 % de tes PV max. | Talent Sacré, palier 3 |
 | **Purification** | 0 | 3 tours | **Dissipation (Magie, Poison, Maladie).** | Talent Sacré, palier 3 |
-| **Bouclier divin** | 1 | 6 tours | Tu es **immunisé à tous les dégâts** jusqu'à ton prochain tour. Tes Attaques infligent 50 % de dégâts en moins ce tour-ci. | Talent Protection, palier 3 |
-| **Marteau du jugement** | 1 | 4 tours | Inflige 6 dégâts. **Interruption.** La cible (sauf boss) est Contrôlée 1 tour. | Talent Protection, palier 3 · Talent Vindicte, palier 3 |
-| **Ailes de justice** | 0 | 6 tours | Gagne 2 Puissance pendant 3 tours. | Talent Vindicte, palier 3 |
+| **Bouclier divin** | 1 | 7 tours | Immunisé à tous les dégâts jusqu'à ton prochain tour. Tes Attaques –50 % ce tour-ci. | Talent Protection, palier 3 |
+| **Marteau du jugement** | 1 | 4 tours | Inflige 6 dégâts. **Interruption.** Cible (sauf boss) Contrôlée 1 tour. | Talents Protection et Vindicte, palier 3 |
+| **Ailes de justice** | 0 | 6 tours | Gagne 2 Puissance pendant 3 tours. ✦1 | Talent Vindicte, palier 3 |
 
-**Sorts de barre dans les tables de loot** (exemples) : *Bénédiction de sauvegarde* (12 blocage et Dissipation Poison, recharge 4), *Charge sacrée* (8 dégâts et active le Sceau du croisé, recharge 3).
+**Sorts de loot :** *Bénédiction de sauvegarde* (12 blocage et Dissipation Poison, recharge 4), *Charge sacrée* (8 dégâts, ✦1, recharge 3), *Lumière de l'aube* (Dissipation de tous les types et 6 PV, une fois par combat).
 
 ---
 
 ## 7. Les talents
 
-### 7.1 Arbre Sacré
+Chaque arbre joue sur **trois leviers seulement** : la génération de PS, la puissance des Dépenses, et ce qui se passe à 5 PS.
+
+### 7.1 Arbre Vindicte
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Lumière améliorée** : tes soins rendent +2 PV. | **Esprit divin** : +6 PV max. |
-| **2** | **Purification rapide** : Lumière purificatrice coûte 0. | **Sagesse accrue** : le Jugement du Sceau de sagesse donne 1 énergie de plus. |
-| **3** | **Imposition des mains** : ajoute ce sort à ta barre. | **Purification** : ajoute ce sort à ta barre. |
-| **4** | **Lumière bénie** : chaque soin te donne aussi la moitié de son montant en blocage. | **Quatrième emplacement** : ta barre de sorts gagne un 4ᵉ emplacement. |
-| **5** | **Avatar de lumière** (carte épique) | — |
+| **1** | **Précision** : commence chaque combat avec 1 Puissance. | **Élan sacré** : commence chaque combat avec 1 PS. |
+| **2** | **Conviction** : tes Attaques infligent +3 dégâts aux Morts-vivants et aux Démons. | **Jugement aiguisé** : Jugement inflige 8 dégâts (au lieu de 5). |
+| **3** | **Ailes de justice** : ajoute ce sort à ta barre. | **Marteau du jugement** : ajoute ce sort à ta barre. |
+| **4** | **Fin de l'ère** : à 5 PS, une Dépense peut prendre les 5 PS pour **doubler** son effet. | **Vengeance divine** : après un Jugement, ta prochaine Attaque inflige +4 dégâts. |
+| **5** | **Courroux vengeur** (carte épique) | — |
 
 ### 7.2 Arbre Protection
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Bouclier amélioré** : tes cartes de blocage donnent +2 blocage. | **Robustesse** : +8 PV max. |
-| **2** | **Dévotion accrue** : Aura de dévotion donne 1 Robustesse de plus. | **Garde sacrée** : commence chaque combat avec 8 blocage. |
+| **1** | **Bouclier amélioré** : tes cartes de blocage donnent +1 blocage. | **Robustesse** : +8 PV max. |
+| **2** | **Garde sacrée** : commence chaque combat avec 8 blocage. | **Jugement du croisé** : Jugement donne aussi 5 blocage. |
 | **3** | **Bouclier divin** : ajoute ce sort à ta barre. | **Marteau du jugement** : ajoute ce sort à ta barre. |
-| **4** | **Consécration durable** : Consécration dure 1 tour de plus. | **Rétribution** : Juste châtiment coûte 0. |
-| **5** | **Bouclier du croisé** (carte épique) | — |
+| **4** | **Ardent défenseur** : chaque Dépense te donne 2 Robustesse jusqu'à la fin du tour. | **Rétribution** : Juste châtiment ne coûte que 2 PS. |
+| **5** | **Gardien des rois** (carte épique) | — |
 
-### 7.3 Arbre Vindicte
+### 7.3 Arbre Sacré
 
 | Palier | Choix A | Choix B |
 |---|---|---|
-| **1** | **Jugements rapides** : la recharge de Jugement passe à 2 tours (au lieu de 3). | **Précision** : commence chaque combat avec 1 Puissance. |
-| **2** | **Sceaux bénis** : tous les Sceaux coûtent 0. | **Conviction** : tes Attaques infligent +3 dégâts aux Morts-vivants et aux Démons. |
-| **3** | **Ailes de justice** : ajoute ce sort à ta barre. | **Marteau du jugement** : ajoute ce sort à ta barre. |
-| **4** | **Vengeance divine** : après un Jugement, ta prochaine Attaque inflige +6 dégâts. | **Double sceau** : tu peux avoir **2 Sceaux actifs** en même temps. Jugement les consomme tous les deux. |
-| **5** | **Verdict des cieux** (carte épique) | — |
+| **1** | **Lumière améliorée** : tes cartes de soin rendent +2 PV. | **Esprit divin** : +6 PV max. |
+| **2** | **Purification rapide** : Lumière purificatrice coûte 0. | **Sagesse** : Jugement te soigne aussi de 3 PV. |
+| **3** | **Imposition des mains** : ajoute ce sort à ta barre. | **Purification** : ajoute ce sort à ta barre. |
+| **4** | **Lumière infusée** : ta 1re Dépense de chaque tour te rend 1 PS. | **Quatrième emplacement** : ta barre de sorts gagne un 4e emplacement. |
+| **5** | **Avatar de lumière** (carte épique) | — |
 
 ---
 
 ## 8. Le légendaire : l'Aurore ardente
 
-> *L'épée sacrée des Veilleurs de l'Aurore, ternie par la nécromancie. Elle attend qu'un cœur pur rallume sa flamme.*
+La quête ne change pas (voir `PALADIN_V2_SCEAUX.md` §8 et §12). Seul l'effet change :
 
 | Emplacement | Effet |
 |---|---|
-| **Arme** (légendaire) | Tes Jugements infligent **double dégâts** aux Morts-vivants et aux Démons, et **te soignent de 5 PV**. |
-
-**La quête (actes 2 et 3, 3 étapes) :**
-1. **Événement « Le reliquaire profané »** (acte 2) : dans une crypte de l'Aire, le Paladin trouve la **Lame ternie**.
-2. **Événement « Les Veilleurs de l'Aurore »** (acte 3) : au lieu de leur bénédiction, le Paladin leur demande de **purifier la lame**.
-3. **Vaincre un boss secondaire d'Irem** : la lame purifiée s'embrase. L'Aurore ardente est équipée dans l'emplacement Arme.
-
-La quête se termine tard dans la run, mais l'Aurore ardente est faite pour la **Nécropole céleste** et ses morts-vivants.
+| **Arme** (légendaire) | Tes Dépenses infligent **double dégâts** aux Morts-vivants et aux Démons, et **te soignent de 5 PV**. |
 
 ---
 
 ## 9. Les builds
 
-| Build | Arbres | Cartes clés | Plan de jeu |
-|---|---|---|---|
-| **Le Croisé** | Vindicte | Sceau de vengeance, Zèle, Croisade, Verdict des cieux | Changer souvent de Sceau, frapper fort et juger dès que possible. |
-| **Le Protecteur** | Protection | Pavois sacré, Bouclier béni, Juste châtiment, Bouclier du croisé | Bloquer d'énormes attaques, puis renvoyer les dégâts bloqués. |
-| **Le Lumineux** | Sacré | Rayonnement, Illumination, Lumière sacrée, Avatar de lumière | Se soigner en permanence, et transformer chaque soin en dégâts. |
-| **Le Juge** | Vindicte + Sacré | Sceau de lumière, Science du combat, Lame de justice | Un combattant qui frappe et se soigne à chaque tour. |
+| Build | Arbres | Aura principale | Cartes clés | Plan de jeu |
+|---|---|---|---|---|
+| **Le Croisé** | Vindicte | Vindicte | Verdict du templier, Lame de justice, Zèle, Courroux vengeur | Générer vite, dépenser chaque tour, garder 5 PS pour Fin de l'ère sur le boss. |
+| **Le Rempart** | Protection | Dévotion | Bouclier du vertueux, Rempart de lumière, Juste châtiment, Gardien des rois | Bloquer entièrement pour générer, empiler la Robustesse, renvoyer les coups. |
+| **Le Lumineux** | Sacré | Concentration | Mot de gloire, Rayonnement, Illumination, Avatar de lumière | Chaque soin génère, et chaque soin fait des dégâts. |
+| **Le Juge** | Vindicte + Protection | Dévotion, puis Vindicte | Parole de lumière, Bouclier lancé, Verdict du templier | Encaisser l'attaque annoncée en Dévotion, passer en Vindicte le tour où l'on frappe. |
 
 ---
 
@@ -241,66 +283,82 @@ La quête se termine tard dans la run, mais l'Aurore ardente est faite pour la *
 
 | Mécanique | Le Paladin… |
 |---|---|
-| **Survie** | ✅✅ 80 PV, soins, blocage, Bouclier divin, Imposition des mains. |
-| **Dissipation** | ✅ Lumière purificatrice (tous les types), Purification, Résolution sacrée. |
+| **Survie** | ✅✅ 80 PV, Dépenses de blocage ou de soin au choix, Bouclier divin, Imposition des mains. |
+| **Dissipation** | ✅ Lumière purificatrice, Purification, Résolution sacrée. |
 | **Interruption** | ✅ Marteau du jugement, Bouclier lancé. |
-| **Morts-vivants et Démons** | ✅✅ Exorcisme, Colère sacrée, Croisade, l'Aurore ardente. Il brille dans la Nécropole. |
-| **Zones de feu** | ✅ Aura de résistance. |
-| **Enrage timer** | ➖ Dégâts corrects mais pas explosifs, sauf en Vindicte. |
-| **Adds** | ➖ Consécration, Marteau de piété, Tourbillon sacré, Colère sacrée. |
+| **Morts-vivants et Démons** | ✅✅ Exorcisme, Colère sacrée, Aurore sacrée, Croisade, l'Aurore ardente. |
+| **Zones de feu** | ✅ Résistance sacrée. |
+| **Enrage timer** | ➖ Correct, fort en Vindicte (Fin de l'ère). |
+| **Adds** | ➖ Tempête divine, Tourbillon sacré, Consécration, Marteau de piété, Colère sacrée. |
+| **Malédiction de lignée** (Vhaeryx, 2 tours) | Ta PS tombe à 0 et tu n'en génères plus. |
 
 ---
 
-## 11. Notes de conception
+## 11. Équilibrage : la grille de référence
 
-- **Une classe simple et solide :** le cycle Sceau puis Jugement est facile à comprendre, ce qui en fait une bonne deuxième classe pour un nouveau joueur.
-- **À surveiller à l'équilibrage :**
-  - Le talent Double sceau combiné à Verdict des cieux peut déclencher deux Jugements par carte.
-  - Juste châtiment après un tour de gros blocage peut infliger beaucoup de dégâts pour 1 énergie.
-  - La survie globale (soins + blocage + Bouclier divin) ne doit pas rendre les combats ennuyeux : l'enrage timer reste le garde-fou.
-- **Tags Mort-vivant et Démon :** il faudra les répartir dans les 4 actes pour que le Paladin ne soit pas fort uniquement dans l'acte bonus.
-- **Carte épique à revoir (mesure du bot, novembre 2026).** Contexte : le palier 5 coûte **3 points** (CONCEPT.md §9, en jeu depuis novembre 2026). Une carte épique doit alors valoir environ 3 talents des paliers 1 à 4, soit **+15 à +25 points** de victoire du bot. Build mesuré : paliers 1 à 4 de l'arbre + 3 paliers d'un autre, 200 runs, difficulté 0.
-  - **Bouclier du croisé : −7 points** (contre +21 pour 3 talents). Le bot la joue bien (tôt, face à une attaque dans 95 % des cas). Sans les copies reprises en récompense, la victoire revient exactement à la base : **la carte vaut zéro**, et ses copies en plus (1,5 en fin de run) coûtent environ 7 points. 18 blocage pour 2 énergie, Épuisée, riposte d'un seul tour : un profil de peu commune.
-  - **Piste :** en faire la carte qui fonde l'arbre : la riposte et le soin **durent tout le combat** (Pouvoir ou effet permanent), quitte à baisser le blocage.
+Toute la classe se règle avec **un seul taux de conversion** :
 
-  - **Fait (novembre 2026) :** Bouclier du croisé n'est plus Épuisé, avec 12 blocage (16) et un renvoi de 4 dégâts (2 PV de soin inchangés). Non Épuisé avec 18 blocage et 6 dégâts, il était bien trop fort (Protection 89 %).
-  - **Résultat (150 runs, choix des profils du bot) :** Protection 7 + Vindicte 3 **73 %**, Sacré 7 + Vindicte 3 **58 %**, Vindicte 7 + Sacré 3 **65 %** (avant : 53, 58 et 65 %). Avatar de lumière et Verdict des cieux n'ont pas bougé.
+| Grandeur | Valeur de référence |
+|---|---|
+| 1 énergie | environ 7 points d'effet (comme les autres classes) |
+| 1 PS | environ 3 points d'effet |
+| Générateur à 1 énergie | 6 points d'effet + ✦1 |
+| Dépense de base (Parole de lumière) | 8 à 9 points + le bonus d'Aura (+3 ou +4) |
+| Dépense d'arbre | 14 à 18 points, sur un seul type d'effet |
+
+Si une spécialisation est trop forte, on ne touche qu'**un chiffre** : le bonus d'Aura, la génération passive, ou la valeur de la Dépense phare.
+
+**Bot :** valeur de la PS dans `evaluate()` (environ 3 par point, un peu moins à 5 puisque le surplus est perdu). Règle simple pour le profil : dépenser dès 3 PS ; passer en Dévotion si une attaque ennemie est annoncée et que le blocage ne suffit pas ; sinon, Aura de l'arbre principal. Cibles habituelles (CLAUDE.md, recette « Ajouter une classe », point 11).
+
 ---
 
-## 12. Ce qui est en jeu dans le prototype
+## 12. Notes de conception et points à surveiller
 
-**Les chiffres retenus après l'équilibrage** (voir `docs/EQUILIBRAGE.md`, §13) :
+- **Trop de souplesse ?** Changer d'Aura sans perdre de PS peut rendre le Paladin bon partout. Le coût de 1 énergie dès le 2e changement du tour devrait suffire ; sinon, le 1er changement fera perdre 1 PS.
+- **Dépenses à 0 énergie :** avec beaucoup de génération (Courroux vengeur, Art de la guerre, Ferveur), surveiller le nombre de Dépenses par tour. Le plafond à 5 limite déjà à deux Dépenses d'affilée ; si besoin, limite de 2 Dépenses par tour.
+- **Fin de l'ère + Faveur divine (décidé le 27 novembre 2026) :** pas de cumul. Une Dépense n'est doublée qu'une fois ; si Fin de l'ère la double déjà, Faveur divine reste en attente pour la Dépense suivante du tour (elle se perd en fin de tour). L'aperçu de la carte le montre.
+- **Juste châtiment** reste à surveiller après un gros tour de blocage (il était déjà signalé en 0.2).
+- **Les 3 Dépenses par arbre** donnent de la diversité : chaque arbre a une Dépense de base, une de zone ou de durée, et une rare plus situationnelle. Avec Parole de lumière, un paquet a jusqu'à 4 Dépenses possibles, et le choix des récompenses compte.
+- **Ce qui disparaît** par rapport à la 0.2 : les 6 Sceaux, la Censure, Double sceau, Inquisition, Exaltation, Science du combat, Bénédiction royale, Aube purificatrice, Bouclier du croisé, Verdict des cieux, les Auras en Pouvoir (Dévotion, Résistance, Épines sacrées).
+
+---
+
+## 13. Pour le test de concept (fait le 27 novembre 2026)
+
+1. Ressource `ps` (0 à 5) sur le joueur, et les mots-clés ✦ et « Dépense » (bandeau doré, raison de carte grisée).
+2. Bouton d'Aura (1 changement gratuit par tour, puis 1 énergie), avec trois emblèmes ; sous la barre de PV, une jauge de 5 losanges dorés.
+3. Les 51 cartes, les 6 sorts, les 15 talents (`classes.ts`, cartes, `spells.ts`, `talents.ts`, `talent_icons.ts`).
+4. Tutoriel du Paladin (`CLASS_STEPS`) : 3 bulles (la jauge, les Dépenses, le bouton d'Aura).
+5. Bot : valeur de la PS et choix de l'Aura, puis 200 runs par profil (Vindicte, Protection, Sacré, et un hybride), notées dans `EQUILIBRAGE.md`.
+6. **Conversion (décidé le 27 novembre 2026)** : une expédition en cours avec l'ancien Paladin est convertie (étape de `migrate()` dans `save.ts`). Chaque ancienne carte devient sa plus proche cousine, amélioration gardée : Sceaux de droiture, du croisé → Parole de lumière ; Sceau du rempart → Bouclier du vertueux ; Sceau de vengeance → Verdict du templier ; Sceaux de lumière, de sagesse → Mot de gloire ; Auras de dévotion, d'épines sacrées → Rempart de lumière ; Aura de résistance → Résistance sacrée ; Inquisition, Exaltation → Prière du croisé ; Science du combat → Art de la guerre ; Bénédiction royale → Bénédiction de puissance ; Aube purificatrice → Aurore sacrée ; Bouclier du croisé → Gardien des rois ; Verdict des cieux → Courroux vengeur. Les sorts disparus quittent la barre, et les points de talent du Paladin sont rendus (profil), avec le message « Le Paladin a changé : replace tes talents ».
+7. **Publication (décidé le 27 novembre 2026)** : sur `dev` et `playtest` ensemble, dès que les tests sont verts et qu'une première passe du bot (niveau 1 contre Vulkhar, 50 runs) ne montre rien d'aberrant ; news pour les testeurs. Les réglages fins suivront leurs retours.
+
+---
+
+## 14. Ce qui est en jeu (27 novembre 2026)
+
+**Le code :** `src/engine/paladin.ts` (Puissance sacrée, Auras, Dépenses), `cards_paladin.ts` (53 cartes avec Frappe et Parade ; `OLD_PALADIN_CARDS` pour la conversion), sorts dans `spells.ts`, arbres dans `talents.ts`, Aura de départ `startAura` dans `run.ts`, paquet de départ `starterSwaps` dans `classes.ts`, conversion dans `save.ts` (run version 29, profil version 9), tests dans `tests/paladin.test.ts`.
+
+**Les règles précisées en codant :**
+- **Une Dépense** a le champ `holyCost` (3). Les Dépenses qui font des dégâts (Verdict du templier, Tempête divine, Sentence, Juste châtiment) sont des **Attaques** : Croisade, Conviction et la contrepartie de Concentration (−20 %) s'y appliquent. Les autres sont des Compétences.
+- **Le bonus d'Aura** arrive après l'effet de la Dépense, une fois (même doublée) : Dévotion +4 blocage, Concentration +3 PV, Vindicte un coup de 4 dégâts sur la cible (sur tous les ennemis pour une Dépense de zone : Tempête divine, Bouclier du vertueux, Aurore sacrée). **Sous Vindicte, une Dépense sans cible en demande une** (Parole de lumière, Mot de gloire…).
+- **Le gain passif d'Aura** : 1 par tour au plus. Concentration compte un soin lancé même à PV pleins. Dévotion compte une attaque entièrement bloquée pendant le tour ennemi. Ferveur du gardien s'y ajoute (2 pour la même attaque).
+- **Fin de l'ère** est automatique : une Dépense jouée à 5 PS les prend toutes. **Faveur divine** attend alors la Dépense suivante du tour ; elle se perd en fin de tour.
+- **Courroux vengeur** : les cartes ✦ (et Marteau de courroux, Faveur divine+) donnent 1 de plus ; les coups des Dépenses +4 dégâts. Le Jugement n'est pas une carte ✦.
+- **Bénédiction de puissance** : +3 au bonus d'Aura de la 1re Dépense du tour.
+- **Égide de lumière** : le blocage suit le soin prévu, même à PV pleins.
+- **Le Jugement** n'est plus touché par une recharge réduite (Jugements rapides disparaît) : recharge 2.
+- **Illustrations** : les 19 nouvelles cartes reprennent les dessins des 19 cartes retirées (`tools/pixel/illustrations_paladin.py`, fonctions renommées). À redessiner plus tard pour certaines (Tempête divine garde le dessin du Sceau du croisé).
+- **Interface** : sous la barre de PV, la jauge « SACRÉE » (5 losanges), les 3 boutons d'Aura (comme les Postures) et une ligne d'aide ; un losange doré montre le coût en PS sur les Dépenses ; pastilles Faveur divine, Courroux, Résistance, Ardent défenseur. Tuto : 3 bulles (jauge, Dépense, Aura).
+- **Conversion** : la carte la plus proche (§13), amélioration gardée, aussi dans un combat en cours (PS à 0, Dévotion) ; les talents de la run suivent (Double sceau → Fin de l'ère…). Le profil rend les points de talent du Paladin ; un message « Le Paladin a changé » s'affiche une fois dans le hall.
+- **Le bot** : la PS vaut environ 3 par point ; il change d'Aura seulement quand c'est gratuit, selon sa main (Dépenses à venir, Attaques, soins, coup annoncé).
+
+**Les chiffres retenus après le bot (27 novembre 2026, `EQUILIBRAGE.md` §30)** — ils remplacent ceux des §4 à §7 :
 
 | Élément | Fiche | En jeu |
 |---|---|---|
-| Parade (départ) | 5 blocage (8 améliorée) | **6 blocage (9)** : le renfort de départ des autres classes |
-| Jugement | recharge 2 ; sans Sceau : 4 dégâts | **recharge 3** (2 avec Jugements rapides) ; **sans Sceau : 6 dégâts** |
-| Jugement du Sceau de droiture | 10 dégâts | **12 dégâts** |
-| Imposition des mains | 50 % des PV max, une fois par combat | **seulement sous 30 % des PV**, soigne **30 %** des PV max, une fois par combat |
-| Bouclier divin | recharge 6 | **recharge 7** |
-| Verdict des cieux (épique) | coût 2, 12 × 2 (16 × 2) | **coût 3 (2 amélioré), 8 × 2** |
-| Avatar de lumière (épique) | coût 2 (1), soins +50 %, chaque soin en dégâts | **coût 3 (2), soins +25 %, la moitié du soin en dégâts** |
-| Bouclier du croisé (épique) | 20 blocage (26), 6 dégâts et 2 PV | **18 blocage (24), 6 dégâts et 2 PV, Épuisé** ; depuis le palier 5 à 3 points : **12 blocage (16), 4 dégâts et 2 PV, plus Épuisé** (§11) |
-| Lumière améliorée | tes soins +2 | **tes cartes de soin +2** (pas le Sceau de lumière, le Jugement ni Grâce du croisé) |
-| Lumière bénie | la moitié du soin en blocage | **un quart du soin en blocage** |
-| Bouclier amélioré | +2 blocage | **+1 blocage** (comme le Guerrier) |
-| Vengeance divine | +6 | **+4** |
-
-**Paquet de départ (25 novembre 2026)** : 4 Frappes, **3 Parades, 2 Sceaux de droiture**, 1 Lumière bienfaisante (avant : 4 Parades et 1 Sceau). Mesures : `EQUILIBRAGE.md` §24.
-
-**Les règles précisées :**
-- **Les Sceaux** : une carte Sceau coûte 1 (0 améliorée). Un seul Sceau à la fois (deux avec Double sceau : le plus ancien est remplacé). Les bonus « tes Attaques » ne valent que pour les cartes Attaque (pas les Sorts, ni le Jugement).
-- **Le Jugement** est un sort de barre gratuit, qui demande une cible. Il consomme le(s) Sceau(x) actif(s). **Une carte Sceau rejouée alors que son Sceau est actif le juge aussi** (seulement lui ; cible si besoin : `cardNeedsTarget` dans `combat.ts`). Verdict des cieux déclenche le même Jugement sans consommer le Sceau.
-- **La Censure** (Sceau de vengeance) : chaque Attaque qui touche ajoute 1 cumul ; au début de son tour, l'ennemi subit autant de dégâts que de cumuls (ils ne diminuent pas). Le Jugement du Sceau de vengeance inflige 5 dégâts par cumul et les consomme.
-- **Les Auras** sont des Pouvoirs : une seule à la fois. Changer d'Aura retire la Robustesse de l'Aura de dévotion. L'Aura de résistance réduit de moitié les Zones de feu, la Toxine et l'Affliction rouge.
-- **Onde sacrée** : au lieu d'un choix, elle soigne si tu es sous la moitié de tes PV, et frappe sinon.
-- **Inquisition** réactive le dernier Sceau consommé par un Jugement (le Sceau de droiture s'il n'y en a pas eu).
-- **Faveur divine** double le prochain Sort (ses dégâts et ses soins) ou la prochaine carte qui soigne, pendant ce tour.
-- **Juste châtiment** compte les dégâts bloqués pendant le dernier tour des ennemis.
-- **Science du combat** : la carte de soin gratuite reste valable jusqu'à la fin du tour. Les cartes de soin sont celles qui soignent (Lumière bienfaisante, Lumière sacrée, Main sacrée, Éclair de foi, Onde sacrée, Lumière purificatrice, Aube purificatrice).
-- **Dernier serment** se déclenche dès que tu passes sous 20 % de tes PV max, même à 0 PV : tu restes à 1 PV et tu es soigné de 15.
-- **Sorts de loot :** Bénédiction de sauvegarde, Charge sacrée, et **Lumière de l'aube** (Dissipation de tous les types et 6 PV, une fois par combat).
-- **Les Démons** : Morvax, Croc-de-lave, les Molosses de braise et les Molosses enragés de Krâgg (acte 1). **Les Morts-vivants** : les Serviteurs rapiécés, les Drakes d'os, les Serviteurs d'os et Ossyrax (acte 2). Le Paladin voit ces étiquettes sur les ennemis.
-- **La Malédiction de lignée** de Vhaeryx (2 tours) : ton Sceau se brise, et tu ne peux plus en activer.
-- **L'Aurore ardente** : au premier « ? » de l'acte 2, le Reliquaire profané attend le Paladin. Au fond de la crypte, il trouve la Lame ternie. Ensuite, deux chemins : vaincre **Ossyrax** la purifie, puis on la rallume au feu de camp suivant (acte 2) ; ou, à l'acte 3, les **Veilleurs de l'Aurore** la bénissent (au lieu de leur bénédiction), et le prochain gardien d'Irem vaincu l'embrase : elle est équipée tout de suite.
-- **L'interface** : sous la barre de PV, deux emblèmes (le Sceau actif, l'Aura active) et une case « Jugement » qui dit ce que fera le Jugement maintenant.
+| Cartes ✦ (elles « paient » leur Puissance sacrée) | Frappe du croisé 6, Bouclier de la foi 6, Lumière bienfaisante 5, Lame de justice 12, Ferveur 4 × 2, Tourbillon 6, Pavois 7, Marteau de piété 5 et 4, Bouclier lancé 7, Horion 7, Lumière sacrée 14, Éclair de foi 6 et 3 | **4, 4, 4, 9, 3 × 2, 5, 5, 4 et 3, 6, 5, 12, 5 et 2** (améliorées en proportion) |
+| Dépenses de dégâts et de soin | Verdict 18, Tempête 9, Sentence 12, Mot de gloire 14, Aurore 8 et 6, Égide 8, Parole 8 dégâts ou 7 PV | **13, 7, 9, 11, 6 et 5, 7, 7 ou 6** (les Dépenses de blocage ne changent pas) |
+| Bonus d'Aura | Dévotion +4, Vindicte +4, Concentration +3 | **+4, +3, +2** |
+| Ailes de justice | +2 Puissance et 1 Puissance sacrée | **+2 Puissance seulement** (la Puissance sacrée en plus portait le niveau 5 et Vindicte au-dessus de 80 %) |
+| Jugement | 5 dégâts, ✦2, recharge 2 | inchangé (✦1 ou recharge 3 : le niveau 1 tombait à 0-10 % sans calmer le niveau 5) |

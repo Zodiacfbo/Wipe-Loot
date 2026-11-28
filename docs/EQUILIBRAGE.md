@@ -739,3 +739,27 @@ Paquet mixte (3 Châtiment, 3 Prière de garde, Soins rapides, Égide renforcée
 | Niveau 10 Sacré 7 + Discipline 3 | 46 % | 42 % | 96 → 98 % |
 
 **Conclusion** : rien ne bouge au-delà de la marge, sauf Discipline qui remonte (+10 points, à la limite de la marge) : la 2ᵉ Égide renforcée sert l'arbre de l'Égide dès le départ. Les trois arbres restent dans la cible (42 à 64 %) ; Sacré est maintenant le plus bas, à relire si les joueurs le trouvent faible. Le niveau 1 bat un peu plus souvent Vulkhar.
+
+---
+
+## 30. Le nouveau Paladin : Puissance sacrée (27 novembre 2026)
+
+Refonte « Puissance sacrée » (fiche `docs/classes/PALADIN.md`). Bot : la PS vaut environ 3 par point, il change d'Aura seulement quand c'est gratuit. Profils de `balance.sim.ts` inchangés (positions de talents), 40 à 50 runs par mesure (± 15 points).
+
+| Étape | Niveau 1 | Niveau 5 | Vindicte 7 | Protection 7 | Sacré 7 |
+|---|---|---|---|---|---|
+| Chiffres de la fiche | 12 % (Vulkhar 72 %) | 88 % | 96 % | 64 % | 90 % |
+| Jugement ✦1 | 10 % | 93 % | 83 % | 37 % | 87 % |
+| Jugement ✦1, sans gain d'Aura | 3 % | 70 % | 90 % | 57 % | 70 % |
+| Dépenses de dégâts et de soin baissées, Vindicte +3, Concentration +2 | 15 % | 80 % | 98 % | 45 % | 70 % |
+| + cartes ✦ baissées d'un quart | 8 % (Vulkhar 63 %) | 83 % | 83 % | 53 % | 73 % |
+| **+ Ailes de justice sans Puissance sacrée (retenu)** | **8 % (Vulkhar 63 %)** | **68 %** | **53 %** | **53 %** | **53 %** |
+| variante : Lumière améliorée +1, Sagesse 2, Conviction +2 | 8 % | 60 % | 78 % | 25 % | 60 % |
+| variante : Sagesse 2 | 8 % | 60 % | 63 % | 40 % | 70 % |
+
+**À retenir :**
+- **Une carte ✦ qui garde tout son effet rend la Puissance sacrée gratuite** : les Dépenses deviennent un bonus pur, et chaque petit talent fait basculer la classe (au niveau 5, retirer un seul talent coûtait 25 à 50 points, Précision 50). Les cartes ✦ ont donc environ un quart d'effet en moins que leur cousine sans ✦.
+- **L'Aura de départ ne compte presque pas** : niveau 1 démarré en Vindicte 8 %, niveau 5 démarré en Dévotion 83 % (avant les derniers réglages).
+- **Le niveau 5 reste au-dessus de la cible (68 %, 15-30 %)**, au-dessus même du niveau 10 : les cartes épiques et les paliers 4 n'ajoutent rien au bot (Courroux vengeur, Fin de l'ère, Gardien des rois). À mesurer à part (sondes `simulateRun` d'une carte épique seule) au prochain réglage. Le niveau 1 bat Vulkhar 63 % des fois (Guerrier 46 %), ce que demandait le mur du débutant (Paladin 0/12 au playtest).
+- Piège de sonde : un commentaire `// SONDE` collé au milieu d'une ligne a effacé `needsTarget` du Jugement pendant deux mesures (Jugement sans cible, donc sans dégâts). Toujours mettre une sonde sur sa propre ligne.
+

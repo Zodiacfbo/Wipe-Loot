@@ -49,7 +49,7 @@ describe('les textes des cartes restent lisibles sur téléphone', async () => {
 
   it('le mot du bandeau quitte le texte', () => {
     expect(splitRibbon('Coup final : inflige 6 dégâts par combo.')).toEqual({ ribbon: 'Coup final', text: 'Inflige 6 dégâts par combo.' });
-    expect(splitRibbon('Sceau : tes Attaques infligent +3 dégâts. Jugement : 12 dégâts.').ribbon).toBe('Sceau');
+    expect(splitRibbon('Dépense : inflige 18 dégâts.')).toEqual({ ribbon: 'Dépense', text: 'Inflige 18 dégâts.' });
     expect(splitRibbon('Inflige 6 dégâts.').ribbon).toBeNull();
   });
 });

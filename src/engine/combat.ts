@@ -30,7 +30,7 @@ import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStr
 import { addHallucination, folieStartTurn, gainFolie } from './folie';
 import { checkDebuffs, dominatedAttack, dreamEnergy, iremEnemyEnd, iremEnemyStart, iremPlayerTurn } from './irem';
 import { stunPet, swallow, yzharEndTurn, yzharEnemyStart, yzharPlayerTurn } from './yzhar';
-import { afterPaladinCard, censureTick, hasSeal, isPaladin, paladinEndTurn, paladinOnAttacked, paladinStartTurn, SEAL_JUDGE_TARGET } from './paladin';
+import { afterPaladinCard, afterSpend, auraBonus, auraOf, holyCostOf, holyResistActive, isPaladin, MAX_HOLY, paladinEndTurn, paladinOnAttacked, paladinStartTurn, spendPlan } from './paladin';
 import { afterHunterCard, flecheStartTurn, hunterDamageTaken, hunterEndTurn, hunterOnAttacked, hunterStartCombat, hunterStartTurn, isHunter, springTraps, trapCardBlock, trapTargetBlock } from './chasseur';
 import { afterDruidCard, druidDamageTaken, druidEndTurn, druidOnAttacked, druidStartCombat, druidStartTurn, enterForm, isDruid, setForm } from './druide';
 import { afterShamanCard, clearTotems, isShaman, shamanOnAttacked, shamanStartCombat, shamanStartTurn, totemsAct, windfuryExtra } from './chaman';
@@ -77,8 +77,8 @@ export function createCombat(
     ...(classId === 'pretre' ? { aegis: 0, maxAegis: gear.maxAegis ?? BASE_AEGIS, faith: 0, maxFaith: gear.maxFaith ?? BASE_FAITH } : {}),
     // Le Voleur commence chaque combat Camouflé (2 tours avec Ombres profondes ou Ténèbres).
     ...(classId === 'voleur' ? { combo: Math.min(5, gear.startCombo ?? 0), stealth: true, stealthTurns: gear.longStealth ? 2 : 1, stormCount: 0 } : {}),
-    // Le Paladin commence sans Sceau ni Aura.
-    ...(classId === 'paladin' ? { seals: [], aura: null, blockedSince: 0, zealGained: 0 } : {}),
+    // Le Paladin commence sans Puissance sacrée (Élan sacré : 1), en Aura de dévotion (l'arbre principal la change, run.ts).
+    ...(classId === 'paladin' ? { holy: Math.min(MAX_HOLY, gear.startHoly ?? 0), aura: 'devotion' as const, blockedSince: 0, zealGained: 0 } : {}),
     // Le Chasseur : son compagnon, sans Esprit ni Piège au départ.
     ...(classId === 'chasseur' ? { companion: companion ?? 'loup', aspect: null, traps: [], mark: null, frenzyStacks: 0 } : {}),
     // Le Druide commence en forme normale ; son premier changement de forme est gratuit.
@@ -300,8 +300,8 @@ export function startPlayerTurn(c: CombatState): void {
     c.openersFree = false;
     p.evasion = false;
   }
-  // Paladin : Fervent, Ailes de justice, Grâce du croisé ; le Sceau de sagesse fait piocher.
-  const wisdomDraw = isPaladin(c) ? paladinStartTurn(c) : 0;
+  // Paladin : les compteurs du tour, Ailes de justice, Courroux vengeur, Résistance sacrée, Grâce du croisé.
+  if (isPaladin(c)) paladinStartTurn(c);
   // Chasseur : Feindre la mort et Tir rapide s'arrêtent, l'Esprit du guépard fait piocher.
   const aspectDraw = hunterStartTurn(c);
   // Druide : Rôder, Fureur du tigre et Écorce s'arrêtent ; Tranquillité soigne et protège.
@@ -335,7 +335,7 @@ export function startPlayerTurn(c: CombatState): void {
   }
   // Malédiction de lignée du Mage : 1 carte de moins à chacun des 2 tours.
   if (c.classId === 'mage' && (p.debuffs?.lignee ?? 0) > 0) p.drawPenalty += 1;
-  drawCards(c, Math.max(0, 5 + manaDraw + distortion + wisdomDraw + aspectDraw + ancestorsDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
+  drawCards(c, Math.max(0, 5 + manaDraw + distortion + aspectDraw + ancestorsDraw + power(c, 'erudition') + (c.gear?.turnDraw ?? 0) - (p.drawPenalty ?? 0)));
   p.drawPenalty = 0;
   // Chaman : les totems agissent au début du tour.
   totemsAct(c);
@@ -497,6 +497,8 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return false;
   // Prêtre : le coût en Foi.
   if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return false;
+  // Paladin : le coût en Puissance sacrée d'une Dépense.
+  if (def.holyCost !== undefined && holyCostOf(c, card.id, def.holyCost) > (c.holy ?? 0)) return false;
   // Voleur : une Ouverture ne se joue qu'en Camouflage.
   if (def.opener && !stealthed(c, def.type === 'Attaque')) return false;
   // Chasseur : une carte Piège sans ennemi libre pour ce type.
@@ -520,6 +522,7 @@ export function cardBlockReason(c: CombatState, handIndex: number): string | nul
   const shards = shardCost(c, card.id, card.upgraded);
   if (shards === 'all' ? (c.shards ?? 0) === 0 : shards > (c.shards ?? 0)) return shards === 'all' ? 'Il te faut au moins 1 éclat d\'âme.' : `Pas assez d'éclats d'âme : il en faut ${shards}.`;
   if (def.faithCost === 'all' ? (c.faith ?? 0) === 0 : (def.faithCost ?? 0) > (c.faith ?? 0)) return def.faithCost === 'all' ? 'Il te faut de la Foi.' : `Pas assez de Foi : il en faut ${def.faithCost}.`;
+  if (def.holyCost !== undefined && holyCostOf(c, card.id, def.holyCost) > (c.holy ?? 0)) return `Pas assez de Puissance sacrée : il en faut ${holyCostOf(c, card.id, def.holyCost)}, tu en as ${c.holy ?? 0}.`;
   if (def.opener && !stealthed(c, def.type === 'Attaque')) return 'Une Ouverture ne se joue que Camouflé.';
   const trap = trapCardBlock(c, card.id);
   if (trap) return trap;
@@ -527,13 +530,13 @@ export function cardBlockReason(c: CombatState, handIndex: number): string | nul
 }
 
 /**
- * La carte demande-t-elle une cible ? Une carte Sceau rejouée alors que son Sceau est actif le juge :
- * elle vise alors un ennemi si ce Jugement en a besoin (Droiture, Croisé, Vengeance).
+ * La carte demande-t-elle une cible ? Sous l'Aura de vindicte, une Dépense vise un ennemi (son bonus de +4 dégâts),
+ * sauf une Dépense qui touche déjà tous les ennemis.
  */
 export function cardNeedsTarget(c: CombatState, cardId: string): boolean {
   const def = CARDS[cardId];
   if (def.needsTarget) return true;
-  return !!def.sealId && hasSeal(c, def.sealId) && SEAL_JUDGE_TARGET.includes(def.sealId);
+  return def.holyCost !== undefined && !def.aoeSpend && isPaladin(c) && auraOf(c) === 'vindicte';
 }
 
 export function playCard(c: CombatState, handIndex: number, targetUid?: number): boolean {
@@ -560,6 +563,14 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   // Prêtre : la Foi dépensée.
   const faithSpent = look.faithCost === 'all' ? c.faith ?? 0 : look.faithCost ?? 0;
   if (c.faith !== undefined) c.faith -= faithSpent;
+  // Paladin : une Dépense prend sa Puissance sacrée (toute, avec Fin de l'ère à 5) ; Faveur divine attend si Fin de l'ère double déjà.
+  const spend = def.holyCost !== undefined && isPaladin(c) ? spendPlan(c) : null;
+  if (spend) {
+    c.holy = spend.endOfEra ? 0 : (c.holy ?? 0) - holyCostOf(c, card.id, def.holyCost!);
+    if (spend.favor) c.favor = false;
+    c.spendsThisTurn = (c.spendsThisTurn ?? 0) + 1;
+    if (spend.double) fx(c, { kind: 'banner', text: spend.endOfEra ? 'Fin de l\'ère : effet doublé' : 'Faveur divine : effet doublé' });
+  }
   c.healedFlag = false;
   // Inspiration et Présence d'esprit ne servent qu'une fois.
   if (c.freeNext) c.freeNext = false;
@@ -621,9 +632,15 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
     twice = true;
   }
   c.playing = { cost, type: def.type, id: card.id, school: def.school, aoe: !def.needsTarget && (def.type === 'Attaque' || def.type === 'Sort'), opener: def.opener, form: def.form };
+  if (spend) c.spending = true;
   def.play(ctx);
   if (twice && c.phase === 'player' && (!target || !target.dead)) def.play(ctx);
   for (let i = 0; i < windfury && c.phase === 'player' && (!target || !target.dead); i++) def.play(ctx);
+  // Paladin : la Dépense doublée (Fin de l'ère ou Faveur divine), puis le bonus de l'Aura.
+  if (spend?.double && c.phase === 'player') def.play(ctx);
+  if (spend && c.phase === 'player') auraBonus(c, target, !!def.aoeSpend);
+  c.spending = false;
+  if (spend && c.phase === 'player') afterSpend(c);
   c.playing = undefined;
   if (c.combo !== undefined) afterRogueCard(c, def, comboHeld, attack);
   // Butin : Masse des flammes, Croc des trois souffles, Croc de Prismagor.
@@ -663,7 +680,7 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
       applySaignement(target, power(c, 'entaille_profonde'), c);
     }
   }
-  // Paladin : Sceau de lumière et du rempart, Faveur divine, Science du combat.
+  // Paladin : la Puissance sacrée des cartes ✦, Aura de vindicte, Art de la guerre.
   if (isPaladin(c)) afterPaladinCard(c, def, attack);
   // Chasseur : Concentration et Respiration lente ne servent qu'à une Attaque.
   if (isHunter(c)) afterHunterCard(c, attack);
@@ -806,8 +823,8 @@ export function endTurn(c: CombatState): void {
 
   // Les Zones de feu encore en main brûlent le joueur.
   const zones = c.hand.filter((card) => card.id === 'zone_de_feu');
-  // Aura de résistance (Paladin) : les Zones de feu font moitié moins mal.
-  const zoneCut = (c.gear?.zoneReduce ?? 0) + (c.aura?.id === 'resistance' ? 50 : 0);
+  // Résistance sacrée (Paladin) : les Zones de feu font moitié moins mal.
+  const zoneCut = (c.gear?.zoneReduce ?? 0) + (holyResistActive(c) ? 50 : 0);
   const zoneDmg = c.fireProof ? 0 : Math.round(6 * (1 - Math.min(100, zoneCut) / 100));
   for (let i = 0; i < zones.length; i++) {
     log(c, `Tu restes dans le feu : ${zoneDmg} dégâts.`);
@@ -985,7 +1002,7 @@ function resolveIntent(c: CombatState, e: EnemyState, intent: Intent): void {
         const aegisBefore = c.aegis ?? 0;
         const lost = damagePlayer(c, dmg, true);
         if (intent.pierce) c.player.block += kept;
-        // Paladin : épines sacrées, Pavois, Bouclier du croisé, Fervent, Juste châtiment.
+        // Paladin : Aura de dévotion, Ferveur du gardien, Gardien des rois, Juste châtiment.
         paladinOnAttacked(c, e, dmg, blockBefore - c.player.block, lost);
         // Chasseur : Contre-attaque, Riposte sauvage.
         hunterOnAttacked(c, e, dmg, Math.min(blockBefore, dmg));
@@ -1220,11 +1237,6 @@ function enemyTurnInner(c: CombatState): void {
       e.buffs.saignementTours -= 1;
       if (e.buffs.saignementTours === 0) e.buffs.saignement = 0;
       if (e.dead) continue;
-    }
-    // La Censure du Paladin
-    if ((e.buffs.censure ?? 0) > 0) {
-      censureTick(c, e);
-      if (e.dead || c.phase !== 'player') continue;
     }
     // Les DoT du Démoniste
     if (e.dots?.length) {
@@ -1470,8 +1482,8 @@ function lineageCurse(c: CombatState): void {
   } else if (c.classId === 'pretre') {
     log(c, 'Malédiction de lignée : pendant 2 tours, tes soins te blessent au lieu de te soigner.');
   } else if (c.classId === 'paladin') {
-    c.seals = [];
-    log(c, 'Malédiction de lignée : ton Sceau se brise, et tu ne peux plus en activer pendant 2 tours.');
+    c.holy = 0;
+    log(c, 'Malédiction de lignée : ta Puissance sacrée s\'éteint, et tu n\'en gagnes plus pendant 2 tours.');
   } else if (c.classId === 'chaman') {
     clearTotems(c);
     log(c, 'Malédiction de lignée : tes totems s\'effondrent, et tu ne peux plus en poser pendant 2 tours.');
@@ -1498,8 +1510,8 @@ function startTurnAct2(c: CombatState): void {
   }
   // Cœur d'Yzhar : un peu de Folie à chaque tour.
   if (c.gear?.turnFolie) gainFolie(c, c.gear.turnFolie);
-  // Aura de résistance (Paladin) : les DoT ennemis font moitié moins mal.
-  const dot = c.aura?.id === 'resistance' ? 1 : 2;
+  // Résistance sacrée (Paladin) : les DoT ennemis font moitié moins mal.
+  const dot = holyResistActive(c) ? 1 : 2;
   if ((d.toxine ?? 0) > 0) {
     d.toxine! -= 1;
     fx(c, { kind: 'tick', who: 'player', amount: dot, label: 'Toxine' });

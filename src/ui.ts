@@ -109,14 +109,14 @@ import { CHEST_SIZE, chestRoomAfterReturn, depositableSlots, heirloomSlot, settl
 import { emptyProfile, loadProfile, localSave, saveProfile } from './engine/save';
 // Outil de test (version dev seulement)
 import { DEV_IREM_FIGHTS, devFightIrem, devGold, devHeal, devNextAct, devResetClass, devSetLevel, devUnlockClasses, devUnlockDifficulties, devWinCombat } from './engine/devtools';
-import { AURA_NAMES, SEAL_NAMES, SEAL_TEXT } from './engine/paladin';
+import { AURA_IDS, AURAS, auraChangeCost, auraOf, canChangeAura, changeAura, holyCostOf, MAX_HOLY } from './engine/paladin';
 import { ELEMENTS, ELEMENT_NAME, IMBUES, TOTEMS, totemDescription } from './engine/chaman';
 import { FORMS, FORM_IDS, MAX_BEAR_RAGE, MAX_CAT_COMBO, canShift, shiftCost } from './engine/druide';
 import { ASPECTS, COMPANIONS, COMPANION_IDS, TRAPS, actionOrder, companionDamage, companionTarget, markBonus, trapDotBonus, trapTargetBlock } from './engine/chasseur';
 import { BOSS_LOOT, FAMILY_LABEL, ITEMS, REPAIR_PRICE, SLOT_KEYS, SLOT_LABEL, LOOT_TABLES, itemFor, slotOf, slotsFor, uselessFx, withTwins, type Slot, type SlotKey } from './engine/items';
 import { ELITE_ENCOUNTERS } from './engine/enemies';
 import { initFx, playFx, transformation } from './fx';
-import type { CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, PlayerCurse, Posture, RunState, Trap } from './engine/types';
+import type { AuraId, CardInstance, CombatState, CompanionId, EnemyState, FormId, Intent, PlayerCurse, Posture, RunState, Trap } from './engine/types';
 
 const A = (file: string) => `${import.meta.env.BASE_URL}assets/${file}`;
 
@@ -336,6 +336,7 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
     ${unmasked ? '<span class="tampon-panique tampon-hallucination">Hallucination</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
+    ${def.holyCost !== undefined ? `<span class="cout-rage cout-ps" title="Puissance sacrée">${opts.combat ? holyCostOf(opts.combat, card.id, def.holyCost) : def.holyCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
     <span class="titre ${card.upgraded ? 'ameliore' : ''} ${def.name.length + (card.upgraded ? 1 : 0) > 14 ? 'long' : ''}">${def.name}${card.upgraded ? '+' : ''}</span>
     ${totemEl ? `<span class="pastille-element" title="Totem de ${ELEMENT_NAME[totemEl]}">${ICON_ELEMENT[totemEl]}</span>` : ''}
@@ -973,7 +974,6 @@ function enemyChips(e: EnemyState): string {
   if (e.defId === 'skarn' && (e.phase ?? 1) === 1) chips.push('<span class="chip">Immunisé (Œufs)</span>');
   if (ui.run?.encounter?.rune && ENEMIES[e.defId].elite) chips.push('<span class="chip rune">Rune des Sources</span>');
   if (b.peur) chips.push('<span class="chip debuff">Apeuré</span>');
-  if (b.censure) chips.push(`<span class="chip sacre" title="${b.censure} dégâts au début de son tour ; le Jugement du Sceau de vengeance la consomme">Censure ${b.censure}</span>`);
   if (ui.run?.classId === 'paladin' && ENEMIES[e.defId].tags?.includes('mortvivant')) chips.push('<span class="chip impie">Mort-vivant</span>');
   if (ui.run?.classId === 'paladin' && ENEMIES[e.defId].tags?.includes('demon')) chips.push('<span class="chip impie">Démon</span>');
   if (b.poison) chips.push(`<span class="chip poison" title="Chaque Attaque qui le touche : +${b.poison} dégâts. −1 à la fin de son tour">Poison ${b.poison}</span>`);
@@ -1040,7 +1040,7 @@ function curseText(i: PlayerCurse): string {
       : cls === 'demoniste' ? 'Malédiction de lignée : ton familier se retourne contre toi 2 tours'
       : cls === 'pretre' ? 'Malédiction de lignée : tes soins te blessent 2 tours'
       : cls === 'voleur' ? 'Malédiction de lignée : tes points de combo s\'envolent, plus de combo pendant 2 tours'
-      : cls === 'paladin' ? 'Malédiction de lignée : ton Sceau se brise, plus de Sceau pendant 2 tours'
+      : cls === 'paladin' ? 'Malédiction de lignée : ta Puissance sacrée s\'éteint, plus de gain pendant 2 tours'
       : 'Malédiction de lignée : forcé en posture Berserker 2 tours');
   }
   const text = parts.join(', ');
@@ -1215,14 +1215,16 @@ const POWER_LABEL: Record<string, [string, string]> = {
   seigneur_ombres: ['Seigneur des ombres', 'Camouflé à chaque tour'],
   rayonnement: ['Rayonnement', 'Chaque soin blesse tous les ennemis'],
   grace_croise: ['Grâce du croisé', 'Soin au début de chaque tour'],
-  illumination: ['Illumination', '1er soin du tour : +1 énergie'],
+  illumination: ['Illumination', '1re Dépense du tour : +1 énergie'],
   avatar_lumiere: ['Avatar de lumière', 'Soins +25 %, chaque soin frappe un ennemi'],
   sanctuaire: ['Sanctuaire', 'Attaques ennemies : −dégâts'],
-  fervent: ['Fervent', 'Attaque bloquée entièrement : +1 énergie au prochain tour'],
+  ferveur_gardien: ['Ferveur du gardien', '1re attaque entièrement bloquée du tour : +1 Puissance sacrée'],
+  gardien_rois: ['Gardien des rois', 'Dépenses +6 blocage, attaque bloquée : 3 dégâts en retour'],
+  benediction_puissance: ['Bénédiction de puissance', '1re Dépense du tour : bonus d\'Aura +3'],
+  art_guerre: ['Art de la guerre', '2e Attaque du tour : +1 Puissance sacrée'],
   dernier_serment: ['Dernier serment', 'Sous 20 % des PV : soin de 15, une fois'],
-  zele: ['Zèle', 'Sceau activé : +1 Puissance (5 max)'],
-  science_combat: ['Science du combat', '2e Attaque du tour : prochain soin gratuit'],
-  vengeance_pal: ['Vengeance', 'Ennemi tué : +1 Puissance'],
+  zele: ['Zèle', 'Dépense : +1 Puissance (5 max)'],
+  vengeance_pal: ['Vengeance', 'Ennemi tué : +1 Puissance et +1 Puissance sacrée'],
   croisade: ['Croisade', 'Attaques +2, +4 contre Morts-vivants et Démons'],
   lien_sauvage: ['Lien sauvage', 'Ton compagnon agit : blocage'],
   frenesie_chasseur: ['Frénésie', 'Chaque attaque du compagnon donne +1 dégât aux suivantes, jusqu\'à la fin du tour'],
@@ -1337,13 +1339,13 @@ function playerChips(c: CombatState): string {
   if (c.compNextBonus) chips.push(`<span class="chip">Rage du compagnon : +${c.compNextBonus}</span>`);
   // Paladin
   if (p.divineShield) chips.push('<span class="chip sacre" title="Immunisé, tes Attaques ÷ 2">Bouclier divin</span>');
-  if (c.favor) chips.push('<span class="chip sacre" title="Prochain soin ou Sort ×2">Faveur divine</span>');
+  if (c.favor) chips.push('<span class="chip sacre" title="Ta prochaine Dépense de ce tour : effet doublé">Faveur divine</span>');
+  if (c.courroux) chips.push(`<span class="chip sacre" title="Cartes ✦ : +1 Puissance sacrée ; Dépenses +4 dégâts">Courroux · ${c.courroux}t</span>`);
+  if (c.holyResist) chips.push(`<span class="chip sacre" title="Zones de feu et DoT ennemis : −50 %">Résistance · ${c.holyResist}t</span>`);
+  if (c.ardentRob) chips.push(`<span class="chip sacre" title="Robustesse jusqu'à la fin du tour">Ardent défenseur +${c.ardentRob}</span>`);
   if (c.consecration?.turns) chips.push(`<span class="chip sacre" title="${c.consecration.dmg} dégâts à tous les ennemis">Consécration ${c.consecration.dmg} · ${c.consecration.turns}t</span>`);
-  if (c.pavois) chips.push(`<span class="chip sacre" title="${c.pavois} dégâts aux attaquants bloqués">Pavois ${c.pavois}</span>`);
-  if (c.crusaderShield) chips.push('<span class="chip sacre">Bouclier du croisé</span>');
   if (c.wings) chips.push(`<span class="chip sacre" title="+2 Puissance">Ailes de justice · ${c.wings}t</span>`);
   if (c.judgeBonus) chips.push(`<span class="chip sacre" title="+${c.judgeBonus} à la prochaine Attaque">Vengeance divine +${c.judgeBonus}</span>`);
-  if (c.healFree) chips.push('<span class="chip sacre" title="Ta prochaine carte de soin est gratuite">Soin gratuit</span>');
   if (c.weaponPoison) chips.push(`<span class="chip poison" title="Tes Attaques appliquent ce Poison">Poison ${c.weaponPoison.id} ${c.weaponPoison.amount}</span>`);
   if (c.bladeDance?.turns) chips.push(`<span class="chip">Danse des lames : +${c.bladeDance.bonus} (${c.bladeDance.turns}t)</span>`);
   if (c.coldBlood) chips.push('<span class="chip" title="Prochaine Attaque ×2">Sang-froid</span>');
@@ -1481,32 +1483,22 @@ function hunterResource(c: CombatState): string {
     <div class="aide-posture">${help}</div>`;
 }
 
-/** Ce que fera le Jugement maintenant (pour l'interface du Paladin). */
-function judgeText(c: CombatState): string {
-  const seals = c.seals ?? [];
-  return seals.length ? seals.map((s) => SEAL_TEXT[s].judge).join(' + ') : '6 dégâts';
-}
-
-/** Les noms courts des Sceaux et des Auras (sous les emblèmes du Paladin). */
-const SEAL_SHORT: Record<string, string> = { droiture: 'Droiture', croise: 'Croisé', lumiere: 'Lumière', sagesse: 'Sagesse', rempart: 'Rempart', vengeance: 'Vengeance' };
-const AURA_SHORT: Record<string, string> = { devotion: 'Dévotion', resistance: 'Résistance', epines: 'Épines' };
-const ICON_SCEAU = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>';
-const ICON_AURA = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M12 10l2 4h-4l2-4zM8 20h8"/></svg>';
-
-/** Les Sceaux et l'Aura du Paladin : deux emblèmes, et ce que fera le Jugement. */
+/** La Puissance sacrée du Paladin (5 losanges) et ses trois boutons d'Aura (refonte du 27 novembre 2026). */
 function paladinResource(c: CombatState): string {
-  const seals = c.seals ?? [];
-  const aura = c.aura;
-  const sealLabel = seals.length ? seals.map((s) => SEAL_SHORT[s]).join(' + ') : 'Aucun Sceau';
-  const sealTitle = seals.length ? seals.map((s) => `${SEAL_NAMES[s]} : ${SEAL_TEXT[s].bonus}`).join(' ; ') : 'Joue une carte Sceau';
-  const auraTitle = aura ? AURA_NAMES[aura.id] : 'Joue une carte Aura (une seule à la fois)';
-  const bonus = seals.map((s) => SEAL_TEXT[s].bonus).join(' ; ');
-  return `<div class="ligne pal-tuiles">
-      <div class="pal-tuile ${seals.length ? 'actif' : ''}" title="${sealTitle}">${ICON_SCEAU}<span>${sealLabel}</span></div>
-      <div class="pal-tuile aura ${aura ? 'actif' : ''}" title="${auraTitle}">${ICON_AURA}<span>${aura ? AURA_SHORT[aura.id] : 'Aucune Aura'}</span></div>
-      <div class="pal-jugement"><small>JUGEMENT</small><b>${judgeText(c)}</b></div>
-    </div>
-    <div class="aide-posture">${seals.length ? `${bonus[0].toUpperCase()}${bonus.slice(1)}.` : 'Joue une carte Sceau, puis juge-la avec le sort Jugement.'}</div>`;
+  const n = c.holy ?? 0;
+  const pips = Array.from({ length: MAX_HOLY }, (_, i) => `<i class="${i < n ? 'plein' : ''}"></i>`).join('');
+  const aura = auraOf(c);
+  const cost = auraChangeCost(c);
+  const buttons = AURA_IDS.map((id) => {
+    const actif = aura === id;
+    const a = AURAS[id];
+    return `<button type="button" class="${actif ? 'actif' : ''}" data-action="aura" data-aura="${id}" ${actif || canChangeAura(c, id) ? '' : 'disabled'} aria-pressed="${actif}" title="${a.name} : ${a.gain} ; ${a.bonus}${a.cost ? ` ; ${a.cost}` : ''}">${a.short}</button>`;
+  }).join('');
+  const a = AURAS[aura];
+  const cursed = (c.player.debuffs?.lignee ?? 0) > 0 ? ' · <b class="alerte">plus de gain (lignée)</b>' : '';
+  return `<div class="ligne"><span class="rage-label ps-label">SACRÉE</span><div class="rage ps">${pips}</div><span class="rage-label" style="width:auto">${n}</span></div>
+    <div class="postures auras" role="group" aria-label="Aura">${buttons}</div>
+    <div class="aide-posture"><b>${a.short}</b> : ${a.bonus}${a.cost ? `, ${a.cost}` : ''}. ${a.gain[0].toUpperCase()}${a.gain.slice(1)}.${cursed}${cost === 0 ? ' · changer est gratuit' : ' · changer coûte 1 énergie'}</div>`;
 }
 
 /** Les éclats d'âme et le familier du Démoniste. */
@@ -2680,6 +2672,14 @@ async function submitLogin(form: HTMLFormElement): Promise<void> {
 }
 
 function overlayHtml(run: RunState | null): string {
+  // Refonte du Paladin (27 novembre 2026) : ses points de talent ont été rendus, on le dit une fois, hors expédition.
+  if (!ui.overlay && !run && !tutoActive()) {
+    const prof = loadProfile();
+    if (prof.paladinRework && prof.startClass && (!cloud.enabled || (cloud.user && ui.entered))) {
+      cloud.notice = 'Le Paladin a changé : ses Sceaux deviennent la Puissance sacrée, avec trois Auras et des Dépenses. Tes points de talent du Paladin t\'ont été rendus : replace tes talents.';
+      ui.overlay = 'avis';
+    }
+  }
   if (ui.overlay === 'connexion') return loginHtml();
   if (ui.overlay === 'roue') return gearMenuHtml();
   if (ui.overlay === 'saison') return seasonHtml();
@@ -3159,7 +3159,18 @@ function handleClick(ev: MouseEvent): void {
       });
       return;
     }
-    case 'avis-ok': cloud.notice = null; ui.overlay = null; render(); return;
+    case 'avis-ok': {
+      cloud.notice = null;
+      ui.overlay = null;
+      // Refonte du Paladin : le message n'est montré qu'une fois.
+      const prof = loadProfile();
+      if (prof.paladinRework) {
+        delete prof.paladinRework;
+        saveProfile(prof);
+      }
+      render();
+      return;
+    }
     case 'maj-recharger':
       location.reload();
       return;
@@ -3313,6 +3324,11 @@ function handleClick(ev: MouseEvent): void {
       break;
     case 'forme':
       if (run.combat) changeForm(run.combat, el.dataset.form as FormId);
+      ui.selection = null;
+      commit();
+      break;
+    case 'aura':
+      if (run.combat) changeAura(run.combat, el.dataset.aura as AuraId);
       ui.selection = null;
       commit();
       break;

@@ -6,6 +6,7 @@ import type { ProgressProfile } from './progression';
 import { convertOldXp } from './xp';
 import type { TalentAlloc } from './talents';
 import type { CompanionId, RunState } from './types';
+import { OLD_PALADIN_CARDS } from './cards_paladin';
 
 // La clé dépend du chemin du site : la version officielle (/) et la version de test (/dev/)
 // ont chacune leur sauvegarde.
@@ -175,7 +176,46 @@ export function migrate(raw: unknown): RunState | null {
     if (c) delete c.traps;
     run.version = 28;
   }
-  return run.version === 28 ? (run as unknown as RunState) : null;
+  if (run.version === 28) {
+    if (run.classId === 'paladin') convertOldPaladin(run);
+    run.version = 29;
+  }
+  return run.version === 29 ? (run as unknown as RunState) : null;
+}
+
+/** Les talents de l'ancien Paladin et ceux qui les remplacent (même arbre). */
+const OLD_PALADIN_TALENTS: Record<string, string> = {
+  sagesse_accrue: 'sagesse_jugement', pa_lumiere_benie: 'lumiere_infusee', devotion_accrue: 'jugement_croise',
+  consecration_durable: 'ardent_defenseur', t_bouclier_croise: 't_gardien_rois', jugements_rapides: 'elan_sacre',
+  sceaux_benis: 'jugement_aiguise', double_sceau: 'fin_ere', t_verdict_cieux: 't_courroux_vengeur',
+};
+
+/**
+ * Refonte du Paladin (27 novembre 2026) : une expédition en cours avec l'ancien Paladin (Sceaux) est convertie.
+ * Chaque ancienne carte devient sa plus proche cousine (amélioration gardée), les talents de la run suivent,
+ * et un combat en cours passe à la Puissance sacrée.
+ */
+function convertOldPaladin(run: Record<string, unknown>): void {
+  type Card = { id: string };
+  const fix = (cards: unknown) => {
+    if (Array.isArray(cards)) for (const card of cards as Card[]) if (card && OLD_PALADIN_CARDS[card.id]) card.id = OLD_PALADIN_CARDS[card.id];
+  };
+  fix(run.deck);
+  fix((run.entry as { deck?: unknown } | null)?.deck);
+  if (Array.isArray(run.rewardChoices)) run.rewardChoices = (run.rewardChoices as string[]).map((id) => OLD_PALADIN_CARDS[id] ?? id);
+  const shop = run.shop as { cards?: Card[] } | null;
+  if (shop?.cards) fix(shop.cards);
+  if (Array.isArray(run.talents)) run.talents = (run.talents as string[]).map((id) => OLD_PALADIN_TALENTS[id] ?? id);
+  const c = run.combat as Record<string, unknown> | null;
+  if (c) {
+    for (const pile of ['draw', 'hand', 'discard', 'exhaust']) fix(c[pile]);
+    const aura = c.aura as { id?: string } | null | undefined;
+    if (aura && typeof aura === 'object' && aura.id === 'devotion') (c.player as { robustesse: number }).robustesse -= (aura as { value?: number }).value ?? 0;
+    c.aura = 'devotion';
+    c.holy = 0;
+    for (const k of ['seals', 'lastJudged', 'pavois', 'crusaderShield', 'healFree', 'illumUsed', 'ferventNext', 'ferventUsed', 'palHealed']) delete c[k];
+    for (const e of (c.enemies ?? []) as { buffs?: { censure?: number } }[]) if (e.buffs) e.buffs.censure = 0;
+  }
 }
 
 /** Prévenu à chaque écriture locale (run ou profil) : sert à la sauvegarde en ligne. */
@@ -251,7 +291,9 @@ export const localSave: SaveBackend = {
 const PROFILE_KEY = KEY.replace(/:run$/, ':profil');
 
 export interface Profile extends ProgressProfile, ArchiveProfile {
-  version: 8;
+  version: 9;
+  /** Refonte du Paladin (27 novembre 2026) : ses points de talent ont été rendus, un message le dit une fois. */
+  paladinRework?: boolean;
   /** Le dernier niveau de difficulté choisi dans le hall. */
   lastDifficulty: number;
   /** La classe choisie au premier lancement, et les classes débloquées. */
@@ -313,7 +355,16 @@ export function loadProfile(): Profile {
         for (const c of Object.values((p.classes ?? {}) as Record<string, { xp: number }>)) c.xp = convertOldXp(c.xp ?? 0);
         p.version = 8;
       }
-      if (p.version === 8 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
+      if (p.version === 8) {
+        // Refonte du Paladin (27 novembre 2026) : ses talents ont changé, ses points sont rendus.
+        const talents = (p.talents ?? {}) as Record<string, Record<string, unknown[]>>;
+        if (talents.paladin && Object.values(talents.paladin).some((picks) => picks.length > 0)) {
+          delete talents.paladin;
+          p.paladinRework = true;
+        }
+        p.version = 9;
+      }
+      if (p.version === 9 && Array.isArray(p.discoveredItems) && Array.isArray(p.guildChest)) return p as unknown as Profile;
     }
   } catch {
     // profil illisible : on repart d'un profil vide
@@ -323,7 +374,7 @@ export function loadProfile(): Profile {
 
 /** Un profil tout neuf (premier lancement). */
 export function emptyProfile(): Profile {
-  return { version: 8, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0, seenCards: [], seenEnemies: [], seenPotions: [], kills: {} };
+  return { version: 9, discoveredItems: [], guildChest: [], classes: {}, stats: { runs: 0, wins: 0 }, talents: {}, startClass: null, unlockedClasses: [], difficulty: {}, lastDifficulty: 0, seenCards: [], seenEnemies: [], seenPotions: [], kills: {} };
 }
 
 export function saveProfile(profile: Profile): void {

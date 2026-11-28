@@ -22,7 +22,7 @@ import { ENEMIES, isInterruptible } from './enemies';
 import { random } from './rng';
 import { basicAttack } from './spells';
 import type { ItemEffects } from './items';
-import type { CardInstance, CardType, CombatState, EnemyState, FormId, Rarity, School, SealId } from './types';
+import type { CardInstance, CardType, CombatState, EnemyState, FormId, Rarity, School } from './types';
 import { druidCostDelta } from './druide';
 import { shamanCostDelta } from './chaman';
 import { MAGE_CARDS } from './cards_mage';
@@ -74,10 +74,12 @@ export interface CardDef {
   /** Voleur : Ouverture (jouable seulement en Camouflage) et finisher (consomme tous les points de combo). */
   opener?: boolean;
   finisher?: boolean;
-  /** Paladin : une carte Sceau, une carte de soin (Science du combat). */
-  seal?: boolean;
-  /** Le Sceau qu'active la carte (une carte Sceau rejouée alors qu'il est actif le juge). */
-  sealId?: SealId;
+  /** Paladin : une Dépense (coût en Puissance sacrée, 0 énergie) ; une Dépense qui touche tous les ennemis (bonus de Vindicte à tous). */
+  holyCost?: number;
+  aoeSpend?: boolean;
+  /** Paladin : la Puissance sacrée gagnée en jouant la carte (✦). */
+  holyGain?: number;
+  /** Paladin : une carte qui soigne. */
   healCard?: boolean;
   /** Chasseur : une carte Ordre (Dressage), une carte Piège. */
   order?: boolean;
@@ -833,9 +835,9 @@ export function energyCost(c: CombatState, id: string, up: boolean): number {
   if (c.gear?.firstCardFree && !c.firstCardDone && !def.unplayable) return 0;
   // Plan parfait : les Ouvertures coûtent 0 ce tour-ci.
   if (def.opener && c.openersFree) return 0;
-  // Paladin : Sceaux bénis, Science du combat, Purification rapide, Rétribution.
+  // Paladin : Purification rapide.
   const g = c.gear ?? {};
-  if ((def.seal && g.sealsFree) || (def.healCard && c.healFree) || (id === 'lumiere_purificatrice' && g.purifyFree) || (id === 'juste_chatiment' && g.retributionFree)) return 0;
+  if (id === 'lumiere_purificatrice' && g.purifyFree) return 0;
   // Chasseur : Maître de meute, Sang-froid, Riposte sauvage.
   if (id === 'esprit_meute' && g.packFree) return 0;
   if (def.type === 'Attaque' && g.hunterFirstFree && !c.firstAttackDone && c.companion) return 0;

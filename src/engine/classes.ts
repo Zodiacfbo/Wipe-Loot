@@ -50,11 +50,13 @@ export const CLASSES: ClassInfo[] = [
   },
   {
     id: 'paladin', name: 'Paladin', color: '#E6B84A', playable: true, difficulty: 1, hp: 80,
-    starterDeck: ['frappe_pal', 'frappe_pal', 'frappe_pal', 'frappe_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'sceau_droiture', 'sceau_droiture', 'lumiere_bienfaisante'],
+    starterDeck: ['frappe_pal', 'frappe_pal', 'frappe_pal', 'frappe_pal', 'parade_pal', 'parade_pal', 'parade_pal', 'frappe_croise', 'frappe_croise', 'parole_lumiere'],
+    // Refonte « Puissance sacrée » (27 novembre 2026) : l'arbre principal change une carte (et l'Aura de départ, run.ts).
+    starterSwaps: { vindicte: { from: 'parade_pal', to: 'ferveur', count: 1 }, protection_pal: { from: 'frappe_pal', to: 'pavois_sacre', count: 1 }, sacre_pal: { from: 'frappe_pal', to: 'horion_sacre', count: 1 } },
     startSpell: 'jugement', sprite: 'paladin.png',
-    quote: 'Par la lumière, je juge. Par l\'acier, j\'exécute la sentence.',
-    role: 'Bouclier, marteau et lumière sacrée', resource: 'Sceaux, Jugements et auras',
-    fantasy: 'Un chevalier presque indestructible qui frappe les morts-vivants à coups de Jugements.',
+    quote: 'La Lumière ne se prie pas. Elle se gagne, coup après coup.',
+    role: 'Bouclier, marteau et lumière sacrée', resource: 'Puissance sacrée (0 à 5) et auras',
+    fantasy: 'Remplir sa jauge de Lumière en frappant, bloquant ou soignant, puis la libérer sous la bonne Aura.',
   },
   {
     id: 'voleur', name: 'Voleur', color: '#E8D84A', playable: true, difficulty: 2, hp: 70,
