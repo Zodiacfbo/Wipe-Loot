@@ -23,9 +23,35 @@ describe('acte 3 : la Folie', () => {
     const before = c.hand.length;
     folieStartTurn(c);
     expect(c.hand.length).toBe(before + 1);
-    const h = c.hand[c.hand.length - 1];
-    expect(h.id).toBe('hallucination');
+    const h = c.hand.find((card) => card.id === 'hallucination')!;
+    expect(h).toBeDefined();
     expect(h.mimic).toBe('parade');
+  });
+
+  it('une Hallucination se glisse à une place au hasard dans la main, pas toujours à droite', () => {
+    const places = new Set<number>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const c = combat(['soldat_irem']);
+      c.rng = seed * 7919;
+      addHallucination(c);
+      places.add(c.hand.findIndex((card) => card.id === 'hallucination'));
+    }
+    expect(places.size).toBeGreaterThan(2);
+  });
+
+  it('une Hallucination coûte, vise et se grise comme la carte qu\'elle imite (rien ne la trahit)', () => {
+    const c = combat(['soldat_irem', 'soldat_irem']);
+    c.hand = [{ uid: 1, id: 'hallucination', upgraded: false, mimic: 'frappe' }];
+    // Deux ennemis : comme une Frappe, elle demande une cible.
+    expect(playCard(c, 0)).toBe(false);
+    c.player.energy = 0;
+    expect(canPlayCard(c, 0)).toBe(false);
+    c.player.energy = 3;
+    const hp = c.player.hp;
+    expect(playCard(c, 0, c.enemies[0].uid)).toBe(true);
+    expect(c.player.energy).toBe(2);
+    expect(c.player.hp).toBe(hp - 2);
+    expect(c.enemies[0].hp).toBe(c.enemies[0].maxHp);
   });
 
   it('jouer une Hallucination : aucun effet, 2 PV perdus, puis elle disparaît', () => {

@@ -1,7 +1,7 @@
 // Les « bons coups » : une carte de la main dont la condition est remplie brille (finisher à 5 combo,
 // Ouverture quand tu es Camouflé, Exécution sur une cible affaiblie, Fracasser sur une cible gelée…).
 // Pur et sans DOM : l'interface ne fait qu'afficher la lueur.
-import { CARDS, energyCost } from './cards';
+import { CARDS, energyCost, seenCombat, seenId } from './cards';
 import { isInterruptible } from './enemies';
 import type { CombatState, EnemyState } from './types';
 
@@ -11,6 +11,8 @@ const below = (c: CombatState, pct: number) => living(c).some((e) => e.hp > 0 &&
 /** La carte `index` de la main a-t-elle sa condition remplie ? (Seulement si elle se joue.) */
 export function cardReady(c: CombatState, index: number): boolean {
   const card = c.hand[index];
+  // Acte 3 : une Hallucination brille comme la carte qu'elle imite.
+  if (card && seenId(card) !== card.id) return cardReady(seenCombat(c, index), index);
   if (!card || c.phase !== 'player') return false;
   const def = CARDS[card.id];
   if (def.unplayable || energyCost(c, card.id, card.upgraded) > c.player.energy) return false;

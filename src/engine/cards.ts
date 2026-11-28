@@ -799,6 +799,21 @@ export function shardCost(c: CombatState | null, id: string, up: boolean): numbe
   return up && def.shardCostUp !== undefined ? def.shardCostUp : def.shardCost;
 }
 
+/** La carte telle que le joueur la voit : une Hallucination prend l'apparence de la carte qu'elle imite. */
+export function seenId(card: CardInstance): string {
+  return card.id === 'hallucination' && card.mimic && CARDS[card.mimic] ? card.mimic : card.id;
+}
+
+/**
+ * Le combat tel que le joueur le voit pour la carte `index` : une Hallucination y est remplacée par la carte imitée.
+ * Elle se comporte donc comme elle (coût, cible, chiffres, lueur) et rien ne la trahit. Copie superficielle : lecture seule.
+ */
+export function seenCombat(c: CombatState, index: number): CombatState {
+  const card = c.hand[index];
+  if (!card || seenId(card) === card.id) return c;
+  return { ...c, hand: c.hand.map((h, j) => (j === index ? { ...h, id: seenId(h) } : h)) };
+}
+
 /** La carte est-elle Éphémère (en tenant compte de l'amélioration) ? */
 export function isEthereal(card: CardInstance): boolean {
   const def = CARDS[card.id];

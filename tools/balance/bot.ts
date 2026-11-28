@@ -1,7 +1,7 @@
 // Un bot qui joue des runs entières avec le moteur du jeu, pour mesurer l'équilibrage.
 // En combat, il essaie chaque action possible sur une copie de l'état et garde la meilleure
 // (une évaluation simple : dégâts infligés, dégâts qu'il va encaisser, ressources, ennemis vaincus).
-import { CARDS, energyCost } from '../../src/engine/cards';
+import { CARDS, energyCost, seenId } from '../../src/engine/cards';
 import { FULL_RAGE, canPlayCard, canUseSpell, cardNeedsTarget, changeForm, changePosture, choosePet, endTurn, fullRageReady, playCard, useSpell } from '../../src/engine/combat';
 import { trapTargetBlock } from '../../src/engine/chasseur';
 import { FORM_IDS, canShift } from '../../src/engine/druide';
@@ -229,7 +229,7 @@ function candidates(c: CombatState): Action[] {
   c.hand.forEach((card, i) => {
     if (!canPlayCard(c, i)) return;
     // Chasseur : pas de cible qui porte déjà ce type de Piège.
-    if (cardNeedsTarget(c, card.id)) pool.filter((e) => !trapTargetBlock(card.id, e)).forEach((e) => list.push({ kind: 'card', index: i, target: e.uid }));
+    if (cardNeedsTarget(c, seenId(card))) pool.filter((e) => !trapTargetBlock(seenId(card), e)).forEach((e) => list.push({ kind: 'card', index: i, target: e.uid }));
     else list.push({ kind: 'card', index: i });
   });
   c.spells.forEach((s, i) => {

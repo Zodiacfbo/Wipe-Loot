@@ -40,14 +40,17 @@ export function dispelFolie(c: CombatState): boolean {
   return true;
 }
 
-/** Une Hallucination arrive dans la main : elle a l'apparence d'une vraie carte du deck. */
+/**
+ * Une Hallucination arrive dans la main : elle a l'apparence d'une vraie carte du deck, et se glisse à une place
+ * au hasard (pas toujours à droite), pour que rien ne la trahisse.
+ */
 export function addHallucination(c: CombatState): void {
   const pool = [...c.draw, ...c.discard, ...c.hand].filter((card) => CARDS[card.id].type !== 'Statut');
   if (pool.length === 0) return;
   const model = pool[Math.floor(random(c) * pool.length)];
   const card = { uid: c.nextUid++, id: 'hallucination', upgraded: model.upgraded, mimic: model.id };
   if (c.hand.length >= 10) c.discard.push(card);
-  else c.hand.push(card);
+  else c.hand.splice(Math.floor(random(c) * (c.hand.length + 1)), 0, card);
 }
 
 /**

@@ -1,7 +1,7 @@
 // L'aperçu des dégâts d'une carte : on la joue sur une copie du combat et on mesure le résultat.
 // Le moteur étant pur et sérialisable, la copie suit exactement les mêmes règles que le vrai coup
 // (Puissance, posture, Armure fracassée, objets, talents…), sans rien toucher au vrai combat.
-import { CARDS } from './cards';
+import { CARDS, seenCombat } from './cards';
 import { canPlayCard, cardNeedsTarget, playCard, resolveTarget } from './combat';
 import { ENEMIES } from './enemies';
 import type { CombatState } from './types';
@@ -53,6 +53,8 @@ const same = (a: CardPreview | null, b: CardPreview | null) => JSON.stringify(a?
  * (cibles au hasard, pioche…) : on n'annonce pas le résultat d'un tirage.
  */
 export function previewCard(c: CombatState, index: number, targetUid?: number): CardPreview | null {
+  // Acte 3 : une Hallucination annonce les chiffres de la carte qu'elle imite.
+  c = seenCombat(c, index);
   if (!canPlayCard(c, index)) return null;
   const first = simulate(c, index, targetUid);
   if (!first) return null;
@@ -67,6 +69,7 @@ export function previewCard(c: CombatState, index: number, targetUid?: number): 
  * n'a qu'une cible possible. null : pas de coup, ou des coups de valeurs différentes.
  */
 export function cardHitValue(c: CombatState, index: number): number | null {
+  c = seenCombat(c, index);
   const card = c.hand[index];
   if (!card || !canPlayCard(c, index)) return null;
   const def = CARDS[card.id];
@@ -105,6 +108,7 @@ export function cardHitValue(c: CombatState, index: number): number | null {
  * null : pas de blocage tout de suite, plusieurs gains différents, ou un résultat qui dépend du hasard.
  */
 export function cardBlockValue(c: CombatState, index: number): number | null {
+  c = seenCombat(c, index);
   const card = c.hand[index];
   if (!card || !canPlayCard(c, index)) return null;
   const def = CARDS[card.id];

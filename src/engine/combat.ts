@@ -23,7 +23,7 @@ import {
   power,
 } from './actions';
 import { AFFLICTIONS, GRIZZIK_POTIONS, PRISMAGOR_BREATHS } from './enemies_acte2';
-import { CARDS, energyCost, isEthereal, shardCost, type PlayContext } from './cards';
+import { CARDS, energyCost, isEthereal, seenCombat, seenId, shardCost, type PlayContext } from './cards';
 import { decayCurses, felhunterLock, felhunterStart, petAct, triggerDots } from './demoniste';
 import { BASE_AEGIS, BASE_FAITH, gainAegis, gainFaith } from './pretre';
 import { breakStealth, decayPoison, enterStealth, gainCombo, stealthed, stormStrike } from './voleur';
@@ -486,6 +486,8 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
   if (c.phase !== 'player') return false;
   const card = c.hand[handIndex];
   if (!card) return false;
+  // Acte 3 : une Hallucination obéit aux règles de la carte qu'elle imite.
+  if (seenId(card) !== card.id) return canPlayCard(seenCombat(c, handIndex), handIndex);
   const def = CARDS[card.id];
   if (def.unplayable || c.panicked?.includes(card.uid)) return false;
   if (energyCost(c, card.id, card.upgraded) > c.player.energy) return false;
@@ -506,6 +508,7 @@ export function canPlayCard(c: CombatState, handIndex: number): boolean {
 export function cardBlockReason(c: CombatState, handIndex: number): string | null {
   const card = c.hand[handIndex];
   if (!card || canPlayCard(c, handIndex)) return null;
+  if (seenId(card) !== card.id) return cardBlockReason(seenCombat(c, handIndex), handIndex);
   if (c.phase !== 'player') return 'Ce n\'est pas ton tour.';
   const def = CARDS[card.id];
   if (def.unplayable) return 'Cette carte ne se joue pas.';
@@ -537,38 +540,41 @@ export function playCard(c: CombatState, handIndex: number, targetUid?: number):
   if (!canPlayCard(c, handIndex)) return false;
   const card = c.hand[handIndex];
   const def = CARDS[card.id];
-  const target = resolveTarget(c, cardNeedsTarget(c, card.id), targetUid, def.type === 'Attaque');
+  // Acte 3 : une Hallucination coûte et vise comme la carte qu'elle imite (son effet reste le sien).
+  const lookId = seenId(card);
+  const look = CARDS[lookId];
+  const target = resolveTarget(c, cardNeedsTarget(c, lookId), targetUid, look.type === 'Attaque');
   if (target === 'invalid') return false;
   // Chasseur : un seul Piège de chaque type par ennemi.
-  if (target && trapTargetBlock(card.id, target)) return false;
+  if (target && trapTargetBlock(lookId, target)) return false;
 
   const p = c.player;
-  const cost = energyCost(c, card.id, card.upgraded);
+  const cost = energyCost(c, lookId, card.upgraded);
   p.energy -= cost;
   // Les éclats d'âme ; la cible retenue par le familier ; Contrecoup.
-  const shards = shardCost(c, card.id, card.upgraded);
+  const shards = shardCost(c, lookId, card.upgraded);
   const shardsSpent = shards === 'all' ? c.shards ?? 0 : shards;
   if (c.shards !== undefined) c.shards -= shardsSpent;
   if (target) c.lastTarget = target.uid;
   if (card.id === 'trait_ombre' && c.shadowFree) c.shadowFree = false;
   // Prêtre : la Foi dépensée.
-  const faithSpent = def.faithCost === 'all' ? c.faith ?? 0 : def.faithCost ?? 0;
+  const faithSpent = look.faithCost === 'all' ? c.faith ?? 0 : look.faithCost ?? 0;
   if (c.faith !== undefined) c.faith -= faithSpent;
   c.healedFlag = false;
   // Inspiration et Présence d'esprit ne servent qu'une fois.
   if (c.freeNext) c.freeNext = false;
-  else if (c.freeNextSpell && def.type === 'Sort') c.freeNextSpell = false;
+  else if (c.freeNextSpell && look.type === 'Sort') c.freeNextSpell = false;
   c.cardsThisTurn = (c.cardsThisTurn ?? 0) + 1;
   c.firstCardDone = true;
   // Guerrier : une Attaque jouée à rage maximale libère la pleine rage (§12 de la fiche).
   const releasing = def.type === 'Attaque' && isWarrior(c) && p.maxRage > 0 && p.rage >= p.maxRage;
   let rageSpent = 0;
-  if (def.rageCost === 'all') {
+  if (look.rageCost === 'all') {
     rageSpent = p.rage;
     p.rage = 0;
-  } else if (typeof def.rageCost === 'number') {
-    rageSpent = def.rageCost;
-    p.rage -= def.rageCost;
+  } else if (typeof look.rageCost === 'number') {
+    rageSpent = look.rageCost;
+    p.rage -= look.rageCost;
   }
   c.hand.splice(handIndex, 1);
 

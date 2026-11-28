@@ -1,5 +1,5 @@
 // L'interface : affiche l'état de la run et transmet les actions du joueur au moteur.
-import { CARDS, energyCost, rewardPool, shardCost, starterCards } from './engine/cards';
+import { CARDS, energyCost, rewardPool, seenId, shardCost, starterCards } from './engine/cards';
 import { DOT_LABEL, MAX_SHARDS, PETS } from './engine/demoniste';
 import {
   SPELLS,
@@ -311,9 +311,11 @@ function diffText(base: string, up: string): string {
 }
 
 function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolean; selected?: boolean; combat?: CombatState | null; panicked?: boolean; hit?: number | null; block?: number | null; disguise?: boolean; reason?: string | null; ready?: boolean; diffFrom?: string } = {}): string {
-  // Acte 3 : dans la main, une Hallucination a l'apparence de la carte qu'elle imite (cadre violacé, texte qui tremble).
+  // Acte 3 : dans la main, une Hallucination a exactement l'apparence de la carte qu'elle imite.
+  // Seul l'Œil du prophète la dévoile (cadre violacé, texte qui tremble, tampon « Hallucination »).
   const fake = !!opts.disguise && real.id === 'hallucination' && !!real.mimic && !!CARDS[real.mimic];
   const card = fake ? { ...real, id: real.mimic! } : real;
+  const unmasked = fake && !!opts.combat?.gear?.seeHallucinations;
   const def = CARDS[card.id];
   const frame = `cadre_${RARITY_FRAME[def.rarity]}${def.rageCost !== undefined ? '_rage' : ''}.png`;
   const cost = opts.combat ? energyCost(opts.combat, card.id, card.upgraded) : card.upgraded && def.costUp !== undefined ? def.costUp : def.cost;
@@ -325,13 +327,13 @@ function cardHtml(real: CardInstance, opts: { action?: string; disabled?: boolea
   const { ribbon, text } = splitRibbon(fullText);
   // Chaman : une carte Totem montre l'élément de son emplacement (bandeau coloré et pastille).
   const totemEl = def.id.startsWith('totem_') ? TOTEMS[def.id.slice(6)]?.element : undefined;
-  const classes = ['carte', totemEl ? `totem-${totemEl}` : '', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', fake ? 'hallucination' : '', opts.ready && !opts.disabled ? 'prete' : ''].join(' ');
+  const classes = ['carte', totemEl ? `totem-${totemEl}` : '', opts.disabled ? 'injouable' : '', opts.selected ? 'choisie' : '', opts.panicked ? 'paniquee' : '', unmasked ? 'hallucination' : '', opts.ready && !opts.disabled ? 'prete' : ''].join(' ');
   return `<button type="button" class="${classes}" ${opts.action ?? ''} ${opts.disabled && opts.reason ? `data-raison="${opts.reason.replace(/"/g, '&quot;')}"` : ''} aria-label="${def.name}${card.upgraded ? ' améliorée' : ''}, coût ${cost}. ${fullText}">
     <img class="cadre px" src="${A(frame)}" alt="">
     <img class="icone px" src="${A(`carte_${card.id}.png`)}" alt="">
     <span class="cout ${reduced ? 'reduit' : cost > def.cost ? 'augmente' : ''}">${def.unplayable ? '–' : cost}</span>
     ${opts.panicked ? '<span class="tampon-panique">Paniquée</span>' : ''}
-    ${fake && opts.combat?.gear?.seeHallucinations ? '<span class="tampon-panique tampon-hallucination">Hallucination</span>' : ''}
+    ${unmasked ? '<span class="tampon-panique tampon-hallucination">Hallucination</span>' : ''}
     ${rage !== '' ? `<span class="cout-rage">${rage}</span>` : ''}
     ${def.faithCost !== undefined ? `<span class="cout-rage cout-foi" title="Foi">${def.faithCost === 'all' ? 'X' : def.faithCost}</span>` : ''}
     ${def.shardCost !== undefined && shardCost(opts.combat ?? null, card.id, card.upgraded) !== 0 ? `<span class="cout-rage cout-eclat" title="Éclats d'âme">${shardCost(opts.combat ?? null, card.id, card.upgraded) === 'all' ? 'X' : shardCost(opts.combat ?? null, card.id, card.upgraded)}</span>` : ''}
@@ -1147,7 +1149,7 @@ function needsEnemyTarget(c: CombatState): boolean {
   if (!sel) return false;
   if (sel.kind === 'card') {
     const card = c.hand[sel.index];
-    return !!card && cardNeedsTarget(c, card.id);
+    return !!card && cardNeedsTarget(c, seenId(card));
   }
   return SPELLS[c.spells[sel.index].id].needsTarget;
 }
@@ -1563,7 +1565,7 @@ function combatScreen(run: RunState, c: CombatState): string {
       : e.defId === 'yzhar' && (e.phase ?? 1) >= 2 ? 'ennemi_yzhar_corps.png' : `ennemi_${def.id}.png`;
     const pct = masked ? 100 : Math.max(0, (e.hp / e.maxHp) * 100);
     // Chasseur : un ennemi qui porte déjà ce type de Piège ne peut pas être visé.
-    const trapBlock = targeting && selCard ? trapTargetBlock(selCard.id, e) : null;
+    const trapBlock = targeting && selCard ? trapTargetBlock(seenId(selCard), e) : null;
     const canTarget = targeting && !e.untargetable && !trapBlock;
     const tag = canTarget ? 'button' : 'div';
     // Au-dessus du sprite, seulement le nom de l'intention ; son explication passe sous la barre de vie.
@@ -3031,7 +3033,7 @@ function onCard(index: number): void {
     return;
   }
   const alive = c.enemies.filter((e) => !e.dead);
-  if (cardNeedsTarget(c, c.hand[index].id) && alive.length > 1) {
+  if (cardNeedsTarget(c, seenId(c.hand[index])) && alive.length > 1) {
     ui.selection = { kind: 'card', index };
     render();
     return;

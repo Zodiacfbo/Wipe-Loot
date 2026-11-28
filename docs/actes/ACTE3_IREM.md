@@ -46,7 +46,7 @@ La **Folie** est un compteur propre à l'acte 3, porté par le joueur.
 - **Réduire la Folie :** une carte de **Dissipation (Magie)** retire 3 de Folie. Certains objets et événements la réduisent aussi.
 - **La Folie retombe à 0 à la fin de chaque combat.**
 
-**Hallucination** (carte-statut) : elle a l'apparence d'une **vraie carte de ton deck**, avec un léger détail visuel qui la trahit (le texte tremble, les couleurs sont un peu fausses). Si tu la joues, elle se dissipe sans effet et tu perds 2 PV. Elle est Éphémère.
+**Hallucination** (carte-statut) : elle a l'apparence d'une **vraie carte de ton deck**, **sans aucune différence visible** (décision du 28 novembre 2026). Elle coûte et vise comme la carte imitée. Si tu la joues, tu paies son coût, elle se dissipe sans effet et tu perds 2 PV. Elle est Éphémère.
 
 **L'intérêt :** le joueur doit rester attentif à sa main, et décider quand dépenser une Dissipation pour garder l'esprit clair.
 
@@ -418,7 +418,7 @@ Un joueur « moyen » en fin d'acte 3 a environ :
 
 - **Acte du test final :** chaque boss secondaire punit un deck trop spécialisé (immunités, Folie, adds, blocage énorme).
 - **À surveiller à l'équilibrage :**
-  - **Les Hallucinations** doivent rester lisibles. Le détail visuel qui les trahit doit être visible sur téléphone, sinon elles deviennent injustes. L'objet *Œil du prophète* les rend évidentes.
+  - **Les Hallucinations** ne se distinguent pas des vraies cartes (28 novembre 2026 : plus réaliste, et la punition reste faible, 2 PV et le coût de la carte). On sait seulement qu'une carte de trop est arrivée. L'objet *Œil du prophète* est le seul moyen de les voir.
   - **Les Rois-Jumeaux** peuvent être très durs pour un deck mono-type. Les DoT et les effets de zone sont des alternatives, mais à vérifier pour chaque classe.
   - **Les entrailles d'Yzhar** : une main de 3 cartes sans barre de sorts peut être brutale. Les 2 tours doivent rester survivables à 90-110 PV.
   - La **Couronne d'Irem** (premier tour sauté) et la **Lame de l'oubli** sont des paris risqués : ils doivent rester tentants.
@@ -433,7 +433,7 @@ Le travail est découpé en 5 lots ; l'acte 3 ne sera jouable qu'une fois les lo
 
 **Lot 1 (fait) : le socle.**
 - **La Folie** (`src/engine/folie.ts`) : un compteur du combat, de 0 à 10. À 5 ou plus, une **Hallucination** arrive dans la main à chaque début de tour ; à 10, **Crise de folie** (le prochain tour est perdu, puis la Folie retombe à 0). Une **Dissipation (Magie)** retire 3 Folie. Objets prévus : `folieLess` (Amulette de lucidité), `folieImmune` (Bandeau de l'oracle, Œil d'Yzhar), `seeHallucinations` (Œil du prophète).
-- **L'Hallucination** imite une carte du deck (même nom, même coût affiché, même texte). Dans la main, elle se trahit par un **cadre violacé et un texte qui tremble** (choix de novembre 2026 : bien visible sur téléphone ; l'appui long ne la dévoile pas). La jouer : aucun effet, 2 PV perdus. Éphémère. Dans la pioche et la défausse, elle apparaît sous son vrai nom.
+- **L'Hallucination** imite une carte du deck (même nom, même coût, même texte). **Depuis le 28 novembre 2026, rien ne la trahit dans la main** : elle se glisse à une place au hasard, coûte la même énergie (et rage, Foi, éclats), demande une cible comme la carte imitée, montre les mêmes chiffres et la même lueur (`seenId`, `seenCombat` dans `cards.ts`). Seul l'**Œil du prophète** la dévoile (cadre violacé, texte qui tremble, tampon). L'appui long ne la dévoile pas. La jouer : son coût est payé, aucun effet, 2 PV perdus. Éphémère. Dans la pioche et la défausse, elle apparaît sous son vrai nom.
 - **Le Sable** : carte-statut injouable, disparaît à la fin du tour (Malédiction des sables de la Momie).
 - **L'Ensevelissement** (intention `burrow`) : l'ennemi ne peut plus être ciblé par une carte à cible unique ; **les DoT et les attaques de zone le touchent**. Il resurgit et frappe.
 - **La Résistance** (`resist` : `attaques` ou `sorts`) : 50 % de dégâts en moins. Les sorts de barre du Guerrier, du Voleur et du Paladin comptent comme des Attaques.
